@@ -108,27 +108,23 @@ int dofflush(void)
 
 int dofprintf( const char* s,...)
 {
+  char buf[3];
   int retval;
   char* temp=NULL;
   va_list ap;
   
   va_start(ap,s);
-  temp=(char*)malloc(3);
-  if(temp==NULL){
-    error(0,"Unable to alloc %i bytes\n",3);
-    return -1;
-  }
-
-  retval=vsnprintf(temp,3,s,ap);
-  
-  free(temp);
+  retval=vsnprintf(buf,3,s,ap);
+  va_end(ap);
   
   temp=(char*)malloc(retval+2);
   if(temp==NULL){
     error(0,"Unable to alloc %i bytes\n",retval+2);
     return -1;
   }  
+  va_start(ap,s);
   retval=vsnprintf(temp,retval+1,s,ap);
+  va_end(ap);
   
 #ifdef WITH_MHASH
   if(conf->do_dbnewmd)
@@ -140,12 +136,13 @@ int dofprintf( const char* s,...)
     retval=gzwrite(conf->db_gzout,temp,retval);
   }else{
 #endif
+    va_start(ap,s);
     retval=vfprintf(conf->db_out,s,ap);
+    va_end(ap);
 #ifdef WITH_ZLIB
   }
 #endif
   free(temp);
-  va_end(ap);
 
   return retval;
 }

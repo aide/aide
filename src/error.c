@@ -184,22 +184,24 @@ void error(int errorlevel,char* error_msg,...)
 			      )) {
     db_line line;
     int len;
-    va_start(ap,error_msg);
     memset(&line,0,sizeof(db_line));
     line.filename=(char*)malloc(3);
     if (line.filename!=NULL) {
+      va_start(ap,error_msg);
       len=vsnprintf(line.filename,2,error_msg,ap);
+      va_end(ap);
       free(line.filename);
       line.filename=malloc(len+2);
       line.filename[0]='#';
       if (line.filename!=NULL) {
 	line.attr=DB_FILENAME;
+        va_start(ap,error_msg);
 	len=vsnprintf(line.filename+1,len+1,error_msg,ap);
+        va_end(ap);
 	db_writeline(&line,conf);
 	free(line.filename);
       }
     }
-    va_end(ap);
   }
 #endif
   

@@ -46,7 +46,7 @@ aide_SOURCES =	\
 		util.c		\
 		aide.c
 
-INCLUDES = -I$(prefix)/include -I$(top_srcdir)/include
+INCLUDES = -I$(top_srcdir)/include -I$(prefix)/include
 
 LDADD = @CRYPTLIB@ @ACLLIB@
 

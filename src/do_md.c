@@ -136,10 +136,10 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
   if (filedes==-1) {
     char* er=strerror(errno);
     if (er!=NULL) {
-      error(5,"do_md():open() for %s failed:%s\n",
+      error(3,"do_md():open() for %s failed:%s\n",
 	    line->filename,er);
     } else {
-      error(5,"do_md():open() for %s failed:%i\n",
+      error(3,"do_md():open() for %s failed:%i\n",
 	    line->filename,errno);
     }
     /*
@@ -216,7 +216,7 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
       md2line(&mdc,line);
       
     } else {
-      error(5,"Message diggest initialization failed.\n");
+      error(3,"Message diggest initialization failed.\n");
       no_hash(line);
       close(filedes);
       return;

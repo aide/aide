@@ -211,7 +211,7 @@ byte* decode_base64(char* src,size_t ssize)
       switch(i)
 	{
 	case FAIL:
-	  error(5, "decode_base64: Illegal character: %c\n", *inb);
+	  error(3, "decode_base64: Illegal character: %c\n", *inb);
 	  error(230, "decode_base64: Illegal line:\n%s\n", src);
 	  return NULL;
 	  break;
@@ -288,7 +288,7 @@ size_t length_base64(char* src,size_t ssize)
       switch(i)
 	{
 	case FAIL:
-	  error(5, "length_base64: Illegal character: %c\n", *inb);
+	  error(3, "length_base64: Illegal character: %c\n", *inb);
 	  error(230, "length_base64: Illegal line:\n%s\n", src);
 	  return NULL;
 	  break;

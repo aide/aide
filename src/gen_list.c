@@ -428,7 +428,7 @@ list* add_file_to_list(list* listp,char*filename,int attr,int* addok)
       int sres;
       sres=AIDE_STAT_FUNC(fil->filename,&fs);
       if (sres!=0) {
-	error(5,"Dead symlink detected at %s\n",fil->filename);
+	error(4,"Dead symlink detected at %s\n",fil->filename);
       }
     }
     
@@ -715,7 +715,7 @@ list* traverse_tree(seltree* tree,list* file_lst,int attr)
   }
 
   if(!(dirh=opendir(tree->path))){
-    error(5,"traverse_tree():%s: %s\n", strerror(errno),tree->path);
+    error(3,"traverse_tree():%s: %s\n", strerror(errno),tree->path);
     return file_lst;
   }
   
@@ -999,7 +999,7 @@ void add_file_to_tree(seltree* tree,db_line* file,int db,int status,int attr)
   if((node->checked&DB_OLD)&&(node->checked&DB_NEW)){
     localignorelist=(node->new_data->attr^node->old_data->attr);
     if (localignorelist!=0) {
-      error(5,"File %s in databases has different attributes, %i,%i\n",node->old_data->filename,node->old_data->attr,node->new_data->attr);
+      error(2,"File %s in databases has different attributes, %i,%i\n",node->old_data->filename,node->old_data->attr,node->new_data->attr);
     }
     
     localignorelist|=ignorelist;
@@ -1160,7 +1160,7 @@ void stat_dir(char* dir)
   int add=0;
   
   if(!(dirh=opendir(dir))){
-    error(5,"populate_tree():%s: %s\n", strerror(errno),tree->path);
+    error(3,"populate_tree():%s: %s\n", strerror(errno),tree->path);
     return;
   }
   
@@ -1261,7 +1261,7 @@ void populate_tree(seltree* tree)
 	  }
 	  i++;
 	}else if(!initdbwarningprinted){
-	  error(5,_("WARNING: Old db contains a file that shouldn\'t be there, run --init or --update\n"));
+	  error(3,_("WARNING: Old db contains a file that shouldn\'t be there, run --init or --update\n"));
 	  initdbwarningprinted=1;
 	}
 	if(i<100){
@@ -1343,7 +1343,7 @@ void hsymlnk(db_line* line) {
       int sres;
       sres=AIDE_STAT_FUNC(line->filename,&fs);
       if (sres!=0 && sres!=EACCES) {
-	error(5,"Dead symlink detected at %s\n",line->filename);
+	error(4,"Dead symlink detected at %s\n",line->filename);
       }
     }
     /*

@@ -260,7 +260,7 @@ void print_lname_changes(char*old,char*new)
         ok = 1;
   }
    if(ok)
-     error(5,(char*)entry_format,"Lname",oline,nline);
+     error(2,(char*)entry_format,"Lname",oline,nline);
 
    return;
 }
@@ -270,14 +270,14 @@ void print_single_acl(acl_type* acl){
   char* aclt;
   
   if (acl==NULL) {
-    error(5,"<NULL>");
+    error(2,"<NULL>");
   } else {
     
     aclt=acltotext(acl->acl,acl->entries);
     if (aclt==NULL) {
-      error(5,"ERROR");
+      error(2,"ERROR");
     } else {
-      error(5,"%s ,",aclt);
+      error(2,"%s ,",aclt);
       free(aclt);
     }
   }
@@ -286,9 +286,9 @@ void print_single_acl(acl_type* acl){
 void print_acl_changes(acl_type* old,acl_type* new) {
   
   if (compare_acl(old,new)==RETFAIL) {
-    error(5,"Acl: old = ");
+    error(2,"Acl: old = ");
     print_single_acl(old);
-    error(5,"\n     new = ");
+    error(2,"\n     new = ");
     print_single_acl(new);
   }
   
@@ -323,7 +323,7 @@ void print_md_changes(byte*old,byte*new,int len,char* name)
     }
   }
   if(ok)
-    error(5,(char*)entry_format,name,oline,nline);
+    error(2,(char*)entry_format,name,oline,nline);
   
   return;
 }
@@ -363,7 +363,7 @@ void print_time_changes(const char* name, time_t old_time, time_t new_time)
 	     "%0.4u-%0.2u-%0.2u %0.2u:%0.2u:%0.2u",
 	     nt->tm_year+1900, nt->tm_mon+1, nt->tm_mday,
 	     nt->tm_hour, nt->tm_min, nt->tm_sec);
-  error(5,(char*)entry_format,name,oline,nline); 
+  error(2,(char*)entry_format,name,oline,nline); 
 }
 
 void print_int_changes(
@@ -374,7 +374,7 @@ void print_int_changes(
 {
   snprintf(oline,part_len,"%i",old);
   snprintf(nline,part_len,"%i",new);
-  error(5,(char*)entry_format,name,oline,nline); 
+  error(2,(char*)entry_format,name,oline,nline); 
 }
 void print_ulong_changes(
         const char* name,
@@ -384,7 +384,7 @@ void print_ulong_changes(
 {
   snprintf(oline,part_len,"%lu",old);
   snprintf(nline,part_len,"%lu",new);
-  error(5,(char*)entry_format,name,oline,nline);  
+  error(2,(char*)entry_format,name,oline,nline);  
 }
 
 void print_string_changes(
@@ -395,7 +395,7 @@ void print_string_changes(
 {
   snprintf(oline,part_len,"%s",old);
   snprintf(nline,part_len,"%s",new);
-  error(5,(char*)entry_format,name,oline,nline); 
+  error(2,(char*)entry_format,name,oline,nline); 
 }
 
 
@@ -406,9 +406,9 @@ void print_dbline_changes(db_line* old,db_line* new,int ignorelist)
   
 
   if(S_ISDIR(new->perm_o)){
-    error(5,"\nDirectory: %s\n",old->filename);
+    error(2,"\nDirectory: %s\n",old->filename);
   }else {
-    error(5,"\nFile: %s\n",old->filename);
+    error(2,"\nFile: %s\n",old->filename);
   }
   
   if(!(DB_LINKNAME&ignorelist)){
@@ -606,9 +606,9 @@ void print_report_header(int nfil,int nadd,int nrem,int nchg)
   if(conf->action&DO_DIFF)
     error(0,_("AIDE found differences between the two databases!!\n"));
   if(conf->config_version)
-    error(5,_("Config version used: %s\n"),conf->config_version);
+    error(2,_("Config version used: %s\n"),conf->config_version);
 
-  error(5,_("Start timestamp: %0.4u-%0.2u-%0.2u %0.2u:%0.2u:%0.2u\n"),
+  error(2,_("Start timestamp: %0.4u-%0.2u-%0.2u %0.2u:%0.2u:%0.2u\n"),
 	st->tm_year+1900, st->tm_mon+1, st->tm_mday,
 	st->tm_hour, st->tm_min, st->tm_sec);
   error(0,_("Summary:\nTotal number of files=%i,added files=%i"
@@ -676,7 +676,7 @@ void compare_db(list* new,db_config* conf)
 	  check_list_for_match(conf->equrxlst,old->filename,&tempignore)) &&
 	 !check_list_for_match(conf->negrxlst,old->filename,&tempignore)){
 	if(!(conf->action&DO_INIT)){
-	  error(5,_("WARNING: Old db contains a file that shouldn\'t be there, run --init or --update\n"));
+	  error(2,_("WARNING: Old db contains a file that shouldn\'t be there, run --init or --update\n"));
 	}
 	initdbwarningprinted=1;
       }
@@ -686,7 +686,7 @@ void compare_db(list* new,db_config* conf)
       int localignorelist=old->attr ^ ((db_line*)r->data)->attr;
       
       if (localignorelist!=0) {
-	error(5,"File %s in databases has different attributes, %i,%i\n",old->filename,old->attr,((db_line*)r->data)->attr);
+	error(2,"File %s in databases has different attributes, %i,%i\n",old->filename,old->attr,((db_line*)r->data)->attr);
       }
       
       localignorelist|=ignorelist;
@@ -732,9 +732,9 @@ void compare_db(list* new,db_config* conf)
     print_report_header(nfil,nadd,nrem,nchg);
 
     if(nadd!=0){
-      error(5,_("Added files:\n"));
+      error(2,_("Added files:\n"));
       for(r=added;r;r=r->next){
-	error(5,"added:%s\n",((db_line*)r->data)->filename);
+	error(2,"added:%s\n",((db_line*)r->data)->filename);
 	if(conf->verbose_level<20){
 	  if(S_ISDIR(((db_line*)r->data)->perm)){
 	    /*	    
@@ -744,7 +744,7 @@ void compare_db(list* new,db_config* conf)
 	    */
 	    eat_files_indir(r->next,((db_line*)r->data)->filename,&filesindir);
 	    if(filesindir>0){
-	      error(5,
+	      error(2,
 		    _("added: THERE WERE ALSO %li "
 		    "FILES ADDED UNDER THIS DIRECTORY\n")
 		    ,filesindir);
@@ -756,21 +756,21 @@ void compare_db(list* new,db_config* conf)
     
 
     if(nrem!=0){
-      error(5,_("Removed files:\n"));
+      error(2,_("Removed files:\n"));
       for(r=removed;r;r=r->next){
-	error(5,"removed:%s\n",((db_line*)r->data)->filename);
+	error(2,"removed:%s\n",((db_line*)r->data)->filename);
       }
     }
 
     if(nchg!=0){
-      error(5,_("Changed files:\n"));
+      error(2,_("Changed files:\n"));
       for(r=changedold;r;r=r->next){
-	error(5,"changed:%s\n",((db_line*)r->data)->filename);
+	error(2,"changed:%s\n",((db_line*)r->data)->filename);
       }
     }
 
     if((conf->verbose_level>=5)&&(nchg!=0)){
-      error(5,_("Detailed information about changes:\n"));
+      error(2,_("Detailed information about changes:\n"));
       for(r=changedold,l=changednew;r;r=r->next,l=l->next){
 	int localignorelist=((db_line*)l->data)->attr^((db_line*)r->data)->attr;
 	localignorelist|=ignorelist;
@@ -833,31 +833,31 @@ long report_tree(seltree* node,int stage, int* stat)
 
   if((stage==1)&&stat[2]){
     if(top)
-      error(5,_("Added files:\n"));
+      error(2,_("Added files:\n"));
     if(node->checked&NODE_ADDED){
-      error(5,_("added:%s\n"),node->new_data->filename);
+      error(2,_("added:%s\n"),node->new_data->filename);
     }
   }
 
   if((stage==2)&&stat[3]){
     if(top)
-      error(5,_("Removed files:\n"));
+      error(2,_("Removed files:\n"));
     if(node->checked&NODE_REMOVED){
-      error(5,_("removed:%s\n"),node->old_data->filename);
+      error(2,_("removed:%s\n"),node->old_data->filename);
     }
   }
 
   if((stage==3)&&stat[4]){
     if(top)
-      error(5,_("Changed files:\n"));
+      error(2,_("Changed files:\n"));
     if(node->checked&NODE_CHANGED){
-      error(5,_("changed:%s\n"),node->new_data->filename);
+      error(2,_("changed:%s\n"),node->new_data->filename);
     }
   }
 
   if((stage==4)&&(conf->verbose_level>=5)&&stat[4]){
     if(top)
-      error(5,_("Detailed information about changes:\n"));
+      error(2,_("Detailed information about changes:\n"));
     if(node->checked&NODE_CHANGED){
       print_dbline_changes(node->old_data,node->new_data,ignorelist);
     }

@@ -370,9 +370,9 @@ db_line* db_readline_disk(int db){
 	    /* In any other case we print the message. */
 	    char* er=strerror(errno);
 	    if (er!=NULL) {
-	      error(5,"open_dir():%s: %s\n",er , start_path);
+	      error(3,"open_dir():%s: %s\n",er , start_path);
 	    } else {
-	      error(5,"open_dir():%i: %s\n",errno ,start_path);      
+	      error(3,"open_dir():%i: %s\n",errno ,start_path);      
 	    }
 	    if(errno == ENOENT &&
 	       ((r->sel_rx_lst!=NULL || r->neg_rx_lst!=NULL || 
@@ -382,7 +382,7 @@ db_line* db_readline_disk(int db){
 		 The only way a nonexistant dirnode can have children is by 
 		 having rules referring to them.
 	       */
-	      error(5,"There are rules referring to non-existant directories!\n");
+	      error(3,"There are rules referring to non-existant directories!\n");
 	    }
 	  }
 	  r->checked|=NODE_TRAVERSE|NODE_CHECKED;
@@ -438,9 +438,9 @@ int  open_dir() {
        errormessages. */
     /*    char* er=strerror(errno);
     if (er!=NULL) {
-      error(5,"open_dir():%s: %s\n",er , start_path);
+      error(3,"open_dir():%s: %s\n",er , start_path);
     } else {
-      error(5,"open_dir():%i: %s\n",errno ,start_path);      
+      error(3,"open_dir():%i: %s\n",errno ,start_path);      
     }
     */
     return RETFAIL;

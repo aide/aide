@@ -450,7 +450,7 @@ int main(int argc,char**argv)
   */  
   /* Let's do some sanity checks for the config */
   if(cmpurl(conf->db_in_url,conf->db_out_url)==RETOK){
-    error(5,_("WARNING:Input and output database urls are the same.\n"));
+    error(4,_("WARNING:Input and output database urls are the same.\n"));
     if((conf->action&DO_INIT)&&(conf->action&DO_COMPARE)){
       error(0,_("Input and output database urls cannot be the same "
 	    "when doing database update\n"));
@@ -543,8 +543,7 @@ int main(int argc,char**argv)
       stat[0]=1;
       report_tree(conf->tree,4,stat);
     } else {
-      /* This is all non-essential so let's leave it out at -V19 and below */
-      if (conf->verbose_level > 19) {
+      if (conf->verbose_level >= 5) {
         printf("\nAIDE, version " AIDEVERSION "\n\n");
         if(conf->action&DO_COMPARE) {
           printf("### All files match AIDE database.  Looks okay!\n\n");

@@ -322,7 +322,7 @@ void sig_handler(int signal)
   case SIGSEGV :{
     error(200,"Caught SIGBUS/SIGSEGV\n");
     if(conf->catch_mmap==1){
-      error(5,"Caught SIGBUS/SEGV while mmapping. File was truncated while aide was running?\n");
+      error(4,"Caught SIGBUS/SEGV while mmapping. File was truncated while aide was running?\n");
       conf->catch_mmap=0;
     } else {
       error(0,"Caught SIGBUS/SEGV. Exiting\n");
@@ -332,20 +332,20 @@ void sig_handler(int signal)
     break;
   }
   case SIGHUP : {
-    error(5,"Caught SIGHUP\n");
+    error(4,"Caught SIGHUP\n");
     break;
   }
   case SIGTERM : {
-    error(5,"Caught SIGTERM\nUse SIGKILL to terminate\n");
+    error(4,"Caught SIGTERM\nUse SIGKILL to terminate\n");
     break;
   }
   case SIGUSR1 : {
-    error(5,"Setting output to debug level according to signal\n");
+    error(4,"Setting output to debug level according to signal\n");
     conf->verbose_level=220;
     break;
   }
   case SIGUSR2 : {
-    error(5,"Setting output to normal level according to signal\n");
+    error(4,"Setting output to normal level according to signal\n");
     conf->verbose_level=5;
     break;
   }

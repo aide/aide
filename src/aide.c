@@ -316,6 +316,7 @@ void setdefaults_before_config()
   
   do_groupdef("p",DB_PERM);
   do_groupdef("i",DB_INODE);
+  do_groupdef("I",DB_CHECKINODE);
   do_groupdef("n",DB_LNKCOUNT);
   do_groupdef("u",DB_UID);
   do_groupdef("g",DB_GID);

@@ -140,6 +140,7 @@ typedef enum {
 
 #define DB_CHECKMASK (1<<24)    /* "checkmask"*/
 #define DB_SIZEG     (1<<25)	/* "unknown"  */
+#define DB_CHECKINODE (1<<26) /* "checkinode"*/
 
 
 #define DB_HASHES    (DB_MD5|DB_SHA1|DB_RMD160|DB_TIGER|DB_CRC32|DB_HAVAL| \

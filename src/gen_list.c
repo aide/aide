@@ -175,6 +175,44 @@ int treedepth(seltree* node)
   return depth;
 }
 
+/* This function returns a node with the same inode value as the 'file' */
+/* The only place it is used is in add_file_to_tree() function */
+static seltree* get_seltree_inode(seltree* tree, db_line* file, int db)
+{
+  seltree* node=NULL;
+  list* r=NULL;
+  char* tmp=NULL;
+
+  if(tree==NULL){
+    return NULL;
+  }
+
+  /* found the match */
+  if((db == DB_NEW &&
+      tree->new_data != NULL &&
+      file->inode == tree->new_data->inode) ||
+     (db == DB_OLD &&
+      tree->old_data != NULL &&
+      file->inode == tree->old_data->inode)) {
+    return tree;
+  }
+
+  /* tmp is the directory of the file->filename */
+  tmp=strgetndirname(file->filename,treedepth(tree)+1);
+  for(r=tree->childs;r;r=r->next){
+    /* We are interested only in files with the same regexp specification */
+    if(strlen(tmp) == strlen(file->filename) ||
+       strncmp(((seltree*)r->data)->path,tmp,strlen(tmp)+1)==0){
+      node=get_seltree_inode((seltree*)r->data,file,db);
+      if(node!=NULL){
+	break;
+      }
+    }
+  }
+  free(tmp);
+  return node;
+}
+
 seltree* get_seltree_node(seltree* tree,char* path)
 {
   seltree* node=NULL;
@@ -481,7 +519,7 @@ list* add_file_to_list(list* listp,char*filename,int attr,int* addok)
   }
 
   
-  if(DB_INODE&fil->attr){
+  if(DB_INODE&fil->attr||DB_CHECKINODE&fil->attr){
     fil->inode=fs.st_ino;
   } else {
     fil->inode=0;
@@ -1016,6 +1054,47 @@ void add_file_to_tree(seltree* tree,db_line* file,int db,int status,int attr)
       
       node->old_data=NULL;
       node->new_data=NULL;      
+    }
+  }
+
+  /* Do verification if file was moved only if we are asked for it.
+   * old and new data are NULL only if file present in both DBs
+   * and has not been changed.
+   */
+  if((file->attr & DB_CHECKINODE) &&
+     (node->old_data!=NULL || node->new_data!=NULL)) {
+    /* Check if file was moved (same inode, different name in the other DB)*/
+    db_line *oldData;
+    db_line *newData;
+    seltree* moved_node=get_seltree_inode(tree,file,db==DB_OLD?DB_NEW:DB_OLD);
+    
+    if(moved_node == NULL || moved_node == node) {
+      /* There's mo match for inode or it matches the node with the same name.
+       * In first case we don't have a match to compare with.
+       * In the second - we already compared those files. */
+      return;
+    }
+
+    if(db == DB_NEW) {
+      newData = node->new_data;
+      oldData = moved_node->old_data;
+    } else {
+      newData = moved_node->new_data;
+      oldData = node->old_data;
+    }
+
+    localignorelist=(oldData->attr^newData->attr);
+    if (localignorelist!=0) {
+      error(5,"File %s in databases has different attributes, %i,%i\n",
+	    oldData->filename,oldData->attr,newData->attr);
+    }
+    
+    localignorelist|=ignorelist;
+
+    /* Free the data if same else leave as is for report_tree */
+    if(compare_dbline(oldData, newData, localignorelist)==RETOK){
+      node->checked |= db==DB_NEW ? NODE_MOVED_IN : NODE_MOVED_OUT;
+      moved_node->checked |= db==DB_NEW ? NODE_MOVED_OUT : NODE_MOVED_IN;
     }
   }
 }

@@ -816,17 +816,31 @@ long report_tree(seltree* node,int stage, int* stat)
 	/* Node was added to twice and discovered to be not changed*/
       }else if(!(node->checked&DB_OLD)&&(node->checked&DB_NEW)){
 	/* File is in new db but not old. (ADDED) */
-	stat[2]++;
-	node->checked|=NODE_ADDED;
+	/* unless it was moved in */
+	if(!(node->checked&NODE_MOVED_IN)){
+	  stat[2]++;
+	  node->checked|=NODE_ADDED;
+	}
       }else if((node->checked&DB_OLD)&&!(node->checked&DB_NEW)){
 	/* File is in old db but not new. (REMOVED) */
-	stat[3]++;
-	node->checked|=NODE_REMOVED;
+	/* unless it was moved out */
+	if(!(node->checked&NODE_MOVED_OUT)) {
+	  stat[3]++;
+	  node->checked|=NODE_REMOVED;
+	}
       }else if((node->checked&DB_OLD)&&(node->checked&DB_NEW)&&
 	       (node->old_data!=NULL)&&(node->new_data!=NULL)){
 	/* File is in both db's and the data is still there. (CHANGED) */
-	stat[4]++;
-	node->checked|=NODE_CHANGED;
+	if(!(node->checked&(NODE_MOVED_IN|NODE_MOVED_OUT))){
+	  stat[4]++;
+	  node->checked|=NODE_CHANGED;
+	}else if(!(node->checked&NODE_MOVED_IN)) {
+	  stat[2]++;
+	  node->checked|=NODE_ADDED;
+	}else if(!(node->checked&NODE_MOVED_OUT)) {
+	  stat[3]++;
+	  node->checked|=NODE_REMOVED;
+	}
       }
     }
   }

@@ -422,7 +422,7 @@ void update_db_out_order(int attr)
   if((attr&DB_CTIME) && (check_dboo(db_ctime)!=RETFAIL)){
     conf->db_out_order[conf->db_out_size++]=db_ctime;
   }
-  if((attr&DB_INODE) && (check_dboo(db_inode)!=RETFAIL)){
+  if((attr&DB_INODE||attr&DB_CHECKINODE) && (check_dboo(db_inode)!=RETFAIL)){
     conf->db_out_order[conf->db_out_size++]=db_inode;
   }
   if((attr&DB_LNKCOUNT) && (check_dboo(db_lnkcount)!=RETFAIL)){

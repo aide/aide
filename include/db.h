@@ -50,6 +50,8 @@ extern const int db_value[];
 
 #define NODE_TRAVERSE     (1<<9)
 #define NODE_CHECKED      (1<<10)
+#define NODE_MOVED_OUT    (1<<11)
+#define NODE_MOVED_IN     (1<<12)
 
 
 #endif

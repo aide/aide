@@ -1,88 +1,134 @@
-*******************************************************************
 
-		Advanced Intrusion Detection Environment
+             AIDE - Advanced Intrusion Detection Environment
+            -------------------------------------------------
+                               Version 0.10
 
-		Version 0.10
+    This file is free software; as a special exception the author gives
+    unlimited permission to copy and/or distribute it, with or without
+    modifications, as long as this notice is preserved.
 
-*******************************************************************
-
-Introduction
-
-This piece of software was written as a replacement and extension
-for Tripwire. Tripwire is an excellent program in itself but lacks
-some features and is a closed product.
-
-Current Features:
-Multiple integrity checking algorithms (Even more with mhash support)
-Ability to output the database to stdout/file
-Easy configuration through a powerful configuration file
-Compressed databases(zlib support)
-Lots of others. see docs.
-
-Planned Features and TODO list:
-Multiple database retrieval backends
-Encrypted databases
-Return Codes
-Email report
-More elaborate report options
-Recurse=n
-Interactive db update
-Is file really deleted or has the config changed.
-Rewrite for smaller memory footprint.
-Localization
-Relative paths in databases
-Checksum of the binary at the start of the report
-PGP support
-@@ifdef foo || ( bar && baz )
-Use newer autoconf
-Release more often
+    This file is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY, to the extend permitted by law; without even the
+    implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 
-Documentation 
+    Introduction
+    ------------
 
-Documentation is in doc/ directory. 
-The manual pages are a good place to start.
-Also see doc/manual.html or http://www.cs.tut.fi/~rammer/aide/manual.html
-Other useful information might appear on http://sf.net/projects/aide
+    AIDE is a tool for monitoring file system changes.  It can be used
+    to detect unauthorized monitored files and directories.  AIDE was
+    written to be a simple and free alternative to Tripwire.  Features
+    currently included in AIDE are as follows:
 
-Requirements
+        o  File attributes monitored: perissions, inode, user, group
+           file size, mtime, atime, ctime, links and growing size.
+        o  Checksums and hashes supported: SHA1, MD5, RMD160, and TIGER.
+           CRC32, HAVAL and GOST if Mhash support is compiled in.
+        o  Plain text configuration files and database for simplicity.
+        o  Rules, variables and macros that can be customized to local
+           site or system policies.
+        o  Powerful regular expression support to selectively include or
+           exclude files and directories to be monitored.
+        o  gzip database compression if zlib support is compiled in.
+        o  Stand alone static binary for easy client/server monitoring
+           configurations.
+        o  Free software licensed under the GNU General Public License.
 
-Once compiled aide is an independent program it does not need
-any shared libraries or other programs to function.
 
-Currently AIDE requires the following software to compile.
-A C-compiler (such as GCC)
-GNU flex 
-GNU yacc 
-GNU make
-MHASH: http://mhash.sourceforge.net/
+    Current Version
+    ---------------
 
-To compile you have to give the following commands:
-tar zxvf aide-version.tar.gz	To unpack the archive
-cd aide-version			Cd to the newly created dir
-./configure --help		To see what configuration options are
-				available
-./configure [some options]	To configure the compilation
-				The options are optional.
-make				Do the actual compilation.
-make install			Install the sofware.
-				You do not have to do this.
-				You should instead put it on read-only
-				media or otherwise secure the binary.
+    AIDE is currently maintained on the SourceForge.  Details of the
+    latest version of AIDE can be found on the server project page under
+    http://sourceforge.net/projects/aide/.
 
-To do development work you should have recent versions of:
-automake
-autoconf
-autoheader
+    Documentation
+    -------------
 
-Disclaimer
+    The documentation for AIDE can be found in the doc/ directory.  The
+    most up-to-date documentation an be found on the SourceForge project
+    web site.
 
-All trademarks are the property of their respective owners.
-No animals were harmed while making this webpage or this piece of
-software.
-Although some pizza delivery guy's feelings were hurt.
+    Installation
+    ------------
+    Please see the INSTALL file.
 
-*************************************************************
-If there is something that ought to be said here 
-please send your comments to aide-devel@lists.sourceforge.net
-*************************************************************
+    
+    Source Code Verification
+    ------------------------
+
+    We highly recommend checking that the version of AIDE downloaded and
+    install is an original and unmodified one.  You have two options to
+    verify the source code; PGP and md5 has.  PGP verification is the
+    preferred method.
+
+    a) To check the supplied signature with GnuPG:
+
+        $ gpg --verify aide-0.10.tar.gz.asc
+
+       This checks that the detached signature file is indeed a signature
+       of aide-0.10.tar.gz.  The key used to create this signature is:
+    
+           pub 1024D/DC271F5C 2003-11-29
+               Aide Developers <aide-devel@lists.sourceforge.net>
+
+       If you do not have this key, you can get it from the SourceForge
+       web site or from one of the well known PGP key servers.  You have
+       to make sure that the key you install is not a faked one.  You can
+       do this with reasonable assurance by comparing the output of:
+
+           gpg --fingerprint 0xDC271F5C
+
+       with the fingerprint published elsewhere.
+
+    b) To check the supplied MD5 hash signature, you can use the md5sum
+       program that is supplied with many *NIX systems.
+
+           $ md5sum aide-0.10.tar.gz
+
+       This should yield output that matches the published MD5 hash:
+
+           39eb7d21064cac7b409c45d038b86cd8   aide-0.10.tar.gz
+
+       Or use the openssl package to verify the MD5 hash:
+
+           $ openssl md5 aide-0.10.tar.gz
+           MD5(aide-0.10.tar.gz)= 39eb7d21064cac7b409c45d038b86cd8
+
+   Requirements
+   ------------
+
+   AIDE requires the following development tools:
+
+       o  C compiler (such as Gcc).
+       o  GNU flex.
+       o  GNU yacc.
+       o  GNU make.
+       o  Mhash (optional, but highly recommended).  Mhash is currently
+          available from http://mhash.sourceforge.net.  Mhash 0.8.18 is
+          the most current version as of this writing that has been
+          widely tested to work with AIDE.
+
+
+    Feedback and Support
+    --------------------
+
+    End user support is available on the AIDE mailing list.  To subscribe,
+    send a message to majordomo@cs.tut.fi with an empty Subject: line and
+    the following text as the BODY of the message:
+subscribe aide
+
+    An archive for the mailing list archive is available online:
+
+        http://www.mail-archive.com/aide@cs.tut.fi/
+
+    To report bugs, contribute patches and contact the current team of
+    developers, visit the SourceForge project web site for additional info:
+
+        http://sourceforge.net/projects/aide/
+
+
+    Credits
+    ------- 
+
+    Please see the AUTHORS file.

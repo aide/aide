@@ -1,0 +1,16 @@
+Planned Features and TODO list:
+Multiple database retrieval backends
+Encrypted databases
+Return Codes
+Email report
+More elaborate report options
+Recurse=n
+Interactive db update
+Is file really deleted or has the config changed.
+Rewrite for smaller memory footprint.
+Localization
+Relative paths in databases
+Checksum of the binary at the start of the report
+PGP support
+@@ifdef foo || ( bar && baz )
+Use newer autoconf

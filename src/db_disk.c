@@ -20,10 +20,10 @@
 
 #include "../config.h"
 #define _POSIX_C_SOURCE 199506L
+#include <unistd.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <sys/types.h>
 #include <stdlib.h>
 #include <time.h>
 #include <dirent.h>

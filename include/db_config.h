@@ -20,7 +20,7 @@
  
 #ifndef _DB_CONFIG_H_INCLUDED
 #define _DB_CONFIG_H_INCLUDED
-#include <sys/types.h>
+#include <unistd.h>
 #include <stdio.h>
 
 #define E2O(n) (1<<n)

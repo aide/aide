@@ -3,4 +3,4 @@
 
 find . -name CVS -exec rm -rf {} \;
 find . -name .cvsignore -exec rm -f {} \;
-rm -f mktgz
+rm -f $0

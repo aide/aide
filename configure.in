@@ -103,26 +103,30 @@ AC_SUBST(AIDE_USE_LOCALE)
 
 AC_ARG_WITH([syslog_ident],
 	AC_HELP_STRING([--with-syslog_ident],
-		[Specify syslog ident]),
-  	[AC_DEFINE_UNQUOTED(AIDE_IDENT,"$withval",[syslog ident])]
+	[syslog ident]),
+  	[AC_DEFINE_UNQUOTED(AIDE_IDENT,"$withval",[syslog ident])],
+  	[AC_DEFINE_UNQUOTED(AIDE_IDENT,"aide",[syslog ident])]
 )
 
 AC_ARG_WITH([syslog_facility],
 	AC_HELP_STRING([--with-syslog_facility],
 		[Specify syslog facility, see man syslog for options]),
-	[AC_DEFINE_UNQUOTED(AIDE_SYSLOG_FACILITY,$withval,[syslog facility])]
+	[AC_DEFINE_UNQUOTED(AIDE_SYSLOG_FACILITY,$withval,[syslog facility])],
+	[AC_DEFINE_UNQUOTED(AIDE_SYSLOG_FACILITY,LOG_LOCAL0,[syslog facility])]
 )
 
 AC_ARG_WITH([syslog_logopt],
 	AC_HELP_STRING([--with-syslog_logopt],
 		[Specify syslog logopt, see man syslog for options]),
-	[AC_DEFINE_UNQUOTED(AIDE_LOGOPT,$withval,[syslog logopt])]
+	[AC_DEFINE_UNQUOTED(AIDE_LOGOPT,$withval,[syslog logopt])],
+	[AC_DEFINE_UNQUOTED(AIDE_LOGOPT,LOG_CONS,[syslog logopt])]
 )
 
 AC_ARG_WITH([syslog_priority],
 	AC_HELP_STRING([--with-syslog_priority],
 		[Specify syslog priority, see man syslog for options]),
-	[AC_DEFINE_UNQUOTED(SYSLOG_PRIORITY,$withval,[syslog priority])]
+	[AC_DEFINE_UNQUOTED(SYSLOG_PRIORITY,$withval,[syslog priority])],
+	[AC_DEFINE_UNQUOTED(SYSLOG_PRIORITY,LOG_NOTICE,[syslog priority])]
 )
 
 
@@ -207,16 +211,16 @@ AC_EGREP_CPP([sunisdefined],
   compoptionstring="${compoptionstring}WITH_READDIR\\n"]
 )
 
-AC_DEFINE_UNQUOTED(AIDE_LSTAT_FUNC,"$AIDE_LSTAT_FUNC",[lstat])
-AC_DEFINE_UNQUOTED(AIDE_STAT_FUNC,"$AIDE_STAT_FUNC",[stat])
-AC_DEFINE_UNQUOTED(AIDE_FSTAT_FUNC,"$AIDE_FSTAT_FUNC",[fstat])
-AC_DEFINE_UNQUOTED(AIDE_STAT_TYPE,"$AIDE_STAT_TYPE",[stat type])
-AC_DEFINE_UNQUOTED(AIDE_INO_TYPE,"$AIDE_INO_TYPE",[ino_t])
-AC_DEFINE_UNQUOTED(AIDE_OFF_TYPE,"$AIDE_OFF_TYPE",[off_t])
-AC_DEFINE_UNQUOTED(AIDE_BLKCNT_TYPE,"$AIDE_BLKCNT_TYPE",[blkcnt_t])
-AC_DEFINE_UNQUOTED(AIDE_READDIR_FUNC,"$AIDE_READDIR_FUNC",[readdir])
-AC_DEFINE_UNQUOTED(AIDE_READDIR_R_FUNC,"$AIDE_READDIR_R_FUNC",[readdir_r])
-AC_DEFINE_UNQUOTED(AIDE_DIRENT_TYPE,"$AIDE_DIRENT_TYPE",[dirent])
+AC_DEFINE_UNQUOTED(AIDE_LSTAT_FUNC,$AIDE_LSTAT_FUNC,[lstat])
+AC_DEFINE_UNQUOTED(AIDE_STAT_FUNC,$AIDE_STAT_FUNC,[stat])
+AC_DEFINE_UNQUOTED(AIDE_FSTAT_FUNC,$AIDE_FSTAT_FUNC,[fstat])
+AC_DEFINE_UNQUOTED(AIDE_STAT_TYPE,$AIDE_STAT_TYPE,[stat type])
+AC_DEFINE_UNQUOTED(AIDE_INO_TYPE,$AIDE_INO_TYPE,[ino_t])
+AC_DEFINE_UNQUOTED(AIDE_OFF_TYPE,$AIDE_OFF_TYPE,[off_t])
+AC_DEFINE_UNQUOTED(AIDE_BLKCNT_TYPE,$AIDE_BLKCNT_TYPE,[blkcnt_t])
+AC_DEFINE_UNQUOTED(AIDE_READDIR_FUNC,$AIDE_READDIR_FUNC,[readdir])
+AC_DEFINE_UNQUOTED(AIDE_READDIR_R_FUNC,$AIDE_READDIR_R_FUNC,[readdir_r])
+AC_DEFINE_UNQUOTED(AIDE_DIRENT_TYPE,$AIDE_DIRENT_TYPE,[dirent])
 
 AC_ARG_WITH([config_file],
 	AC_HELP_STRING([--with-config_file=config_file],
@@ -262,7 +266,7 @@ fi
 
 AC_ARG_WITH([gnu-regexp],
 	AC_HELP_STRING([--with-gnu-regexp],
-		[use the bundled GNU regexp library (use only if necessary)]),
+		[use the bundled GNU regexp library. use only if necessary]),
 	[AC_DEFINE(REGEX, 1, [use bundled GNU regex])],
 	[AC_CHECK_FUNCS(regexec regcomp,,
 		[AC_DEFINE(REGEX,1,[use bundled GNU regex])]
@@ -303,7 +307,9 @@ AC_ARG_WITH([confighmactype],
 	      exit 1
 	   fi
 	fi
-	AC_DEFINE(CONFIGHMACTYPE,"$CONFIGHMACTYPE",[hash type for config file check])]
+	AC_DEFINE_UNQUOTED(CONFIGHMACTYPE,$CONFIGHMACTYPE,[hash type for config file check])],
+	[
+	AC_DEFINE_UNQUOTED(CONFIGHMACTYPE,MHASH_MD5,[hash type for config file check])]
 ,
 )
 
@@ -334,6 +340,17 @@ AC_ARG_WITH([confighmackey],
 	AC_DEFINE_UNQUOTED(CONFHMACKEY_06,"$key06",[HMAC key 06])
 	AC_DEFINE_UNQUOTED(CONFHMACKEY_07,"$key07",[HMAC key 07])
 	AC_DEFINE_UNQUOTED(CONFHMACKEY_08,"$key08",[HMAC key 08])
+	AC_DEFINE_UNQUOTED(CONFHMACKEY_09,"$key09",[HMAC key 09])],
+	[
+	AC_DEFINE_UNQUOTED(CONFHMACKEY_00,"$key00",[HMAC key 00])
+	AC_DEFINE_UNQUOTED(CONFHMACKEY_01,"$key01",[HMAC key 01])
+	AC_DEFINE_UNQUOTED(CONFHMACKEY_02,"$key02",[HMAC key 02])
+	AC_DEFINE_UNQUOTED(CONFHMACKEY_03,"$key03",[HMAC key 03])
+	AC_DEFINE_UNQUOTED(CONFHMACKEY_04,"$key04",[HMAC key 04])
+	AC_DEFINE_UNQUOTED(CONFHMACKEY_05,"$key05",[HMAC key 05])
+	AC_DEFINE_UNQUOTED(CONFHMACKEY_06,"$key06",[HMAC key 06])
+	AC_DEFINE_UNQUOTED(CONFHMACKEY_07,"$key07",[HMAC key 07])
+	AC_DEFINE_UNQUOTED(CONFHMACKEY_08,"$key08",[HMAC key 08])
 	AC_DEFINE_UNQUOTED(CONFHMACKEY_09,"$key09",[HMAC key 09])]
 )
 
@@ -351,7 +368,9 @@ AC_ARG_WITH([dbhmactype],
 	      exit 1
 	   fi
 	fi
-	AC_DEFINE(DBHMACTYPE,"$DBHMACTYPE",[hash type for checking db])]
+	AC_DEFINE_UNQUOTED(DBHMACTYPE,$DBHMACTYPE,[hash type for checking db])],
+	[
+	AC_DEFINE_UNQUOTED(DBHMACTYPE,MHASH_MD5,[hash type for checking db])]
 )
 
 AC_ARG_WITH([dbhmackey],
@@ -372,6 +391,17 @@ AC_ARG_WITH([dbhmackey],
 	key08=`echo $withval|cut -c25-28`
 	key09=`echo $withval|cut -c29-31`
 
+	AC_DEFINE_UNQUOTED(DBHMACKEY_00,"$key00",[DB HMAC key 00])
+	AC_DEFINE_UNQUOTED(DBHMACKEY_01,"$key01",[DB HMAC key 01])
+	AC_DEFINE_UNQUOTED(DBHMACKEY_02,"$key02",[DB HMAC key 02])
+	AC_DEFINE_UNQUOTED(DBHMACKEY_03,"$key03",[DB HMAC key 03])
+	AC_DEFINE_UNQUOTED(DBHMACKEY_04,"$key04",[DB HMAC key 04])
+	AC_DEFINE_UNQUOTED(DBHMACKEY_05,"$key05",[DB HMAC key 05])
+	AC_DEFINE_UNQUOTED(DBHMACKEY_06,"$key06",[DB HMAC key 06])
+	AC_DEFINE_UNQUOTED(DBHMACKEY_07,"$key07",[DB HMAC key 07])
+	AC_DEFINE_UNQUOTED(DBHMACKEY_08,"$key08",[DB HMAC key 08])
+	AC_DEFINE_UNQUOTED(DBHMACKEY_09,"$key09",[DB HMAC key 09])],
+	[
 	AC_DEFINE_UNQUOTED(DBHMACKEY_00,"$key00",[DB HMAC key 00])
 	AC_DEFINE_UNQUOTED(DBHMACKEY_01,"$key01",[DB HMAC key 01])
 	AC_DEFINE_UNQUOTED(DBHMACKEY_02,"$key02",[DB HMAC key 02])

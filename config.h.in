@@ -1,398 +1,290 @@
 /* config.h.in.  Generated from configure.in by autoheader.  */
 
-/* 
-   Compile-time options displayed in -v output */
+/* Compile-time options displayed in -v output */
 #undef AIDECOMPILEOPTIONS
 
-/* 
-   blkcnt_t */
+/* blkcnt_t */
 #undef AIDE_BLKCNT_TYPE
 
-/* 
-   dirent */
+/* dirent */
 #undef AIDE_DIRENT_TYPE
 
-/* 
-   fstat */
+/* fstat */
 #undef AIDE_FSTAT_FUNC
 
-/* 
-   syslog ident */
+/* syslog ident */
 #undef AIDE_IDENT
 
-/* 
-   ino_t */
+/* ino_t */
 #undef AIDE_INO_TYPE
 
-/* 
-   syslog logopt */
+/* syslog logopt */
 #undef AIDE_LOGOPT
 
-/* 
-   lstat */
+/* lstat */
 #undef AIDE_LSTAT_FUNC
 
-/* 
-   off_t */
+/* off_t */
 #undef AIDE_OFF_TYPE
 
-/* 
-   readdir */
+/* readdir */
 #undef AIDE_READDIR_FUNC
 
-/* 
-   readdir_r */
+/* readdir_r */
 #undef AIDE_READDIR_R_FUNC
 
-/* 
-   stat */
+/* stat */
 #undef AIDE_STAT_FUNC
 
-/* 
-   stat type */
+/* stat type */
 #undef AIDE_STAT_TYPE
 
-/* 
-   syslog facility */
+/* syslog facility */
 #undef AIDE_SYSLOG_FACILITY
 
-/* 
-   big endian */
+/* big endian */
 #undef BIG_ENDIAN_HOST
 
-/* 
-   HMAC key 00 */
+/* HMAC key 00 */
 #undef CONFHMACKEY_00
 
-/* 
-   HMAC key 01 */
+/* HMAC key 01 */
 #undef CONFHMACKEY_01
 
-/* 
-   HMAC key 02 */
+/* HMAC key 02 */
 #undef CONFHMACKEY_02
 
-/* 
-   HMAC key 03 */
+/* HMAC key 03 */
 #undef CONFHMACKEY_03
 
-/* 
-   HMAC key 04 */
+/* HMAC key 04 */
 #undef CONFHMACKEY_04
 
-/* 
-   HMAC key 05 */
+/* HMAC key 05 */
 #undef CONFHMACKEY_05
 
-/* 
-   HMAC key 06 */
+/* HMAC key 06 */
 #undef CONFHMACKEY_06
 
-/* 
-   HMAC key 07 */
+/* HMAC key 07 */
 #undef CONFHMACKEY_07
 
-/* 
-   HMAC key 08 */
+/* HMAC key 08 */
 #undef CONFHMACKEY_08
 
-/* 
-   HMAC key 09 */
+/* HMAC key 09 */
 #undef CONFHMACKEY_09
 
-/* 
-   hash type for config file check */
+/* hash type for config file check */
 #undef CONFIGHMACTYPE
 
-/* 
-   Location of configuration file */
+/* Location of configuration file */
 #undef CONFIG_FILE
 
-/* 
-   DB HMAC key 00 */
+/* DB HMAC key 00 */
 #undef DBHMACKEY_00
 
-/* 
-   DB HMAC key 01 */
+/* DB HMAC key 01 */
 #undef DBHMACKEY_01
 
-/* 
-   DB HMAC key 02 */
+/* DB HMAC key 02 */
 #undef DBHMACKEY_02
 
-/* 
-   DB HMAC key 03 */
+/* DB HMAC key 03 */
 #undef DBHMACKEY_03
 
-/* 
-   DB HMAC key 04 */
+/* DB HMAC key 04 */
 #undef DBHMACKEY_04
 
-/* 
-   DB HMAC key 05 */
+/* DB HMAC key 05 */
 #undef DBHMACKEY_05
 
-/* 
-   DB HMAC key 06 */
+/* DB HMAC key 06 */
 #undef DBHMACKEY_06
 
-/* 
-   DB HMAC key 07 */
+/* DB HMAC key 07 */
 #undef DBHMACKEY_07
 
-/* 
-   DB HMAC key 08 */
+/* DB HMAC key 08 */
 #undef DBHMACKEY_08
 
-/* 
-   DB HMAC key 09 */
+/* DB HMAC key 09 */
 #undef DBHMACKEY_09
 
-/* 
-   hash type for checking db */
+/* hash type for checking db */
 #undef DBHMACTYPE
 
-/* 
-   Default location of signature database */
+/* Default location of signature database */
 #undef DEFAULT_DB
 
-/* 
-   Default output location for newly-generated signature database */
+/* Default output location for newly-generated signature database */
 #undef DEFAULT_DB_OUT
 
-/* 
-   don't force config checksum */
+/* don't force config checksum */
 #undef FORCECONFIGMD
 
-/* 
-   don't force database checksum */
+/* don't force database checksum */
 #undef FORCEDBMD
 
-/* 
-   Define to 1 if the system has the
-   type `byte ushort ulong u16 u32 u64'. */
-#undef HAVE_BYTE_USHORT_ULONG_U16_U32_U64
+/* Define to 1 if the system has the type `byte'. */
+#undef HAVE_BYTE
 
-/* 
-   Define to 1 if you have the <inttypes.h>
-   header file. */
+/* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* 
-   Define to 1 if you have the `crypt'
-   library (-lcrypt). */
+/* Define to 1 if you have the `crypt' library (-lcrypt). */
 #undef HAVE_LIBCRYPT
 
-/* 
-   Define to 1 if you have the <libintl.h>
-   header file. */
+/* Define to 1 if you have the <libintl.h> header file. */
 #undef HAVE_LIBINTL_H
 
-/* 
-   Define to 1 if you have the `pq'
-   library (-lpq). */
+/* Define to 1 if you have the `pq' library (-lpq). */
 #undef HAVE_LIBPQ
 
-/* 
-   Define to 1 if you have the `z'
-   library (-lz). */
+/* Define to 1 if you have the `z' library (-lz). */
 #undef HAVE_LIBZ
 
-/* 
-   Define to 1 if you have the <memory.h>
-   header file. */
+/* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
-/* 
-   Define to 1 if you have the `mmap'
-   function. */
+/* Define to 1 if you have the `mmap' function. */
 #undef HAVE_MMAP
 
-/* 
-   Define to 1 if you have the `readdir'
-   function. */
+/* Define to 1 if you have the `readdir' function. */
 #undef HAVE_READDIR
 
-/* 
-   Define to 1 if you have the `readdir_r'
-   function. */
+/* Define to 1 if you have the `readdir_r' function. */
 #undef HAVE_READDIR_R
 
-/* 
-   Define to 1 if you have the `regcomp'
-   function. */
+/* Define to 1 if you have the `regcomp' function. */
 #undef HAVE_REGCOMP
 
-/* 
-   Define to 1 if you have the `regexec'
-   function. */
+/* Define to 1 if you have the `regexec' function. */
 #undef HAVE_REGEXEC
 
-/* 
-   Define to 1 if you have the <stdint.h>
-   header file. */
+/* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
 
-/* 
-   Define to 1 if you have the <stdlib.h>
-   header file. */
+/* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
 
-/* 
-   Define to 1 if you have the `stricmp'
-   function. */
+/* Define to 1 if you have the `stricmp' function. */
 #undef HAVE_STRICMP
 
-/* 
-   Define to 1 if you have the <strings.h>
-   header file. */
+/* Define to 1 if you have the <strings.h> header file. */
 #undef HAVE_STRINGS_H
 
-/* 
-   Define to 1 if you have the <string.h>
-   header file. */
+/* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
 
-/* 
-   syslog available? */
+/* syslog available? */
 #undef HAVE_SYSLOG
 
-/* 
-   Define to 1 if you have the <syslog.h>
-   header file. */
+/* Define to 1 if you have the <syslog.h> header file. */
 #undef HAVE_SYSLOG_H
 
-/* 
-   Define to 1 if you have the <sys/stat.h>
-   header file. */
+/* Define to 1 if you have the <sys/stat.h> header file. */
 #undef HAVE_SYS_STAT_H
 
-/* 
-   Define to 1 if you have the <sys/types.h>
-   header file. */
+/* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
 
-/* 
-   Define to 1 if you have the <unistd.h>
-   header file. */
+/* Define to 1 if the system has the type `u16'. */
+#undef HAVE_U16
+
+/* Define to 1 if the system has the type `u32'. */
+#undef HAVE_U32
+
+/* Define to 1 if the system has the type `u64'. */
+#undef HAVE_U64
+
+/* Define to 1 if the system has the type `ulong'. */
+#undef HAVE_ULONG
+
+/* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* 
-   Define to 1 if you have the `ustat'
-   function. */
+/* Define to 1 if the system has the type `ushort'. */
+#undef HAVE_USHORT
+
+/* Define to 1 if you have the `ustat' function. */
 #undef HAVE_USTAT
 
-/* 
-   Define to 1 if you have the <ustat.h>
-   header file. */
+/* Define to 1 if you have the <ustat.h> header file. */
 #undef HAVE_USTAT_H
 
-/* 
-   Define to 1 if you have the <zlib.h>
-   header file. */
+/* Define to 1 if you have the <zlib.h> header file. */
 #undef HAVE_ZLIB_H
 
-/* 
-   send errors to stderr */
+/* send errors to stderr */
 #undef INITIALERRORSTO
 
-/* 
-   little endian */
+/* little endian */
 #undef LITTLE_ENDIAN_HOST
 
-/* 
-   Localedir to use */
+/* Localedir to use */
 #undef LOCALEDIR
 
-/* 
-   Name of package */
+/* Name of package */
 #undef PACKAGE
 
-/* 
-   Define to the address where bug reports for
-   this package should be sent. */
+/* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
 
-/* 
-   Define to the full name of this package.
-   */
+/* Define to the full name of this package. */
 #undef PACKAGE_NAME
 
-/* 
-   Define to the full name and version of
-   this package. */
+/* Define to the full name and version of this package. */
 #undef PACKAGE_STRING
 
-/* 
-   Define to the one symbol short name of
-   this package. */
+/* Define to the one symbol short name of this package. */
 #undef PACKAGE_TARNAME
 
-/* 
-   Define to the version of this package. */
+/* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
-/* 
-   use bundled GNU regex */
+/* use bundled GNU regex */
 #undef REGEX
 
-/* 
-   The size of a `unsigned int', as computed
-   by sizeof. */
+/* The size of a `unsigned int', as computed by sizeof. */
 #undef SIZEOF_UNSIGNED_INT
 
-/* 
-   The size of a `unsigned long', as computed
-   by sizeof. */
+/* The size of a `unsigned long', as computed by sizeof. */
 #undef SIZEOF_UNSIGNED_LONG
 
-/* 
-   The size of a `unsigned short', as computed
-   by sizeof. */
+/* The size of a `unsigned short', as computed by sizeof. */
 #undef SIZEOF_UNSIGNED_SHORT
 
-/* 
-   Define to 1 if you have the ANSI
-   C header files. */
+/* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
-/* 
-   syslog priority */
+/* syslog priority */
 #undef SYSLOG_PRIORITY
 
-/* 
-   Define if LOCALE support should be used */
+/* Define if LOCALE support should be used */
 #undef USE_LOCALE
 
-/* 
-   Version number of package */
+/* Version number of package */
 #undef VERSION
 
-/* 
-   use ACL */
+/* use ACL */
 #undef WITH_ACL
 
-/* 
-   use gcrypt library */
+/* use gcrypt library */
 #undef WITH_GCRYPT
 
-/* 
-   use mhash library */
+/* use mhash library */
 #undef WITH_MHASH
 
-/* 
-   postgresql support */
+/* postgresql support */
 #undef WITH_PSQL
 
-/* 
-   use ACL on Solaris */
+/* use ACL on Solaris */
 #undef WITH_SUN_ACL
 
-/* 
-   use zlib */
+/* use zlib */
 #undef WITH_ZLIB
 
-/* 
-   Define to 1 if `lex' declares `yytext' as
-   a `char *' by default, not a `char[]'. */
+/* Define to 1 if `lex' declares `yytext' as a `char *' by default, not a
+   `char[]'. */
 #undef YYTEXT_POINTER

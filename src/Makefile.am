@@ -57,13 +57,13 @@ AM_CFLAGS = @CFLAGS@ @MAINTAINER_MODE_TRUE@ -Wall -g
 CLEANFILES = conf_yacc.h conf_yacc.c conf_lex.c db_lex.c *~
 LEX_OUTPUT_ROOT = lex.yy
 
-AM_YFLAGS= -d
+AM_YFLAGS= -d 
 
 db_lex.c:db_lex.l
 	${LEX} -Pdb -odb_lex.c $(top_srcdir)/src/db_lex.l
 
 conf_yacc.c:conf_yacc.y
-	${YACC} ${YFLAGS} -p conf -o conf_yacc.c $(top_srcdir)/src/conf_yacc.y
+	${YACC} ${YFLAGS} -d -p conf -o conf_yacc.c $(top_srcdir)/src/conf_yacc.y
 
 conf_lex.c:conf_lex.l
 	${LEX} -l -Pconf -oconf_lex.c $(top_srcdir)/src/conf_lex.l

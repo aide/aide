@@ -133,7 +133,7 @@ extern long conf_lineno;
 
 %%
 
-lines : | line lines;
+lines : lines line | ;
 
 line : rule | equrule | negrule | definestmt | undefstmt
        | ifdefstmt | ifndefstmt | ifhoststmt | ifnhoststmt

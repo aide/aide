@@ -1,6 +1,7 @@
 2005-02-20	Richard van den Berg  <richard@vdberg.org>
 	* Removed extra gen_tree() as suggested in patch 985632
 	* Allow escaping of spaces in filenames (Virolainen Pablo <pablo@cs.tut.fi>)
+	* Allow @@{HOSTNAME} usage in aide.conf (Virolainen Pablo <pablo@cs.tut.fi>)
 
 2004-11-16  Richard van den Berg  <richard@vdberg.org>
 	* Applied patch 984424: bug fix for "--check recurses when it shouldn't"

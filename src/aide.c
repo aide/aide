@@ -50,6 +50,10 @@
 /*for locale support*/
 db_config* conf;
 
+#ifndef MAXHOSTNAMELEN
+#define MAXHOSTNAMELEN 256
+#endif
+
 void usage(int exitvalue)
 {
   fprintf(stderr, 
@@ -248,8 +252,21 @@ void setdefaults_before_config()
 {
   char* urlstr=INITIALERRORSTO;
   url_t* u=NULL;
+  char* s=(char*)malloc(sizeof(char)*MAXHOSTNAMELEN+1);
 
+  /*
+    Set up the hostname
+  */
   conf=(db_config*)malloc(sizeof(db_config));
+  conf->defsyms=NULL;
+  
+  if (gethostname(s,MAXHOSTNAMELEN)==-1) {
+    error(0,_("Couldn't get hostname"));
+    free(s);
+  } else {
+    s=(char*)realloc((void*)s,strlen(s)+1);
+    do_define("HOSTNAME",s);
+  }
   
   /* Setting some defaults */
   conf->report_db=0;  
@@ -308,7 +325,6 @@ void setdefaults_before_config()
   conf->equrxlst=NULL;
   conf->negrxlst=NULL;
 
-  conf->defsyms=NULL;
   conf->groupsyms=NULL;
 
   conf->start_time=time(&(conf->start_time));

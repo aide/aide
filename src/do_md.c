@@ -95,17 +95,17 @@ int stat_cmp(struct AIDE_STAT_TYPE* f1,struct AIDE_STAT_TYPE* f2) {
   }
 #define stat_cmp_helper(n,n2) ((f1->n==f2->n)*n2)
 
-  return (stat_cmp_helper(st_ino,DB_INODE)&
-	  stat_cmp_helper(st_mode,DB_PERM)&
-	  stat_cmp_helper(st_nlink,DB_LNKCOUNT)&
-	  stat_cmp_helper(st_size,DB_SIZE)&
-	  stat_cmp_helper(st_mtime,DB_MTIME)&
-	  stat_cmp_helper(st_ctime,DB_CTIME)&
-	  stat_cmp_helper(st_blocks,DB_BCOUNT)&
-	  stat_cmp_helper(st_blksize,DB_BSIZE)&
-	  stat_cmp_helper(st_rdev,DB_RDEV)&
-	  stat_cmp_helper(st_gid,DB_GID)&
-	  stat_cmp_helper(st_uid,DB_UID)&
+  return (stat_cmp_helper(st_ino,DB_INODE)|
+	  stat_cmp_helper(st_mode,DB_PERM)|
+	  stat_cmp_helper(st_nlink,DB_LNKCOUNT)|
+	  stat_cmp_helper(st_size,DB_SIZE)|
+	  stat_cmp_helper(st_mtime,DB_MTIME)|
+	  stat_cmp_helper(st_ctime,DB_CTIME)|
+	  stat_cmp_helper(st_blocks,DB_BCOUNT)|
+	  stat_cmp_helper(st_blksize,DB_BSIZE)|
+	  stat_cmp_helper(st_rdev,DB_RDEV)|
+	  stat_cmp_helper(st_gid,DB_GID)|
+	  stat_cmp_helper(st_uid,DB_UID)|
 	  stat_cmp_helper(st_dev,DB_DEV));
 }
 

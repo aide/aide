@@ -71,7 +71,9 @@ AC_CHECK_SIZEOF(unsigned int, 4)
 AC_CHECK_SIZEOF(unsigned long, 4)
 
 AC_HEADER_STDC
-AC_CHECK_FUNCS(readdir readdir_r stricmp ustat)
+AC_CHECK_FUNCS(readdir)
+AIDE_CHECK_READDIR_R_ARGS
+AC_CHECK_FUNCS(stricmp ustat)
 
 AC_ARG_WITH(mmap,
 	AC_HELP_STRING([--without-mmap],

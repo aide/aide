@@ -1,3 +1,6 @@
+2004-11-04  Richard van den Berg  <richard@vdberg.org>
+	* Make sure readdir_r is POSIX compliant before we use it
+
 2004-11-03  Richard van den Berg  <richard@vdberg.org>
 	* Applied patch 1058973: Please don't add -I$(prefix)/include
 	* Fixed bug 836253: Manual is wrong about --check command

@@ -28,3 +28,22 @@ define(AIDE_MSG_PRINT,
   [ echo $ac_n "$1"" $ac_c" 1>&AC_FD_MSG
   ])
 
+AC_DEFUN(AIDE_CHECK_READDIR_R_ARGS,[
+# Check definition of readdir_r
+AC_CACHE_CHECK(args to readdir_r, aide_cv_readdir_r,
+AC_TRY_LINK(
+[#ifndef SCO
+#define _REENTRANT
+#endif
+#define _POSIX_PTHREAD_SEMANTICS
+#include <pthread.h>
+#include <dirent.h>],
+[ int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
+readdir_r((DIR *) NULL, (struct dirent *) NULL, (struct dirent **) NULL); ],
+aide_cv_readdir_r=POSIX, aide_cv_readdir_r=other))
+if test "$aide_cv_readdir_r" = "POSIX"
+then
+	AC_DEFINE(HAVE_READDIR_R,,[ ])
+fi
+])
+

@@ -543,12 +543,15 @@ int main(int argc,char**argv)
       stat[0]=1;
       report_tree(conf->tree,4,stat);
     } else {
-      printf("\nAIDE, version " AIDEVERSION "\n\n");
-      if(conf->action&DO_COMPARE) {
-        printf("### All files match AIDE database.  Looks okay!\n\n");
-      }
-      if(conf->action&DO_INIT) {
-        printf("### AIDE database initialized.\n\n");
+      /* This is all non-essential so let's leave it out at -V0 */
+      if (conf->verbose_level > 0) {
+        printf("\nAIDE, version " AIDEVERSION "\n\n");
+        if(conf->action&DO_COMPARE) {
+          printf("### All files match AIDE database.  Looks okay!\n\n");
+        }
+        if(conf->action&DO_INIT) {
+          printf("### AIDE database initialized.\n\n");
+        }
       }
     }
     db_close(conf);

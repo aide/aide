@@ -1,7 +1,8 @@
 Basic Installation
 ==================
 
-   These are generic installation instructions.
+   These are generic installation instructions. See the README file
+for Aide specific notes.
 
    The `configure' shell script attempts to guess correct values for
 various system-dependent variables used during compilation.  It uses
@@ -184,7 +185,4 @@ Compiling From CVS
 
 The CVS version of the source code does not come with the `configure' script
 included. Instead a script called `autogen.sh' can be used to generate the
-configure script. At this moment this requires autoconf version 2.13 to be
-present on your system. A newer version of autoconf will not work. If this is
-a problem for you, please do not use the CVS version, but use a released tar
-ball which will include the `configure' script.
+configure script.

@@ -44,6 +44,7 @@ aide_SOURCES =	\
 		compare_db.c	\
 		be.c		\
 		util.c		\
+		snprintf.c	\
 		aide.c
 
 INCLUDES = -I$(top_srcdir)/include -I$(prefix)/include

@@ -24,6 +24,12 @@
 #include "db_config.h"
 #include "config.h"
 
+#if defined(HAVE_SNPRINTF) && !defined(HAVE_C99_VSNPRINTF)
+#define PREFER_PORTABLE_SNPRINTF
+#endif
+
+#include "snprintf.h"
+
 #ifndef __NetBSD__
 #ifndef _POSIX_C_SOURCE
 /* For _POSIX_THREAD_SEMANTICS _REENTRANT */
@@ -44,6 +50,8 @@ void print_version(void);
 void usage(int);
 
 int read_param(int argc,char**argv);
+
+
 
 #endif
 

@@ -63,9 +63,9 @@ CPPFLAGS="$CPPFLAGS $LD_STATIC_FLAG"
 AC_SUBST(LD_STATIC_FLAG)
 
 dnl This macro is new in autoconf-2.13
-AC_SEARCH_LIBS(syslog, bsd socket inet, [AC_DEFINE(HAVE_SYSLOG,,[syslog available?])])
+AC_SEARCH_LIBS(syslog, bsd socket inet, [AC_DEFINE(HAVE_SYSLOG,1,[syslog available?])])
 
-AC_C_BIGENDIAN([AC_DEFINE(BIG_ENDIAN_HOST,,[big endian])], [AC_DEFINE(LITTLE_ENDIAN_HOST,,[little endian])])
+AC_C_BIGENDIAN([AC_DEFINE(BIG_ENDIAN_HOST,1,[big endian])], [AC_DEFINE(LITTLE_ENDIAN_HOST,1,[little endian])])
 
 AC_CHECK_TYPES([byte, ushort, ulong, u16, u32, u64])
 
@@ -83,13 +83,7 @@ AC_ARG_WITH(mmap,
 	[AC_CHECK_FUNCS(mmap)]
 )
 
-AC_CHECK_FUNC(snprintf,,
-	[AC_MSG_ERROR([Must have a system that supports snprintf.])]
-)
-
-AC_CHECK_FUNC(vsnprintf,,
-	[AC_MSG_ERROR([Must have a system that supports vsnprintf.])]
-)
+AC_CHECK_FUNCS(snprintf vsnprintf)
 
 AC_CACHE_CHECK(for ISO C99 compliant snprintf,ac_cv_func_snprintf_c99,
 	[AC_TRY_RUN([
@@ -102,8 +96,8 @@ int main()
 	snprintf(buf, 3, "ABC");
 	exit ((buf[2] != 0) || (snprintf(NULL, 0, "%d", 100) != 3));
 }],ac_cv_func_snprintf_c99=yes,ac_cv_func_snprintf_c99=no,ac_cv_func_snprintf_c99=no)])
-if test $ac_cv_func_snprintf_c99 = no; then
-	AC_MSG_ERROR([snprintf must be ISO C99 compliant.])
+if test $ac_cv_func_snprintf_c99 = yes; then
+	AC_DEFINE(HAVE_C99_SNPRINTF,1,[snprintf is ISO C99 compliant])
 fi
 AC_CACHE_CHECK(for ISO C99 compliant vsnprintf,ac_cv_func_vsnprintf_c99,
 	[AC_TRY_RUN([
@@ -129,8 +123,8 @@ int main()
 	doit(buf, 3, "ABC");
 	exit ((buf[2] != 0) || (doit(NULL, 0, "%d", 100) != 3));
 }],ac_cv_func_vsnprintf_c99=yes,ac_cv_func_vsnprintf_c99=no,ac_cv_func_vsnprintf_c99=no)])
-if test $ac_cv_func_vsnprintf_c99 = no; then
-	AC_MSG_ERROR([vsnprintf must be ISO C99 compliant.])
+if test $ac_cv_func_vsnprintf_c99 = yes; then
+	AC_DEFINE(HAVE_C99_VSNPRINTF,1,[vsnprintf is ISO C99 compliant])
 fi
 
 AC_CHECK_HEADERS(syslog.h ustat.h)
@@ -139,7 +133,7 @@ AC_ARG_WITH(locale,
 	AC_HELP_STRING([--with-locale],
 		[use locale stuff]),
 	[AC_CHECK_HEADERS(libintl.h,
-		[AC_DEFINE(USE_LOCALE,,[Define if LOCALE support should be used])
+		[AC_DEFINE(USE_LOCALE,1,[Define if LOCALE support should be used])
 		AIDE_USE_LOCALE=""
         	AC_DEFINE_UNQUOTED(LOCALEDIR,"$prefix/lib/locale",[Localedir to use])],
 	)]
@@ -188,8 +182,8 @@ AC_MSG_CHECKING(for acl-support)
 AC_ARG_WITH(sun-acl,
 	AC_HELP_STRING([--with-sun-acl],
 		[use ACL on solaris (no checking)]),
-	[AC_DEFINE(WITH_SUN_ACL,,[use ACL on Solaris])
-	AC_DEFINE(WITH_ACL,,[use ACL])
+	[AC_DEFINE(WITH_SUN_ACL,1,[use ACL on Solaris])
+	AC_DEFINE(WITH_ACL,1,[use ACL])
 	ACLLIB="-lsec"
 	AC_MSG_RESULT(yes)],
 	[AC_MSG_RESULT(no)]
@@ -322,7 +316,7 @@ AC_ARG_WITH([gnu-regexp],
 AC_ARG_WITH(gcrypt,
 	AC_HELP_STRING([--with-gcrypt],
 		[use gcrypt library]),
-	[AC_DEFINE(WITH_GCRYPT,,[use gcrypt library])
+	[AC_DEFINE(WITH_GCRYPT,1,[use gcrypt library])
 	AC_CHECK_HEADER(gcrypt.h,,
 		AC_MSG_ERROR(You don't have libgcrypt properly installed. Install it if you need one.)
 	)
@@ -334,7 +328,7 @@ AC_ARG_WITH(gcrypt,
 AC_CHECK_LIB([mhash],[mhash_get_block_size],
 	[CRYPTLIB="${CRYPTLIB} -lmhash"
 	compoptionstring="${compoptionstring}WITH_MHASH\\n"
-	AC_DEFINE(WITH_MHASH,,[use mhash library])],
+	AC_DEFINE(WITH_MHASH,1,[use mhash library])],
 	[AC_MSG_ERROR(You must have libmhash properly installed.)]
 )
 
@@ -488,7 +482,7 @@ AC_MSG_CHECKING(for PostgresSQL support)
 AC_ARG_WITH(psql,
 	AC_HELP_STRING([--with-psql],
 		[use postgresql library for storing databases]),
-	AC_DEFINE(WITH_PSQL,,[postgresql support])
+	AC_DEFINE(WITH_PSQL,1,[postgresql support])
 	AC_CHECK_LIB(pq,PQclear,,
 		with_psql=no
 		AC_MSG_RESULT([not found])

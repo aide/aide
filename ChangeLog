@@ -1,5 +1,6 @@
 2004-10-28  Richard van den Berg  <richard@vdberg.org>
 	* Removed config.h.in
+	* Added ISO C99 compliant snprintf for systems that do not have it
 
 2004-10-26  Richard van den Berg  <richard@vdberg.org>
 	* Added check for ISO C99 complient vsnprintf to configure.in

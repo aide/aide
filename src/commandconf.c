@@ -231,8 +231,8 @@ int conf_input_wrapper(char* buf, int max_size, FILE* in)
     } else {
       mhash(conf->confmd,(void*)buf,retval);
     }
-#endif
   }
+#endif
   return retval;
 }
 

@@ -2,7 +2,7 @@
 
 		Advanced Intrusion Detection Environment
 
-		Version 0.9.1
+		Version 0.9.2
 
 *******************************************************************
 
@@ -43,6 +43,7 @@ Documentation
 Documentation is in doc/ directory. 
 The manual pages are a good place to start.
 Also see doc/manual.html or http://www.cs.tut.fi/~rammer/aide/manual.html
+Other useful information might appear on http://sf.net/projects/aide
 
 Requirements
 
@@ -81,7 +82,7 @@ No animals were harmed while making this webpage or this piece of
 software.
 Although some pizza delivery guy's feelings were hurt.
 
-*******************************************************
+*************************************************************
 If there is something that ought to be said here 
-please send your comments to rammer@cs.tut.fi.
-*******************************************************
+please send your comments to aide-devel@lists.sourceforge.net
+*************************************************************

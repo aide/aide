@@ -18,6 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include "aide.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -29,7 +30,6 @@
 #include "db_config.h"
 #include "symboltable.h"
 #include "commandconf.h"
-#include "aide.h"
 
 int retval=0;
 extern int conflex();

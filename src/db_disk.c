@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "../config.h"
+#include "aide.h"
 #define _POSIX_C_SOURCE 199506L
 #include <unistd.h>
 #include <stdio.h>
@@ -38,7 +38,6 @@
 #include "db_disk.h"
 #include "conf_yacc.h"
 #include "util.h"
-#include "aide.h"
 #include "db_sql.h"							/* typedefs */
 #include "commandconf.h"
 /*for locale support*/

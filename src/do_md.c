@@ -19,6 +19,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include "aide.h"
+
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,7 +38,6 @@
 #include "do_md.h"
 #include "report.h"
 #include "list.h"
-#include "aide.h"
 /*for locale support*/
 #include "locale-aide.h"
 /*for locale support*/

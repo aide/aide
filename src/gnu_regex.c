@@ -1,7 +1,5 @@
 char *gnu_regex_rcs = "$Id$";
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "aide.h"
 
 #ifdef REGEX
 

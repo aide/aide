@@ -20,9 +20,9 @@
 #ifndef _AIDE_H_INCLUDED
 #define _AIDE_H_INCLUDED
 
+#include "config.h"
 #include "report.h"
 #include "db_config.h"
-#include "config.h"
 
 #ifdef HAVE_SNPRINTF
 #if !defined(HAVE_C99_SNPRINTF) || !defined(HAVE_C99_VSNPRINTF)

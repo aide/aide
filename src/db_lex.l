@@ -49,7 +49,6 @@ extern YYSTYPE yylval;
 #include "conf_yacc.h"
 #include <string.h>
 #include "report.h"
-#include "aide.h"
 #include "commandconf.h"
 
 /* We need to define these here since we cannot include db.h*/

@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "../config.h"
+#include "aide.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -31,7 +31,6 @@
 
 #include "report.h"
 #include "list.h"
-#include "aide.h"
 #include "be.h"
 /*for locale support*/
 #include "locale-aide.h"

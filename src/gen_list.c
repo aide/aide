@@ -18,8 +18,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include <string.h>
 #include "aide.h"
+#include <string.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <dirent.h>
@@ -33,7 +33,6 @@
 #include <errno.h>
 #include <time.h>
 #include "report.h"
-#include "config.h"
 #include "gnu_regex.h"
 #include "list.h"
 #include "gen_list.h"

@@ -18,6 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include "aide.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,7 +27,6 @@
 #include <sys/param.h>
 
 #include "commandconf.h"
-#include "aide.h"
 #include "conf_lex.h"
 #include "conf_yacc.h"
 #include "db.h"

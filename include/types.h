@@ -21,7 +21,7 @@
 
 #ifndef _TYPES_H_INCLUDED
 #define _TYPES_H_INCLUDED
-#include "config.h"
+#include "aide.h"
 
 /* The AC_CHECK_SIZEOF() in configure fails for some machines.
  * we provide some fallback values here */

@@ -22,7 +22,7 @@
 #ifndef _MD_H_INCLUDED
 #define _MD_H_INCLUDED
 
-#include "../config.h"
+#include "aide.h"
 
 /*
   This should come from configure-script.

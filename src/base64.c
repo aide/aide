@@ -30,10 +30,10 @@
 **
 */
 
+#include "aide.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "config.h"
 #include "base64.h"
 #include "report.h"
 /*for locale support*/

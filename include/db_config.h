@@ -20,12 +20,12 @@
  
 #ifndef _DB_CONFIG_H_INCLUDED
 #define _DB_CONFIG_H_INCLUDED
+#include "aide.h"
 #include <unistd.h>
 #include <stdio.h>
 
 #define E2O(n) (1<<n)
 
-#include "config.h"
 #include "types.h"
 #include "list.h"
 #include "seltree.h"

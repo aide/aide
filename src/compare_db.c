@@ -18,6 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include "aide.h"
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -26,7 +27,6 @@
 #include "base64.h"
 #include "report.h"
 #include "db_config.h"
-#include "aide.h"
 #include "gnu_regex.h"
 #include "gen_list.h"
 #include "list.h"

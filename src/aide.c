@@ -18,6 +18,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include "aide.h"
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdio.h>
@@ -30,8 +32,6 @@
 #if HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-
-#include "aide.h"
 
 #include "md.h"
 #include "commandconf.h"

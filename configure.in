@@ -1,0 +1,537 @@
+
+dnl Initialize automake
+AC_INIT(src/aide.c)
+
+AM_INIT_AUTOMAKE(aide, 0.9)
+dnl The name of the configure h-file.
+AM_CONFIG_HEADER(config.h)
+# We want an absolute path to the source-dir.
+case "$srcdir" in
+    /*)
+    ;;
+    *)
+        oldsrcdir="$srcdir"
+        srcdir="`cd \"$srcdir\";pwd`"
+    ;;
+esac
+
+dnl Check user-configurable parameters first
+
+CPPFLAGS="$CPPFLAGS -I$srcdir -I$srcdir/src"
+
+
+
+dnl Checks for programs.
+AC_PROG_CC
+AC_PROG_MAKE_SET
+AC_PROG_RANLIB
+AC_PROG_YACC
+if test "x${YACC}" != "xbison -y"; then
+        echo "AIDE requires GNU bison"
+        exit 5
+fi
+
+AM_PROG_LEX
+if test "x${LEX}" != "xflex"; then
+        echo "AIDE requires GNU flex"
+        exit 5
+fi
+
+AM_PROG_CC_STDC
+
+AM_SANITY_CHECK
+AM_MAINTAINER_MODE
+
+AC_ARG_PROGRAM
+
+AC_ARG_WITH(extra-includes,
+  [  --with-extra-includes   Specify additional paths to find headerfiles],
+  [ CPPFLAGS="$CFLAGS $withval" ])
+AC_ARG_WITH(extra-libs,
+  [  --with-extra-libs       Specify aditional paths to find libraries],
+  [ LDFLAGS="$LDFLAGS $withval" ])
+AC_ARG_WITH(extra-link-libs,
+  [  --with-extra-link-libs       Specify aditional libraries to link],
+  [ LIBS="$LIBS $withval" ])
+
+
+
+dnl This is borrowed from libtool
+    
+if test $ac_cv_prog_gcc = yes; then
+    LD_STATIC_FLAG='-static'
+
+    case "$host_os" in
+    beos* | irix5* | irix6* | osf3* | osf4* | osf5*)
+	# PIC is the default for these OSes.
+	;;
+    aix*)
+	# Below there is a dirty hack to force normal static linking with -ldl
+	# The problem is because libdl dynamically linked with both libc and
+	# libC (AIX C++ library), which obviously doesn't included in libraries
+	# list by gcc. This cause undefined symbols with -static flags.
+	# This hack allows C programs to be linked with "-static -ldl", but
+	# we not sure about C++ programs.
+	LD_STATIC_FLAG="$LD_STATIC_FLAG ${wl}-lC"
+	;;
+    cygwin* | mingw* | os2*)
+	# We can build DLLs from non-PIC.
+	;;
+    amigaos*)
+	# FIXME: we need at least 68020 code to build shared libraries, but
+	# adding the `-m68020' flag to GCC prevents building anything better,
+	# like `-m68040'.
+	## pic_flag='-m68020 -resident32 -malways-restore-a4'
+	;;
+    sysv4*MP*)
+	## if test -d /usr/nec; then
+	## pic_flag=-Kconform_pic
+	## fi
+	;;
+    *)
+	## pic_flag='-fPIC'
+	;;
+    esac
+else
+    # PORTME Check for PIC flags for the system compiler.
+    case "$host_os" in
+    aix3* | aix4*)
+	# All AIX code is PIC.
+	LD_STATIC_FLAG='-bnso -bI:/lib/syscalls.exp'
+	;;
+	
+    hpux9* | hpux10* | hpux11*)
+	# Is there a better LD_STATIC_FLAG that works with the bundled CC?
+	## wl='-Wl,'
+	LD_STATIC_FLAG="${wl}-a ${wl}archive"
+	## pic_flag='+Z'
+	;;
+	
+    irix5* | irix6*)
+	## wl='-Wl,'
+	LD_STATIC_FLAG='-non_shared'
+	# PIC (with -KPIC) is the default.
+	;;
+	
+    cygwin* | mingw* | os2*)
+	# We can build DLLs from non-PIC.
+	;;
+	
+    osf3* | osf4* | osf5*)
+	# All OSF/1 code is PIC.
+	## wl='-Wl,'
+	LD_STATIC_FLAG='-non_shared'
+	;;
+	
+    sco3.2v5*)
+	## pic_flag='-Kpic'
+	LD_STATIC_FLAG='-dn'
+	## special_shlib_compile_flags='-belf'
+	;;
+	
+    solaris*)
+	## pic_flag='-KPIC'
+	LD_STATIC_FLAG='-Bstatic'
+	## wl='-Wl,'
+	;;
+	
+    sunos4*)
+	## pic_flag='-PIC'
+	LD_STATIC_FLAG='-Bstatic'
+	## wl='-Qoption ld '
+	;;
+	
+    sysv4 | sysv4.2uw2* | sysv4.3* | sysv5*)
+	## pic_flag='-KPIC'
+	LD_STATIC_FLAG='-Bstatic'
+	## wl='-Wl,'
+	;;
+	
+    uts4*)
+	## pic_flag='-pic'
+	LD_STATIC_FLAG='-Bstatic'
+	;;
+    sysv4*MP*)
+	if test -d /usr/nec ;then
+	## pic_flag='-Kconform_pic'
+	LD_STATIC_FLAG='-Bstatic'
+	fi
+	;;
+    *)
+	## can_build_shared=no
+	;;
+    esac
+fi
+
+CFLAGS="$CFLAGS $LD_STATIC_FLAG"
+CPPFLAGS="$CPPFLAGS $LD_STATIC_FLAG"
+
+AC_SUBST(LD_STATIC_FLAG)
+
+dnl This macro is new in autoconf-2.13
+AC_SEARCH_LIBS(syslog, bsd socket inet, AC_DEFINE(HAVE_SYSLOG))
+
+AIDE_CHECK_ENDIAN
+
+AIDE_CHECK_TYPEDEF(byte, HAVE_BYTE_TYPEDEF)
+AIDE_CHECK_TYPEDEF(ushort, HAVE_USHORT_TYPEDEF)
+AIDE_CHECK_TYPEDEF(ulong, HAVE_ULONG_TYPEDEF)
+AIDE_CHECK_TYPEDEF(u16, HAVE_U16_TYPEDEF)
+AIDE_CHECK_TYPEDEF(u32, HAVE_U32_TYPEDEF)
+
+AC_CHECK_SIZEOF(unsigned short, 2)
+AC_CHECK_SIZEOF(unsigned int, 4)
+AC_CHECK_SIZEOF(unsigned long, 4)
+
+AC_HEADER_STDC
+AC_CHECK_FUNCS(readdir readdir_r stricmp ustat)
+AC_ARG_WITH(mmap,
+	[--without-mmap    Don't use mmap. Useful on some platforms with slow mmap],
+	if test "x$withval" = "xyes"; then 
+		AC_CHECK_FUNCS(mmap)
+	fi
+	,
+	AC_CHECK_FUNCS(mmap)
+)
+AC_CHECK_FUNC(vsnprintf,,
+	[AC_MSG_ERROR([Must have a system that supports vsnprintf.])]
+)
+
+AC_CHECK_HEADERS(syslog.h ustat.h)
+
+
+AIDE_USE_LOCALE="#"
+
+AC_ARG_WITH(locale,
+  [--with-locale   use locale stuff],
+  AC_CHECK_HEADERS(libintl.h,
+	AC_DEFINE(USE_LOCALE)
+	AIDE_USE_LOCALE=""
+        AC_DEFINE_UNQUOTED(LOCALEDIR,"$prefix/lib/locale"),)
+)
+
+AC_SUBST(AIDE_USE_LOCALE)
+
+AC_ARG_WITH(syslog_ident,
+  [--with-syslog_ident   Specify syslog ident],
+  AC_DEFINE_UNQUOTED(AIDE_IDENT,"$withval")
+  )
+
+AC_ARG_WITH(syslog_facility,
+  [--with-syslog_facility   Specify syslog facility, see man syslog for options],
+  AC_DEFINE_UNQUOTED(AIDE_SYSLOG_FACILITY,$withval)
+  )
+	
+
+AC_ARG_WITH(syslog_logopt,
+  [--with-syslog_logopt   Specify syslog logopt, see man syslog for options],
+  AC_DEFINE_UNQUOTED(AIDE_LOGOPT,$withval)
+  )
+AC_ARG_WITH(syslog_priority,
+  [--with-syslog_priority   Specify syslog priority, see man syslog for options],
+  AC_DEFINE_UNQUOTED(SYSLOG_PRIORITY,$withval)
+  )
+
+
+AC_ARG_WITH(zlib,
+  [--with-zlib    use zlib compression],,
+  [with_zlib=yes])
+
+
+AC_MSG_CHECKING(for acl-support)
+AC_ARG_WITH(sun-acl,
+  [--with-sun-acl	use ACL on solaris (no checking)],
+  AC_DEFINE(WITH_SUN_ACL)
+  AC_DEFINE(WITH_ACL)
+  ACLLIB="-lsec"
+  AC_MSG_RESULT(yes)
+  ,
+  AC_MSG_RESULT(no)
+  )
+
+AC_SUBST(ACLLIB)
+
+
+  
+
+# This looks wierd because Linux defines lstat64 and then screws it up
+AC_EGREP_CPP(sunisdefined,
+    [#ifdef sun
+	sunisdefined
+    #endif],
+    AC_CHECK_FUNC(lstat64,
+	AC_CHECK_FUNC(stat64,
+  		AC_DEFINE_UNQUOTED(AIDE_LSTAT_FUNC,lstat64)
+  		AC_DEFINE_UNQUOTED(AIDE_STAT_FUNC,stat64)
+  		AC_DEFINE_UNQUOTED(AIDE_FSTAT_FUNC,fstat64)
+  		AC_DEFINE_UNQUOTED(AIDE_STAT_TYPE,stat64),
+  		AC_DEFINE_UNQUOTED(AIDE_INO_TYPE,ino64_t)
+  		AC_DEFINE_UNQUOTED(AIDE_OFF_TYPE,off64_t)
+  		AC_DEFINE_UNQUOTED(AIDE_BLKCNT_TYPE,blkcnt64_t)
+  		AC_DEFINE_UNQUOTED(AIDE_READDIR_FUNC,readdir64)
+  		AC_DEFINE_UNQUOTED(AIDE_READDIR_R_FUNC,readdir64_r)
+  		AC_DEFINE_UNQUOTED(AIDE_DIRENT_TYPE,dirent64)
+		compoptionstring="${compoptionstring}WITH_LSTAT64\\n"
+  		compoptionstring="${compoptionstring}WITH_READDIR64\\n",
+		AC_DEFINE_UNQUOTED(AIDE_LSTAT_FUNC,lstat)
+		AC_DEFINE_UNQUOTED(AIDE_STAT_FUNC,stat)
+		AC_DEFINE_UNQUOTED(AIDE_FSTAT_FUNC,fstat)
+		AC_DEFINE_UNQUOTED(AIDE_STAT_TYPE,stat)
+		AC_DEFINE_UNQUOTED(AIDE_INO_TYPE,ino_t)
+		AC_DEFINE_UNQUOTED(AIDE_OFF_TYPE,off_t)
+		AC_DEFINE_UNQUOTED(AIDE_BLKCNT_TYPE,blkcnt_t)
+		AC_DEFINE_UNQUOTED(AIDE_READDIR_FUNC,readdir)
+		AC_DEFINE_UNQUOTED(AIDE_READDIR_R_FUNC,readdir_r)
+		AC_DEFINE_UNQUOTED(AIDE_DIRENT_TYPE,dirent)
+		compoptionstring="${compoptionstring}WITH_LSTAT\\n"
+		compoptionstring="${compoptionstring}WITH_READDIR\\n"
+		)
+	,
+	AC_DEFINE_UNQUOTED(AIDE_LSTAT_FUNC,lstat)
+	AC_DEFINE_UNQUOTED(AIDE_STAT_FUNC,stat)
+	AC_DEFINE_UNQUOTED(AIDE_FSTAT_FUNC,fstat)
+      	AC_DEFINE_UNQUOTED(AIDE_STAT_TYPE,stat)
+  	AC_DEFINE_UNQUOTED(AIDE_INO_TYPE,ino_t)
+  	AC_DEFINE_UNQUOTED(AIDE_OFF_TYPE,off_t)
+  	AC_DEFINE_UNQUOTED(AIDE_BLKCNT_TYPE,blkcnt_t)
+  	AC_DEFINE_UNQUOTED(AIDE_READDIR_FUNC,readdir)
+  	AC_DEFINE_UNQUOTED(AIDE_READDIR_R_FUNC,readdir_r)
+  	AC_DEFINE_UNQUOTED(AIDE_DIRENT_TYPE,dirent)
+	compoptionstring="${compoptionstring}WITH_LSTAT\\n"
+  	compoptionstring="${compoptionstring}WITH_READDIR\\n"
+	)	
+  ,
+  AC_DEFINE_UNQUOTED(AIDE_LSTAT_FUNC,lstat)
+  AC_DEFINE_UNQUOTED(AIDE_STAT_FUNC,stat)
+  AC_DEFINE_UNQUOTED(AIDE_FSTAT_FUNC,fstat)
+  AC_DEFINE_UNQUOTED(AIDE_STAT_TYPE,stat)
+  AC_DEFINE_UNQUOTED(AIDE_INO_TYPE,ino_t)
+  AC_DEFINE_UNQUOTED(AIDE_OFF_TYPE,off_t)
+  AC_DEFINE_UNQUOTED(AIDE_BLKCNT_TYPE,blkcnt_t)
+  compoptionstring="${compoptionstring}WITH_LSTAT\\n"
+  AC_DEFINE_UNQUOTED(AIDE_READDIR_FUNC,readdir)
+  AC_DEFINE_UNQUOTED(AIDE_READDIR_R_FUNC,readdir_r)
+  AC_DEFINE_UNQUOTED(AIDE_DIRENT_TYPE,dirent)
+  compoptionstring="${compoptionstring}WITH_READDIR\\n"
+  )
+
+
+AC_ARG_WITH(config_file,
+  [--with-config_file=config_file   use config_file as the default
+  config file],
+  AC_DEFINE_UNQUOTED(CONFIG_FILE,"$withval")
+  config_file=$withval
+,
+  if test "x$sysconfdir" != x'${prefix}/etc'; then
+    config_file=`eval echo "$sysconfdir/aide.conf"`
+    AC_DEFINE_UNQUOTED(CONFIG_FILE,"$config_file")
+  elif test "x$prefix" != xNONE; then
+    AC_DEFINE_UNQUOTED(CONFIG_FILE,"$prefix/etc/aide.conf") 
+    config_file="$prefix/etc/aide.conf"
+  else
+    AC_DEFINE_UNQUOTED(CONFIG_FILE,"$ac_default_prefix/etc/aide.conf") 
+    config_file="$ac_default_prefix/etc/aide.conf"
+  fi
+
+)
+
+if test "x$sysconfdir" != x'${prefix}/etc'; then
+     evalled_sysconfdir=`eval echo "$sysconfdir"`
+     AC_DEFINE_UNQUOTED(DEFAULT_DB,"$evalled_sysconfdir/aide.db")
+     AC_DEFINE_UNQUOTED(DEFAULT_DB_OUT,"$evalled_sysconfdir/aide.db.new")
+elif test "x$prefix" != xNONE; then
+     AC_DEFINE_UNQUOTED(DEFAULT_DB,"$prefix/etc/aide.db")
+     AC_DEFINE_UNQUOTED(DEFAULT_DB_OUT,"$prefix/etc/aide.db.new")
+else
+     AC_DEFINE_UNQUOTED(DEFAULT_DB,"$ac_default_prefix/etc/aide.db")
+     AC_DEFINE_UNQUOTED(DEFAULT_DB_OUT,"$ac_default_prefix/etc/aide.db.new")
+fi
+
+
+
+if test x$with_zlib = xyes; then
+  AC_CHECK_HEADERS(zlib.h,,
+ 	[AC_MSG_ERROR([You don't have zlib properly installed.
+Install it or try --without-zlib.])]
+  )
+  save_LDFLAGS=$LDFLAGS
+  LDFLAGS="$LDFLAGS $LD_STATIC_FLAG"
+  AC_CHECK_LIB(z,gzdopen,,
+ 	[AC_MSG_ERROR([You don't have zlib properly installed.
+Install it or try --without-zlib.])]
+)
+  LDFLAGS=$save_LDFLAGS
+  AC_DEFINE(WITH_ZLIB,1)
+fi
+
+AC_ARG_WITH([gnu-regexp],
+  [--with-gnu-regexp  use the bundled GNU regexp(use only if necessary)],
+  [AC_DEFINE(REGEX, 1)]
+,
+  [AC_CHECK_FUNCS(regexec regcomp,,
+	[AC_DEFINE(REGEX,1)])]
+)
+
+AC_ARG_WITH(gcrypt,
+  [--with-gcrypt  use gcrypt library],
+  AC_DEFINE(WITH_GCRYPT)
+  AC_CHECK_HEADER(gcrypt.h,,
+  	AC_MSG_ERROR(You don't have libgcrypt properly installed.
+Install it if you need one.)
+)
+  CRYPTLIB="-lgcrypt"
+  compoptionstring="${compoptionstring}WITH_GCRYPT\\n"
+  ,
+  [with_gcrypt=no])
+
+AC_CHECK_LIB(mhash,mhash_get_block_size,
+  CRYPTLIB="-lmhash"
+  compoptionstring="${compoptionstring}WITH_MHASH\\n"
+  AC_DEFINE(WITH_MHASH)
+,
+	AC_MSG_ERROR(You must have libmhash properly installed.)
+)
+
+AC_SUBST(CRYPTLIB)
+
+AC_ARG_WITH(confighmactype,
+  [--with-confighmactype=TYPE Hash type to use for checking config.
+			      Valid values are md5 and sha1.],
+  if test "x$withval" = "xmd5" ;then
+      AC_DEFINE(CONFIGHMACTYPE,MHASH_MD5)
+  else 
+  if test "x$withval" = "xsha1" ;then
+      AC_DEFINE(CONFIGHMACTYPE,MHASH_SHA1)
+  else 
+      echo "Valid parameters for --with-confighmactype are md5, sha1"
+      exit 1
+  fi
+  fi
+,
+)
+
+AC_ARG_WITH(confighmackey,
+  [--with-confighmackey=KEY HMAC hash key to use for checking config.
+		            Must be a base64 encoded byte stream.
+		            Maximum string length is 31 chars.],
+  if test "x$withval" = "x" ; then
+	echo "--with-confighmackey requires a value"
+	exit 5
+  fi
+  key00=`echo $withval|cut -c1-3`
+  key01=`echo $withval|cut -c4-6`
+  key02=`echo $withval|cut -c7-9`
+  key03=`echo $withval|cut -c10-12`
+  key04=`echo $withval|cut -c13-15`
+  key05=`echo $withval|cut -c16-18`
+  key06=`echo $withval|cut -c19-21`
+  key07=`echo $withval|cut -c22-24`
+  key08=`echo $withval|cut -c25-28`
+  key09=`echo $withval|cut -c29-31`
+
+  AC_DEFINE_UNQUOTED(CONFHMACKEY_00,"$key00")
+  AC_DEFINE_UNQUOTED(CONFHMACKEY_01,"$key01")
+  AC_DEFINE_UNQUOTED(CONFHMACKEY_02,"$key02")
+  AC_DEFINE_UNQUOTED(CONFHMACKEY_03,"$key03")
+  AC_DEFINE_UNQUOTED(CONFHMACKEY_04,"$key04")
+  AC_DEFINE_UNQUOTED(CONFHMACKEY_05,"$key05")
+  AC_DEFINE_UNQUOTED(CONFHMACKEY_06,"$key06")
+  AC_DEFINE_UNQUOTED(CONFHMACKEY_07,"$key07")
+  AC_DEFINE_UNQUOTED(CONFHMACKEY_08,"$key08")
+  AC_DEFINE_UNQUOTED(CONFHMACKEY_09,"$key09"))
+
+
+AC_ARG_WITH(dbhmactype,
+  [--with-dbhmactype=TYPE Hash type to use for checking db.
+			  Valid values are md5 and sha1.],
+  if test "x$withval" = "xmd5" ;then
+      AC_DEFINE(DBHMACTYPE,MHASH_MD5)
+  else 
+  if test "x$withval" = "xsha1" ;then
+      AC_DEFINE(DBHMACTYPE,MHASH_SHA1)
+  else 
+      echo "Valid parameters for --with-dbhmactype are md5, sha1"
+      exit 1
+  fi
+  fi
+,
+)
+
+AC_ARG_WITH(dbhmackey,
+  [--with-dbhmackey=KEY HMAC hash key to use for checking db.
+		            Must be a base64 encoded byte stream.
+		            Maximum string lentgth is 31 chars.],
+  if test "x$withval" = "x" ; then
+	echo "--with-dbhmackey requires a value"
+	exit 5
+  fi
+  key00=`echo $withval|cut -c1-3`
+  key01=`echo $withval|cut -c4-6`
+  key02=`echo $withval|cut -c7-9`
+  key03=`echo $withval|cut -c10-12`
+  key04=`echo $withval|cut -c13-15`
+  key05=`echo $withval|cut -c16-18`
+  key06=`echo $withval|cut -c19-21`
+  key07=`echo $withval|cut -c22-24`
+  key08=`echo $withval|cut -c25-28`
+  key09=`echo $withval|cut -c29-31`
+
+  AC_DEFINE_UNQUOTED(DBHMACKEY_00,"$key00")
+  AC_DEFINE_UNQUOTED(DBHMACKEY_01,"$key01")
+  AC_DEFINE_UNQUOTED(DBHMACKEY_02,"$key02")
+  AC_DEFINE_UNQUOTED(DBHMACKEY_03,"$key03")
+  AC_DEFINE_UNQUOTED(DBHMACKEY_04,"$key04")
+  AC_DEFINE_UNQUOTED(DBHMACKEY_05,"$key05")
+  AC_DEFINE_UNQUOTED(DBHMACKEY_06,"$key06")
+  AC_DEFINE_UNQUOTED(DBHMACKEY_07,"$key07")
+  AC_DEFINE_UNQUOTED(DBHMACKEY_08,"$key08")
+  AC_DEFINE_UNQUOTED(DBHMACKEY_09,"$key09"))
+
+AC_ARG_ENABLE(forced_configmd,
+  [--enable-forced_configmd Forces the config to have checksum.
+		      Also disables --config-check],
+  AC_DEFINE(FORCECONFIGMD,1),
+  AC_DEFINE(FORCECONFIGMD,0))
+
+AC_ARG_ENABLE(forced_dbmd,
+  [--enable-forced_dbmd Forces the file/pipe database's to have checksum.
+			This will be the default in the next release.],
+  AC_DEFINE(FORCEDBMD,1),
+  AC_DEFINE(FORCEDBMD,0))
+
+AC_ARG_WITH(initial_errors_to,
+  [--with-initial_errors_to=URL Where errors should go while checking config.
+		            Default is stderr.],
+  AC_DEFINE_UNQUOTED(INITIALERRORSTO,"$withval"),
+  AC_DEFINE_UNQUOTED(INITIALERRORSTO,"stderr"))
+
+
+AC_CHECK_LIB(c, crypt, [true], AC_CHECK_LIB(crypt, crypt))
+
+AC_MSG_CHECKING(for PostgresSQL support)
+AC_ARG_WITH(psql,
+  [--with-psql   use postgres sql library for storing databases],
+  AC_DEFINE(WITH_PSQL)
+  AC_CHECK_LIB(pq,PQclear,,
+	AC_MSG_ERROR(You must postgres sql library installed.)
+  )
+  PSQLLIB="-lpq"
+  compoptionstring="${compoptionstring}WITH_PSQL\\n"
+  AC_MSG_RESULT(yes)
+  ,
+  PSQLLIB=""
+  [with_psql=no]
+  AC_MSG_RESULT(no)
+)
+
+AC_SUBST(PSQLLIB)
+
+AIDE_DO_LINK_FILES
+
+compoptionstring="${compoptionstring}CONFIG_FILE = \\\"${config_file}\\\"\\n"
+
+AC_DEFINE_UNQUOTED(AIDECOMPILEOPTIONS, "${compoptionstring}")
+
+AC_OUTPUT(Makefile src/Makefile po/Makefile doc/Makefile doc/aide.conf 
+aide.spec)
+

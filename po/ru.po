@@ -1,0 +1,2194 @@
+# Russian Messages for AIDE.
+# Copyright (C) 2000 Free Software Foundation, Inc.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#: aide.c:321 aide.c:340 aide.c:361 commandconf.c:103 db.c:175 gen_list.c:404
+#: gen_list.c:405 gen_list.c:406 gen_list.c:407 gen_list.c:409 gen_list.c:410
+#: gen_list.c:411 gen_list.c:412 getopt.c:761 gnu_regex.c:586 gnu_regex.c:3595
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2000-04-30 16:58+0400\n"
+"PO-Revision-Date: 2000-04-30 16:59+0400\n"
+"Last-Translator: Stanislav Ievelev <inger@linux.ru.net>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=koi8-r\n"
+"Content-Transfer-Encoding: ENCODING\n"
+
+#: aide.c:58
+msgid ""
+"Aide,\n"
+"Usage: aide <options> command\n"
+"\n"
+"Commands:\n"
+"-i\n"
+"--init\n"
+"\tInitialize the database\n"
+"-C\n"
+"--check\n"
+"\tCheck the database\n"
+"-u\n"
+"--update\n"
+"\tCheck and update the database non-interactively.\n"
+"-v\n"
+"--version\n"
+"\tShow version of AIDE and compilation options.\n"
+"-h\n"
+"--help\n"
+"\tShow this help message\n"
+"Options:\n"
+"-c config_file\n"
+"--config=config_file\n"
+"\tGet config options from config_file.\n"
+"-B \"config_stuff\"\n"
+"--before=\"config_stuff\"\n"
+"\tBefore config_file is read use these options.\n"
+"-A \"config_stuff\"\n"
+"--after=\"config_stuff\"\n"
+"\tAfter config_file is read use these options.\n"
+"-r reporter\n"
+"--report=reporter\n"
+"\tWhere report output is written to.\n"
+"-Vverbosity_level\n"
+"--verbose=verbosity_level\n"
+"\tLevel of debug messages.\n"
+"\n"
+msgstr ""
+"Aide,\n"
+"Использование: aide <парамеьры> команда\n"
+"\n"
+"Доступные команды:\n"
+"-i\n"
+"--init\n"
+"\tСоздание базы\n"
+"-C\n"
+"--check\n"
+"\tПроверка базы\n"
+"-u\n"
+"--update\n"
+"\tПроверка базы и автоматическое обновление.\n"
+"-v\n"
+"--version\n"
+"\tПоказать версию AIDE и параметры компиляции.\n"
+"-h\n"
+"--help\n"
+"\tВывести это сообщение\n"
+"Параметры:\n"
+"-c файл_конфигурации\n"
+"--config=файл_конфигурации\n"
+"\tВзять параметры конфигурирования из указанного файла.\n"
+"-B \"config_stuff\"\n"
+"--before=\"config_stuff\"\n"
+"\tВыполнить эти параметры перед  чтением конфигурации из config_file.\n"
+"-A \"config_stuff\"\n"
+"--after=\"config_stuff\"\n"
+"\tВыполнить эти параметры после чтения конфигурации из config_file.\n"
+"-r reporter\n"
+"--report=reporter\n"
+"\tВыводить отчет при помощи reporter.\n"
+"-Vverbosity_level\n"
+"--verbose=verbosity_level\n"
+"\tУровень подробности сообщений.\n"
+"\n"
+
+#: aide.c:89
+msgid "Aide, version "
+msgstr "Aide, версия "
+
+#: aide.c:89
+msgid ""
+"\n"
+"Compiled with the following options\n"
+msgstr ""
+"\n"
+"Скомпилировано со следующими параметрами\n"
+
+#: aide.c:90 base64.c:98 commandconf.c:61 commandconf.c:80 commandconf.c:123
+#: commandconf.c:127 commandconf.c:130 commandconf.c:271 compare_db.c:266
+#: db_file.c:540 db_file.c:659 getopt.c:1045 getopt1.c:134 getopt1.c:182
+msgid "\n"
+msgstr ""
+
+#: aide.c:103
+msgid "help"
+msgstr ""
+
+#: aide.c:104 getopt1.c:117
+msgid "verbose"
+msgstr ""
+
+#: aide.c:105
+msgid "version"
+msgstr ""
+
+#: aide.c:106
+msgid "config"
+msgstr ""
+
+#: aide.c:107
+msgid "before"
+msgstr ""
+
+#: aide.c:108
+msgid "after"
+msgstr ""
+
+#: aide.c:109
+msgid "report"
+msgstr ""
+
+#: aide.c:110
+msgid "init"
+msgstr ""
+
+#: aide.c:111
+msgid "check"
+msgstr ""
+
+#: aide.c:112
+msgid "update"
+msgstr ""
+
+#: aide.c:117
+msgid "hV::vc:B:A:r:e:f:iCu"
+msgstr ""
+
+#: aide.c:135 commandconf.c:516
+#, c-format
+msgid "Illegal verbosity level:%s\n"
+msgstr "Неверный уровень подробности:%s\n"
+
+#: aide.c:138
+#, c-format
+msgid "Setting verbosity to %s\n"
+msgstr "Устанавливаю уровень подробности в %s\n"
+
+#: aide.c:148
+msgid "No config-file name given!\n"
+msgstr "Не получено имя конфигурационного файла!\n"
+
+#: aide.c:157
+#, c-format
+msgid "Configuration error in before statement:%s\n"
+msgstr "Ошибка конфигурации перед выражением:%s\n"
+
+#: aide.c:161
+msgid "-B must have a parameter\n"
+msgstr "-В должен иметь параметр\n"
+
+#: aide.c:170
+#, c-format
+msgid "Configuration error in after statement:%s\n"
+msgstr "Ошибка конфигурации после выражения:%s\n"
+
+#: aide.c:174
+msgid "-A must have a parameter\n"
+msgstr "-А должени иметь параметр\n"
+
+#: aide.c:184
+msgid "-r must have an argument\n"
+msgstr "-r должен иметь параметр\n"
+
+#: aide.c:193 aide.c:203 aide.c:213
+msgid "Cannot have multiple commands on a single commandline.\n"
+msgstr "Невозможно выполнить несколько команд в одной командной строке.\n"
+
+#: aide.c:219
+msgid "Unknown option given. Exiting\n"
+msgstr "Получен неизвестный параметр. Завершаюсь\n"
+
+#: aide.c:225
+msgid "Extra parameters given\n"
+msgstr "Получен лишний параметр\n"
+
+#: aide.c:267
+msgid "p"
+msgstr ""
+
+#: aide.c:268
+msgid "i"
+msgstr ""
+
+#: aide.c:269
+msgid "n"
+msgstr ""
+
+#: aide.c:270
+msgid "u"
+msgstr ""
+
+#: aide.c:271
+msgid "g"
+msgstr ""
+
+#: aide.c:272
+msgid "s"
+msgstr ""
+
+#: aide.c:273
+msgid "S"
+msgstr ""
+
+#: aide.c:274
+msgid "b"
+msgstr ""
+
+#: aide.c:275
+msgid "m"
+msgstr ""
+
+#: aide.c:276
+msgid "c"
+msgstr ""
+
+#: aide.c:277
+msgid "a"
+msgstr ""
+
+#: aide.c:278 db_file.c:53
+msgid "md5"
+msgstr ""
+
+#: aide.c:279 db_file.c:53
+msgid "tiger"
+msgstr ""
+
+#: aide.c:280 db_file.c:53
+msgid "sha1"
+msgstr ""
+
+#: aide.c:281 db_file.c:53
+msgid "rmd160"
+msgstr ""
+
+#: aide.c:283 db_file.c:54
+msgid "crc32"
+msgstr ""
+
+#: aide.c:288 db_file.c:54
+msgid "haval"
+msgstr ""
+
+#: aide.c:289 db_file.c:54
+msgid "gost"
+msgstr ""
+
+#: aide.c:292
+msgid "R"
+msgstr ""
+
+#: aide.c:294
+msgid "L"
+msgstr ""
+
+#: aide.c:295
+msgid ">"
+msgstr ""
+
+#: aide.c:349
+msgid "No options given. Exiting...\n"
+msgstr "Не получено параметров. Завершаюсь...\n"
+
+#: aide.c:355
+msgid "Invalid argument\n"
+msgstr "Неверный параметр\n"
+
+#: aide.c:363
+msgid "Configuration error\n"
+msgstr "Ошибка в конфигурации\n"
+
+#: aide.c:370
+msgid "WARNING:Input and output database urls are the same.\n"
+msgstr "ВНИМАНИЕ:URL входной и выходной баз совпадают.\n"
+
+#: aide.c:372
+msgid ""
+"Input and output database urls cannot be the samewhen doing database update\n"
+msgstr ""
+"URL Входной и выходной база не могут совпадать при обновлении баз\n"
+#: aide.c:383 aide.c:393
+msgid "Error while writing database. Exiting..\n"
+msgstr "Ошибка записи в базу. Завершаюсь..\n"
+
+#: base64.c:41
+msgid "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+msgstr ""
+
+#: base64.c:95
+msgid "encode base64"
+msgstr ""
+
+#: base64.c:111
+#, c-format
+msgid ", data length: %d\n"
+msgstr ""
+
+#: base64.c:185
+msgid "decode base64\n"
+msgstr ""
+
+#: base64.c:211
+#, c-format
+msgid "decode_base64: Illegal character: %c\n"
+msgstr ""
+
+#: base64.c:212
+#, c-format
+msgid ""
+"decode_base64: Illegal line:\n"
+"%s\n"
+msgstr ""
+
+#: be.c:66
+msgid "Couldn't open a pipe for zipped output\n"
+msgstr "Невозможно открыть канал для сжатого вывода\n"
+
+#: be.c:73
+msgid "wb"
+msgstr ""
+
+#: be.c:78 be.c:108
+msgid "w"
+msgstr ""
+
+#: be.c:86
+#, c-format
+msgid "Opening file \"%s\" for %s\n"
+msgstr ""
+
+#: be.c:86 be.c:87 be.c:108 db_file.c:223
+msgid "r"
+msgstr ""
+
+#: be.c:86 be.c:87
+msgid "w+"
+msgstr ""
+
+#: be.c:89
+#, c-format
+msgid "Couldn't open file %s for %s"
+msgstr "Невозможно открыть файл %s для %s"
+
+#: be.c:90
+msgid "reading\n"
+msgstr "чтение\n"
+
+#: be.c:90
+msgid "writing\n"
+msgstr "запись\n"
+
+#: be.c:106
+#, c-format
+msgid "Illegal file descriptor value:%s\n"
+msgstr "Неверное значение дескриптора файла:%s\n"
+
+#: be.c:110
+#, c-format
+msgid "Couldn't reopen file descriptor %i\n"
+msgstr ""
+
+#: be.c:121
+msgid "Not enough memory for postgres sql connection\n"
+msgstr ""
+
+#: be.c:132
+msgid "Must define host for Postgres sql connection\n"
+msgstr ""
+
+#: be.c:136
+#, c-format
+msgid "Psql host is %s\n"
+msgstr ""
+
+#: be.c:138
+msgid "Must define port for Postgres sql connection\n"
+msgstr ""
+
+#: be.c:142
+#, c-format
+msgid "Psql port is %s\n"
+msgstr ""
+
+#: be.c:144
+msgid "Must define name for database for Postgres sql connection\n"
+msgstr ""
+
+#: be.c:148
+#, c-format
+msgid "Psql db is %s\n"
+msgstr ""
+
+#: be.c:150
+msgid "Must define login for Postgres sql connection\n"
+msgstr ""
+
+#: be.c:154
+#, c-format
+msgid "Psql login is %s\n"
+msgstr ""
+
+#: be.c:156
+msgid "Must define password for database for Postgres sql connection\n"
+msgstr ""
+
+#: be.c:160
+#, c-format
+msgid "Psql passwd is %s\n"
+msgstr ""
+
+#: be.c:162 be.c:167
+msgid "Must define table for sql..\n"
+msgstr ""
+
+#: be.c:192
+msgid "Postgres sql error during connection\n"
+msgstr ""
+
+#: be.c:207
+#, c-format
+msgid "Unsupported backend:%i"
+msgstr ""
+
+#: commandconf.c:91 gnu_regex.c:515
+msgid "-"
+msgstr ""
+
+#: commandconf.c:92
+msgid "Config from stdin\n"
+msgstr ""
+
+#: commandconf.c:98
+#, c-format
+msgid "Cannot access config file:%s:%s\n"
+msgstr ""
+
+#: commandconf.c:104
+msgid "No config defined\n"
+msgstr ""
+
+#: commandconf.c:116
+msgid ""
+"@@include \n"
+"\n"
+"\n"
+msgstr ""
+
+#: commandconf.c:125
+msgid "@@include "
+msgstr ""
+
+#: commandconf.c:133
+#, c-format
+msgid "commandconf():%s\n"
+msgstr ""
+
+#: commandconf.c:144
+#, c-format
+msgid "Illegal argument %c to commmandconf()\n"
+msgstr ""
+
+#: commandconf.c:245
+msgid "@@{"
+msgstr ""
+
+#: commandconf.c:246
+msgid "}"
+msgstr ""
+
+#: commandconf.c:261
+#, c-format
+msgid "Variable %s not defined\n"
+msgstr ""
+
+#: commandconf.c:311
+msgid ""
+"\n"
+"Eating until @@endif\n"
+msgstr ""
+
+#: commandconf.c:348
+msgid "Ambigous else"
+msgstr ""
+
+#: commandconf.c:357
+msgid "@@endif or @@else expected"
+msgstr ""
+
+#: commandconf.c:372
+msgid ""
+"\n"
+"@@endif\n"
+msgstr ""
+
+#: commandconf.c:373
+msgid ""
+"\n"
+"Eating done\n"
+msgstr ""
+
+#: commandconf.c:401
+#, c-format
+msgid "Couldn't get hostname %s"
+msgstr ""
+
+#: commandconf.c:459
+#, c-format
+msgid "Unsupported input URL-type:%s\n"
+msgstr ""
+
+#: commandconf.c:473
+#, c-format
+msgid "Setting output database \"%s\"\n"
+msgstr ""
+
+#: commandconf.c:480 commandconf.c:502
+#, c-format
+msgid "Unsupported output URL-type:%s\n"
+msgstr ""
+
+#: commandconf.c:484
+#, c-format
+msgid "Output database set to \"%s\" \"%s\"\n"
+msgstr ""
+
+#: commandconf.c:487
+msgid "Output database already set\n"
+msgstr ""
+
+#: commandconf.c:517
+#, c-format
+msgid "Using previous value:%i\n"
+msgstr ""
+
+#: commandconf.c:524
+#, c-format
+msgid "Verbosity already defined to %i\n"
+msgstr ""
+
+#: compare_db.c:231
+#, c-format
+msgid "Linkname: old = <NULL> , new = %s\n"
+msgstr ""
+
+#: compare_db.c:234
+#, c-format
+msgid "Linkname: old = %s , new = <NULL>\n"
+msgstr ""
+
+#: compare_db.c:236
+#, c-format
+msgid "Linkname: old = %s , new = %s\n"
+msgstr ""
+
+#: compare_db.c:245
+#, c-format
+msgid "%s: old = %s , new = %s\n"
+msgstr ""
+
+#: compare_db.c:254
+#, c-format
+msgid "%s: old = "
+msgstr ""
+
+#: compare_db.c:256 compare_db.c:262 db.c:121 db.c:291 db_file.c:407
+#: db_file.c:454 db_file.c:471
+msgid "0"
+msgstr ""
+
+#: compare_db.c:258 compare_db.c:264 db_file.c:423
+#, c-format
+msgid "%s"
+msgstr ""
+
+#: compare_db.c:260
+msgid " new = "
+msgstr ""
+
+#: compare_db.c:284
+#, c-format
+msgid ""
+"%s: old = %0.4u-%0.2u-%0.2u %0.2u:%0.2u:%0.2u, new = %0.4u-%0.2u-%0.2u "
+"%0.2u:%0.2u:%0.2u\n"
+msgstr ""
+
+#: compare_db.c:298
+#, c-format
+msgid ""
+"\n"
+"File: %s\n"
+msgstr ""
+
+#: compare_db.c:306
+#, c-format
+msgid "Size: old = %u , new = %u\n"
+msgstr ""
+
+#: compare_db.c:313
+#, c-format
+msgid "Bcount: old = %i , new = %i\n"
+msgstr ""
+
+#: compare_db.c:321
+#, c-format
+msgid "Permissions: old = %s , new = %s\n"
+msgstr ""
+
+#: compare_db.c:332
+#, c-format
+msgid "Uid: old = %i , new = %i\n"
+msgstr ""
+
+#: compare_db.c:339
+#, c-format
+msgid "Gid: old = %i , new = %i\n"
+msgstr ""
+
+#: compare_db.c:346
+msgid "Atime"
+msgstr ""
+
+#: compare_db.c:352
+msgid "Mtime"
+msgstr ""
+
+#: compare_db.c:358
+msgid "Ctime"
+msgstr ""
+
+#: compare_db.c:364
+#, c-format
+msgid "Inode: old = %i , new = %i\n"
+msgstr ""
+
+#: compare_db.c:370
+#, c-format
+msgid "Linkcount: old = %i , new = %i\n"
+msgstr ""
+
+#: compare_db.c:378
+msgid "MD5"
+msgstr ""
+
+#: compare_db.c:384
+msgid "SHA1"
+msgstr ""
+
+#: compare_db.c:390
+msgid "RMD160"
+msgstr ""
+
+#: compare_db.c:396
+msgid "TIGER"
+msgstr ""
+
+#: compare_db.c:403
+msgid "CRC32"
+msgstr ""
+
+#: compare_db.c:409
+msgid "HAVAL"
+msgstr ""
+
+#: compare_db.c:415
+msgid "GOST"
+msgstr ""
+
+#: compare_db.c:421
+msgid "CRC32B"
+msgstr ""
+
+#: compare_db.c:472 gen_list.c:188
+msgid "Not enough memory for regexpr compile... exiting..\n"
+msgstr ""
+
+#: compare_db.c:483 gen_list.c:200
+#, c-format
+msgid "Error in selective regexp:%s"
+msgstr ""
+
+#: compare_db.c:533
+msgid "compare_db()\n"
+msgstr ""
+
+#: compare_db.c:549
+msgid "ignore_list"
+msgstr ""
+
+#: compare_db.c:567
+msgid ""
+"WARNING: Old db contains a file that shouldn't be there, run --init or "
+"--update\n"
+msgstr ""
+
+#: compare_db.c:607
+msgid "AIDE found differences between database and filesystem!!\n"
+msgstr "AIDE обнаружил различия между базой и файловой системой!!\n"
+
+#: compare_db.c:608
+#, c-format
+msgid "Start timestamp: %0.4u-%0.2u-%0.2u %0.2u:%0.2u:%0.2u\n"
+msgstr "Время старта: %0.4u-%0.2u-%0.2u %0.2u:%0.2u:%0.2u\n"
+
+#: compare_db.c:611
+#, c-format
+msgid ""
+"Summary:\n"
+"Total number of files=%i,added files=%i,removed files=%i,changed files=%i\n"
+"\n"
+msgstr ""
+"Резюме:\n"
+"ВСЕГО файлов=%i,из них добавленных=%i,удаленных=%i,измененных=%i\n"
+"\n"
+
+#: compare_db.c:615
+msgid "Added files:\n"
+msgstr "Добавленные файлы:\n"
+
+#: compare_db.c:617
+#, c-format
+msgid "added:%s\n"
+msgstr "добавлен:%s\n"
+
+#: compare_db.c:626
+#, c-format
+msgid "added: THERE WERE ALSO %li FILES ADDED UNDER THIS DIRECTORY\n"
+msgstr ""
+
+#: compare_db.c:637
+msgid "Removed files:\n"
+msgstr "Удаленные файлы:\n"
+
+#: compare_db.c:639
+#, c-format
+msgid "removed:%s\n"
+msgstr "удален:%s\n"
+
+#: compare_db.c:644
+msgid "Changed files:\n"
+msgstr "Измененные файлы:\n"
+
+#: compare_db.c:646
+#, c-format
+msgid "changed:%s\n"
+msgstr "изменен:%s\n"
+
+#: compare_db.c:651
+msgid "Detailed information about changes:\n"
+msgstr "Детальная информация об изменениях:\n"
+
+#: compare_db.c:659
+#, c-format
+msgid ""
+"\n"
+"End timestamp: %0.4u-%0.2u-%0.2u %0.2u:%0.2u:%0.2u\n"
+msgstr ""
+"\n"
+"Время завершения: %0.4u-%0.2u-%0.2u %0.2u:%0.2u:%0.2u\n"
+
+#: db.c:54
+#, c-format
+msgid "db_init %i\n"
+msgstr ""
+
+#: db.c:72
+msgid "db_out is null\n"
+msgstr ""
+
+#: db.c:75
+#, c-format
+msgid "db_out is nonnull %s\n"
+msgstr ""
+
+#: db.c:110
+msgid "db_readline():Url-type backend not implemented\n"
+msgstr ""
+
+#: db.c:163 db.c:184
+msgid "db_char2line():Error while reading database\n"
+msgstr ""
+
+#: db.c:194 db_file.c:52
+msgid "bcount"
+msgstr ""
+
+#: db.c:206 db_file.c:53
+msgid "inode"
+msgstr ""
+
+#: db.c:211 db_file.c:52
+msgid "uid"
+msgstr ""
+
+#: db.c:215 db_file.c:52
+msgid "gid"
+msgstr ""
+
+#: db.c:219 db_file.c:52
+msgid "size"
+msgstr ""
+
+#: db.c:265
+msgid "permissions"
+msgstr ""
+
+#: db.c:270
+msgid "nlink"
+msgstr ""
+
+#: db.c:275
+#, c-format
+msgid "Not implemented in db_char2line %i \n"
+msgstr ""
+
+#: db.c:301
+msgid "Error converting base64\n"
+msgstr ""
+
+#: db.c:317
+#, c-format
+msgid "Could not read %s from database"
+msgstr ""
+
+#: db.c:327
+#, c-format
+msgid "Could not read %s from database. String %s \n"
+msgstr ""
+
+#: db.c:358 db.c:394
+msgid "Unknown output in db out.\n"
+msgstr ""
+
+#: db_file.c:52
+msgid "name"
+msgstr ""
+
+#: db_file.c:52
+msgid "lname"
+msgstr ""
+
+#: db_file.c:52
+msgid "perm"
+msgstr ""
+
+#: db_file.c:52
+msgid "atime"
+msgstr ""
+
+#: db_file.c:52
+msgid "ctime"
+msgstr ""
+
+#: db_file.c:53
+msgid "mtime"
+msgstr ""
+
+#: db_file.c:53
+msgid "count"
+msgstr ""
+
+#: db_file.c:54
+msgid "crc32b"
+msgstr ""
+
+#: db_file.c:54
+msgid "unknown"
+msgstr ""
+
+#: db_file.c:75
+#, c-format
+msgid "handle_gzipped_input(),%d\n"
+msgstr ""
+
+#: db_file.c:78
+msgid "gzread() failed!\n"
+msgstr ""
+
+#: db_file.c:87
+#, c-format
+msgid "nread=%d,strlen(buf)=%d,errno=%s,gzerr=%s\n"
+msgstr ""
+
+#: db_file.c:94
+msgid "handle_gzipped_input() exiting\n"
+msgstr ""
+
+#: db_file.c:104 db_file.c:215
+msgid "rb"
+msgstr ""
+
+#: db_file.c:106
+msgid "handle_gzipped_ouput()\n"
+msgstr ""
+
+#: db_file.c:114
+msgid "handle_gzipped_ouput(),exiting\n"
+msgstr ""
+
+#: db_file.c:150
+#, c-format
+msgid "Field %s redefined in @@dbspec\n"
+msgstr ""
+
+#: db_file.c:163
+msgid "Only one @@dbspec in inputdatabase.\n"
+msgstr ""
+
+#: db_file.c:169
+msgid "Aide internal error while reading inputdatabase.\n"
+msgstr ""
+
+#: db_file.c:201
+msgid "Zlib support is not compiled in.\n"
+msgstr ""
+
+#: db_file.c:209
+msgid "Couldn't open a pipe for zipped input\n"
+msgstr ""
+
+#: db_file.c:251
+msgid "Filedatabase must have one db_spec spesification\n"
+msgstr ""
+
+#: db_file.c:256
+msgid "Pipedatabase must have one db_spec spesification\n"
+msgstr ""
+
+#: db_file.c:261
+msgid "FD-database must have one db_spec spesification\n"
+msgstr ""
+
+#: db_file.c:266
+msgid "db_readline_file():Unknown or unsupported db in type.\n"
+msgstr ""
+
+#: db_file.c:298
+#, c-format
+msgid ""
+"Databasefile can have only one db_spec.\n"
+"Trying to continue on line %i\n"
+msgstr ""
+
+#: db_file.c:331
+#, c-format
+msgid "Not enough parameters in db:%i. Trying to continue.\n"
+msgstr ""
+
+#: db_file.c:346
+#, c-format
+msgid "Not enough parameters in db:%i\n"
+msgstr ""
+
+#: db_file.c:356
+#, c-format
+msgid "There was an error in the database file on line:%i.\n"
+msgstr ""
+
+#: db_file.c:362
+#, c-format
+msgid ""
+"Not implemented in db_readline_file %i\n"
+"\"%s\""
+msgstr ""
+
+#: db_file.c:380
+msgid "Newline exptexted in database. Readin until end of line\n"
+msgstr ""
+
+#: db_file.c:383
+#, c-format
+msgid "Skipped value %s\n"
+msgstr ""
+
+#: db_file.c:403 db_file.c:432 db_file.c:446 db_file.c:467 db_file.c:498
+#: db_sql.c:68
+msgid " "
+msgstr ""
+
+#: db_file.c:411
+msgid "0-"
+msgstr ""
+
+#: db_file.c:415
+msgid "00"
+msgstr ""
+
+#: db_file.c:435 db_file.c:483 db_sql.c:176
+#, c-format
+msgid "%li"
+msgstr ""
+
+#: db_file.c:478 db_sql.c:170 db_sql.c:221
+msgid ""
+"\n"
+"Cannot allocate memory..\n"
+msgstr ""
+
+#: db_file.c:501 db_sql.c:147
+#, c-format
+msgid "%lo"
+msgstr ""
+
+#: db_file.c:515
+#, c-format
+msgid ""
+"# This file was generated by Aide, version %s\n"
+"# Time of generation was %.4u-%.2u-%.2u %.2u:%.2u:%.2u\n"
+msgstr ""
+
+#: db_file.c:525
+msgid "@@db_spec "
+msgstr ""
+
+#: db_file.c:532 getopt.c:1044 getopt1.c:181
+#, c-format
+msgid "%s "
+msgstr ""
+
+#: db_file.c:650
+#, c-format
+msgid "Not implemented in db_writeline_file %i\n"
+msgstr ""
+
+#: /opt/rammer/cvs/aide/src/db_lex.c:456
+msgid "C"
+msgstr ""
+
+#: /opt/rammer/cvs/aide/src/db_lex.l:76
+#, c-format
+msgid " %s \n"
+msgstr ""
+
+#: /opt/rammer/cvs/aide/src/db_lex.c:884
+msgid "fatal flex scanner internal error--no action found"
+msgstr ""
+
+#: /opt/rammer/cvs/aide/src/db_lex.c:907
+msgid "fatal flex scanner internal error--end of buffer missed"
+msgstr ""
+
+#: /opt/rammer/cvs/aide/src/db_lex.c:951
+msgid "input buffer overflow, can't enlarge buffer because scanner uses REJECT"
+msgstr ""
+
+#: /opt/rammer/cvs/aide/src/db_lex.c:980
+msgid "fatal error - scanner input buffer overflow"
+msgstr ""
+
+#: /opt/rammer/cvs/aide/src/db_lex.c:1126
+msgid "flex scanner push-back overflow"
+msgstr ""
+
+#: /opt/rammer/cvs/aide/src/db_lex.c:1283
+#: /opt/rammer/cvs/aide/src/db_lex.c:1292
+msgid "out of dynamic memory in yy_create_buffer()"
+msgstr ""
+
+#: /opt/rammer/cvs/aide/src/db_lex.c:1404
+msgid "out of dynamic memory in yy_scan_buffer()"
+msgstr ""
+
+#: /opt/rammer/cvs/aide/src/db_lex.c:1458
+msgid "out of dynamic memory in yy_scan_bytes()"
+msgstr ""
+
+#: /opt/rammer/cvs/aide/src/db_lex.c:1467
+msgid "bad buffer in yy_scan_bytes()"
+msgstr ""
+
+#: /opt/rammer/cvs/aide/src/db_lex.c:1503
+msgid "out of memory expanding start-condition stack"
+msgstr ""
+
+#: /opt/rammer/cvs/aide/src/db_lex.c:1517
+msgid "start-condition stack underflow"
+msgstr ""
+
+#: /opt/rammer/cvs/aide/src/db_lex.c:1542
+#, c-format
+msgid "%s\n"
+msgstr ""
+
+#: db_sql.c:44 db_sql.c:45 db_sql.c:46
+msgid "text"
+msgstr ""
+
+#: db_sql.c:44 db_sql.c:45
+msgid "int"
+msgstr ""
+
+#: db_sql.c:58
+msgid "CREATE TABLE "
+msgstr ""
+
+#: db_sql.c:61
+msgid "("
+msgstr ""
+
+#: db_sql.c:65 db_sql.c:133 db_sql.c:145 db_sql.c:159 db_sql.c:198
+#: db_sql.c:233
+msgid ","
+msgstr ""
+
+#: db_sql.c:71 db_sql.c:343
+msgid ");"
+msgstr ""
+
+#: db_sql.c:73
+#, c-format
+msgid "SQL:%s\n"
+msgstr ""
+
+#: db_sql.c:80 db_sql.c:115
+#, c-format
+msgid "Sql error %s while doing %s\n"
+msgstr ""
+
+#: db_sql.c:83 db_sql.c:118
+#, c-format
+msgid "Sql error while doing %s.\n"
+msgstr ""
+
+#: db_sql.c:86 db_sql.c:121
+msgid "Sql went ok.\n"
+msgstr ""
+
+#: db_sql.c:108
+#, c-format
+msgid "SQL:%s"
+msgstr ""
+
+#: db_sql.c:135
+#, c-format
+msgid "%i"
+msgstr ""
+
+#: db_sql.c:163
+msgid "''"
+msgstr ""
+
+#: db_sql.c:180 db_sql.c:182 db_sql.c:201 db_sql.c:210 db_sql.c:235
+#: db_sql.c:237
+msgid "'"
+msgstr ""
+
+#: db_sql.c:227
+msgid "INSERT INTO aide values("
+msgstr ""
+
+#: db_sql.c:334
+#, c-format
+msgid "Not implemented in sql_writeline_file %i\n"
+msgstr ""
+
+#: do_md.c:109
+msgid "Not enough memory for file reading\n"
+msgstr ""
+
+#: do_md.c:149
+msgid "mhash_init() failed for CRC32\n"
+msgstr ""
+
+#: do_md.c:154
+msgid "mhash_init() failed for HAVAL256\n"
+msgstr ""
+
+#: do_md.c:159
+msgid "mhash_init() failed for GOST\n"
+msgstr ""
+
+#: do_md.c:164
+msgid "mhash_init() failed for CRC32B\n"
+msgstr ""
+
+#: do_md.c:170
+#, c-format
+msgid "Opening %s for md check\n"
+msgstr ""
+
+#: do_md.c:173
+#, c-format
+msgid "do_md():open() for %s failed:%s\n"
+msgstr ""
+
+#: do_md.c:181
+#, c-format
+msgid "File size has changed for %s while aide was running (%d->%d).\n"
+msgstr ""
+
+#: do_md.c:192
+#, c-format
+msgid "error mmap'ing %s\n"
+msgstr ""
+
+#: do_md.c:256
+#, c-format
+msgid "do_md():close() for %s failed:%s\n"
+msgstr ""
+
+#: error.c:44
+msgid "WARNING: Debug output enabled\n"
+msgstr ""
+
+#: error.c:51
+#, c-format
+msgid "WARNING: Already have report output %s\n"
+msgstr ""
+
+#: error.c:64
+#, c-format
+msgid "Cannot open %s for writing\n"
+msgstr ""
+
+#: gen_list.c:237
+#, c-format
+msgid "Adding %s to filelist\n"
+msgstr ""
+
+#: gen_list.c:250
+#, c-format
+msgid "lstat() failed for %s. strerror failed for %i\n"
+msgstr ""
+
+#: gen_list.c:252
+#, c-format
+msgid "lstat() failed for %s:%s\n"
+msgstr ""
+
+#: gen_list.c:265
+#, c-format
+msgid "Can not get current time. strerror failed for %i\n"
+msgstr ""
+
+#: gen_list.c:267
+#, c-format
+msgid "Can not get current time with reason %s\n"
+msgstr ""
+
+#: gen_list.c:272
+#, c-format
+msgid "%s atime in future\n"
+msgstr ""
+
+#: gen_list.c:275
+#, c-format
+msgid "%s mtime in future\n"
+msgstr ""
+
+#: gen_list.c:278
+#, c-format
+msgid "%s ctime in future\n"
+msgstr ""
+
+#: gen_list.c:308 gen_list.c:315
+msgid "malloc failed in add_file_to_list()\n"
+msgstr ""
+
+#: gen_list.c:516
+#, c-format
+msgid "traverse_tree():%s: %s\n"
+msgstr ""
+
+#: gen_list.c:540 gen_list.c:541
+msgid "."
+msgstr ""
+
+#: gen_list.c:543
+msgid ".."
+msgstr ""
+
+#: gen_list.c:550 gen_list.c:551 gen_list.c:639
+msgid "/"
+msgstr ""
+
+#: gen_list.c:558
+#, c-format
+msgid "Checking %s for match\n"
+msgstr ""
+
+#: gen_list.c:580 gen_list.c:604
+#, c-format
+msgid "File %s does not match\n"
+msgstr ""
+
+#: gen_list.c:613
+#, c-format
+msgid "Closedir() failed for %s\n"
+msgstr ""
+
+#: getopt1.c:114
+msgid "add"
+msgstr ""
+
+#: getopt1.c:115
+msgid "append"
+msgstr ""
+
+#: getopt1.c:116
+msgid "delete"
+msgstr ""
+
+#: getopt1.c:118
+msgid "create"
+msgstr ""
+
+#: getopt1.c:119 util.c:42
+msgid "file"
+msgstr ""
+
+#: getopt.c:998 getopt1.c:123
+msgid "abc:d:0123456789"
+msgstr ""
+
+#: getopt1.c:131
+#, c-format
+msgid "option %s"
+msgstr ""
+
+#: getopt1.c:133
+#, c-format
+msgid " with arg %s"
+msgstr ""
+
+#: getopt.c:1015 getopt1.c:148
+msgid "digits occur in two different argv-elements.\n"
+msgstr ""
+
+#: getopt.c:1017 getopt1.c:150
+#, c-format
+msgid "option %c\n"
+msgstr ""
+
+#: getopt.c:1021 getopt1.c:154
+msgid "option a\n"
+msgstr ""
+
+#: getopt.c:1025 getopt1.c:158
+msgid "option b\n"
+msgstr ""
+
+#: getopt.c:1029 getopt1.c:162
+#, c-format
+msgid "option c with value `%s'\n"
+msgstr ""
+
+#: getopt1.c:166
+#, c-format
+msgid "option d with value `%s'\n"
+msgstr ""
+
+#: getopt.c:1036 getopt1.c:173
+#, c-format
+msgid "?? getopt returned character code 0%o ??\n"
+msgstr ""
+
+#: getopt.c:1042 getopt1.c:179
+msgid "non-option ARGV-elements: "
+msgstr ""
+
+#: getopt.c:403
+msgid "POSIXLY_CORRECT"
+msgstr ""
+
+#: getopt.c:576
+msgid "--"
+msgstr ""
+
+#: getopt.c:677
+#, c-format
+msgid "%s: option `%s' is ambiguous\n"
+msgstr ""
+
+#: getopt.c:702
+#, c-format
+msgid "%s: option `--%s' doesn't allow an argument\n"
+msgstr ""
+
+#: getopt.c:707
+#, c-format
+msgid "%s: option `%c%s' doesn't allow an argument\n"
+msgstr ""
+
+#: getopt.c:725 getopt.c:898
+#, c-format
+msgid "%s: option `%s' requires an argument\n"
+msgstr ""
+
+#: getopt.c:754
+#, c-format
+msgid "%s: unrecognized option `--%s'\n"
+msgstr ""
+
+#: getopt.c:758
+#, c-format
+msgid "%s: unrecognized option `%c%s'\n"
+msgstr ""
+
+#: getopt.c:784
+#, c-format
+msgid "%s: illegal option -- %c\n"
+msgstr ""
+
+#: getopt.c:787
+#, c-format
+msgid "%s: invalid option -- %c\n"
+msgstr ""
+
+#: getopt.c:817 getopt.c:947
+#, c-format
+msgid "%s: option requires an argument -- %c\n"
+msgstr ""
+
+#: getopt.c:864
+#, c-format
+msgid "%s: option `-W %s' is ambiguous\n"
+msgstr ""
+
+#: getopt.c:882
+#, c-format
+msgid "%s: option `-W %s' doesn't allow an argument\n"
+msgstr ""
+
+#: gnu_regex.c:1
+msgid "$Id$"
+msgstr ""
+
+#: gnu_regex.c:538
+msgid "(null)\n"
+msgstr ""
+
+#: gnu_regex.c:548
+msgid "/no_op"
+msgstr ""
+
+#: gnu_regex.c:553
+#, c-format
+msgid "/exactn/%d"
+msgstr ""
+
+#: gnu_regex.c:564
+#, c-format
+msgid "/start_memory/%d/%d"
+msgstr ""
+
+#: gnu_regex.c:569
+#, c-format
+msgid "/stop_memory/%d/%d"
+msgstr ""
+
+#: gnu_regex.c:573
+#, c-format
+msgid "/duplicate/%d"
+msgstr ""
+
+#: gnu_regex.c:577
+msgid "/anychar"
+msgstr ""
+
+#: gnu_regex.c:585
+#, c-format
+msgid "/charset%s"
+msgstr ""
+
+#: gnu_regex.c:586 gnu_regex.c:3595
+msgid "_not"
+msgstr ""
+
+#: gnu_regex.c:606
+msgid "/begline"
+msgstr ""
+
+#: gnu_regex.c:610
+msgid "/endline"
+msgstr ""
+
+#: gnu_regex.c:615
+#, c-format
+msgid "/on_failure_jump/0/%d"
+msgstr ""
+
+#: gnu_regex.c:620
+#, c-format
+msgid "/on_failure_keep_string_jump/0/%d"
+msgstr ""
+
+#: gnu_regex.c:625
+#, c-format
+msgid "/dummy_failure_jump/0/%d"
+msgstr ""
+
+#: gnu_regex.c:629
+msgid "/push_dummy_failure"
+msgstr ""
+
+#: gnu_regex.c:634
+#, c-format
+msgid "/maybe_pop_jump/0/%d"
+msgstr ""
+
+#: gnu_regex.c:639
+#, c-format
+msgid "/pop_failure_jump/0/%d"
+msgstr ""
+
+#: gnu_regex.c:644
+#, c-format
+msgid "/jump_past_alt/0/%d"
+msgstr ""
+
+#: gnu_regex.c:649
+#, c-format
+msgid "/jump/0/%d"
+msgstr ""
+
+#: gnu_regex.c:655
+#, c-format
+msgid "/succeed_n/0/%d/0/%d"
+msgstr ""
+
+#: gnu_regex.c:661
+#, c-format
+msgid "/jump_n/0/%d/0/%d"
+msgstr ""
+
+#: gnu_regex.c:667
+#, c-format
+msgid "/set_number_at/0/%d/0/%d"
+msgstr ""
+
+#: gnu_regex.c:671
+msgid "/wordbound"
+msgstr ""
+
+#: gnu_regex.c:675
+msgid "/notwordbound"
+msgstr ""
+
+#: gnu_regex.c:679
+msgid "/wordbeg"
+msgstr ""
+
+#: gnu_regex.c:683
+msgid "/wordend"
+msgstr ""
+
+#: gnu_regex.c:687
+msgid "/before_dot"
+msgstr ""
+
+#: gnu_regex.c:691
+msgid "/at_dot"
+msgstr ""
+
+#: gnu_regex.c:695
+msgid "/after_dot"
+msgstr ""
+
+#: gnu_regex.c:699
+msgid "/syntaxspec"
+msgstr ""
+
+#: gnu_regex.c:701 gnu_regex.c:707
+#, c-format
+msgid "/%d"
+msgstr ""
+
+#: gnu_regex.c:705
+msgid "/notsyntaxspec"
+msgstr ""
+
+#: gnu_regex.c:712
+msgid "/wordchar"
+msgstr ""
+
+#: gnu_regex.c:716
+msgid "/notwordchar"
+msgstr ""
+
+#: gnu_regex.c:720
+msgid "/begbuf"
+msgstr ""
+
+#: gnu_regex.c:724
+msgid "/endbuf"
+msgstr ""
+
+#: gnu_regex.c:728
+#, c-format
+msgid "?%d"
+msgstr ""
+
+#: gnu_regex.c:731
+msgid "/\n"
+msgstr ""
+
+#: gnu_regex.c:742
+#, c-format
+msgid "%d bytes used/%d bytes allocated.\n"
+msgstr ""
+
+#: gnu_regex.c:746
+msgid "fastmap: "
+msgstr ""
+
+#: gnu_regex.c:750
+#, c-format
+msgid "re_nsub: %d\t"
+msgstr ""
+
+#: gnu_regex.c:751
+#, c-format
+msgid "regs_alloc: %d\t"
+msgstr ""
+
+#: gnu_regex.c:752
+#, c-format
+msgid "can_be_null: %d\t"
+msgstr ""
+
+#: gnu_regex.c:753
+#, c-format
+msgid "newline_anchor: %d\n"
+msgstr ""
+
+#: gnu_regex.c:754
+#, c-format
+msgid "no_sub: %d\t"
+msgstr ""
+
+#: gnu_regex.c:755
+#, c-format
+msgid "not_bol: %d\t"
+msgstr ""
+
+#: gnu_regex.c:756
+#, c-format
+msgid "not_eol: %d\t"
+msgstr ""
+
+#: gnu_regex.c:757
+#, c-format
+msgid "syntax: %d\n"
+msgstr ""
+
+#: gnu_regex.c:773
+msgid "(null)"
+msgstr ""
+
+#: gnu_regex.c:832
+msgid "No match"
+msgstr ""
+
+#: gnu_regex.c:833
+msgid "Invalid regular expression"
+msgstr ""
+
+#: gnu_regex.c:834
+msgid "Invalid collation character"
+msgstr ""
+
+#: gnu_regex.c:835
+msgid "Invalid character class name"
+msgstr ""
+
+#: gnu_regex.c:836
+msgid "Trailing backslash"
+msgstr ""
+
+#: gnu_regex.c:837
+msgid "Invalid back reference"
+msgstr ""
+
+#: gnu_regex.c:838
+msgid "Unmatched [ or [^"
+msgstr ""
+
+#: gnu_regex.c:839
+msgid "Unmatched ( or \\("
+msgstr ""
+
+#: gnu_regex.c:840
+msgid "Unmatched \\{"
+msgstr ""
+
+#: gnu_regex.c:841
+msgid "Invalid content of \\{\\}"
+msgstr ""
+
+#: gnu_regex.c:842
+msgid "Invalid range end"
+msgstr ""
+
+#: gnu_regex.c:843 gnu_regex.c:4678 gnu_regex.c:4683
+msgid "Memory exhausted"
+msgstr ""
+
+#: gnu_regex.c:844
+msgid "Invalid preceding regular expression"
+msgstr ""
+
+#: gnu_regex.c:845
+msgid "Premature end of regular expression"
+msgstr ""
+
+#: gnu_regex.c:846
+msgid "Regular expression too big"
+msgstr ""
+
+#: gnu_regex.c:847
+msgid "Unmatched ) or \\)"
+msgstr ""
+
+#: gnu_regex.c:1128
+msgid ""
+"\n"
+"Compiling pattern: "
+msgstr ""
+
+#: gnu_regex.c:1474
+msgid "alnum"
+msgstr ""
+
+#: gnu_regex.c:1475
+msgid "alpha"
+msgstr ""
+
+#: gnu_regex.c:1476
+msgid "blank"
+msgstr ""
+
+#: gnu_regex.c:1477
+msgid "cntrl"
+msgstr ""
+
+#: gnu_regex.c:1478
+msgid "digit"
+msgstr ""
+
+#: gnu_regex.c:1479
+msgid "graph"
+msgstr ""
+
+#: gnu_regex.c:1480
+msgid "lower"
+msgstr ""
+
+#: gnu_regex.c:1481
+msgid "print"
+msgstr ""
+
+#: gnu_regex.c:1482
+msgid "punct"
+msgstr ""
+
+#: gnu_regex.c:1483
+msgid "space"
+msgstr ""
+
+#: gnu_regex.c:1484
+msgid "upper"
+msgstr ""
+
+#: gnu_regex.c:1485
+msgid "xdigit"
+msgstr ""
+
+#: gnu_regex.c:2062
+msgid ""
+"\n"
+"Compiled pattern: "
+msgstr ""
+
+#: gnu_regex.c:3276
+msgid ""
+"\n"
+"\n"
+"Entering re_match_2.\n"
+msgstr ""
+
+#: gnu_regex.c:3377
+msgid "The compiled pattern is: "
+msgstr ""
+
+#: gnu_regex.c:3379
+msgid "The string to match is: `"
+msgstr ""
+
+#: gnu_regex.c:3381
+msgid "'\n"
+msgstr ""
+
+#: gnu_regex.c:3388
+#, c-format
+msgid ""
+"\n"
+"0x%x: "
+msgstr ""
+
+#: gnu_regex.c:3392
+msgid "end of pattern ... "
+msgstr ""
+
+#: gnu_regex.c:3398
+msgid "backtracking.\n"
+msgstr ""
+
+#: gnu_regex.c:3413
+msgid ""
+"\n"
+"SAVING match as best so far.\n"
+msgstr ""
+
+#: gnu_regex.c:3433
+msgid "Restoring best registers.\n"
+msgstr ""
+
+#: gnu_regex.c:3447
+msgid "Accepting match.\n"
+msgstr ""
+
+#: gnu_regex.c:3513
+#, c-format
+msgid "%u failure points pushed, %u popped (%u remain).\n"
+msgstr ""
+
+#: gnu_regex.c:3516
+#, c-format
+msgid "%u registers pushed.\n"
+msgstr ""
+
+#: gnu_regex.c:3522
+#, c-format
+msgid "Returning %d from re_match_2.\n"
+msgstr ""
+
+#: gnu_regex.c:3537
+msgid "EXECUTING no_op.\n"
+msgstr ""
+
+#: gnu_regex.c:3546
+#, c-format
+msgid "EXECUTING exactn %d.\n"
+msgstr ""
+
+#: gnu_regex.c:3575
+msgid "EXECUTING anychar.\n"
+msgstr ""
+
+#: gnu_regex.c:3584
+#, c-format
+msgid "  Matched `%d'.\n"
+msgstr ""
+
+#: gnu_regex.c:3595
+#, c-format
+msgid "EXECUTING charset%s.\n"
+msgstr ""
+
+#: gnu_regex.c:3622
+#, c-format
+msgid "EXECUTING start_memory %d (%d):\n"
+msgstr ""
+
+#: gnu_regex.c:3639
+#, c-format
+msgid "  old_regstart: %d\n"
+msgstr ""
+
+#: gnu_regex.c:3643
+#, c-format
+msgid "  regstart: %d\n"
+msgstr ""
+
+#: gnu_regex.c:3665
+#, c-format
+msgid "EXECUTING stop_memory %d (%d):\n"
+msgstr ""
+
+#: gnu_regex.c:3675
+#, c-format
+msgid "      old_regend: %d\n"
+msgstr ""
+
+#: gnu_regex.c:3679
+#, c-format
+msgid "      regend: %d\n"
+msgstr ""
+
+#: gnu_regex.c:3800
+#, c-format
+msgid "EXECUTING duplicate %d.\n"
+msgstr ""
+
+#: gnu_regex.c:3860
+msgid "EXECUTING begline.\n"
+msgstr ""
+
+#: gnu_regex.c:3876
+msgid "EXECUTING endline.\n"
+msgstr ""
+
+#: gnu_regex.c:3894
+msgid "EXECUTING begbuf.\n"
+msgstr ""
+
+#: gnu_regex.c:3902
+msgid "EXECUTING endbuf.\n"
+msgstr ""
+
+#: gnu_regex.c:3925
+msgid "EXECUTING on_failure_keep_string_jump"
+msgstr ""
+
+#: gnu_regex.c:3928
+#, c-format
+msgid " %d (to 0x%x):\n"
+msgstr ""
+
+#: gnu_regex.c:3948
+msgid "EXECUTING on_failure_jump"
+msgstr ""
+
+#: gnu_regex.c:3951
+#, c-format
+msgid " %d (to 0x%x)"
+msgstr ""
+
+#: gnu_regex.c:3982
+msgid ":\n"
+msgstr ""
+
+#: gnu_regex.c:3991
+#, c-format
+msgid "EXECUTING maybe_pop_jump %d.\n"
+msgstr ""
+
+#: gnu_regex.c:4022
+msgid "  End of pattern: change to `pop_failure_jump'.\n"
+msgstr ""
+
+#: gnu_regex.c:4038
+#, c-format
+msgid "  %c != %c => pop_failure_jump.\n"
+msgstr ""
+
+#: gnu_regex.c:4056
+msgid "  No match => pop_failure_jump.\n"
+msgstr ""
+
+#: gnu_regex.c:4065
+msgid "  Match => jump.\n"
+msgstr ""
+
+#: gnu_regex.c:4088
+msgid "EXECUTING pop_failure_jump.\n"
+msgstr ""
+
+#: gnu_regex.c:4100
+#, c-format
+msgid "EXECUTING jump %d "
+msgstr ""
+
+#: gnu_regex.c:4102
+#, c-format
+msgid "(to 0x%x).\n"
+msgstr ""
+
+#: gnu_regex.c:4109
+msgid "EXECUTING jump_past_alt.\n"
+msgstr ""
+
+#: gnu_regex.c:4119
+msgid "EXECUTING dummy_failure_jump.\n"
+msgstr ""
+
+#: gnu_regex.c:4132
+msgid "EXECUTING push_dummy_failure.\n"
+msgstr ""
+
+#: gnu_regex.c:4142
+#, c-format
+msgid "EXECUTING succeed_n %d.\n"
+msgstr ""
+
+#: gnu_regex.c:4151 gnu_regex.c:4185
+#, c-format
+msgid "  Setting 0x%x to %d.\n"
+msgstr ""
+
+#: gnu_regex.c:4155
+#, c-format
+msgid "  Setting two bytes from 0x%x to no_op.\n"
+msgstr ""
+
+#: gnu_regex.c:4164
+#, c-format
+msgid "EXECUTING jump_n %d.\n"
+msgstr ""
+
+#: gnu_regex.c:4180
+msgid "EXECUTING set_number_at.\n"
+msgstr ""
+
+#: gnu_regex.c:4191
+msgid "EXECUTING wordbound.\n"
+msgstr ""
+
+#: gnu_regex.c:4197
+msgid "EXECUTING notwordbound.\n"
+msgstr ""
+
+#: gnu_regex.c:4203
+msgid "EXECUTING wordbeg.\n"
+msgstr ""
+
+#: gnu_regex.c:4209
+msgid "EXECUTING wordend.\n"
+msgstr ""
+
+#: gnu_regex.c:4218
+msgid "EXECUTING before_dot.\n"
+msgstr ""
+
+#: gnu_regex.c:4224 gnu_regex.c:4236
+msgid "EXECUTING at_dot.\n"
+msgstr ""
+
+#: gnu_regex.c:4230
+msgid "EXECUTING after_dot.\n"
+msgstr ""
+
+#: gnu_regex.c:4243
+#, c-format
+msgid "EXECUTING syntaxspec %d.\n"
+msgstr ""
+
+#: gnu_regex.c:4248
+msgid "EXECUTING Emacs wordchar.\n"
+msgstr ""
+
+#: gnu_regex.c:4258
+#, c-format
+msgid "EXECUTING notsyntaxspec %d.\n"
+msgstr ""
+
+#: gnu_regex.c:4263
+msgid "EXECUTING Emacs notwordchar.\n"
+msgstr ""
+
+#: gnu_regex.c:4274
+msgid "EXECUTING non-Emacs wordchar.\n"
+msgstr ""
+
+#: gnu_regex.c:4283
+msgid "EXECUTING non-Emacs notwordchar.\n"
+msgstr ""
+
+#: gnu_regex.c:4302
+msgid ""
+"\n"
+"FAIL:\n"
+msgstr ""
+
+#: gnu_regex.c:4670
+msgid "No previous regular expression"
+msgstr ""
+
+#: gnu_regex.c:4910
+msgid "Success"
+msgstr ""
+
+#: list.c:55
+msgid "Not enough memory to add a new item to list.\n"
+msgstr ""
+
+#: list.c:63
+msgid "Not enough memory for list header allocation\n"
+msgstr ""
+
+#: list.c:133
+msgid "Tried to remove from empthy list\n"
+msgstr ""
+
+#: util.c:42
+msgid "stdin"
+msgstr ""
+
+#: util.c:42
+msgid "stdout"
+msgstr ""
+
+#: util.c:42
+msgid "stderr"
+msgstr ""
+
+#: util.c:42
+msgid "fd"
+msgstr ""
+
+#: util.c:42
+msgid "sql"
+msgstr ""
+
+#: util.c:100
+#, c-format
+msgid "Invalid file-URL,no path after hostname: file:%s\n"
+msgstr ""
+
+#: util.c:107 util.c:109
+msgid "localhost"
+msgstr ""
+
+#: util.c:113
+#, c-format
+msgid ""
+"Invalid file-URL, cannot use hostname other than localhost or %s: file:%s\n"
+msgstr ""
+
+#: util.c:125
+#, c-format
+msgid "Unknown URL-type:%s\n"
+msgstr ""
+
+#: util.c:292
+#, c-format
+msgid "perm_to_char(): %i -> %s\n"
+msgstr ""
+
+#: util.c:313
+msgid "Caught SIGBUS/SIGSEGV\n"
+msgstr ""
+
+#: util.c:315
+msgid ""
+"Caught SIGBUS/SEGV while mmapping. File was truncated while aide was "
+"running?\n"
+msgstr ""
+
+#: util.c:318
+msgid "Caught SIGBUS/SEGV. Exiting\n"
+msgstr ""
+
+#: util.c:324
+msgid "Caught SIGHUP\n"
+msgstr ""
+
+#: util.c:328
+msgid ""
+"Caught SIGTERM\n"
+"Use SIGKILL to terminate\n"
+msgstr ""
+
+#: util.c:332
+msgid "Setting output to debug level according to signal\n"
+msgstr ""
+
+#: util.c:337
+msgid "Setting output to normal level according to signal\n"
+msgstr ""
+
+#: util.c:342
+#, c-format
+msgid "Caught signal %d\n"
+msgstr ""

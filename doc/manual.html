@@ -1,0 +1,432 @@
+
+<html>
+<head><title>Aide Manual version 0.1</title>
+<meta name="cvsheader" content="
+$Header$
+">
+</meta>
+</head>
+<body bgcolor="#FFFFFF">
+
+<h1>The Aide manual</h1>
+<a name="about"></a>
+<h2>About this document</h2>
+<strong>This manual is by no means complete, usable, readable, comprihensible,
+or error free.<br>
+<p>
+If you have any corrections, additions or constructive comments, please send
+them to <a href="mailto:rammer@cs.tut.fi">me</a>.</strong></p>
+This document was written by Rami Lehti 
+<a href="mailto:rammer@cs.tut.fi">&lt;rammer@cs.tut.fi&gt;</a> 
+
+<a name="toc"></a>
+<h2>Table of Contents</h2>
+<ol>
+<li><a href="#about">About this document</a>
+<li><a href="#toc">Table of Contents</a>
+<li><a href="#whatisAide">What is Aide?</a>
+<li><a href="#compilation">Compiling Aide</a>
+<li><a href="#config">Configuration</a>
+<li><a href="#usage">Usage</a>
+<li><a href="#general">General guidelines for security</a>
+</ol>
+
+<a name="whatisAide"></a>
+<h2>What is Aide?</h2>
+<p>
+AIDE (Advanced intrusion detection environment) is an intrusion
+detection program. More specifically a file integrity checker.
+</p>
+<p>
+Aide constructs a database of the files specified in Aide.conf, Aide's configuration file. 
+The Aide database  stores various file attributes including:
+permissions, inode number, user, group, file size, mtime and ctime,
+atime, growing size and number of links.  
+Aide also creates a cryptographic checksum or hash of each file using
+one or a combination of the following message digest algorithms: sha1,
+md5, rmd160, tiger (crc32, haval and gost can be compiled in if mhash
+support is available). 
+</p><p>
+Typically, a system administrator will create an AIDE database on a
+new system before it is brought onto the network. This first AIDE
+database is a snapshot of the system in it's normal state and the
+yardstick by which all subsequent updates and changes will be
+measured. The database should contain information about key system
+binaries, libraries, header files, all files  
+that are expected to remain the same over time.  The database probably
+should not contain information about files which change frequently
+like log files, mail spools, proc filesystems, user's home
+directories, or temporary directories.
+</p><p>
+After a break-in, an administrator may begin by examinining the system
+using system tools like ls, ps, netstat, and who ---  
+ the very tools most likely to be trojaned. Imagine that ls has been
+doctored to not show 
+any file named "sniffedpackets.log" and that ps and netstat have been
+rewritten to not show any information for a  process named
+"sniffdaemond".  
+Even an administrator who had previously printed out on paper the
+dates and sizes of these key system files can not be certain by
+comparison that they have not been modified in some way. File dates
+and sizes can be manipulated, some better root-kits make this trivial.
+</p><p>
+While it is possible to manipulate file dates and sizes, it is much
+more difficult to manipulate a single cryptographic checksum like md5,
+and exponentially more difficult to manipulate each of the entire
+array of checksums that Aide supports. By rerunning Aide after a
+break-in, a system administrator can quickly identify changes to key
+files and have a fairly high degree of confidence as to the accuracy
+of these findings.  
+</p>
+<p>
+Unfortunately, Aide can not provide absolute sureness about change in
+files.  Like any other system files, Aide's binary and/or database can
+also be altered.
+</p>
+
+
+<a name=compilation></a>
+<h2>Compiling Aide</h2>
+<h3>I'm in a hurry. Bottomline about compilation.</h3>
+<p>
+After you have installed all the necessary sofware do
+<code>./configure;make;make install</code> in the main Aide  
+directory of the unpacked source tree. <b>You should carefully think
+about the configuration and what a possible hacker can do if
+he/her/they/it has root access.</b></p>
+
+<h3>Getting all that is needed</h3>
+<p>
+Before you can compile Aide you must have certain things.
+<ul>
+<li>ANSI C-compiler (<a href="http://www.gnu.org/sofware/gcc/gcc.html">GCC</a>
+will do just fine) 
+<li><a href="ftp://ftp.gnu.org/pub/gnu/flex/">GNU Flex</a>
+<li><a href="ftp://ftp.gnu.org/pub/gnu/bison/">GNU Bison</a>
+<li><a href="ftp://ftp.gnu.org/pub/gnu/make">GNU Make</a>
+<li><a href="http://www.cs.tut.fi/~rammer/aide.html">Aide source code</a>
+<li><a href="http://schumann.cx/mhash/">Mhash library</a>
+<li>And if you want to use postgres sql for database storage you must have the 
+<a href="http://www.postgreSQL.org/">postgres sql developer
+library</a> installed 
+</ul>
+Please check to see if there are mirrors available.</p>
+<p>
+Once you have the source code of Aide you should unpack it. If you
+have GNU tar then the command is <code>tar zxvf
+aide-version.tar.gz</code> .
+</p>
+<h3>Compile-time configuration</h3>
+<p>
+Next you must use the configure script found in Aide's source code
+package to configure the compilation process.</p><p>
+There are several options you can give to configure. You can find out
+what options are available with <code>./configure --help</code> 
+command. Most of the time you do not need to give any options.
+You can just use configure without any parameters.</p><p>
+
+If you want to use the bundled gnu regular expression package
+you can give the <code>--with-gnu-regexp</code> option. Some OS's that 
+a buggy regexp implementation you must use this option.</p><p>
+
+If you want to change the directory where Aide is installed you can 
+use --prefix option. For example <code>./configure --prefix=/usr
+</code> 
+</p>
+<h3>Compilation and installation</h3>
+<p>
+The compilation is done by simply typing <code>make</code>. You can
+now type <code>make install</code> to install the binary and the
+manual pages. The binary however should be installed on read-only
+media or in some other tamperproof place. Also the databases should 
+be kept somewhere where a possible intruder cannot change them.</p>
+
+<a name=config></a>
+<h2>Configuration</h2>
+<p>
+Next you have to create a configuration file. You can find
+documentation for this in aide.conf(5) manual page. Here are a few
+pointers for what to look for.
+</p>
+<p>
+There are three types of lines in aide.conf:
+<ul>
+<li>configuration lines - used to set configuration parameters and
+define/undefine  variables   
+<li>selection lines - indicate which files will be added to the database 
+<li>macro lines - define or undefine variables within the the config file 
+</ul>
+Lines beginning with # are ignored as comments.
+</p>
+<p>
+Here is an example configuration.</p>
+
+
+<pre>
+#AIDE conf
+
+   # Here are all the things we can check - these are the default rules 
+   #
+   #p:      permissions
+   #i:      inode
+   #n:      number of links
+   #u:      user
+   #g:      group
+   #s:      size
+   #b:      block count
+   #m:      mtime
+   #a:      atime
+   #c:      ctime
+   #S:      check for growing size
+   #md5:    md5 checksum
+   #sha1:   sha1 checksum
+   #rmd160: rmd160 checksum
+   #tiger:  tiger checksum
+   #R:      p+i+n+u+g+s+m+c+md5
+   #L:      p+i+n+u+g
+   #E:      Empty group
+   #>:      Growing logfile p+u+g+i+n+S
+
+   # You can alse create custom rules - my home made rule definition goes like this 
+   #
+   MyRule = p+i+n+u+g+s+b+m+c+md5+sha1 
+
+   # Next decide what directories/files you want in the database
+
+   /etc p+i+u+g     #check only permissions, inode, user and group for etc
+   /bin MyRule      # apply the custom rule to the files in bin 
+   /sbin MyRule     # apply the same custom rule to the files in sbin 
+   /var MyRule		
+   !/var/log/.*     # ignore the log dir it changes too often
+   !/var/spool/.*   # ignore spool dirs as they change too often
+   !/var/adm/utmp$  # ignore the file /var/adm/utmp
+
+
+</pre>
+
+
+
+<p>Here we include files in /etc, /bin and /sbin.  We also include
+/var but ignore /var/log, /var/spool and a single file /var/adm/utmp. 
+</p><p>
+It is generally a good idea to ignore directories that frequently
+change, unless you want to read long reports.  
+It is good practice to exclude tmp directories, mail spools, log
+directories, proc filesystems, user's home directories, web content
+directories, anything that changes regularly.  It is good practice to
+include all system binaries, libraries, include files, system source
+files.  It will also be a good idea to include directories you don't
+often look in like /dev /usr/man/.*usr/.  Of course you'll want to
+include as many files as practical, but think about what you include.        
+</p>
+<p>
+#############For example if
+you have a block device whose owner keeps changing you can just 
+record the attributes that do not normally change (inode,number of
+links,ctime).
+</p>
+<p>
+Note that if you are referring to a single file you should add $ to
+the end of the regexp. This matches to the name of the file exactly
+and does not include any other files that might have the same
+beginning. In the example if there were no dollar sign at the 
+end of the last line it would mean that all filenames beginning with
+/var/adm/utmp would be ignored. An intruder could then create a
+directory called  /var/adm/utmp_root_kit and place all the files
+he/she/they wanted there and they would be ignored by AIDE.
+</p>
+<h3>Troubleshooting your config</h3>
+<p>Making a config file is a lot of hard work and must be done on a case
+by case  bases. Don't give up simply because you don't get it right
+the first time around. This section gives you a few hints howto debug
+your config. 
+</p>
+<p>
+You can use <code>aide --verbose=255</code> to generate a lot of debug 
+output to help you see which files get added and which are discarded. 
+To really understand Aide's rule matching you should probably read a
+good book about regexps and the following section.
+</p>
+<h4>Understanding Aide rule matching</h4>
+<p>
+Before reading this you should have basic understanding of how regular
+expressions work. There are several good books about this. Several
+Perl-books have also decent explanations about this subject. Just
+remember that Perl has some extensions to the standard regexps.
+There are also some differences in how different platforms handle
+regexps if you are using your platforms own regexp implementation.
+For example GNU regexps have their own extensions. Try reading the
+manual page of your system in this case. It might be a pain to read
+but it is worth it.
+</p>
+<p>
+In the initialisation process Aide creates a tree of the regexp
+rules. Each type of rule is placed in a separate list for each node in
+the tree. So we have an equals rule list,a select rule list and a
+negative selection rule list for all nodes. These lists may be empty.
+The node in which a rule is placed is determined by the first special
+regexp character in the rule. For example <code>!/proc</code> would be
+placed in the root node. While <code>!/proc/.*</code> would be placed
+in /proc node. Also in front of each rule Aide adds an implicit ^.
+</p>
+<p>
+When Aide does rule matching it uses the following algorithm.
+The following is a pseudocode adaptation from src/gen_list.c.
+<code>
+<pre>
+check_node_for_match(node,filename)
+	if(no deeper match found)
+		check(equals list for this node)
+
+	if(no deeper match found)
+		check(select list for this node)
+
+	check_node_for_match(nodes parent,filename)
+
+	if(this file is about to be added)
+		check(negative select list for this node) 
+	
+	return (info about whether this file should be added or not and how)
+</pre>
+</code>
+</p>
+<h5>Pitfalls</h5>
+<p>
+There are some side-effects from this algorithm that might seem
+strange at first. For example if you have the following rules:
+<code>
+<pre>
+/ R
+=/etc R+a
+!/etc/ppp/logs
+</pre>
+</code>
+The result would be that /etc and all files in it and in /etc/ppp
+except /etc/ppp/logs would be added to the database. This is perfectly
+normal. This happens because the =/etc matches not only /etc but all
+the files under it. Remember that regexps match always just the part
+they are referring to. The rest of the line is included by default.
+So <code>=/etc$ R+a</code> would be the correct form. If you don't
+have the <code>!/etc/ppp/logs</code> you would get the results that
+you are looking for because. There is no node /etc in the regexp
+tree and there for it is not checked when Aide constructs the list of
+files to add to the database. But when you have the negative rules the
+nodes /etc and /etc/ppp get created and they get checked when the file
+list is generated. So the =/etc is used to find a match in those nodes
+and it succeeds.
+</p>
+<p>
+Consider the following rules:
+<code>
+<pre>
+/ R
+=/var/log/messages$ R+a
+!/var/log/messages.*
+</pre>
+</code>
+This is what you might write if you want to check /var/log/messages
+but not /var/log/messages.0 and /var/log/messages.1 etc. However since
+the negative selection rules are checked last and .* can match to an
+empty string /var/log/messages is not added to the database. The
+following is a more correct way of doing it.
+<code>
+<pre>
+/ R
+=/var/log/messages$ R+a
+!/var/log/messages\.[0-9]$
+</pre>
+</code>
+Now only messages files ending in number 0-9 and not included in the
+database. Note an intruder could disguise a rootkit by creating a
+directory called messages.9. If messages.9 does not already exist that
+is.
+</p>
+<a name=usage></a>
+<h2>Usage</h2>
+<p>
+First you must create a database against which future checks are
+performed. This should be done immediately after the operating system
+and applications have been installed, before the machine is plugged
+into a network. You can do this by giving the command 
+<code>aide --init</code>. 
+This creates a database that contains all of the files that you
+selected in your config file. The newly created database should now be 
+moved to a secure location such as read-only media. You should also
+place the configuration file and the Aide binary and preferably the
+manual pages and this manual on that media also. Please remember to
+edit the configuration file so that the input database is read from
+that read-only media. The config file should not be kept on the 
+target machine. The attacker could read the config file and alter it
+or even if he does alter it he could place his rootkit to place that
+Aide does not check. So the read-only media should be accessible only 
+during the check.</p>
+<p>
+Now you are all set to go. You can now check the integrity of the
+files. This can be done by giving the command
+<code>aide --check</code>.
+Aide now reads the database and compares it to the files found on
+disk. Aide may find changes in places that might not expect. For
+instance tty devices often change owners and permissions. You may want
+to read long reports and that is up to you to decide. But most of us
+do not have the time or the inclination read through tons of garbage
+every day. So you should trim the config file to include only the
+files and attributes of certain files that should not change. But keep
+in mind that you should not ignore too much as that leaves you open
+for an attack. An intruder might place his/her/its/their root kit in a
+directory that you have ignored completely. One good example is
+/var/spool/lp or something similar. This is the place that lp daemon
+stores its temporary files. You should not ignore it completely
+however. You should only ignore the format of files that you lp daemon
+keeps creating. And remember to use the $-sign at the end of your
+regexps. This stops someone from creating a directory that is ignored
+along with its contents.</p>
+<p>
+Now that you have trimmed your config file you should update the
+database this can be done 
+<code>aide --update</code>
+command. The update command also does the same thing as check but it
+also creates a new database. This database should now be placed on
+that read-only media along with the new config file. The check, trim,
+update cycle should be repeated as long as necessary. I recommend that
+the config file should be reviewed once in a while. The definition of 
+"a while" depends on your paranoia. Some might want do it daily after
+each check. Some might want to do it weekly.</p>
+<p>
+There is usually some drift in the databases. What I mean by drift is
+that new files are created, config files of applications are edited,
+tons of small changes pile up until the report becomes
+unreadable. This can be avoided by updating the database once in a
+while. I myself run the update every night. But, I don't replace the
+input database nearly as often. The replacement of the input datbase
+should always be a manual operation. This should not be automated.
+</p>
+<p>
+There is also an alternative way of doing this. This method may be
+preferable for people that have lots of machines that run aide.
+You can run 
+<code>aide --init</code> 
+on all of the hosts and move the generated databases to a central host
+where you compare different versions of the databases with 
+<code>aide --compare</code>
+This has the benefit of freeing up resources on the monitored
+machines.
+
+<a name=misc></a>
+<h2>Miscellaneous</h2>
+<p>
+The Aide database can be used to find the real names and places of
+files that have been moved to lost+found directory by fsck.
+</p>
+<a name=general></a>
+<h2>General guidelines for security</h2>
+<ol>
+<li>Do not assume anything
+<li>Trust no-one,nothing
+<li>Nothing is secure
+<li>Security is a trade-off with usability 
+<li>Paranoia is your friend
+</ol>
+
+</body>
+</html>
+

@@ -1,0 +1,48 @@
+
+	AIDE Version History
+
+=========================================================
+Version 0.9
+	* Fixed bugs
+	* Added support for keyed md check of db and config
+	* Removed dependancy on libgcrypt
+	* Added dependancy on mhash
+
+Version 0.8
+	* Fixed loads and loads of bugs
+        * Added syslog backend
+        * Report format changed
+        * added lots of parameters see man page and configure --help
+        * added ACL support for SunOS 5.x (and compatibles)
+	* libgcrypt is now separate and required
+
+Version 0.7
+	* Bug fixes
+	* Compressed database support
+	* Linkname checking
+	* Mhash support (version 0.8.1 of mhash required)
+
+Version 0.6
+	* Bug fixes
+	* Mhash support fixed
+	* MD sums fixed for now
+
+Version 0.5 
+	* Bug fixes
+	* ignore_list support
+	* Mhash library support (version 0.6.1 of mhash required)
+	* Disclaimer notices
+
+Version 0.4
+	* Bug fixes 
+
+Version 0.3
+	* Added --update command
+	* some bugfixes
+Version 0.2
+	* Bugfix release
+Version 0.1
+	* Implemented lots of stuff
+Version 0.0.0.1
+	* Nothing yet
+

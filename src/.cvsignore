@@ -1,0 +1,11 @@
+.deps
+Makefile
+Makefile.in
+aide
+aide.db
+aide.db.new
+conf_lex.c
+conf_yacc.c
+conf_yacc.h
+conf_yacc.output
+db_lex.c

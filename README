@@ -1,0 +1,85 @@
+*******************************************************************
+
+		Advanced Intrusion Detection Environment
+
+		Version 0.9
+
+*******************************************************************
+
+Introduction
+
+This piece of software was written as a replacement and extension
+for Tripwire. Tripwire is an excellent program in itself but lacks
+some features and is a closed product.
+
+Current Features:
+Multiple integrity checking algorithms (Even more with mhash support)
+Ability to output the database to stdout/file
+Easy configuration through a powerful configuration file
+Compressed databases(zlib support)
+Lots of others. see docs.
+
+Planned Features and TODO list:
+Multiple database retrieval backends
+Encrypted databases
+Return Codes
+Email report
+More elaborate report options
+Recurse=n
+Interactive db update
+Is file really deleted or has the config changed.
+Rewrite for smaller memory footprint.
+Localization
+Relative paths in databases
+Checksum of the binary at the start of the report
+PGP support
+@@ifdef foo || ( bar && baz )
+
+
+Documentation 
+
+Documentation is in doc/ directory. 
+The manual pages are a good place to start.
+Also see doc/manual.html or http://www.cs.tut.fi/~rammer/aide/manual.html
+
+Requirements
+
+Once compiled aide is an independent program it does not need
+any shared libraries or other programs to function.
+
+Currently AIDE requires the following software to compile.
+A C-compiler (such as GCC)
+GNU flex 
+GNU yacc 
+GNU make
+MHASH: http://mhash.sourceforge.net/
+
+To compile you have to give the following commands:
+tar zxvf aide-version.tar.gz	To unpack the archive
+cd aide-version			Cd to the newly created dir
+./configure --help		To see what configuration options are
+				available
+./configure [some options]	To configure the compilation
+				The options are optional.
+make				Do the actual compilation.
+make install			Install the sofware.
+				You do not have to do this.
+				You should instead put it on read-only
+				media or otherwise secure the binary.
+
+To do development work you should have recent versions of:
+automake
+autoconf
+autoheader
+
+Disclaimer
+
+All trademarks are the property of their respective owners.
+No animals were harmed while making this webpage or this piece of
+software.
+Although some pizza delivery guy's feelings were hurt.
+
+*******************************************************
+If there is something that ought to be said here 
+please send your comments to rammer@cs.tut.fi.
+*******************************************************

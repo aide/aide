@@ -1,0 +1,125 @@
+2002-07-22  Rami Lehti  <Rami.Lehti@Finland.Sun.COM>
+
+	* Fixed Unimplemented error message when conf md not compiled in
+	* Fixed error message about nonexistant files.
+	* Fixed --with-extra-includes --with-extra-libs handling (I hope)
+	* Fixed *stat handling
+
+2002-06-04  Rami Lehti  <Rami.Lehti@Finland.Sun.COM>
+
+	* Released 0.9
+
+2002-05-31  Rami Lehti  <Rami.Lehti@Finland.Sun.COM>
+
+	* Fixed a bug in memory handling causing corrupt md's
+	* Added --without-mmap configure option
+
+2002-05-29  Rami Lehti  <Rami.Lehti@Finland.Sun.COM>
+
+	* Updated version to 0.9
+	* Fixed loads of bugs
+	* This file should be updated more often
+	* Added support for md checked config and db
+	* Updated Copyright notices
+	* Changed checking algorithm (threading here we come)
+
+2002-02-10 Rami Lehti <Rami.Lehti@Finland.Sun.COM>
+	* Fixed loads and loads of bugs
+	* Added syslog backend
+	* Report format changed
+	* added lots of parameters see man page and configure --help
+	* added ACL support for SunOS 5.x (and compatibles)
+	* Released 0.8 (This is an unstable release)
+	
+2000-04-27  Rami Lehti  <Rami.Lehti@Finland.Sun.COM>
+
+	* Added static link flag checking
+	* Released 0.7
+
+2000-04-13  Rami Lehti  <Rami.Lehti@Finland.Sun.COM>
+
+	* Added linkname checking
+	* Removed mhash snefru and fixed haval
+	* Mhash 0.8.1 required.
+
+2000-02-08  Rami Lehti  <Rami.Lehti@Finland.Sun.COM>
+        * Changed version to 0.7
+	
+2000-02-08  Rami Lehti  <Rami.Lehti@Finland.Sun.COM>
+
+	* Fixed core dump bug in compare_db 
+	* Added warning when config has changed 
+	* Released 0.6
+	
+2000-01-18  Virolainen Pablo  <pablo@kaspiankerttu.cs.tut.fi>
+
+	* Handles config filename '-' as stdin. Manpage update.
+
+1999-12-30  Rami Lehti  <rammer@cs.tut.fi>
+
+	* Fixed compilation problem with glibc 2.1
+
+1999-12-29  Rami Lehti  <Rami.Lehti@Finland.Sun.COM>
+
+	* Finally fixed wrong md5 sums.
+	* Fixed nonprintable filename encoding.
+	* Fixed a huge memory leak. 16k per databaseline.
+
+1999-12-08  Pablo Virolainen <pablo@cs.tut.fi>
+	* Check for [acm]times beeing in future is done correctly now.
+	* blockcount will now be writen to database...
+	
+1999-12-02  Pablo Virolainen <pablo@cs.tut.fi>
+	* Added warning if file's [acm]time is in future (gen_list.c)
+
+1999-11-25  Rami Lehti  <Rami.Lehti@Finland.Sun.COM>
+
+	* Added support for unknown @@ tokens in databases
+
+1999-11-25  Pablo Virolainen <pablo@cs.tut.fi>
+	* Ignorelist for reports implemented.
+	* Block count added. It might be usefull with file with holes.
+	
+1999-11-24  Pablo Virolainen <pablo@cs.tut.fi>
+	* Added '^' to first charaster of every regexpr
+	* Minor changes do_md.c
+	
+1999-11-23  Rami Lehti  <Rami.Lehti@Finland.Sun.COM>
+
+	* Fixed MHASH_COMPATIBILITY problem. Mhash library version 0.6.1 is
+	  now required.
+	* Began tidying up the code so that both the internal and mhash
+	  hashes can be used at the same time.
+
+1999-11-05  Pablo Virolainen  <pablo@cs.tut.fi>
+
+	* Fixed bug in tree traverce. Now works without permission check.
+	
+1999-10-26  Rami Lehti  <rammer@cs.tut.fi>
+
+	* Added support for mhash library (done mostly by pablo)
+	* Fixed a --with-config-file bug in configure.in
+	* Fixed md bug when using internal functions
+	* Finally updated the Changelog
+
+1999-08-26  Rami Lehti  <rami@leevi.ton.tut.fi>
+
+	* Fixed config file handling
+
+(Wed, 25 Aug 1999 11:03:34  (EET):rammer)
+Changed: ChangeLog,configure.in
+	Upped version to 0.4
+
+(Thu, 26 Aug 1999 16:36:14  (EET):rammer)
+Changed: configure aide.conf.5 compare_db.c,gen_list.c,util.c 
+	util.h,conf_lex.l
+	Fixed a bug in gen_seltree
+	Changed default behaviour of verbositylevel 5.
+	Now it prints the detailed info about changed files too.
+	Now on level 5 if a dir is added a warning is shown that
+	foo files were added under the previous dir and not the files
+	themselves. On level 20 the behaviour is still the same.
+
+---------------------
+
+

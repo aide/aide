@@ -1,0 +1,222 @@
+.TH "aide.conf" "5"
+.SH NAME
+aide.conf - The configuration file for Advanced Intrusion Detection
+Environment 
+.PP
+.SH SYNOPSIS
+\fBaide.conf\fP is the configuration file for Advanced Intrusion
+Detection Environment. \fBaide.conf\fP contains the runtime
+configuration aide uses to initiailize or check the aide database.
+.PP
+.SH "FILE FORMAT"
+\fBaide.conf\fP is similar in to Tripwire(tm)'s configuration
+file. With little effort tw.conf can be converted to aide.conf. 
+.PP
+Aide.conf is case-sensitive. Leading and trailing whitespaces are
+ignored. 
+.PP
+There are three types of lines in \fBaide.conf\fP. First there are the
+configuration lines which are used to set configuration parameters and
+define/undefine variables. Second, there are lines that used to select
+which files are added to the database. Third there are the macrolines.
+Only the second type of lines are required for aide to do anything.
+Lines beginning with # are ignored as comments.
+.PP
+.SH "CONFIG LINES"
+.PP
+These lines have the format parameter=value. See URLS for a list of
+valid urls. 
+.PP
+.IP database
+The url from which database is read. There can only be one of these
+lines. If there are multiple database lines then the first is used.
+The default value is "./aide.db".
+.IP database_out
+The url to which the new database is written to. There can only be one
+of these lines. If there are multiple database_out lines then the
+first is used. The default value is "./aide.db.new".
+.IP database_new
+The url from which the other database for --compare is read.
+There is no default for this one.
+.IP verbose
+The level of messages that is output. This value can be 0-255
+inclusive. This parameter can only be given once. Value from the first
+occurence is used. If --verbose or -V is used then the value from that
+is used. The default is 5. If verbosity is 20 then additional report
+output is written when doing --check, --update or --compare.
+.IP report_url
+The url that the output is written to. There can be multiple instances
+of this parameter. Output is written to all of them. The default is
+stdout. 
+.IP gzip_dbout
+Whether the output to the database is gzipped or not. Valid values are
+yes,true,no and false. The default is no. This option is available only
+if zlib support is compiled in.
+.IP acl_no_symlink_follow
+Whether to check ACLs for symlinks or not. Valid values are
+yes,true,no and false. The default is to follow symlinks. This option
+is available only if acl support is compiled in.
+.IP warn_dead_symlinks
+Whether to warn about dead symlinks or not. Valid values are
+yes,true,no and false. The default is not to warn about dead symlinks.
+.IP ignore_list
+Special group definition that lists parameter which are to be ignored
+from the final report.
+.IP config_version
+The value of config_version is printed in the report and also printed 
+to the database. This is for informational purposes only. It has no
+other functionality.
+.IP "Group definitions"
+If the parameter is not one of the previous parameters then it is
+regarded as a group definition. Value is then regarded as an
+expression. Expression is of the following form. 
+.LP 
+<predefined group>| <expr> + <predefined group>
+		  | <expr> - <predifined group>
+.IP
+See DEFAULT GROUPS for an explanation of default predefined groups.
+Note that this is different from the way Tripwire(tm) does it.
+.IP
+There is also a special group named "ignore_list". The predefined 
+groups listed in it are NOT displayed in the final report.
+.PP
+.SH "SELECTION LINES"
+.PP
+There are three types of selection lines (regular, negative, equals)
+Lines beginning with "/" are regular selective lines. Lines beginning
+with "!" are negative selection lines. And lines beginning with "="
+are equals selection lines. The string following the first character
+is taken as a regular expression matching to a complete filename (with
+path included). In regular selection rule the "/" is included in the
+regular expression. Following the regular expression in an expression.
+See CONFIG LINES for an explanation of exressions. See EXAMPLES and 
+doc/aide.conf for examples.
+
+.PP
+.SH "MACRO LINES"
+.PP
+.IP "@@define \fBVAR\fR \fBval\fR"
+Define variable \fBVAR\fR to value \fBval\fR.
+.IP "@@undef \fBVAR\fR"
+Undefine variable \fBVAR\fR.
+.IP "@@ifdef \fBVAR\fR, @@ifndef \fBVAR\fR"
+@@ifdef begins an if statement. It must be terminated with an @@endif
+statement. The lines between @@ifdef and @@endif are used if variable
+\fBVAR\fR is defined. If there is an @@else statement then the part
+between @@ifdef and @@else is used is \fBVAR\fR is defined otherwise
+the part between @@else and @@endif is used. @@ifndef reverses the
+logic of @@ifdef statement but otherwise works similarly.
+.IP "@@ifhost \fBhostname\fR, @@ifnhost \fBhostname\fR"
+@@ifhost works like @@ifdef only difference is that it checks whether
+\fBhostname\fR equals the name of the host that aide is running on.
+\fBhostname\fR is the name of the host without the domainname
+(hostname, not hostname.aide.org).
+.IP "@{\fBVAR\fR}"
+@@{\fBVAR\fR} is replaced with the value of the variable \fBVAR\fR.
+If variable \fBVAR\fR is not defined an empty string is used. Unlike
+Tripwire(tm) @@VAR is NOT supported.
+.IP "@@else"
+Begins the else part of an if statement.
+.IP "@@endif"
+Ends an if statement.
+.IP "@@include \fBVAR\fR"
+Includes the file \fBVAR\fR. The content of the file is used as if it 
+were inserted in this part of the config file.
+.PP
+.SH URLS
+Urls can be one of the following. Input urls cannot be used as outputs
+and vice versa.
+.IP stdout
+.IP stderr
+Output is sent to stdout,stderr respectively.
+.IP stdin
+Input is read from stdin.
+.IP file://\fBfilename\fR
+Input is read from \fBfilename\fR or output is written to
+\fBfilename\fR. 
+.IP fd:\fBnumber\fR
+Input is read from filedescriptor \fBnumber\fR or output is written to
+\fBnumber\fR.
+.PP
+.SH "DEFAULT GROUPS"
+.PP
+.IP "p:	permissions"
+.IP "i:	inode"
+.IP "n:	number of links"
+.IP "u:	user"
+.IP "g:	group"
+.IP "s:	size"
+.IP "m:	mtime"
+.IP "a:	atime"
+.IP "c:	ctime"
+.IP "S:	check for growing size"
+.IP "md5:	md5 checksum"
+.IP "sha1:	sha1 checksum"
+.IP "rmd160:     rmd160 checksum"
+.IP "tiger:     tiger checksum"
+.IP "R:	p+i+n+u+g+s+m+c+md5"
+.IP "L:	p+i+n+u+g"
+.IP "E:	Empty group"
+.IP ">:	Growing logfile p+u+g+i+n+S"
+.IP "And also the following if you have mhash support enabled"
+.IP "crc32:	crc32 checksum"
+.IP "haval:	haval checksum"
+.IP "gost:	gost checksum"
+
+
+.PP
+.SH EXAMPLES
+.IP
+.B "/	R"
+.LP
+This adds all files on your machine to the database. This is one line
+is a fully qualified configuration file.
+.IP
+.B "!/dev"
+.LP
+This ignores the /dev directory structure.
+.IP
+.B "=/tmp"
+.LP
+Only /tmp is taken into the database. None of its children are added. 
+.IP 
+.B "\fBAll\fR=p+i+n+u+g+s+m+c+a+md5+sha1+tiger+rmd160"
+.LP 
+This line defines group \fBAll\fR. It has all attributes and all
+md checksum functions. If you absolutely want all digest functions
+then you should enable mhash support and add
++crc32+haval+gost to the end of the definition for
+\fBAll\fR. Mhash support can only be enabled at compile-time.
+.PP
+.SH HINTS
+.IP
+.B "=/foo R"
+.IP
+.B "/foo/bar R"
+.LP
+This config adds all files under /foo because they match to /foo,
+which is equivalent to /foo.* . What you probably want is:
+.IP 
+.B "=/foo$ R"
+.IP
+.B "/foo/bar R"
+.LP 
+Note that the following still works as expected because /foo is not
+recursed. 
+.IP
+.B "=/foo R"
+The first is not allowed in AIDE. Use the latter instead.
+.IP
+.B "/foo epug"
+.IP 
+.B "/foo e+p+u+g"
+.PP
+.SH "SEE ALSO"
+.BR aide (1)
+.BR http://www.cs.tut.fi/~rammer/aide/manual.html
+.SH DISCLAIMER
+All trademarks are the property of their respective owners.
+No animals were harmed while making this webpage or this piece of
+software.
+
+

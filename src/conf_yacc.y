@@ -143,19 +143,19 @@ line : rule | equrule | negrule | definestmt | undefstmt
        | TEOF {
             newlinelastinconfig=1;
 	    YYACCEPT;
-          } ;
+          }
        | TNEWLINE 
        | TDBSPEC {
           error(220,"Got @@dbspec.Stopping\n");
 	  YYACCEPT;
-          } ;
+          }
        | TBEGIN_DB {
 	  error(220,"Got @@begin_db. Stopping\n");
 	  YYACCEPT;
-          } ;
+          }
        | TEND_DB {
 	  conferror("Error while reading configuration");
-          } ;
+          }
        | error {
 	  conferror("Error while reading configuration");
 	  YYABORT;

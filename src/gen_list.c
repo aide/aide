@@ -66,16 +66,31 @@ char* strrxtok(char* rx)
 {
   char*p=NULL;
   int i=0;
+  int j=1;
+  int last_backslash=0;
+  int lastslash_in_p=1;
 
-  /* This assumes that the first character is a slash */
-  int lastslash=1;
+  /* The following code assumes that the first character is a slash */
+  int lastslash=0;
 
-  /* i=0 because we want to return at least the first slash */
+  p=(char*)malloc(sizeof(char)*strlen(rx)+1);
+  p[0]='/';
+
   for(i=1;i<strlen(rx);i++){
     switch(rx[i])
       {
       case '/':
+	if(last_backslash){
+  		strncpy(p+j,rx+last_backslash+1,i-last_backslash);
+		j+=i-last_backslash;
+	}else{
+		strncpy(p+j,rx+lastslash+1,i-lastslash);
+		j+=i-lastslash;
+	}
+		
 	lastslash=i;
+	lastslash_in_p=j-1;
+
 	break;
       case '(':
       case '^':
@@ -83,21 +98,23 @@ char* strrxtok(char* rx)
       case '*':
       case '.':
       case '[':
-	/* FIXME: The '\\' character should be handled more gracefully. */
-	/* That is, if it is the only special character then */
-	/* The next character should be taken literally so */
-	/* that the search would be more efficient */
-      case '\\':
 	i=strlen(rx);
+	break;
+      case '\\':
+	last_backslash=i;
+	strncpy(p+j,rx+lastslash+1,i-lastslash);
+	j+=i-lastslash;
+	/* Skip the next character */
+	i++;
+	/* Don't copy the backslash */
+	j--;
 	break;
       default:
 	break;
       }
   }
 
-  p=(char*)malloc(sizeof(char)*lastslash+1);
-  strncpy(p,rx,lastslash);
-  p[lastslash]='\0';
+  p[lastslash_in_p]='\0';
 
 
   return p;

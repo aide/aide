@@ -93,7 +93,7 @@ int stat_cmp(struct AIDE_STAT_TYPE* f1,struct AIDE_STAT_TYPE* f2) {
   if (f1==NULL || f2==NULL) {
     return RETFAIL;
   }
-#define stat_cmp_helper(n,n2) ((f1->n==f2->n)*n2)
+#define stat_cmp_helper(n,n2) ((f1->n!=f2->n)*n2)
 
   return (stat_cmp_helper(st_ino,DB_INODE)|
 	  stat_cmp_helper(st_mode,DB_PERM)|

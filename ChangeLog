@@ -1,3 +1,6 @@
+2004-11-12  Richard van den Berg  <richard@vdberg.org>
+	* Fixed patch from Virolainen Pablo
+
 2004-11-05  Richard van den Berg  <richard@vdberg.org>
 	* Applied patch from Virolainen Pablo to give more infomation when file attributes have changed before calculating the hash
 

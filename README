@@ -34,8 +34,8 @@ Relative paths in databases
 Checksum of the binary at the start of the report
 PGP support
 @@ifdef foo || ( bar && baz )
-use newer autoconf
-release more often
+Use newer autoconf
+Release more often
 
 
 Documentation 

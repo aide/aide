@@ -2,7 +2,7 @@
 dnl Initialize automake
 AC_INIT(src/aide.c)
 
-AM_INIT_AUTOMAKE(aide, 0.9)
+AM_INIT_AUTOMAKE(aide, 0.10)
 dnl The name of the configure h-file.
 AM_CONFIG_HEADER(config.h)
 # We want an absolute path to the source-dir.

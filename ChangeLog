@@ -1,3 +1,6 @@
+2003-11-28  Richard van den Berg  <richard@vdberg.org>
+	* Applied patch 849857 "cosmetic report fix" thanks to John Kristoff
+
 2003-11-25  Mike Markley  <mike@markley.org>
 	* Applied patch from bug 848664 "crash in db_input_wrapper (gzip)" thanks to Matt Kettler
 

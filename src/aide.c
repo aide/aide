@@ -542,6 +542,14 @@ int main(int argc,char**argv)
       /* Then detailed list of changes */
       stat[0]=1;
       report_tree(conf->tree,4,stat);
+    } else {
+      printf("\nAIDE, version " AIDEVERSION "\n\n");
+      if(conf->action&DO_COMPARE) {
+        printf("### All files match AIDE database.  Looks okay!\n\n");
+      }
+      if(conf->action&DO_INIT) {
+        printf("### AIDE database initialized.\n\n");
+      }
     }
     db_close(conf);
     

@@ -47,8 +47,12 @@
 #include "locale-aide.h"
 /*for locale support*/
 
+/* Some environments do not define this */
+extern unsigned long long strtoull(const char *, char **, int);
+
 db_line* db_char2line(char** ss,int db);
-unsigned long long readint(char* s,char* err);
+long readint(char* s,char* err);
+unsigned long long readlong(char* s,char* err);
 long readoct(char* s,char* err);
 
 time_t base64totime_t(char*);
@@ -319,7 +323,7 @@ db_line* db_char2line(char** ss,int db){
       break;
     }
     case db_size : {
-      line->size=readint(ss[(*db_order)[i]],"size");
+      line->size=readlong(ss[(*db_order)[i]],"size");
       break;
     }
     case db_md5 : {
@@ -450,10 +454,20 @@ time_t base64totime_t(char* s){
   
 }
 
-unsigned long long readint(char* s,char* err){
-  unsigned long long i;
+long readint(char* s,char* err){
+  long i;
   char* e;
-  i=strtoll(s,&e,10);
+  i=strtol(s,&e,10);
+  if (e[0]!='\0') {
+    error(0,_("Could not read %s from database"),err);
+  }
+  return i;
+}
+
+unsigned long long readlong(char* s,char* err){
+  long long i;
+  char* e;
+  i=strtoull(s,&e,10);
   if (e[0]!='\0') {
     error(0,_("Could not read %s from database"),err);
   }

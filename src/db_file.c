@@ -614,7 +614,16 @@ int db_writechar(char* s,FILE* file,int i)
   return retval;
 }
 
-int db_writeint(unsigned long long i,FILE* file,int a)
+int db_writeint(long i,FILE* file,int a)
+{
+  if(a) {
+    dofprintf(" ");
+  }
+  
+  return dofprintf("%li",i);
+  
+}
+int db_writelong(unsigned long long i,FILE* file,int a)
 {
   if(a) {
     dofprintf(" ");
@@ -841,7 +850,7 @@ int db_writeline_file(db_line* line,db_config* conf){
       break;
     }
     case db_size : {
-      db_writeint(line->size,conf->db_out,i);
+      db_writelong(line->size,conf->db_out,i);
       break;
     }
     case db_md5 : {

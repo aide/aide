@@ -24,8 +24,17 @@
 #include "db_config.h"
 #include "config.h"
 
-#if defined(HAVE_SNPRINTF) && !defined(HAVE_C99_VSNPRINTF)
+#ifdef HAVE_SNPRINTF
+#if !defined(HAVE_C99_SNPRINTF) || !defined(HAVE_C99_VSNPRINTF)
 #define PREFER_PORTABLE_SNPRINTF
+#endif
+#endif
+
+#ifdef HAVE_VSNPRINTF
+#ifndef HAVE_SNPRINTF
+#define HAVE_SNPRINTF
+#define PREFER_PORTABLE_SNPRINTF
+#endif
 #endif
 
 #include "snprintf.h"

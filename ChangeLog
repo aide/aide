@@ -1,3 +1,6 @@
+2005-02-20	Richard van den Berg  <richard@vdberg.org>
+	* Removed extra gen_tree() as suggested in patch 985632
+
 2004-11-16  Richard van den Berg  <richard@vdberg.org>
 	* Applied patch 984424: bug fix for "--check recurses when it shouldn't"
 	* Applied patch 853842: sshaide - contributed script

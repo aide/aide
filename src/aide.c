@@ -497,7 +497,6 @@ int main(int argc,char**argv)
   
     long totalchanges=0;
     long stat[5]={1,0,0,0,0};
-    conf->tree=gen_tree(conf->selrxlst,conf->negrxlst,conf->equrxlst);
     if(conf->action&DO_INIT){
       if(db_init(DB_WRITE)==RETFAIL) {
 	exit(IO_ERROR);

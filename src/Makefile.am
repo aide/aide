@@ -24,7 +24,6 @@ bin_PROGRAMS = aide
 
 aide_SOURCES =	\
 		conf_yacc.y	\
-		conf_lex.l	\
 		conf_lex2.c	\
 		getopt.c	\
 		getopt1.c	\
@@ -35,7 +34,6 @@ aide_SOURCES =	\
 		commandconf.c	\
 		db_file.c	\
 		db_disk.c	\
-		db_lex.l	\
 		db_lex2.c	\
 		db_sql.c	\
 		gen_list.c	\

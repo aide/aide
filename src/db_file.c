@@ -245,13 +245,13 @@ int db_file_read_spec(int db){
     }
     
     case TDBSPEC : {
-      error(0,"Only one @@dbspec in inputdatabase.\n");
+      error(0,"Only one @@dbspec in input database.\n");
       return RETFAIL;
       break;
     }
     
     default : {
-      error(0,"Aide internal error while reading inputdatabase.\n");
+      error(0,"Aide internal error while reading input database.\n");
       return RETFAIL;
     }
     }
@@ -385,17 +385,17 @@ char** db_readline_file(int db){
       
       switch (db_url->type) {
       case url_file : {
-	error(0,"Filedatabase must have one db_spec spesification\n");
+	error(0,"File database must have one db_spec specification\n");
 	break;
       }
 
       case url_stdin : {
-	error(0,"Pipedatabase must have one db_spec spesification\n");
+	error(0,"Pipe database must have one db_spec specification\n");
 	break;
       }
 
       case url_fd: {
-	error(0,"FD-database must have one db_spec spesification\n");
+	error(0,"FD database must have one db_spec specification\n");
 	break;
       }
 
@@ -435,7 +435,7 @@ char** db_readline_file(int db){
       
     case TDBSPEC : {
       
-      error(0,"Databasefile can have only one db_spec.\nTrying to continue on line %i\n",*db_lineno);      
+      error(0,"Database file can have only one db_spec.\nTrying to continue on line %i\n",*db_lineno);      
       break;
     }
     case TNAME : {
@@ -669,7 +669,7 @@ int db_write_time_base64(time_t i,FILE* file,int a)
 
   ptr=(char*)malloc(sizeof(char)*TIMEBUFSIZE);
   if (ptr==NULL) {
-    error(0,"\nCannot allocate memory..\n");
+    error(0,"\nCannot allocate memory.\n");
     abort();
   }
   memset((void*)ptr,0,sizeof(char)*TIMEBUFSIZE);

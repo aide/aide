@@ -1,3 +1,6 @@
+2004-10-29  Richard van den Berg  <richard@vdberg.org>
+	* Use syslog() for systems that do not have vsyslog()
+
 2004-10-28  Richard van den Berg  <richard@vdberg.org>
 	* Removed config.h.in
 	* Added ISO C99 compliant snprintf for systems that do not have it

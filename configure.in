@@ -64,6 +64,7 @@ AC_SUBST(LD_STATIC_FLAG)
 
 dnl This macro is new in autoconf-2.13
 AC_SEARCH_LIBS(syslog, bsd socket inet, [AC_DEFINE(HAVE_SYSLOG,1,[syslog available?])])
+AC_CHECK_FUNCS(vsyslog)
 
 AC_C_BIGENDIAN([AC_DEFINE(BIG_ENDIAN_HOST,1,[big endian])], [AC_DEFINE(LITTLE_ENDIAN_HOST,1,[little endian])])
 

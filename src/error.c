@@ -157,7 +157,13 @@ void error(int errorlevel,char* error_msg,...)
     }
 #ifdef HAVE_SYSLOG
     if(conf->initial_report_url->type==url_syslog){
+#ifdef HAVE_VSYSLOG
       vsyslog(SYSLOG_PRIORITY,error_msg,ap);
+#else
+			char buf[1024];
+			vsnprintf(buf,1024,error_msg,ap);
+			syslog(SYSLOG_PRIORITY,"%s",buf);
+#endif
       va_end(ap);
       return;
     }
@@ -169,9 +175,17 @@ void error(int errorlevel,char* error_msg,...)
 
 #ifdef HAVE_SYSLOG
   if (conf->report_syslog!=0) {
+#ifdef HAVE_VSYSLOG
     va_start(ap,error_msg);
-    syslog(SYSLOG_PRIORITY,error_msg,ap);
+    vsyslog(SYSLOG_PRIORITY,error_msg,ap);
     va_end(ap);
+#else
+		char buf[1024];
+    va_start(ap,error_msg);
+		vsnprintf(buf,1024,error_msg,ap);
+    va_end(ap);
+		syslog(SYSLOG_PRIORITY,"%s",buf);
+#endif
   }
 #endif
 

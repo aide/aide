@@ -401,12 +401,6 @@ int main(int argc,char**argv)
 
   setdefaults_before_config();
 
-  if(argc<=1){
-    error(0,_("No options given. Exiting...\n"));
-    usage(INVALID_ARGUMENT_ERROR);
-  }
-  
-  
   if(read_param(argc,argv)==RETFAIL){
     error(0, _("Invalid argument\n") );
     exit(INVALID_ARGUMENT_ERROR);

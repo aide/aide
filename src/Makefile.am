@@ -66,4 +66,4 @@ conf_yacc.c:conf_yacc.y
 	${YACC} ${YFLAGS} -p conf -o conf_yacc.c $(top_srcdir)/src/conf_yacc.y
 
 conf_lex.c:conf_lex.l
-	${LEX} -Pconf -oconf_lex.c $(top_srcdir)/src/conf_lex.l
+	${LEX} -l -Pconf -oconf_lex.c $(top_srcdir)/src/conf_lex.l

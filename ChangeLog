@@ -1,3 +1,6 @@
+2004-11-16  Richard van den Berg  <richard@vdberg.org>
+	* Applied patch 984424: bug fix for "--check recurses when it shouldn't"
+
 2004-11-12  Richard van den Berg  <richard@vdberg.org>
 	* Fixed patch from Virolainen Pablo
 	* Applied patch id 931224: Ignoring moved files

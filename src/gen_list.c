@@ -662,6 +662,31 @@ int check_list_for_match(list* rxrlist,char* text,int* attr)
   return retval;
 }
 
+//this is used to check if $text if equal to a node in $rxrlist
+//should be used to check equ_rx_lst only
+int check_list_for_equal(list* rxrlist,char* text,int* attr)
+{
+  list* r=NULL;
+  int retval=1;
+  char *temp;
+
+  for(r=rxrlist;r;r=r->next){
+    temp=((rx_rule*)r->data)->rx;
+    
+    //FIXME, if rx not begin with ^, may need to do something else
+    if(temp[0]=='^') //^ is for reg exp, we can ignore this character
+      temp++;
+
+    //we don't need to worry about buff-overflow, so strcmp is safe
+    if((retval=strcmp(temp, text))==0){
+      *attr=((rx_rule*)r->data)->attr;
+      error(231,"Matches string from line #%ld: %s\n",((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
+      break;
+    }
+  }
+  return retval;
+}
+
 /* 
  * Function check_node_for_match()
  * calls itself recursively to go to the top and then back down.
@@ -694,9 +719,16 @@ int check_node_for_match(seltree*node,char*text,int retval,int* attr)
     
   /* if no deeper match found */
   if(!((retval&8)==8)&&!((retval&4)==4)){
-  	if(!check_list_for_match(node->equ_rx_lst,text,attr)){
+    if(!check_list_for_match(node->equ_rx_lst,text,attr)){
+      /*
+	Zhi Wen Wong added this line to fix bug that equ not work for 
+	compare
+	if we do "=/bin", we should only check /bin
+	so, /bin/bash or /bin/something should return 0 as neg
+      */
+      if(!check_list_for_equal(node->equ_rx_lst,text,attr))
     		retval|=(2|4);
-  	};
+    };
   };
   /* We'll use retval to pass information on whether to recurse 
    * the dir or not */

@@ -1,3 +1,8 @@
+2004-11-03  Richard van den Berg  <richard@vdberg.org>
+	* Applied patch 1058973: Please don't add -I$(prefix)/include
+	* Fixed bug 836253: Manual is wrong about --check command
+	* Applied fix in config parser to avoid 10000 line limit
+
 2004-11-02  Richard van den Berg  <richard@vdberg.org>
 	* Fixed various documentation bugs filed as sf.net
 

@@ -95,7 +95,8 @@ int dofflush(void)
   int retval;
 #ifdef WITH_ZLIB
   if(conf->gzip_dbout){
-    retval=gzflush(conf->db_gzout,Z_SYNC_FLUSH);
+    /* Should not flush using gzip, it degrades compression */
+    retval=Z_OK;
   }else {
 #endif
     retval=fflush(conf->db_out); 

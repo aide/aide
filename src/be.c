@@ -137,7 +137,7 @@ void* be_init(int inout,url_t* u,int iszipped)
     error(200,_("Opening file \"%s\" for %s\n"),u->value,inout?"r":"w+");
 #ifdef WITH_ZLIB
     if(iszipped && !inout){
-      fh=gzopen(u->value,"wb+");
+      fh=gzopen(u->value,"wb9+");
       if(fh==NULL){
 	error(0,_("Couldn't open file %s for %s"),u->value,
 	      inout?"reading\n":"writing\n");

@@ -1,3 +1,7 @@
+If you have any questions about aide, it's use or applications please send
+your inquiries to the mailing list at aide@cs.tut.fi rather than to the
+individuals named below.
+
 The main authors of this package are:
 	* Rami Lehti (rammer@cs.tut.fi)
  	* Pablo Virolainen (pablo@cs.tut.fi)
@@ -5,5 +9,8 @@ The main authors of this package are:
 Other contributors (people who have given us code/patches):
 	* KELEMEN Peter <Peter.Kelemen@cern.ch>
 
-I would also like to thank the people who have given good
-bug reports.
+This package is currently maintained by:
+	* Richard van den Berg (richard@vdberg.org)
+	* Mike Markley (mike@markley.org)
+
+Thanks to the people who have given good bug reports.

@@ -294,6 +294,8 @@ void setdefaults_before_config()
   conf->db_out_url=NULL;
   conf->db_out=NULL;
 #ifdef WITH_ZLIB
+  conf->db_gzin=0;
+  conf->db_gznew=0;
   conf->gzip_dbout=0;
 #endif
 

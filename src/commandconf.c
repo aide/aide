@@ -220,6 +220,7 @@ int conf_input_wrapper(char* buf, int max_size, FILE* in)
 	}
       } else {
 	conf->do_configmd=0;
+	return retval;
       }
     }
     /* FIXME This does not handle the case that @@end_config is on 

@@ -1,3 +1,6 @@
+2003-12-02  Richard van den Berg  <richard@vdberg.org>
+	* Fixed bug 851671 Aide-0.10 --config-check dumps core
+
 2003-11-28  Richard van den Berg  <richard@vdberg.org>
 	* Released aide version 0.10
 	* Applied patch 849857 "cosmetic report fix" thanks to John Kristoff

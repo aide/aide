@@ -1,6 +1,7 @@
 2004-10-23  Richard van den Berg  <richard@vdberg.org>
 	* Applied PSQL patch from Marc Giger <gigerstyle@gmx.ch>
 	* Set version to "Post 0.10"
+	* Removed aide.1 and aide.1.ru since they are created by configure
 
 2003-12-08  Richard van den Berg  <richard@vdberg.org>
 	* Applied patch 853842 "sshaide - contributed script"

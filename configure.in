@@ -83,9 +83,55 @@ AC_ARG_WITH(mmap,
 	[AC_CHECK_FUNCS(mmap)]
 )
 
+AC_CHECK_FUNC(snprintf,,
+	[AC_MSG_ERROR([Must have a system that supports snprintf.])]
+)
+
 AC_CHECK_FUNC(vsnprintf,,
 	[AC_MSG_ERROR([Must have a system that supports vsnprintf.])]
 )
+
+AC_CACHE_CHECK(for ISO C99 compliant snprintf,ac_cv_func_snprintf_c99,
+	[AC_TRY_RUN([
+#include <stdio.h>
+
+int main()
+{
+	char buf[] = {0, 0, 0, 0};
+
+	snprintf(buf, 3, "ABC");
+	exit ((buf[2] != 0) || (snprintf(NULL, 0, "%d", 100) != 3));
+}],ac_cv_func_snprintf_c99=yes,ac_cv_func_snprintf_c99=no,ac_cv_func_snprintf_c99=no)])
+if test $ac_cv_func_snprintf_c99 = no; then
+	AC_MSG_ERROR([snprintf must be ISO C99 compliant.])
+fi
+AC_CACHE_CHECK(for ISO C99 compliant vsnprintf,ac_cv_func_vsnprintf_c99,
+	[AC_TRY_RUN([
+#include <stdio.h>
+#include <stdarg.h>
+
+int doit(char *buf, int len, const char *s, ...)
+{
+	va_list ap;
+	int r;
+
+	va_start(ap, s);
+	r = vsnprintf(buf, len, s, ap);
+	va_end(ap);
+
+	return r;
+}
+
+int main()
+{
+	char buf[] = {0, 0, 0, 0};
+
+	doit(buf, 3, "ABC");
+	exit ((buf[2] != 0) || (doit(NULL, 0, "%d", 100) != 3));
+}],ac_cv_func_vsnprintf_c99=yes,ac_cv_func_vsnprintf_c99=no,ac_cv_func_vsnprintf_c99=no)])
+if test $ac_cv_func_vsnprintf_c99 = no; then
+	AC_MSG_ERROR([vsnprintf must be ISO C99 compliant.])
+fi
 
 AC_CHECK_HEADERS(syslog.h ustat.h)
 

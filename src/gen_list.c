@@ -971,7 +971,7 @@ void strip_dbline(db_line* line,int attr)
   if(!(attr&DB_LNKCOUNT)){
     line->nlink=0;
   }
-  if(!(attr&DB_SIZE)){
+  if(!(attr&DB_SIZE)&&!(attr&DB_SIZEG)){
     line->size=0;
   }
   if(!(attr&DB_BCOUNT)){

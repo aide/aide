@@ -2,6 +2,11 @@
 	AIDE Version History
 
 =========================================================
+Version 0.10
+	* Fixed bugs
+	* Moved project over to sourceforge.net
+	* Change of project ownership
+
 Version 0.9
 	* Fixed bugs
 	* Added support for keyed md check of db and config

@@ -47,7 +47,7 @@ aide_SOURCES =	\
 		snprintf.c	\
 		aide.c
 
-INCLUDES = -I$(top_srcdir)/include -I$(prefix)/include
+INCLUDES = -I$(top_srcdir)/include
 
 LDADD = @CRYPTLIB@ @ACLLIB@
 

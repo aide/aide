@@ -116,7 +116,7 @@ int read_param(int argc,char**argv)
   };
 
   while(1){
-    option = getopt_long(argc, argv, "hV::vc:B:A:r:e:f:iCu", options, &i);
+    option = getopt_long(argc, argv, "hV::vc:B:A:r:iCuDE", options, &i);
     if(option==-1)
       break;
     switch(option)

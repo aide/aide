@@ -61,7 +61,7 @@ verbose=20
 #report_url=stderr
 #NOT IMPLEMENTED report_url=mailto:root@foo.com
 #report_url=file:/tmp/some_file.txt
-#NOT IMPLEMENTED report_url=syslog:LOG_AUTH
+#report_url=syslog:LOG_AUTH
 report_url=stdout
 
 # @@{TOPDIR} is replaced with @top_srcdir@ when

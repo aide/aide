@@ -9,16 +9,20 @@ Version: %ver
 Release: %rel
 Copyright: GPL
 Group: Console/Security
-Source: http://www.cs.tut.fi/~rammer/aide-@VERSION@.tar.gz
+Source: http://prdownloads.sourceforge.net/aide/aide-@VERSION@.tar.gz
 BuildRoot: /var/tmp/aide-%{PACKAGE_VERSION}-root
 Obsoletes: %name
-URL: http://www.cs.tut.fi/~rammer/aide.html
+URL: http://sourceforge.net/projects/aide
 Docdir: %{prefix}/doc
 
 %description
 aide is an intrusion detection system for checking the integrity of files.
 
 %changelog
+
+* Fri Nov 28 2003 Richard van den Berg <richard@vdberg.org>
+
+- Changed URLs to point to sourceforge.net
 
 * Wed Jan 26 2000 Matthew Kirkwood <weejock@ferret.lmh.ox.ac.uk>
 

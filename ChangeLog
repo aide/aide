@@ -3,7 +3,7 @@
 	* Added ISO C99 compliant snprintf for systems that do not have it
 
 2004-10-26  Richard van den Berg  <richard@vdberg.org>
-	* Added check for ISO C99 complient vsnprintf to configure.in
+	* Added check for ISO C99 compliant vsnprintf to configure.in
 
 2004-10-23  Richard van den Berg  <richard@vdberg.org>
 	* Applied PSQL patch from Marc Giger <gigerstyle@gmx.ch>

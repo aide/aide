@@ -2,7 +2,7 @@
 
 		Advanced Intrusion Detection Environment
 
-		Version 0.9
+		Version 0.9.1
 
 *******************************************************************
 
@@ -34,6 +34,8 @@ Relative paths in databases
 Checksum of the binary at the start of the report
 PGP support
 @@ifdef foo || ( bar && baz )
+use newer autoconf
+release more often
 
 
 Documentation 

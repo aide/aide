@@ -1,4 +1,5 @@
 /* aide, Advanced Intrusion Detection Environment
+ * vi: ts=8 sw=8
  *
  * Copyright (C) 1999,2000,2001,2002 Rami Lehti, Pablo Virolainen
  * $Header$
@@ -92,24 +93,20 @@ int stat_cmp(struct AIDE_STAT_TYPE* f1,struct AIDE_STAT_TYPE* f2) {
   if (f1==NULL || f2==NULL) {
     return RETFAIL;
   }
-#define stat_cmp_helper(n) (f1->n==f2->n)
+#define stat_cmp_helper(n,n2) ((f1->n==f2->n)*n2)
 
-  if (stat_cmp_helper(st_ino)&&
-      stat_cmp_helper(st_mode)&&
-      stat_cmp_helper(st_nlink)&&
-      stat_cmp_helper(st_size)&&
-      stat_cmp_helper(st_mtime)&&
-      stat_cmp_helper(st_ctime)&&
-      stat_cmp_helper(st_blocks)&&
-      stat_cmp_helper(st_blksize)&&
-      stat_cmp_helper(st_rdev)&&
-      stat_cmp_helper(st_gid)&&
-      stat_cmp_helper(st_uid)&&
-      stat_cmp_helper(st_nlink)&&
-      stat_cmp_helper(st_dev)) {
-    return RETOK;
-  }
-  return RETFAIL;
+  return (stat_cmp_helper(st_ino,DB_INODE)&
+	  stat_cmp_helper(st_mode,DB_PERM)&
+	  stat_cmp_helper(st_nlink,DB_LNKCOUNT)&
+	  stat_cmp_helper(st_size,DB_SIZE)&
+	  stat_cmp_helper(st_mtime,DB_MTIME)&
+	  stat_cmp_helper(st_ctime,DB_CTIME)&
+	  stat_cmp_helper(st_blocks,DB_BCOUNT)&
+	  stat_cmp_helper(st_blksize,DB_BSIZE)&
+	  stat_cmp_helper(st_rdev,DB_RDEV)&
+	  stat_cmp_helper(st_gid,DB_GID)&
+	  stat_cmp_helper(st_uid,DB_UID)&
+	  stat_cmp_helper(st_dev,DB_DEV));
 }
 
 
@@ -123,6 +120,7 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
    */
   struct AIDE_STAT_TYPE fs;
   int sres=0;
+  int stat_diff;
 #ifdef _PARAMETER_CHECK_
   if (line==NULL) {
     abort();
@@ -150,7 +148,7 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
   
   sres=AIDE_FSTAT_FUNC(filedes,&fs);
   
-  if (stat_cmp(&fs,old_fs)==RETOK) {
+  if ((stat_diff=stat_cmp(&fs,old_fs))==RETOK) {
     /*
       Now we have a 'valid' filehandle to read from a file.
      */
@@ -221,12 +219,19 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
       return;
     }
   } else {
+    unsigned i;
     /*
       Something just wasn't correct, so no hash calculated.
     */
     
     error(5,"File %s was changed so that hash cannot be calculated for it\n"
 	  ,line->filename);
+
+    for(i=0;i<db_unknown;i++) {
+      if (((1<<i)&stat_diff)!=0) {
+	error(5,"Attribute %s has been changed\n",db_names[i]);
+      }
+    }
     
     no_hash(line);
     close(filedes);

@@ -98,6 +98,9 @@ typedef enum {
    db_crc32b, 			/* "crc32b",  */
    db_attr,                     /* attributes */
    db_acl,                      /* access control list */
+   db_bsize,                    /* "bsize"    */
+   db_rdev,                     /* "rdev"     */
+   db_dev,                      /* "dev"      */
    db_checkmask,                /* "checkmask"*/
    db_unknown } DB_FIELD; 	/* "unknown"  */
 
@@ -131,8 +134,12 @@ typedef enum {
 #define DB_GOST     (1<<18)	/* "gost",    */
 #define DB_CRC32B   (1<<19)	/* "crc32b",  */
 #define DB_ACL      (1<<20)     /* "acl"      */
-#define DB_CHECKMASK (1<<21)    /* "checkmask"*/
-#define DB_SIZEG     (1<<22)	/* "unknown"  */
+#define DB_BSIZE    (1<<21)     /* "bsize"    */
+#define DB_RDEV     (1<<22)     /* "rdev"     */
+#define DB_DEV      (1<<23)     /* "dev"      */
+
+#define DB_CHECKMASK (1<<24)    /* "checkmask"*/
+#define DB_SIZEG     (1<<25)	/* "unknown"  */
 
 
 #define DB_HASHES    (DB_MD5|DB_SHA1|DB_RMD160|DB_TIGER|DB_CRC32|DB_HAVAL| \
@@ -161,6 +168,9 @@ const static char* db_names[] = {
    "crc32b",
    "attr",
    "acl",
+   "bsize",
+   "rdev",
+   "dev",
    "checkmask",
    "unknown" } ; 
 
@@ -187,6 +197,9 @@ const static int db_value[] = {
    db_crc32b, 		/* "crc32b",  */
    db_attr,             /* attributes */
    db_acl,              /* "acl"      */
+   db_bsize,            /* "bsize"    */
+   db_rdev,             /* "rdev"     */
+   db_dev,              /* "dev"      */
    db_checkmask,	/* "checkmask" */
    db_unknown };	/* "unknown"  */
 

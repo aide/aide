@@ -44,11 +44,11 @@
 Выводит стандартное мправочное сообщение.
 .PP
 .SH "ФАЙЛЫ"
-.B /usr/local/etc/aide.conf
+.B @prefix@/etc/aide.conf
 Стандартный конфигурационный файл aide.
-.B /usr/local/etc/aide.db
+.B @prefix@/etc/aide.db
 Стандартная база данных aide.
-.B /usr/local/etc/aide.db.new
+.B @prefix@/etc/aide.db.new
 Стандартная выходная (вновь создаваемая) база aide.
 .SH "СМ. ТАКЖЕ"
 .BR aide.conf (5)

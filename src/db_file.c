@@ -614,13 +614,13 @@ int db_writechar(char* s,FILE* file,int i)
   return retval;
 }
 
-int db_writeint(long i,FILE* file,int a)
+int db_writeint(unsigned long long i,FILE* file,int a)
 {
   if(a) {
     dofprintf(" ");
   }
   
-  return dofprintf("%li",i);
+  return dofprintf("%lli",i);
   
 }
 

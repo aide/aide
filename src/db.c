@@ -48,7 +48,7 @@
 /*for locale support*/
 
 db_line* db_char2line(char** ss,int db);
-long readint(char* s,char* err);
+unsigned long long readint(char* s,char* err);
 long readoct(char* s,char* err);
 
 time_t base64totime_t(char*);
@@ -450,10 +450,10 @@ time_t base64totime_t(char* s){
   
 }
 
-long readint(char* s,char* err){
-  long i;
+unsigned long long readint(char* s,char* err){
+  unsigned long long i;
   char* e;
-  i=strtol(s,&e,10);
+  i=strtoll(s,&e,10);
   if (e[0]!='\0') {
     error(0,_("Could not read %s from database"),err);
   }

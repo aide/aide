@@ -1,3 +1,6 @@
+2004-11-02  Richard van den Berg  <richard@vdberg.org>
+	* Fixed various documentation bugs filed as sf.net
+
 2004-10-29  Richard van den Berg  <richard@vdberg.org>
 	* Use syslog() for systems that do not have vsyslog()
 	* Fixed file system traversing bug for systems without readdir_r

@@ -42,7 +42,6 @@
 
 
 /* This define should be somewhere else */
-#define READ_BLOCK_SIZE 16384
 #define READ_BLOCK_SIZE 16777216
 
 #ifdef WITH_MHASH

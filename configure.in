@@ -199,7 +199,7 @@ AC_EGREP_CPP([sunisdefined],
     #endif],
     [AC_CHECK_FUNC(lstat64,
 	[AC_CHECK_FUNC(stat64,
-		_LARGEFILE64_SOURCE=1
+		AC_DEFINE(_LARGEFILE64_SOURCE,1,[Solaris large file support])
   		AIDE_LSTAT_FUNC="lstat64"
   		AIDE_STAT_FUNC="stat64"
   		AIDE_FSTAT_FUNC="fstat64"

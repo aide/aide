@@ -280,13 +280,13 @@ AC_ARG_WITH(gcrypt,
 	AC_CHECK_HEADER(gcrypt.h,,
 		AC_MSG_ERROR(You don't have libgcrypt properly installed. Install it if you need one.)
 	)
-	CRYPTLIB="-lgcrypt"
+	CRYPTLIB="${CRYPTLIB} -lgcrypt"
 	compoptionstring="${compoptionstring}WITH_GCRYPT\\n"],
 	[with_gcrypt=no]
 )
 
 AC_CHECK_LIB([mhash],[mhash_get_block_size],
-	[CRYPTLIB="-lmhash"
+	[CRYPTLIB="${CRYPTLIB} -lmhash"
 	compoptionstring="${compoptionstring}WITH_MHASH\\n"
 	AC_DEFINE(WITH_MHASH,,[use mhash library])],
 	[AC_MSG_ERROR(You must have libmhash properly installed.)]

@@ -96,7 +96,7 @@ int in_this ()
 	return (dirh != NULL && rdres == 0 && (*resp) != NULL);
 #else
 #ifdef HAVE_READDIR
-	return entp != NULL && td == telldir (dirh);
+	return (dirh != NULL && entp != NULL && td == telldir (dirh));
 #endif
 #endif
 }

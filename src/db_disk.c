@@ -178,7 +178,8 @@ db_line* db_readline_disk(int db){
 
   /* root needs special handling */
   if(!root_handled){
-    fullname="/";
+    fullname=malloc(1+1);
+    strcpy(fullname,"/"); 
     add=check_rxtree(fullname,conf->tree,&attr);
     error(240,"%s match=%d, tree=%i, attr=%i\n",fullname, add,conf->tree,attr);
     
@@ -200,6 +201,8 @@ db_line* db_readline_disk(int db){
 	fil=NULL;
       }
     }
+    if (!add)
+      free(fullname);  
     root_handled=1;
   }
  recursion:

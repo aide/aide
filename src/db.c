@@ -609,13 +609,6 @@ void free_db_line(db_line* dl)
   checked_free(dl->crc32b);
   checked_free(dl->gost);
   checked_free(dl->haval);
-  /*
-    Possible bug.
-    Maybe we shouldn't free filename and linkname...
-   */
-  checked_free(dl->filename);
-  checked_free(dl->linkname);
-  
 }
 const char* aide_key_5=CONFHMACKEY_05;
 const char* db_key_5=DBHMACKEY_05;

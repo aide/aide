@@ -50,14 +50,14 @@ INCLUDES = -I$(top_srcdir)/include -I$(prefix)/include
 
 LDADD = @CRYPTLIB@ @ACLLIB@
 
-LDFLAGS = @LDFLAGS@ @LD_STATIC_FLAG@
+AM_LDFLAGS = @LDFLAGS@ @LD_STATIC_FLAG@
 
-CFLAGS = @CFLAGS@ @MAINTAINER_MODE_TRUE@ -Wall -g
+AM_CFLAGS = @CFLAGS@ @MAINTAINER_MODE_TRUE@ -Wall -g
 
 CLEANFILES = conf_yacc.h conf_yacc.c conf_lex.c db_lex.c *~
 LEX_OUTPUT_ROOT = lex.yy
 
-YFLAGS= -d
+AM_YFLAGS= -d
 
 db_lex.c:db_lex.l
 	${LEX} -Pdb -odb_lex.c $(top_srcdir)/src/db_lex.l

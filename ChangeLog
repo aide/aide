@@ -1,4 +1,12 @@
+2003-11-04	Richard van den Berg	<richard@vdberg.org>
+
+	*	Applied patch 801860, fixes bug 801857 "=/$ gives segfault"
+	  thanks to Michael Schwendt
+	* Applied patch 803001 "Fix for some memory leaks" thanks to Michael Schwendt
+	* Applied patch 801853 "getopt optstring is wrong" thanks to Michael Schwendt
+
 2003-10-03	Richard van den Berg	<richard@vdberg.org>
+
 	* Moved project over to http://sf.net/projects/aide
 	* Fixed problems in conf_yacc.y
 	* Gzip code now uses best (-9) compression

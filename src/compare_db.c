@@ -116,7 +116,7 @@ int compare_acl(acl_type* a1,acl_type* a2) {
 int compare_md_entries(byte* e1,byte* e2,int len)
 {
 
-  error(255,"Debug, compare_md_entreis %p %p\n",e1,e2);
+  error(255,"Debug, compare_md_entries %p %p\n",e1,e2);
 
   if(e1!=NULL && e2!=NULL){
     if(strncmp(e1,e2,len)!=0){

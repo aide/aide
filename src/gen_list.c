@@ -225,6 +225,7 @@ seltree* new_seltree_node(
 {
   seltree* node=NULL;
   seltree* parent=NULL;
+  char* tmprxtok = NULL;
 
   node=(seltree*)malloc(sizeof(seltree));
   node->childs=NULL;
@@ -240,19 +241,20 @@ seltree* new_seltree_node(
   copy_rule_ref(node,r);
 
   if(tree!=NULL){
+    tmprxtok = strrxtok(path);
     if(isrx){
-      parent=get_seltree_node(tree,strrxtok(path));
+      parent=get_seltree_node(tree,tmprxtok);
     }else {
       parent=get_seltree_node(tree,strlastslash(path));
     }      
     if(parent==NULL){
       if(isrx){
-	parent=new_seltree_node(tree,strrxtok(path),isrx,r);
+	parent=new_seltree_node(tree,tmprxtok,isrx,r);
       }else {
 	parent=new_seltree_node(tree,strlastslash(path),isrx,r);
       }
     }
-    
+    free(tmprxtok);
     parent->childs=list_append(parent->childs,(void*)node);
     node->parent=parent;
   }else {
@@ -328,6 +330,7 @@ void gen_seltree(list* rxlist,seltree* tree,char type)
     /* Data should not be free'ed because it's in rxc struct
      * and freeing is done if error occour.
      */
+      free(rxtok);
   }
 
 

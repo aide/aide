@@ -163,8 +163,10 @@ int commandconf(const char mode,const char* line)
     conf_scan_string(all);
     
     if(confparse()){
+      free(all);
       return RETFAIL;
     }
+    free(all);
     
     break;
   }
@@ -511,6 +513,7 @@ void putbackvariable(char* var)
   conf_put_token(v);
   conf_put_token("\n");
   free(v);
+  free(tmp);
 
 }
 

@@ -51,7 +51,10 @@
 
     Installation
     ------------
-    Please see the INSTALL file.
+    For generic instructions please see the INSTALL file.
+
+    For AIX 5.1 or 5.2 it is reported you need to use --with-gnu-regexp
+    when configuring AIDE.
 
     
     Source Code Verification
@@ -102,15 +105,15 @@
 
        o  C compiler (such as Gcc).
        o  GNU flex.
-       o  GNU yacc.
+       o  GNU yacc (bison).
        o  GNU make.
        o  Mhash (optional, but highly recommended).  Mhash is currently
-          available from http://mhash.sourceforge.net.  Mhash 0.8.18 is
-          the most current version as of this writing that has been
-          widely tested to work with AIDE.
+          available from http://mhash.sourceforge.net/. A static version of
+          libmhash needs to be build using the --enable-static=yes
+          configure option.
 
     Note:
-		  flex version 2.5.31 is broken, you might see the following error
+      flex version 2.5.31 is broken, you might see the following error
 
        conf_lex.c: In function `conflex':
        conf_lex.c:4728: error: `yy_prev_more_offset' undeclared (first use in
@@ -130,6 +133,7 @@
     End user support is available on the AIDE mailing list.  To subscribe,
     send a message to majordomo@cs.tut.fi with an empty Subject: line and
     the following text as the BODY of the message:
+
 subscribe aide
 
     An archive for the mailing list archive is available online:

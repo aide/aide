@@ -2,6 +2,7 @@ Makefile
 Makefile.in
 aclocal.m4
 aide.spec
+autom4te.cache
 config.cache
 config.h
 config.h.in

@@ -190,22 +190,23 @@ then you should enable mhash support and add
 .PP
 .SH HINTS
 .IP
-.B "=/foo R"
+.B "=/foo p+i+n+u+g+s+m+c+md5"
 .IP
-.B "/foo/bar R"
+.B "/foo/bar p+i+n+u+g+s+m+c+md5"
 .LP
-This config adds all files under /foo because they match to /foo,
+This config adds all files under /foo because they match to regex /foo,
 which is equivalent to /foo.* . What you probably want is:
 .IP 
-.B "=/foo$ R"
+.B "=/foo$ p+i+n+u+g+s+m+c+md5"
 .IP
-.B "/foo/bar R"
+.B "/foo/bar p+i+n+u+g+s+m+c+md5"
 .LP 
-Note that the following still works as expected because /foo is not
-recursed. 
+Note that the following still works as expected because =/foo$ stop
+recuring of directory /foo.
 .IP
-.B "=/foo R"
-The first is not allowed in AIDE. Use the latter instead.
+.B "=/foo p+i+n+u+g+s+m+c+md5"
+.IP
+In the following, the first is not allowed in AIDE. Use the latter instead.
 .IP
 .B "/foo epug"
 .IP 

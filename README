@@ -109,6 +109,20 @@
           the most current version as of this writing that has been
           widely tested to work with AIDE.
 
+    Note:
+		  flex version 2.5.31 is broken, you might see the following error
+
+       conf_lex.c: In function `conflex':
+       conf_lex.c:4728: error: `yy_prev_more_offset' undeclared (first use in
+       this function)
+       conf_lex.c:4728: error: (Each undeclared identifier is reported only once
+       conf_lex.c:4728: error: for each function it appears in.)
+
+      Either downgrade to flex 2.5.4 or get an updated version that fixes
+			this bug. See also:
+      http://sourceforge.net/tracker/index.php?func=detail&aid=866477&group_id=72099&atid=533377
+      http://sourceforge.net/mailarchive/message.php?msg_id=5415848
+      http://sourceforge.net/mailarchive/message.php?msg_id=5561246
 
     Feedback and Support
     --------------------

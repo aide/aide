@@ -3,7 +3,7 @@
 \fBaide\fP \- Advanced Intrusion Detection Environment
 .SH SYNOPSIS
 \fBaide\fP
-\%[\fBoptions\fP]
+\%[\fBparameters\fP]
 \%\fBcommand\fP
 .SH DESCRIPTION
 \fBaide\fP is an intrusion detection system for checking the integrity

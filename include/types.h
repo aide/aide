@@ -42,25 +42,25 @@
 #include <sys/types.h>
 
 
-#ifndef HAVE_BYTE_TYPEDEF
+#ifndef HAVE_BYTE
 #  undef byte	    /* maybe there is a macro with this name */
   typedef unsigned char byte;
-#  define HAVE_BYTE_TYPEDEF
+#  define HAVE_BYTE
 #endif
 
-#ifndef HAVE_USHORT_TYPEDEF
+#ifndef HAVE_USHORT
 #  undef ushort     /* maybe there is a macro with this name */
   typedef unsigned short ushort;
-#  define HAVE_USHORT_TYPEDEF
+#  define HAVE_USHORT
 #endif
 
-#ifndef HAVE_ULONG_TYPEDEF
+#ifndef HAVE_ULONG
 #  undef ulong	    /* maybe there is a macro with this name */
   typedef unsigned long ulong;
-#  define HAVE_ULONG_TYPEDEF
+#  define HAVE_ULONG
 #endif
 
-#ifndef HAVE_U16_TYPEDEF
+#ifndef HAVE_U16
 #  undef u16	    /* maybe there is a macro with this name */
 #  if SIZEOF_UNSIGNED_INT == 2
     typedef unsigned int   u16;
@@ -69,10 +69,10 @@
 #  else
 #    error no typedef for u16
 #  endif
-#  define HAVE_U16_TYPEDEF
+#  define HAVE_U16
 #endif
 
-#ifndef HAVE_U32_TYPEDEF
+#ifndef HAVE_U32
 #  undef u32	    /* maybe there is a macro with this name */
 #  if SIZEOF_UNSIGNED_INT == 4
     typedef unsigned int u32;
@@ -81,20 +81,20 @@
 #  else
 #    error no typedef for u32
 #  endif
-#  define HAVE_U32_TYPEDEF
+#  define HAVE_U32
 #endif
 
-#ifndef HAVE_U64_TYPEDEF
+#ifndef HAVE_U64
 #  undef u64	    /* maybe there is a macro with this name */
 #  if SIZEOF_UNSIGNED_INT == 8
     typedef unsigned int u64;
-#    define HAVE_U64_TYPEDEF
+#    define HAVE_U64
 #  elif SIZEOF_UNSIGNED_LONG == 8
     typedef unsigned long u64;
-#    define HAVE_U64_TYPEDEF
+#    define HAVE_U64
 #  elif __GNUC__ >= 2 || defined(__SUNPRO_C) || defined(_AIX) && defined(_LONGLONG)
     typedef unsigned long long u64;
-#    define HAVE_U64_TYPEDEF
+#    define HAVE_U64
 #  endif
 #endif
 
@@ -103,7 +103,7 @@ typedef union {
     short b;
     char c[1];
     long d;
-#  ifdef HAVE_U64_TYPEDEF
+#  ifdef HAVE_U64
     u64 e;
 #  endif
     float f;

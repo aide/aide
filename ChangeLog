@@ -1,3 +1,8 @@
+2003-10-03	Richard van den Berg	<richard@vdberg.org>
+	* Moved project over to http://sf.net/projects/aide
+	* Fixed problems in conf_yacc.y
+	* Gzip code now uses best (-9) compression
+
 2002-07-22  Rami Lehti  <Rami.Lehti@Finland.Sun.COM>
 
 	* Fixed Unimplemented error message when conf md not compiled in

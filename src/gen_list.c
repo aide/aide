@@ -369,6 +369,11 @@ list* add_file_to_list(list* listp,char*filename,int attr,int* addok)
   }
   
 #ifdef HAVE_USTAT
+  /* 
+   * This should not use ustat and should be implemented otherwise
+   * since ustat is not universally known function
+   * check find(1) for clues
+   */
   /*
     Here we should check if we need to add it..
    */  

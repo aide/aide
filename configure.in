@@ -192,63 +192,48 @@ AC_SUBST(ACLLIB)
 
 
 # This looks weird because Linux defines lstat64 and then screws it up
-AC_EGREP_CPP([sunisdefined],
-    [#ifdef sun
-	sunisdefined
-    #endif],
-    [AC_CHECK_FUNC(lstat64,
-	[AC_CHECK_FUNC(stat64,
-		AC_DEFINE(_FILE_OFFSET_BITS,64,[Solaris large file support])
-  		AIDE_LSTAT_FUNC="lstat64"
-  		AIDE_STAT_FUNC="stat64"
-  		AIDE_FSTAT_FUNC="fstat64"
-  		AIDE_STAT_TYPE="stat64"
-  		AIDE_INO_TYPE="ino64_t"
-  		AIDE_OFF_TYPE="off64_t"
-  		AIDE_BLKCNT_TYPE="blkcnt64_t"
-  		AIDE_READDIR_FUNC="readdir64"
-  		AIDE_READDIR_R_FUNC="readdir64_r"
-  		AIDE_DIRENT_TYPE="dirent64"
-		compoptionstring="${compoptionstring}WITH_LSTAT64\\n"
-  		compoptionstring="${compoptionstring}WITH_READDIR64\\n",
-		AIDE_LSTAT_FUNC="lstat"
-		AIDE_STAT_FUNC="stat"
-		AIDE_FSTAT_FUNC="fstat"
-		AIDE_STAT_TYPE="stat"
-		AIDE_INO_TYPE="ino_t"
-		AIDE_OFF_TYPE="off_t"
-		AIDE_BLKCNT_TYPE="blkcnt_t"
-		AIDE_READDIR_FUNC="readdir"
-		AIDE_READDIR_R_FUNC="readdir_r"
-		AIDE_DIRENT_TYPE="dirent"
-		compoptionstring="${compoptionstring}WITH_LSTAT\\n"
-		compoptionstring="${compoptionstring}WITH_READDIR\\n"
-	)],
+AC_CHECK_FUNC(lstat64,
+    [AC_CHECK_FUNC(stat64,
+	AC_DEFINE(_LARGEFILE_SOURCE,1,[Functions for correct standard I/O])
+	AC_DEFINE(_LARGEFILE64_SOURCE,1,[Additional functionality from LFS])
+	AC_DEFINE(_FILE_OFFSET_BITS,64,[Select 64 bits filesystem interface])
+	AIDE_LSTAT_FUNC="lstat64"
+	AIDE_STAT_FUNC="stat64"
+	AIDE_FSTAT_FUNC="fstat64"
+	AIDE_STAT_TYPE="stat64"
+	AIDE_INO_TYPE="ino64_t"
+	AIDE_OFF_TYPE="off64_t"
+	AIDE_BLKCNT_TYPE="blkcnt64_t"
+	AIDE_READDIR_FUNC="readdir64"
+	AIDE_READDIR_R_FUNC="readdir64_r"
+	AIDE_DIRENT_TYPE="dirent64"
+	compoptionstring="${compoptionstring}WITH_LSTAT64\\n"
+	compoptionstring="${compoptionstring}WITH_READDIR64\\n",
+	AIDE_LSTAT_FUNC="lstat"
+	AIDE_STAT_FUNC="stat"
+	AIDE_FSTAT_FUNC="fstat"
+	AIDE_STAT_TYPE="stat"
+	AIDE_INO_TYPE="ino_t"
+	AIDE_OFF_TYPE="off_t"
+	AIDE_BLKCNT_TYPE="blkcnt_t"
+	AIDE_READDIR_FUNC="readdir"
+	AIDE_READDIR_R_FUNC="readdir_r"
+	AIDE_DIRENT_TYPE="dirent"
+	compoptionstring="${compoptionstring}WITH_LSTAT\\n"
+	compoptionstring="${compoptionstring}WITH_READDIR\\n"
+)],
 	[AIDE_LSTAT_FUNC="lstat"
 	AIDE_STAT_FUNC="stat"
 	AIDE_FSTAT_FUNC="fstat"
-      	AIDE_STAT_TYPE="stat"
-  	AIDE_INO_TYPE="ino_t"
-  	AIDE_OFF_TYPE="off_t"
-  	AIDE_BLKCNT_TYPE="blkcnt_t"
-  	AIDE_READDIR_FUNC="readdir"
-  	AIDE_READDIR_R_FUNC="readdir_r"
-  	AIDE_DIRENT_TYPE="dirent"
+	AIDE_STAT_TYPE="stat"
+	AIDE_INO_TYPE="ino_t"
+	AIDE_OFF_TYPE="off_t"
+	AIDE_BLKCNT_TYPE="blkcnt_t"
+	AIDE_READDIR_FUNC="readdir"
+	AIDE_READDIR_R_FUNC="readdir_r"
+	AIDE_DIRENT_TYPE="dirent"
 	compoptionstring="${compoptionstring}WITH_LSTAT\\n"
-  	compoptionstring="${compoptionstring}WITH_READDIR\\n"]
-  )],
-  [AIDE_LSTAT_FUNC="lstat"
-  AIDE_STAT_FUNC="stat"
-  AIDE_FSTAT_FUNC="fstat"
-  AIDE_STAT_TYPE="stat"
-  AIDE_INO_TYPE="ino_t"
-  AIDE_OFF_TYPE="off_t"
-  AIDE_BLKCNT_TYPE="blkcnt_t"
-  compoptionstring="${compoptionstring}WITH_LSTAT\\n"
-  AIDE_READDIR_FUNC="readdir"
-  AIDE_READDIR_R_FUNC="readdir_r"
-  AIDE_DIRENT_TYPE="dirent"
-  compoptionstring="${compoptionstring}WITH_READDIR\\n"]
+	compoptionstring="${compoptionstring}WITH_READDIR\\n"]
 )
 
 AC_DEFINE_UNQUOTED(AIDE_LSTAT_FUNC,$AIDE_LSTAT_FUNC,[lstat])

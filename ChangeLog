@@ -1,3 +1,7 @@
+2004-10-23  Richard van den Berg  <richard@vdberg.org>
+	* Applied PSQL patch from Marc Giger <gigerstyle@gmx.ch>
+	* Set version to "Post 0.10"
+
 2003-12-08  Richard van den Berg  <richard@vdberg.org>
 	* Applied patch 853842 "sshaide - contributed script"
 	* Applied patch 855639 "Updated README file"

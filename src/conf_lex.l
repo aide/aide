@@ -55,7 +55,7 @@ list* conf_buffer=NULL;
 int condition=0;
 int varbol=0;
 
-long conf_lineno=1;
+long conf_lineno=0;
 int newlinelastinconfig=0;
 
 #define MAX_INCLUDE_DEPTH 10

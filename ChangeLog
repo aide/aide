@@ -1,6 +1,7 @@
 2005-04-06	Richard van den Berg  <richard@vdberg.org>
 	* Always include aide.h before any other include file
 	* Include aide.h instead of config.h to avoid multiple inclusions
+	* Fixed large file under Solaris
 
 2005-04-05	Richard van den Berg  <richard@vdberg.org>
 	* Fixed bug where shrinking files with S set where not detected

@@ -156,7 +156,7 @@ int db_writeline_sql(db_line* line,db_config* conf){
   return ret;
 }
 
-void db_readline_sql_int(int* d,int db,int i) 
+void db_readline_sql_int(int* d,int db,int i, db_config* conf) 
 {
   FILE** db_filep=NULL;
 
@@ -182,7 +182,7 @@ void db_readline_sql_int(int* d,int db,int i)
 
 }
 
-void db_readline_sql_char(char** d,int db,const int i) 
+void db_readline_sql_char(void** d,int db,const int i, db_config* conf) 
 {
   
   volatile int cr,des;
@@ -221,27 +221,27 @@ void db_readline_sql_char(char** d,int db,const int i)
   
 }
 
-void db_readline_sql_byte(void** d,int db,int i) {
+void db_readline_sql_byte(void** d,int db,int i, db_config* conf) {
   
-  db_readline_sql_char(d,db,i);
+  db_readline_sql_char(d,db,i, conf);
   
   if (*d!=NULL) {
-    *d=base64tobyte(*d,strlen(*d));
+    *((byte*)d)=base64tobyte(*d,strlen(*d));
   }
   
 }
 
-void db_readline_sql_time(void** d,int db,int i) {
+void db_readline_sql_time(void** d,int db,int i, db_config* conf) {
   
-  db_readline_sql_char(d,db,i);
+  db_readline_sql_char(d,db,i, conf);
   
   if (*d!=NULL) {
-    *d=base64totime_t(*d);
+    *((time_t*)d)=base64totime_t(*d);
   }
   
 }
 
-db_line* db_readline_sql(int db) {
+db_line* db_readline_sql(int db, db_config* conf) {
   
   volatile db_line* rline;
   int i;
@@ -275,34 +275,34 @@ db_line* db_readline_sql(int db) {
   }
   rline=(db_line*)malloc(1*sizeof(db_line));
   
-  db_readline_sql_byte(&(rline->md5),db,(int)db_md5);
-  db_readline_sql_byte(&(rline->sha1),db,db_sha1);
-  db_readline_sql_byte(&(rline->rmd160),db,db_rmd160);
-  db_readline_sql_byte(&(rline->tiger),db,db_tiger);
+  db_readline_sql_byte((void*)&(rline->md5),db,(int)db_md5, conf);
+  db_readline_sql_byte((void*)&(rline->sha1),db,db_sha1, conf);
+  db_readline_sql_byte((void*)&(rline->rmd160),db,db_rmd160, conf);
+  db_readline_sql_byte((void*)&(rline->tiger),db,db_tiger, conf);
 #ifdef WITH_MHASH
-  db_readline_sql_byte(&(rline->crc32),db,db_crc32);
-  db_readline_sql_byte(&(rline->haval),db,db_haval);
-  db_readline_sql_byte(&(rline->gost),db,db_gost);
+  db_readline_sql_byte((void*)&(rline->crc32),db,db_crc32, conf);
+  db_readline_sql_byte((void*)&(rline->haval),db,db_haval, conf);
+  db_readline_sql_byte((void*)&(rline->gost),db,db_gost, conf);
 #endif
-  db_readline_sql_char(&(rline->filename),db,db_filename);
-  db_readline_sql_char(&(rline->linkname),db,db_linkname);
+  db_readline_sql_char((void*)&(rline->filename),db,db_filename, conf);
+  db_readline_sql_char((void*)&(rline->linkname),db,db_linkname, conf);
   
-  db_readline_sql_int(&(rline->perm),db,db_perm);
-  db_readline_sql_int(&(rline->uid),db,db_uid);
-  db_readline_sql_int(&(rline->gid),db,db_gid);
-  db_readline_sql_int(&(rline->inode),db,db_inode);
-  db_readline_sql_int(&(rline->nlink),db,db_lnkcount);
+  db_readline_sql_int((void*)&(rline->perm),db,db_perm, conf);
+  db_readline_sql_int((void*)&(rline->uid),db,db_uid, conf);
+  db_readline_sql_int((void*)&(rline->gid),db,db_gid, conf);
+  db_readline_sql_int((void*)&(rline->inode),db,db_inode, conf);
+  db_readline_sql_int((void*)&(rline->nlink),db,db_lnkcount, conf);
   
-  db_readline_sql_int(&(rline->size),db,db_osize);
-  db_readline_sql_int(&(rline->bcount),db,db_bcount);
-  db_readline_sql_int(&(rline->attr),db,db_attr);
+  db_readline_sql_int((void*)&(rline->size),db,*db_osize, conf);
+  db_readline_sql_int((void*)&(rline->bcount),db,db_bcount, conf);
+  db_readline_sql_int((void*)&(rline->attr),db,db_attr, conf);
   
-  db_readline_sql_time(&(rline->atime),db,db_atime);
-  db_readline_sql_time(&(rline->ctime),db,db_ctime);
-  db_readline_sql_time(&(rline->mtime),db,db_mtime);
-
+  db_readline_sql_time((void*)&(rline->atime),db,db_atime, conf);
+  db_readline_sql_time((void*)&(rline->ctime),db,db_ctime, conf);
+  db_readline_sql_time((void*)&(rline->mtime),db,db_mtime, conf);
+#ifdef WITH_ACL
   rline->acl=NULL;
-  
+#endif
   ((psql_data*)(*db_filep))->curread++;
   
   error(255,"filename %s\n",rline->filename);

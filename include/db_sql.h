@@ -50,6 +50,6 @@ const static char* db_sql_types[] = {
 };
 
 int db_close_sql(void*);
-db_line* db_readline_sql(int db);
+db_line* db_readline_sql(int db, db_config* conf);
 
 #endif

@@ -175,7 +175,7 @@ db_line* db_readline(int db){
 #ifdef WITH_PSQL
   case url_sql: {
     error(255,"db_sql readline...");
-    s=db_readline_sql(db);
+    s=db_readline_sql(db, conf);
     
     break;
   }

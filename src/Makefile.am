@@ -25,6 +25,7 @@ bin_PROGRAMS = aide
 aide_SOURCES =	\
 		conf_yacc.y	\
 		conf_lex.l	\
+		conf_lex2.c	\
 		getopt.c	\
 		getopt1.c	\
 		gnu_regex.c	\
@@ -35,6 +36,7 @@ aide_SOURCES =	\
 		db_file.c	\
 		db_disk.c	\
 		db_lex.l	\
+		db_lex2.c	\
 		db_sql.c	\
 		gen_list.c	\
 		list.c		\
@@ -60,11 +62,15 @@ LEX_OUTPUT_ROOT = lex.yy
 
 AM_YFLAGS= -d 
 
+db_lex2.c:db_lex.c
+
 db_lex.c:db_lex.l
 	${LEX} -Pdb -odb_lex.c $(top_srcdir)/src/db_lex.l
 
 conf_yacc.c:conf_yacc.y
 	${YACC} ${YFLAGS} -d -p conf -o conf_yacc.c $(top_srcdir)/src/conf_yacc.y
+
+conf_lex2.c:conf_lex.c
 
 conf_lex.c:conf_lex.l
 	${LEX} -l -Pconf -oconf_lex.c $(top_srcdir)/src/conf_lex.l

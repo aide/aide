@@ -188,6 +188,7 @@ primary : hash { $$ =$1 ; } |
 	    $$=retval;
 	  }
 	  else {
+		  conf_lineno++; // Hack
 	    conferror("Error in expression");
 	    YYABORT;
 	  }
@@ -309,7 +310,7 @@ config_version : TCONFIG_VERSION TSTRING {
 
 
 void conferror(const char *msg){
-  error(0,"Line %i:%s\n",conf_lineno+1,msg);
+  error(0,"%i:%s\n",conf_lineno-1,msg);
 
 }
 

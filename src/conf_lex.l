@@ -55,7 +55,7 @@ list* conf_buffer=NULL;
 int condition=0;
 int varbol=0;
 
-long conf_lineno=0;
+long conf_lineno=1;
 int newlinelastinconfig=0;
 
 #define MAX_INCLUDE_DEPTH 10
@@ -83,7 +83,7 @@ int var_in_conflval=0;
   
   putbackvariable(conftext);
 
-  error(230,"%i:Variable substitution\n",conf_lineno);
+  error(230,"%i:Variable substitution\n",conf_lineno+1);
   
 }
 
@@ -97,20 +97,20 @@ int var_in_conflval=0;
 
 ^[\ \t]*"/"({C}|{PC})* {
   conflval.s=strdup(conftext+firstnotempty(conftext));
-  error(230,"Selrule\n");
+  error(230,"%i:Selrule\n",conf_lineno);
   BEGIN(EXPR);
   return (TSELRXRULE );
 }
 
 ^[\ \t]*"!/"({C}|{PC})* {  
   conflval.s=strdup(conftext+1+firstnotempty(conftext));
-  error(230,"Negrule\n");
+  error(230,"%i:Negrule\n",conf_lineno);
   return (TNEGRXRULE );
 }
 
 ^[\ \t]*({L})+ {
   conflval.s=strdup(conftext+firstnotempty(conftext));
-  error(230,"Equrule\n");
+  error(230,"%i:Equrule\n",conf_lineno);
   BEGIN(EXPREQUHUNT);
   return (TSTRING);
 }
@@ -161,63 +161,63 @@ int var_in_conflval=0;
 }
 
 ^[\ \t]*"\@\@define" {
-  error(230,"@@define");
+  error(230,"%i:@@define",conf_lineno);
   BEGIN DEFSTMT;
   return (TDEFINE);
 }
 
 ^[\ \t]*"\@\@undef" {
-  error(230,"@@undef");
+  error(230,"%i:@@undef",conf_lineno);
   BEGIN IFDEFSTMT;
   return (TUNDEF);
 }
 
 
 ^[\ \t]*"\@\@ifndef" {
-  error(230,"@@ifndef");
+  error(230,"%i:@@ifndef",conf_lineno);
   BEGIN IFDEFSTMT;
   return (TIFNDEF);
 }
 
 ^[\ \t]*"\@\@ifdef" {
-  error(230,"@@ifdef");
+  error(230,"%i:@@ifdef",conf_lineno);
   BEGIN IFDEFSTMT;
   return (TIFDEF);
 }
 
 ^[\ \t]*"\@\@else" {
-  error(230,"@@else");
+  error(230,"%i:@@else",conf_lineno);
   BEGIN 0;
   return (TELSE);
 }
 
 ^[\ \t]*"\@\@endif" {
-  error(230,"@@endif");
+  error(230,"%i:@@endif",conf_lineno);
   BEGIN 0;
   return (TENDIF);
 }
 
 <IFDEFSTMT>({L})+ {
-  error(230," %s",conftext);
+  error(230," %s\n",conftext);
   conflval.s=strdup(conftext);
   BEGIN 0;
   return (TSTRING);
 }
 
 ^[\ \t]*"\@\@ifhost" {
-  error(230,"@@ifhost");
+  error(230,"%i:@@ifhost",conf_lineno);
   BEGIN IFHOSTSTMT;
   return (TIFHOST);
 }
 
 ^[\ \t]*"\@\@ifnhost" {
-  error(230,"@@ifnhost");
+  error(230,"%i:@@ifnhost",conf_lineno);
   BEGIN IFHOSTSTMT;
   return (TIFNHOST);
 }
 
 <IFHOSTSTMT>({L}|"-")+ {
-  error(230," %s",conftext);
+  error(230," %s\n",conftext);
   conflval.s=strdup(conftext);
   BEGIN 0;
   return (TSTRING);
@@ -225,12 +225,12 @@ int var_in_conflval=0;
 
 ^[\ \t]*"\@\@db_spec" {
   conf_put_token("\n@@db_spec");
-  error(230,"@@db_spec");
+  error(230,"%i:@@db_spec",conf_lineno);
   return (TDBSPEC);
 }
 
 ^[\ \t]*"\@\@begin_config" {
-  error(230,"@@begin_config");
+  error(230,"%i:@@begin_config",conf_lineno);
   BEGIN CONFVALHUNT;
   return (TBEGIN_CONFIG);
 }
@@ -246,7 +246,7 @@ int var_in_conflval=0;
 <INCLUDE>[^ \t\n]+ {
   includehandler();
   BEGIN 0;
-  error(230,"@@include\n");
+  error(230,"%i:@@include\n",conf_lineno);
   return (TNEWLINE);
 }
 
@@ -285,61 +285,61 @@ int var_in_conflval=0;
  }
 
 ^[\t\ ]*"database"{E} {
-  error(230,"database =\n");
+  error(230,"%i:database =\n",conf_lineno);
   BEGIN CONFVALHUNT;
   return (TDATABASE);
 } 
 
 ^[\t\ ]*"database_out"{E}  {
-  error(230,"database_out =\n");
+  error(230,"%i:database_out =\n",conf_lineno);
   BEGIN CONFVALHUNT;
   return (TDATABASE_OUT);
 }
 
 ^[\t\ ]*"database_new"{E}  {
-  error(230,"database_new =\n");
+  error(230,"%i:database_new =\n",conf_lineno);
   BEGIN CONFVALHUNT;
   return (TDATABASE_NEW);
 }
 
 ^[\t\ ]*"warn_dead_symlinks"{E} {
-  error(230,"warn_dead_symlinks =\n");
+  error(230,"%i:warn_dead_symlinks =\n",conf_lineno);
   BEGIN CONFVALHUNT;
   return (TWARNDEADSYMLINKS);
 }
 
 ^[\t\ ]*"acl_no_symlink_follow"{E} {
-  error(230,"acl_no_symlink_follow =\n");
+  error(230,"%i:acl_no_symlink_follow =\n",conf_lineno);
   BEGIN CONFVALHUNT;
   return (TACLNOSYMLINKFOLLOW);
 }
 
 
 ^[\t\ ]*"verbose"{E} {
-  error(230,"verbose =\n");
+  error(230,"%i:verbose =\n",conf_lineno);
   return (TVERBOSE);  
 }
 
 ^[\t\ ]*"report_url"{E} {
-  error(230,"report_url =\n");
+  error(230,"%i:report_url =\n",conf_lineno);
   BEGIN CONFVALHUNT;
   return (TREPORT_URL);  
 }
 
 ^[\t\ ]*"gzip_dbout"{E} {
-  error(230,"gzip_dbout =\n");
+  error(230,"%i:gzip_dbout =\n",conf_lineno);
   BEGIN CONFVALHUNT;
   return (TGZIPDBOUT);
 }
 
 ^[\t\ ]*"recstop"{E} {
-  error(230,"recstop =\n");
+  error(230,"%i:recstop =\n",conf_lineno);
   BEGIN CONFVALHUNT;
   return (TRECSTOP);
 }
 
 ^[\ \t]*"config_version"{E} {
-  error(230,"config_version =\n");
+  error(230,"%i:config_version =\n",conf_lineno);
   BEGIN CONFVALHUNT;
   return (TCONFIG_VERSION);
 }

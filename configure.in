@@ -17,10 +17,6 @@ case "$srcdir" in
     ;;
 esac
 
-dnl Check user-configurable parameters first
-
-CPPFLAGS="$CPPFLAGS -I$srcdir -I$srcdir/src"
-
 dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_MAKE_SET
@@ -43,17 +39,17 @@ dnl AC_ARG_PROGRAM
 
 AC_ARG_WITH(extra-includes,
 	AC_HELP_STRING([--with-extra-includes],
-		[Specify additional paths to find headerfiles]),
-	[CPPFLAGS="$CFLAGS $withval"]
+		[Specify additional paths with -I to find headerfiles]),
+	[CPPFLAGS="$CPPFLAGS $withval"]
 )
 AC_ARG_WITH(extra-libs,
 	AC_HELP_STRING([--with-extra-libs],
-		[Specify aditional paths to find libraries]),
+		[Specify additional paths with -L to find libraries]),
 	[LDFLAGS="$LDFLAGS $withval"]
 )
 AC_ARG_WITH(extra-link-libs,
 	AC_HELP_STRING([--with-extra-link-libs],
-		[Specify aditional libraries to link]),
+		[Specify additional libraries to link]),
 	[LIBS="$LIBS $withval"]
 )
 

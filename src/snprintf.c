@@ -1,3 +1,4 @@
+#include "aide.h"
 /*
  * snprintf.c - a portable implementation of snprintf
  *

@@ -23,6 +23,7 @@
 #include "config.h"
 #include "report.h"
 #include "db_config.h"
+#include <stdlib.h>
 
 #ifdef HAVE_SNPRINTF
 #if !defined(HAVE_C99_SNPRINTF) || !defined(HAVE_C99_VSNPRINTF)

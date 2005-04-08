@@ -47,9 +47,6 @@
 #include "locale-aide.h"
 /*for locale support*/
 
-/* Some environments do not define this */
-extern unsigned long long strtoull(const char *, char **, int);
-
 db_line* db_char2line(char** ss,int db);
 long readint(char* s,char* err);
 unsigned long long readlong(char* s,char* err);

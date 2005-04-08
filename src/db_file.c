@@ -623,7 +623,7 @@ int db_writeint(long i,FILE* file,int a)
   return dofprintf("%li",i);
   
 }
-int db_writelong(unsigned long long i,FILE* file,int a)
+int db_writelong(AIDE_SIZE_TYPE i,FILE* file,int a)
 {
   if(a) {
     dofprintf(" ");

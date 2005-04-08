@@ -69,6 +69,7 @@ AC_CHECK_TYPES([byte, ushort, ulong, u16, u32, u64])
 AC_CHECK_SIZEOF(unsigned short, 2)
 AC_CHECK_SIZEOF(unsigned int, 4)
 AC_CHECK_SIZEOF(unsigned long, 4)
+AC_CHECK_SIZEOF(unsigned long long, 8)
 
 AC_HEADER_STDC
 AC_CHECK_FUNCS(readdir)
@@ -82,7 +83,7 @@ AC_ARG_WITH(mmap,
 	[AC_CHECK_FUNCS(mmap)]
 )
 
-AC_CHECK_FUNCS(snprintf vsnprintf)
+AC_CHECK_FUNCS(snprintf vsnprintf strtoull strtoul)
 
 AC_CACHE_CHECK(for ISO C99 compliant snprintf,ac_cv_func_snprintf_c99,
 	[AC_TRY_RUN([

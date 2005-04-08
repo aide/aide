@@ -40,6 +40,17 @@
 
 #include "snprintf.h"
 
+#if SIZEOF_UNSIGNED_LONG_LONG > SIZEOF_UNSIGNED_LONG && defined(HAVE_STRTOULL)
+#define AIDE_SIZE_TYPE unsigned long long
+#define AIDE_STRTOULL_FUNC strtoull
+#elif SIZEOF_UNSIGNED_LONG > 0 && defined(HAVE_STRTOUL)
+#define AIDE_SIZE_TYPE unsigned long
+#define AIDE_STRTOULL_FUNC strtoul
+#else
+#define AIDE_SIZE_TYPE long
+#define AIDE_STRTOULL_FUNC strtol
+#endif
+
 #ifndef __NetBSD__
 #ifndef _POSIX_C_SOURCE
 /* For _POSIX_THREAD_SEMANTICS _REENTRANT */

@@ -49,7 +49,7 @@
 
 db_line* db_char2line(char** ss,int db);
 long readint(char* s,char* err);
-unsigned long long readlong(char* s,char* err);
+AIDE_SIZE_TYPE readlong(char* s,char* err);
 long readoct(char* s,char* err);
 
 time_t base64totime_t(char*);
@@ -461,10 +461,10 @@ long readint(char* s,char* err){
   return i;
 }
 
-unsigned long long readlong(char* s,char* err){
-  long long i;
+AIDE_SIZE_TYPE readlong(char* s,char* err){
+  AIDE_SIZE_TYPE i;
   char* e;
-  i=strtoull(s,&e,10);
+  i=AIDE_STRTOULL_FUNC(s,&e,10);
   if (e[0]!='\0') {
     error(0,_("Could not read %s from database"),err);
   }

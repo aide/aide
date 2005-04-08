@@ -35,7 +35,7 @@ int retval=0;
 extern int conflex();
 void conferror(const char*);
 
-extern char* conftext;
+extern char conftext[];
 extern long conf_lineno;
 
 
@@ -310,7 +310,7 @@ config_version : TCONFIG_VERSION TSTRING {
 
 
 void conferror(const char *msg){
-  error(0,"%i:%s\n",conf_lineno-1,msg);
+  error(0,"%i:%s:%s\n",conf_lineno-1,msg,conftext);
 
 }
 

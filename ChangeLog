@@ -1,3 +1,6 @@
+2005-04-18	Richard van den Berg  <richard@vdberg.org>
+	* Correctly parse multiple backslashes in file names
+
 2005-04-08	Richard van den Berg  <richard@vdberg.org>
 	* Use configure to define type for storage of file size in aide.db
 	* Applied fix suggested in Debian Bug #237969

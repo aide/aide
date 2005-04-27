@@ -1,6 +1,7 @@
 2005-04-27	Richard van den Berg  <richard@vdberg.org>
 	* Fixed sshaide.sh as suggested in bug #1100740
 	* Removed db_writeacl() from db_disk.c as suggested in bug #1143889
+	* Set st_rdev to 0 when not used as suggested in bug #1169697
 
 2005-04-18	Richard van den Berg  <richard@vdberg.org>
 	* Correctly parse multiple backslashes in file names

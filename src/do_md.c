@@ -148,6 +148,8 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
   }
   
   sres=AIDE_FSTAT_FUNC(filedes,&fs);
+  if(!(line->attr&DB_RDEV))
+	  fs.st_rdev=0;
   
   if ((stat_diff=stat_cmp(&fs,old_fs))==RETOK) {
     /*

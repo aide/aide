@@ -447,6 +447,8 @@ list* add_file_to_list(list* listp,char*filename,int attr,int* addok)
       if (sres!=0) {
 	error(4,"Dead symlink detected at %s\n",fil->filename);
       }
+      if(!(fil->attr&DB_RDEV))
+	fs.st_rdev=0;
     }
     
     if(conf->symlinks_found==0){
@@ -991,6 +993,12 @@ void strip_dbline(db_line* line,int attr)
     line->haval=NULL;
   }
 #endif
+#ifdef WITH_ACL
+  if(!(attr&DB_ACL)){
+    checked_free(line->acl);
+    line->acl=NULL;
+  }
+#endif
 }
 
 /*
@@ -1435,6 +1443,8 @@ void hsymlnk(db_line* line) {
       if (sres!=0 && sres!=EACCES) {
 	error(4,"Dead symlink detected at %s\n",line->filename);
       }
+      if(!(line->attr&DB_RDEV))
+	fs.st_rdev=0;
     }
     /*
       Is this valid?? 

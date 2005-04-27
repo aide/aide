@@ -518,13 +518,6 @@ int db_writespec_disk (db_config * conf)
 	return RETFAIL;
 }
 
-#ifdef WITH_SUN_ACL
-int db_writeacl (acl_type * acl, FILE * file, int a)
-{
-	return RETFAIL;
-}
-#endif
-
 int db_writeline_disk (db_line * line, db_config * conf)
 {
 	return RETFAIL;

@@ -108,7 +108,7 @@
 #                 emaillist         comma-separated-list-of-addresses
 #                       This option specifies the email addresses that
 #                       sshaide.sh output should be delivered to.
-#                 remote_aidedir    full-home-diretory-path-on-client
+#                 homedir           full-home-diretory-path-on-client
 #                       This option specifies the fully qualified path
 #                       used on the client host.  This would be equivalanet
 #                       to the $HOME environment variable on the client

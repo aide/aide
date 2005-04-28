@@ -42,7 +42,7 @@
 
 #include "snprintf.h"
 
-#if _FILE_OFFSET_BITS - 0 == 64
+#if AIDE_OFF_TYPE == off64_t
 #define AIDE_STRTOLL_FUNC strtoll
 #else
 #define AIDE_STRTOLL_FUNC strtol

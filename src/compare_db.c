@@ -382,7 +382,7 @@ void print_ulong_changes(
         unsigned long new
         )
 {
-#ifdef SIZEOF_UNSIGNED_LONG_LONG
+#if AIDE_OFF_TYPE == off64_t
   snprintf(oline,part_len,"%llu",old);
   snprintf(nline,part_len,"%llu",new);
 #else

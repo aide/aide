@@ -1,3 +1,6 @@
+2005-04-28	Richard van den Berg  <richard@vdberg.org>
+	* Added long long support for portable snprintf
+
 2005-04-27	Richard van den Berg  <richard@vdberg.org>
 	* Fixed sshaide.sh as suggested in bug #1100740
 	* Removed db_writeacl() from db_disk.c as suggested in bug #1143889

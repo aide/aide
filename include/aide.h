@@ -38,6 +38,8 @@
 #endif
 #endif
 
+#define SNPRINTF_LONGLONG_SUPPORT
+
 #include "snprintf.h"
 
 #if SIZEOF_UNSIGNED_LONG_LONG > SIZEOF_UNSIGNED_LONG && defined(HAVE_STRTOULL)

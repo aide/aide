@@ -627,7 +627,11 @@ int db_writelong(AIDE_SIZE_TYPE i,FILE* file,int a)
     dofprintf(" ");
   }
   
+#ifdef SIZEOF_UNSIGNED_LONG_LONG
   return dofprintf("%lli",i);
+#else
+  return dofprintf("%li",i);
+#endif
   
 }
 

@@ -382,8 +382,13 @@ void print_ulong_changes(
         unsigned long new
         )
 {
+#ifdef SIZEOF_UNSIGNED_LONG_LONG
+  snprintf(oline,part_len,"%llu",old);
+  snprintf(nline,part_len,"%llu",new);
+#else
   snprintf(oline,part_len,"%lu",old);
   snprintf(nline,part_len,"%lu",new);
+#endif
   error(2,(char*)entry_format,name,oline,nline);  
 }
 

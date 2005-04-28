@@ -137,9 +137,7 @@ int dofprintf( const char* s,...)
     retval=gzwrite(conf->db_gzout,temp,retval);
   }else{
 #endif
-    va_start(ap,s);
-    retval=vfprintf(conf->db_out,s,ap);
-    va_end(ap);
+    retval=fwrite(temp,1,retval,conf->db_out);
 #ifdef WITH_ZLIB
   }
 #endif

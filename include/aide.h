@@ -42,15 +42,10 @@
 
 #include "snprintf.h"
 
-#if SIZEOF_UNSIGNED_LONG_LONG > SIZEOF_UNSIGNED_LONG && defined(HAVE_STRTOULL)
-#define AIDE_SIZE_TYPE unsigned long long
-#define AIDE_STRTOULL_FUNC strtoull
-#elif SIZEOF_UNSIGNED_LONG > 0 && defined(HAVE_STRTOUL)
-#define AIDE_SIZE_TYPE unsigned long
-#define AIDE_STRTOULL_FUNC strtoul
+#if _FILE_OFFSET_BITS - 0 == 64
+#define AIDE_STRTOLL_FUNC strtoll
 #else
-#define AIDE_SIZE_TYPE long
-#define AIDE_STRTOULL_FUNC strtol
+#define AIDE_STRTOLL_FUNC strtol
 #endif
 
 #ifndef __NetBSD__

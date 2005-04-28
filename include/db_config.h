@@ -133,14 +133,15 @@ typedef enum {
 #define DB_HAVAL    (1<<17)	/* "haval",   */
 #define DB_GOST     (1<<18)	/* "gost",    */
 #define DB_CRC32B   (1<<19)	/* "crc32b",  */
-#define DB_ACL      (1<<20)     /* "acl"      */
-#define DB_BSIZE    (1<<21)     /* "bsize"    */
-#define DB_RDEV     (1<<22)     /* "rdev"     */
-#define DB_DEV      (1<<23)     /* "dev"      */
+#define DB_ATTR     (1<<20)     /* "attr"      */
+#define DB_ACL      (1<<21)     /* "acl"      */
+#define DB_BSIZE    (1<<22)     /* "bsize"    */
+#define DB_RDEV     (1<<23)     /* "rdev"     */
+#define DB_DEV      (1<<24)     /* "dev"      */
 
-#define DB_CHECKMASK (1<<24)    /* "checkmask"*/
-#define DB_SIZEG     (1<<25)	/* "unknown"  */
-#define DB_CHECKINODE (1<<26) /* "checkinode"*/
+#define DB_CHECKMASK (1<<25)    /* "checkmask"*/
+#define DB_SIZEG     (1<<26)	/* "unknown"  */
+#define DB_CHECKINODE (1<<27) /* "checkinode"*/
 
 
 #define DB_HASHES    (DB_MD5|DB_SHA1|DB_RMD160|DB_TIGER|DB_CRC32|DB_HAVAL| \

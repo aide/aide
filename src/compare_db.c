@@ -376,10 +376,10 @@ void print_int_changes(
   snprintf(nline,part_len,"%i",new);
   error(2,(char*)entry_format,name,oline,nline); 
 }
-void print_ulong_changes(
+void print_long_changes(
         const char* name,
-        unsigned long old,
-        unsigned long new
+        AIDE_OFF_TYPE old,
+        AIDE_OFF_TYPE new
         )
 {
 #if AIDE_OFF_TYPE == off64_t
@@ -421,7 +421,7 @@ void print_dbline_changes(db_line* old,db_line* new,int ignorelist)
   }
   if (!(DB_SIZE&ignorelist)) {
     if(old->size!=new->size){
-      print_ulong_changes("Size", old->size,new->size);
+      print_long_changes("Size", old->size,new->size);
     }
   }
 

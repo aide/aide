@@ -1,3 +1,6 @@
+2005-06-11	Richard van den Berg  <richard@vdberg.org>
+	* Applied aide.1.in patch from SF bug #1217483
+
 2005-04-28	Richard van den Berg  <richard@vdberg.org>
 	* Added long long support for portable snprintf
 	* Created aide.conf.5.in and aide.conf.5.ru.in as per bug #1103719

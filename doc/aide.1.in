@@ -11,27 +11,27 @@ of files.
 
 .SH COMMANDS
 .PP
-.IP --check, -C
+.IP "--check, -C"
 Checks the database for inconsistencies. You must have an initialized
 database to do this. This is also the default command. Without any
 command \fBaide\fP does a check.
-.IP --init, -i
+.IP "--init, -i"
 Initialize the database. You must initialize a database and move it to
 the appropriate place before you can use the --check command.
-.IP --update, -u
+.IP "--update, -u"
 Checks the database and updates the database non-interactively. 
 The input and output databases must be different.
 .IP --compare
 Compares two databases. They must be defined in configfile with
 database=<url> and database_new=<url>.
 .SH PARAMETERS
-.IP --config=\fBconfigfile\fR , -c \fBconfigfile\fR
+.IP "--config=\fBconfigfile\fR , -c \fBconfigfile\fR"
 Configuration is read from file \fBconfigfile\fR instead of "./aide.conf". Use '-' for stdin.
-.IP --before="\fBconfigparameters\fR" , -B "\fBconfigparameters\fR"
+.IP "--before=\(dq\fBconfigparameters\fR\(dq , -B \(dq\fBconfigparameters\fR\(dq"
 These \fBconfigparameters\fR are handled before the reading of the
 configuration file. See aide.conf (5) for more details on what to put
 here. 
-.IP --after="configparameters" , -A "configparameters"
+.IP "--after=\(dqconfigparameters\(dq , -A \(dqconfigparameters\(dq"
 These \fBconfigparameters\fR are handled after the reading of the
 configuration file. See aide.conf (5) for more details on what to put
 here.
@@ -39,7 +39,7 @@ here.
 Controls how verbose \fBaide\fP is. Value must [0-255]. The default is
 5. With no argument Value is set to 20. This parameter overrides the
 value set in a configuration file.
-.IP --report=\fBreporter\fR,-r \fBreporter\fR
+.IP "--report=\fBreporter\fR,-r \fBreporter\fR"
 \fBreporter\fR is a URL which tells \fBaide\fP where to send it's
 output. See aide.conf (5) section URLS for available values.
 .IP --version,-v

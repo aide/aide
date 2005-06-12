@@ -31,11 +31,11 @@ Configuration is read from file \fBconfigfile\fR instead of "./aide.conf". Use '
 These \fBconfigparameters\fR are handled before the reading of the
 configuration file. See aide.conf (5) for more details on what to put
 here. 
-.IP "--after=\(dqconfigparameters\(dq , -A \(dqconfigparameters\(dq"
+.IP "--after=\(dq\fBconfigparameters\fR\(dq , -A \(dq\fBconfigparameters\fR\(dq"
 These \fBconfigparameters\fR are handled after the reading of the
 configuration file. See aide.conf (5) for more details on what to put
 here.
-.IP --verbose=verbosity_level,-Vverbosity_level
+.IP --verbose=\fBverbosity_level\fR,-V\fBverbosity_level\fR
 Controls how verbose \fBaide\fP is. Value must [0-255]. The default is
 5. With no argument Value is set to 20. This parameter overrides the
 value set in a configuration file.

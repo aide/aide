@@ -272,7 +272,6 @@ int var_in_conflval=0;
             conf_switch_to_buffer(
                  include_stack[include_stack_ptr] );
             }
-         return TEOF;
 }
 
 

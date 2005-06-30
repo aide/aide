@@ -1,3 +1,6 @@
+2005-06-30	Richard van den Berg  <richard@vdberg.org>
+	* Removed return in conf_lex.l that caused --after to be ignored
+
 2005-06-12	Richard van den Berg  <richard@vdberg.org>
 	* Applied another aide.1.in from Sven Hoexter <sven@timegate.de>
 

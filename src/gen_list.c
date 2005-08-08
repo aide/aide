@@ -382,6 +382,8 @@ list* add_file_to_list(list* listp,char*filename,int attr,int* addok)
     *addok=RETFAIL;
     return listp;
   } 
+  if(!(fil->attr&DB_RDEV))
+    fs.st_rdev=0;
   
   cur_time=time(NULL);
 
@@ -1168,6 +1170,8 @@ db_line* get_file_attrs(char* filename,int attr)
     }
     return NULL;
   } 
+  if(!(attr&DB_RDEV))
+    fs.st_rdev=0;
   /*
     Get current time for future time notification.
    */

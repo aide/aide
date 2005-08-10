@@ -42,6 +42,14 @@
 
 #include "snprintf.h"
 
+#ifndef O_NOATIME
+#if defined(__linux__) && (defined(__i386__) || defined(__PPC__))
+#define O_NOATIME 01000000
+#else
+#define O_NOATIME 0
+#endif
+#endif
+
 #if AIDE_OFF_TYPE == off64_t
 #define AIDE_STRTOLL_FUNC strtoll
 #else

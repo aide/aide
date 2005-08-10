@@ -128,7 +128,11 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
   }
 #endif  
 
+#ifdef HAVE_O_NOATIME
+  int filedes=open(line->filename,O_RDONLY|O_NOATIME);
+#else
   int filedes=open(line->filename,O_RDONLY);
+#endif
 
   error(255,"calc_md called\n");
   if (filedes==-1) {

@@ -1,3 +1,6 @@
+2005-08-10	Richard van den Berg  <richard@vdberg.org>
+	* Open files with O_NOATIME on Linux (per Vlada Macek <tuttle@bbs.cvut.cz>)
+
 2005-08-08	Richard van den Berg  <richard@vdberg.org>
 	* Reset fs.st_rdev in 2 additional places as per bug #1253822
 

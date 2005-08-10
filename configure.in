@@ -127,6 +127,41 @@ if test $ac_cv_func_vsnprintf_c99 = yes; then
 	AC_DEFINE(HAVE_C99_VSNPRINTF,1,[vsnprintf is ISO C99 compliant])
 fi
 
+# Linux has the O_NOATIME flag, sometimes
+AC_CACHE_CHECK([for open/O_NOATIME], db_cv_open_o_noatime, [
+echo "test for working open/O_NOATIME" > __o_noatime_file
+AC_TRY_RUN([
+#include <sys/types.h>
+#include <fcntl.h>
+#ifndef O_NOATIME
+#if defined(__linux__) && (defined(__i386__) || defined(__PPC__))
+#define O_NOATIME 01000000
+#else
+#define O_NOATIME 0
+#endif
+#endif
+main() {
+int c, fd = open("__o_noatime_file", O_RDONLY | O_NOATIME, 0);
+exit (O_NOATIME && ((fd == -1) || (read(fd, &c, 1) != 1)));
+}], [db_cv_open_o_noatime=yes], [db_cv_open_o_noatime=no],
+AC_TRY_LINK([
+#include <sys/types.h>   
+#include <fcntl.h>
+#ifndef O_NOATIME
+#if defined(__linux__) && (defined(__i386__) || defined(__PPC__))
+#define O_NOATIME 01000000
+#else
+#define O_NOATIME 0
+#endif
+#endif], [
+	open("__o_noatime_file", O_RDONLY | O_NOATIME, 0);
+], [db_cv_open_o_noatime=yes], [db_cv_open_o_noatime=no]))
+rm -f __o_noatime_file])
+if test "$db_cv_open_o_noatime" = yes; then
+	AC_DEFINE(HAVE_O_NOATIME)
+	AH_TEMPLATE(HAVE_O_NOATIME, [Define to 1 if you have the O_NOATIME flag.])
+fi
+
 AC_CHECK_HEADERS(syslog.h ustat.h)
 
 AC_ARG_WITH(locale,

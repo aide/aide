@@ -142,7 +142,7 @@ AC_TRY_RUN([
 #endif
 main() {
 int c, fd = open("__o_noatime_file", O_RDONLY | O_NOATIME, 0);
-exit (O_NOATIME && ((fd == -1) || (read(fd, &c, 1) != 1)));
+exit ((!O_NOATIME) || (fd == -1) || (read(fd, &c, 1) != 1));
 }], [db_cv_open_o_noatime=yes], [db_cv_open_o_noatime=no],
 AC_TRY_LINK([
 #include <sys/types.h>   

@@ -82,7 +82,10 @@ void next_in_dir ()
 #ifdef HAVE_READDIR
 	if (dirh != NULL) {
 		entp = AIDE_READDIR_FUNC (dirh);
-		td = telldir (dirh);
+		if(entp!=NULL)
+			td = telldir(dirh);
+		else
+			td=-1;
 	}
 #endif
 #endif
@@ -95,7 +98,7 @@ int in_this ()
 	return (dirh != NULL && rdres == 0 && (*resp) != NULL);
 #else
 #ifdef HAVE_READDIR
-	return (dirh != NULL && entp != NULL && td == telldir (dirh));
+	return (dirh != NULL && entp != NULL && td >= 0);
 #endif
 #endif
 }

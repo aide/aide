@@ -1,3 +1,6 @@
+2005-09-02	Richard van den Berg  <richard@vdberg.org>
+	* Added patch for cygwin compatibility as per bug #1279818
+
 2005-08-10	Richard van den Berg  <richard@vdberg.org>
 	* Open files with O_NOATIME on Linux (per Vlada Macek <tuttle@bbs.cvut.cz>)
 

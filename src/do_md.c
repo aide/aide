@@ -186,7 +186,7 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
 	  r_size-=MMAP_BLOCK_SIZE;
 	}
 	if ( buf == MAP_FAILED ) {
-	  error(0,"error mmap'ing %s\n", line->filename);
+	  error(0,"error mmap'ing %s: %s\n", line->filename,strerror(errno));
 	  close(filedes);
 	  close_md(&mdc);
 	  return;

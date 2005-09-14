@@ -1,3 +1,6 @@
+2005-09-14	Richard van den Berg  <richard@vdberg.org>
+	* Print detailed error message when mmap() returns MAP_FAILED
+
 2005-09-02	Richard van den Berg  <richard@vdberg.org>
 	* Added patch for cygwin compatibility as per bug #1279818
 

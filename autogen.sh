@@ -2,70 +2,74 @@
 # Run this to generate all the initial makefiles, etc.
 
 PGM=AIDE
-DIE=no
 
+#libtool_vers=1.3
+
+DIE=no
 autoconf_vers=2.50
 automake_vers=1.7
 aclocal_vers=1.7
-#libtool_vers=1.3
 
-if (autoconf --version) < /dev/null > /dev/null 2>&1 ; then
-    if (autoconf --version | awk 'NR==1 { if( $3 >= '$autoconf_vers') \
-			       exit 1; exit 0; }');
-    then
-       echo "**Error**: "\`autoconf\'" is too old."
-       echo '           (version ' $autoconf_vers ' or newer is required)'
-       DIE="yes"
+autoconf_guess=("autoconf" "autoconf2.50")
+automake_guess=("automake")
+aclocal_guess=("aclocal")
+
+set -e 
+
+function check_version() {
+    if $1 --version | awk 'NR==1 { if( $NF >= '$2' ) exit 0; exit 1; }' ; then
+	return 0;
     fi
-else
-    echo
-    echo "**Error**: You must have "\`autoconf\'" installed to compile $PGM."
-    echo '           (version ' $autoconf_vers ' or newer is required)'
-    DIE="yes"
-fi
+    return 1;
+}
 
-if (automake --version) < /dev/null > /dev/null 2>&1 ; then
-  if (automake --version | awk 'NR==1 { if( $4 >= '$automake_vers') \
-			     exit 1; exit 0; }');
-     then
-     echo "**Error**: "\`automake\'" is too old."
-     echo '           (version ' $automake_vers ' or newer is required)'
-     DIE="yes"
-  fi
-  if (aclocal --version) < /dev/null > /dev/null 2>&1; then
-    if (aclocal --version | awk 'NR==1 { if( $4 >= '$aclocal_vers' ) \
-						exit 1; exit 0; }' );
-    then
-      echo "**Error**: "\`aclocal\'" is too old."
-      echo '           (version ' $aclocal_vers ' or newer is required)'
-      DIE="yes"
+function check_exists() {
+    if $1 --version < /dev/null > /dev/null 2>&1  ; then
+	return 0;
     fi
-  else
-    echo
-    echo "**Error**: Missing "\`aclocal\'".  The version of "\`automake\'
-    echo "           installed doesn't appear recent enough."
-    DIE="yes"
-  fi
-else
-    echo
-    echo "**Error**: You must have "\`automake\'" installed to compile $PGM."
-    echo '           (version ' $automake_vers ' or newer is required)'
-    DIE="yes"
-fi
+    return 1;
+}
 
+function print_error() {
+    echo "**Error**: "\`$1\'" is too old or not installed"
+    echo '           (version ' $2 ' or newer is required)'
+    DIE="yes"
+}
 
-if test "$DIE" = "yes"; then
-    exit 1
-fi
+function my_try() {
+    if check_exists $1 && \
+	check_version $1 $2 ; then
+	return 0;
+    fi
+    return 1;
+}
+
+function check() {
+    eval vers=\$${1}_vers
+    printf "checking "$1" for "$vers
+    eval vals=\${${1}_guess[*]}
+    for a in $vals
+      do
+      if my_try $a $vers ; then
+	  echo " ok"
+	  eval ${1}_bin=$a;
+	  return 0
+      fi
+    done
+    echo "No "
+}
+
+check autoconf
+check automake
+check aclocal
 
 echo "Running aclocal..."
-aclocal
+$aclocal_bin
 echo "Running autoheader..."
 autoheader
 echo "Running automake --gnu ..."
-automake --gnu;
+$automake_bin --gnu;
 echo "Running autoconf..."
-autoconf
+$autoconf_bin
 
 echo "You can now run \"./configure\" and then \"make\"."
-

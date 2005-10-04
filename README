@@ -1,7 +1,7 @@
 
              AIDE - Advanced Intrusion Detection Environment
             -------------------------------------------------
-                               Version 0.10
+                               Version Post 0.10
 
     This file is free software; as a special exception the author gives
     unlimited permission to copy and/or distribute it, with or without
@@ -67,12 +67,12 @@
 
     a) To check the supplied signature with GnuPG:
 
-        $ gpg --verify aide-0.10.tar.gz.asc
+        $ gpg --verify aide-0.11.tar.gz.asc
 
        This checks that the detached signature file is indeed a signature
-       of aide-0.10.tar.gz.  The key used to create this signature is:
+       of aide-0.11.tar.gz.  The key used to create this signature is:
     
-           pub 1024D/DC271F5C 2003-11-29
+           pub 1024D/5930D198 2005-10-04 [expires: 2007-01-01]
                Aide Developers <aide-devel@lists.sourceforge.net>
 
        If you do not have this key, you can get it from the SourceForge
@@ -80,7 +80,7 @@
        to make sure that the key you install is not a faked one.  You can
        do this with reasonable assurance by comparing the output of:
 
-           gpg --fingerprint 0xDC271F5C
+           gpg --fingerprint 0x5930D198
 
        with the fingerprint published elsewhere.
 

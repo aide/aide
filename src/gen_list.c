@@ -88,6 +88,7 @@ char* strrxtok(char* rx)
 	break;
       case '\\':
 	strcpy(p+i,p+i+1);
+	i++;
 	break;
       default:
 	break;

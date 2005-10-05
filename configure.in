@@ -53,6 +53,113 @@ AC_ARG_WITH(extra-link-libs,
 	[LIBS="$LIBS $withval"]
 )
 
+dnl This is borrowed from libtool
+    
+if test $ac_cv_prog_gcc = yes; then
+    LD_STATIC_FLAG='-static'
+
+    case "$host_os" in
+    beos* | irix5* | irix6* | osf3* | osf4* | osf5*)
+	# PIC is the default for these OSes.
+	;;
+    aix*)
+	# Below there is a dirty hack to force normal static linking with -ldl
+	# The problem is because libdl dynamically linked with both libc and
+	# libC (AIX C++ library), which obviously doesn't included in libraries
+	# list by gcc. This cause undefined symbols with -static flags.
+	# This hack allows C programs to be linked with "-static -ldl", but
+	# we not sure about C++ programs.
+	LD_STATIC_FLAG="$LD_STATIC_FLAG ${wl}-lC"
+	;;
+    cygwin* | mingw* | os2*)
+	# We can build DLLs from non-PIC.
+	;;
+    amigaos*)
+	# FIXME: we need at least 68020 code to build shared libraries, but
+	# adding the `-m68020' flag to GCC prevents building anything better,
+	# like `-m68040'.
+	## pic_flag='-m68020 -resident32 -malways-restore-a4'
+	;;
+    sysv4*MP*)
+	## if test -d /usr/nec; then
+	## pic_flag=-Kconform_pic
+	## fi
+	;;
+    *)
+	## pic_flag='-fPIC'
+	;;
+    esac
+else
+    # PORTME Check for PIC flags for the system compiler.
+    case "$host_os" in
+    aix3* | aix4*)
+	# All AIX code is PIC.
+	LD_STATIC_FLAG='-bnso -bI:/lib/syscalls.exp'
+	;;
+	
+    hpux9* | hpux10* | hpux11*)
+	# Is there a better LD_STATIC_FLAG that works with the bundled CC?
+	## wl='-Wl,'
+	LD_STATIC_FLAG="${wl}-a ${wl}archive"
+	## pic_flag='+Z'
+	;;
+	
+    irix5* | irix6*)
+	## wl='-Wl,'
+	LD_STATIC_FLAG='-non_shared'
+	# PIC (with -KPIC) is the default.
+	;;
+	
+    cygwin* | mingw* | os2*)
+	# We can build DLLs from non-PIC.
+	;;
+	
+    osf3* | osf4* | osf5*)
+	# All OSF/1 code is PIC.
+	## wl='-Wl,'
+	LD_STATIC_FLAG='-non_shared'
+	;;
+	
+    sco3.2v5*)
+	## pic_flag='-Kpic'
+	LD_STATIC_FLAG='-dn'
+	## special_shlib_compile_flags='-belf'
+	;;
+	
+    solaris*)
+	## pic_flag='-KPIC'
+	LD_STATIC_FLAG='-Bstatic'
+	## wl='-Wl,'
+	;;
+	
+    sunos4*)
+	## pic_flag='-PIC'
+	LD_STATIC_FLAG='-Bstatic'
+	## wl='-Qoption ld '
+	;;
+	
+    sysv4 | sysv4.2uw2* | sysv4.3* | sysv5*)
+	## pic_flag='-KPIC'
+	LD_STATIC_FLAG='-Bstatic'
+	## wl='-Wl,'
+	;;
+	
+    uts4*)
+	## pic_flag='-pic'
+	LD_STATIC_FLAG='-Bstatic'
+	;;
+    sysv4*MP*)
+	if test -d /usr/nec ;then
+	## pic_flag='-Kconform_pic'
+	LD_STATIC_FLAG='-Bstatic'
+	fi
+	;;
+    *)
+	## can_build_shared=no
+	;;
+    esac
+fi
+
 CFLAGS="$CFLAGS $LD_STATIC_FLAG"
 CPPFLAGS="$CPPFLAGS $LD_STATIC_FLAG"
 

@@ -62,7 +62,7 @@
 #include <gcrypt.h>
 */
 void md_init_fail(const char* s,db_line* db,byte** hash,unsigned i) {
-  error(0,"Message diggest %s initialise failed\nDisabling %s for file %s\n",s,s,db->filename);
+  error(0,"Message digest %s initialise failed\nDisabling %s for file %s\n",s,s,db->filename);
   db->attr=db->attr&(~i);
   (*hash)=0;
 }
@@ -220,7 +220,7 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
       md2line(&mdc,line);
       
     } else {
-      error(3,"Message diggest initialization failed.\n");
+      error(3,"Message digest initialization failed.\n");
       no_hash(line);
       close(filedes);
       return;

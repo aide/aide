@@ -389,11 +389,11 @@ recursion:
 									r->equ_rx_lst != NULL) || r->childs != NULL)) {
 							/* The dir did not exist and there are regexps referring to
 							   this node or there are children to this node. 
-							   The only way a nonexistant dirnode can have children is by 
+							   The only way a nonexistent dirnode can have children is by 
 							   having rules referring to them.
 							 */
 							error (3,
-										 "There are rules referring to non-existant directories!\n");
+										 "There are rules referring to non-existent directories!\n");
 						}
 					}
 					r->checked |= NODE_TRAVERSE | NODE_CHECKED;

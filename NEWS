@@ -2,11 +2,13 @@
 	AIDE Version History
 
 =========================================================
+
 Version 0.11
 	* Fixed many bugs
+	* Updated automake/autoconf scripts
 	* Use snprintf by Mark Martinec if not in C library
 	* Support for more (legacy) Unix systems and cygwin
-	* Open files with O_NOATIME on Linux
+	* Open files with O_NOATIME on supported Linux systems
 
 Version 0.10
 	* Fixed bugs

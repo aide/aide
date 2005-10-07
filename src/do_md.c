@@ -121,7 +121,7 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
    */
   struct AIDE_STAT_TYPE fs;
   int sres=0;
-  int stat_diff;
+  int stat_diff,filedes;
 #ifdef _PARAMETER_CHECK_
   if (line==NULL) {
     abort();
@@ -129,10 +129,10 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
 #endif  
 
 #ifdef HAVE_O_NOATIME
-  int filedes=open(line->filename,O_RDONLY|O_NOATIME);
-#else
-  int filedes=open(line->filename,O_RDONLY);
+  filedes=open(line->filename,O_RDONLY|O_NOATIME);
+  if(filedes==-1)
 #endif
+    filedes=open(line->filename,O_RDONLY);
 
   error(255,"calc_md called\n");
   if (filedes==-1) {

@@ -1,3 +1,6 @@
+2005-10-07	Richard van den Berg  <richard@vdberg.org>
+	* If open() with NO_ATIME fails, try open() again without it
+
 2005-10-05	Richard van den Berg  <richard@vdberg.org>
 	* Compile aide as a static executable
 	* Fixed some spelling errors caught by Marc Haber <mh+aide@zugschlus.de>

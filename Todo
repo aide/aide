@@ -13,4 +13,3 @@ Relative paths in databases
 Checksum of the binary at the start of the report
 PGP support
 @@ifdef foo || ( bar && baz )
-Use newer autoconf

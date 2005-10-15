@@ -50,6 +50,7 @@ dist-hook:
 		include/md.h\
 		include/report.h\
 		include/seltree.h\
+		include/snprintf.h\
 		include/symboltable.h\
 		include/types.h\
 		include/url.h\

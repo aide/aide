@@ -28,7 +28,7 @@ define(AIDE_MSG_PRINT,
   [ echo $ac_n "$1"" $ac_c" 1>&AC_FD_MSG
   ])
 
-AC_DEFUN(AIDE_CHECK_READDIR_R_ARGS,[
+AC_DEFUN([AIDE_CHECK_READDIR_R_ARGS],[
 # Check definition of readdir_r
 AC_CACHE_CHECK(args to readdir_r, aide_cv_readdir_r,
 AC_TRY_LINK(

@@ -2,6 +2,7 @@
 	* Applied patch 1124758: fix underquoted m4
 	* Applied patch 1124757: dist-hook missing file snprintf.h
 	* Applied patch 1124760: cleaner automake initialisation
+	* Applied patch 1124782: gettextize related patch
 
 2005-10-07	Richard van den Berg  <richard@vdberg.org>
 	* If open() with NO_ATIME fails, try open() again without it

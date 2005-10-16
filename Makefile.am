@@ -19,6 +19,10 @@
 
 SUBDIRS = src doc po
 
+datadir = @datadir@
+localedir = $(datadir)/locale
+DEFS = -DLOCALEDIR=\"$(localedir)\" @DEFS@
+
 CLEANFILES = *~
 
 check: all

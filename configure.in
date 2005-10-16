@@ -276,7 +276,7 @@ AC_ARG_WITH(locale,
 	[AC_CHECK_HEADERS(libintl.h,
 		[AC_DEFINE(USE_LOCALE,1,[Define if LOCALE support should be used])
 		AIDE_USE_LOCALE=""
-        	AC_DEFINE_UNQUOTED(LOCALEDIR,"$prefix/lib/locale",[Localedir to use])],
+dnl        	AC_DEFINE_UNQUOTED(LOCALEDIR,"$prefix/lib/locale",[Localedir to use])],
 	)]
 )
 

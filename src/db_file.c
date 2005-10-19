@@ -68,7 +68,7 @@ void handle_gzipped_input(int out,gzFile* gzp){
       error(0,_("gzread() failed:gzerr=%s!\n"),gzerror(*gzp,&err));
       exit(1);
     } else {
-      /* gzread returns 0 even if uncompressed bytes were read*/
+      /* gzread returns 0 even if uncompressed bytes were read */
       if(nread==0){
 	write(out, buf,strlen((char*)buf));
       } else {
@@ -553,12 +553,12 @@ char** db_readline_file(int db){
   
 
   /*
-   * If we don't get newline after reading all sells we print an error
+   * If we don't get newline after reading all cells we print an error
    */
   a=db_scan();
 
   if (a!=TNEWLINE&&a!=TEOF) {
-    error(0,"Newline expected in database. Readin until end of line\n");
+    error(0,"Newline expected in database. Reading until end of line\n");
     do {
       
       error(0,"Skipped value %s\n",dbtext);

@@ -1,3 +1,6 @@
+2005-10-19	Richard van den Berg  <richard@vdberg.org>
+	* Applied patch from Debian bug #121717: aide spelling fixes
+
 2005-10-16	Richard van den Berg  <richard@vdberg.org>
 	* Applied patch 1124758: fix underquoted m4
 	* Applied patch 1124757: dist-hook missing file snprintf.h

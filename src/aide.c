@@ -556,10 +556,13 @@ int main(int argc,char**argv)
       if (conf->verbose_level >= 5) {
         printf("\nAIDE, version " AIDEVERSION "\n\n");
         if(conf->action&DO_COMPARE) {
-          printf("### All files match AIDE database.  Looks okay!\n\n");
+          printf("### All files match AIDE database. Looks okay!\n\n");
         }
         if(conf->action&DO_INIT) {
-          printf("### AIDE database initialized.\n\n");
+	  if(conf->action&DO_COMPARE)
+            printf("### New AIDE database written to %s\n\n",conf->db_out_url->value);
+	  else
+            printf("### AIDE database at %s initialized.\n\n",conf->db_out_url->value);
         }
       }
     }

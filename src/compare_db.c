@@ -623,7 +623,7 @@ void print_report_header(int nfil,int nadd,int nrem,int nchg)
 
 void print_report_footer(struct tm* st)
 {
-    error(20,_("\nEnd timestamp: %0.4u-%0.2u-%0.2u %0.2u:%0.2u:%0.2u\n"),
+    error(2,_("\nEnd timestamp: %0.4u-%0.2u-%0.2u %0.2u:%0.2u:%0.2u\n"),
 	  st->tm_year+1900, st->tm_mon+1, st->tm_mday,
 	  st->tm_hour, st->tm_min, st->tm_sec);
 }

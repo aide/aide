@@ -1,3 +1,6 @@
+2005-10-25	Richard van den Berg  <richard@vdberg.org>
+	* Print start and stop timestamp together (Marc Haber <mh+aide@zugschlus.de>)
+
 2005-10-19	Richard van den Berg  <richard@vdberg.org>
 	* Applied patch from Debian bug #121717: aide spelling fixes
 

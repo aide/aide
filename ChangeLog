@@ -1,6 +1,7 @@
 2005-10-25	Richard van den Berg  <richard@vdberg.org>
 	* Print start and stop timestamp together (Marc Haber <mh+aide@zugschlus.de>)
 	* Print database_out path with -i and -u
+	* Added bzip2.sh to the contrib directory
 
 2005-10-19	Richard van den Berg  <richard@vdberg.org>
 	* Applied patch from Debian bug #121717: aide spelling fixes

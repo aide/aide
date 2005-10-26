@@ -1,5 +1,7 @@
 #!/bin/sh
 # Run this to generate all the initial makefiles, etc.
+#
+# Needs bash, Solaris sh will not work
 
 PGM=AIDE
 

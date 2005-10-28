@@ -1111,7 +1111,7 @@ void add_file_to_tree(seltree* tree,db_line* file,int db,int status,int attr)
 	    oldData->filename,oldData->attr,newData->attr);
     }
     
-    localignorelist|=ignorelist;
+    localignorelist|=ignorelist|DB_CTIME;
 
     /* Free the data if same else leave as is for report_tree */
     if(compare_dbline(oldData, newData, localignorelist)==RETOK){

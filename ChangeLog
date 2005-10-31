@@ -1,3 +1,6 @@
+2005-10-30	Richard van den Berg  <richard@vdberg.org>
+	* Warn if 'I' and 'c' are used together
+
 2005-10-28	Richard van den Berg  <richard@vdberg.org>
 	* Ignore 'c' when 'I' is in effect
 	* Mention in aide.conf.5 that 'c' and 'I' are incompatible

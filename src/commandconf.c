@@ -663,6 +663,8 @@ list* append_rxlist(char* rx,int attr,list* rxlst)
   r->rx=rx;
   r->attr=attr;
   r->conf_lineno = conf_lineno;
+  if ((attr&(DB_CHECKINODE|DB_CTIME)) != 0 )
+    error(20,"Rule at line %i has c and I flags enabled at the same time. If same inode is found, flag c is ignored\n",conf_lineno);
   update_db_out_order(r->attr);
   rxlst=list_append(rxlst,(void*)r);
   

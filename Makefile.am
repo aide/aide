@@ -61,5 +61,5 @@ dist-hook:
 		include/util.h\
 		$(distdir)/include
 
-	rm 	$(distdir)/src/conf_yacc.c\
+	rm -f 	$(distdir)/src/conf_yacc.c\
 		$(distdir)/src/conf_lex.c

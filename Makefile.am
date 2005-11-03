@@ -25,7 +25,10 @@ DEFS = -DLOCALEDIR=\"$(localedir)\" @DEFS@
 
 CLEANFILES = *~
 
-check: all
+DIST_SOURCES = src/conf_lex.l src/db_lex.l
+EXTRA_DIST = Todo LICENSE-snprintf.txt README-snprintf
+
+check: update-db
 	src/aide -c doc/aide.conf -V20
 
 update-db: all
@@ -61,5 +64,5 @@ dist-hook:
 		include/util.h\
 		$(distdir)/include
 
-	rm -f 	$(distdir)/src/conf_yacc.c\
-		$(distdir)/src/conf_lex.c
+	rm	$(distdir)/src/conf_yacc.c
+

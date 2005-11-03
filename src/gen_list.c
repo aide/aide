@@ -82,7 +82,6 @@ char* strrxtok(char* rx)
       case '^':
       case '$':
       case '*':
-      case '.':
       case '[':
 	i=strlen(p);
 	break;

@@ -3,4 +3,4 @@ aide.conf
 aide.db
 Makefile.in
 aide.1
-aide.1.ru
+aide.conf.5

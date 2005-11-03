@@ -11,5 +11,4 @@ Rewrite for smaller memory footprint.
 Localization
 Relative paths in databases
 Checksum of the binary at the start of the report
-PGP support
 @@ifdef foo || ( bar && baz )

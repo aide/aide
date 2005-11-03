@@ -641,5 +641,5 @@ compoptionstring="${compoptionstring}CONFIG_FILE = \\\"${config_file}\\\"\\n"
 
 AC_DEFINE_UNQUOTED(AIDECOMPILEOPTIONS, "${compoptionstring}",[Compile-time options displayed in -v output])
 
-AC_OUTPUT(Makefile src/Makefile po/Makefile doc/Makefile doc/aide.conf doc/aide.1 doc/aide.1.ru doc/aide.conf.5 doc/aide.conf.5.ru aide.spec)
+AC_OUTPUT(Makefile src/Makefile doc/Makefile doc/aide.conf doc/aide.1 doc/aide.conf.5 aide.spec)
 

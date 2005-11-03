@@ -17,7 +17,7 @@
 # Boston, MA 02111-1307, USA.
 #
 
-SUBDIRS = src doc po
+SUBDIRS = src doc
 
 datadir = @datadir@
 localedir = $(datadir)/locale

@@ -42,5 +42,5 @@ dist-hook:
 	mkdir $(distdir)/contrib
 	cp -p   contrib/[a-z]* $(distdir)/contrib
 
-	rm	$(distdir)/src/conf_yacc.c
+	rm -f	$(distdir)/src/conf_yacc.c $(distdir)/src/conf_yacc.h
 

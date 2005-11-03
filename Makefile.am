@@ -26,6 +26,7 @@ DEFS = -DLOCALEDIR=\"$(localedir)\" @DEFS@
 CLEANFILES = *~
 
 DIST_SOURCES = src/conf_lex.l src/db_lex.l
+DIST_SUBDIRS = $(SUBDIRS)
 EXTRA_DIST = Todo LICENSE-snprintf.txt README-snprintf
 
 check: update-db
@@ -36,33 +37,10 @@ update-db: all
 
 dist-hook: 
 	mkdir $(distdir)/include
-	cp -p   include/aide.h\
-		include/base64.h\
-		include/be.h\
-		include/commandconf.h\
-		include/compare_db.h\
-		include/conf_lex.h\
-		include/db.h\
-		include/db_config.h\
-		include/db_disk.h\
-		include/db_file.h\
-		include/db_list.h\
-		include/db_sql.h\
-		include/do_md.h\
-		include/gen_list.h\
-		include/getopt.h\
-		include/gnu_regex.h\
-		include/list.h\
-		include/locale-aide.h\
-		include/md.h\
-		include/report.h\
-		include/seltree.h\
-		include/snprintf.h\
-		include/symboltable.h\
-		include/types.h\
-		include/url.h\
-		include/util.h\
-		$(distdir)/include
+	cp -p   include/*.h $(distdir)/include
+
+	mkdir $(distdir)/contrib
+	cp -p   contrib/[a-z]* $(distdir)/contrib
 
 	rm	$(distdir)/src/conf_yacc.c
 

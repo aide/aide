@@ -152,6 +152,7 @@ Input is read from filedescriptor \fBnumber\fR or output is written to
 .IP "c:	ctime"
 .IP "S:	check for growing size"
 .IP "I:	ignore changed filename"
+.IP "ANF:	allow new files
 .IP "md5:	md5 checksum"
 .IP "sha1:	sha1 checksum"
 .IP "rmd160:     rmd160 checksum"
@@ -168,7 +169,9 @@ Input is read from filedescriptor \fBnumber\fR or output is written to
 Please note that 'I' and 'c' are incompatible. When the name of a file
 is changed, it's ctime is updated as well. When you put 'c' and 'I' in
 the same rule the, a changed ctime is silently ignored.
-
+.LP
+When 'ANF' is used, new files are added to the new database, but are
+ignored in the report.
 .PP
 .SH EXAMPLES
 .IP

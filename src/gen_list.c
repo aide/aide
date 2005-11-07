@@ -696,10 +696,10 @@ int check_node_for_match(seltree*node,char*text,int retval,int* attr)
   if(!((retval&16)==16)){
     retval|=16;
     top=1;
-  } else{
+  } else {
     top=0;
   }
-    
+  
   /* if no deeper match found */
   if(!((retval&8)==8)&&!((retval&4)==4)){
     if(!check_list_for_match(node->equ_rx_lst,text,attr)){
@@ -1020,7 +1020,7 @@ void add_file_to_tree(seltree* tree,db_line* file,int db,int status,int attr)
   if(!node){
     node=new_seltree_node(tree,file->filename,0,NULL);
   }
-
+  
   if(file==NULL){
     error(0, "add_file_to_tree was called with NULL db_line\n");
   }
@@ -1087,36 +1087,42 @@ void add_file_to_tree(seltree* tree,db_line* file,int db,int status,int attr)
     /* Check if file was moved (same inode, different name in the other DB)*/
     db_line *oldData;
     db_line *newData;
-    seltree* moved_node=get_seltree_inode(tree,file,db==DB_OLD?DB_NEW:DB_OLD);
+    seltree* moved_node;
+
+    moved_node=get_seltree_inode(tree,file,db==DB_OLD?DB_NEW:DB_OLD);
+    if(!(moved_node == NULL || moved_node == node)) {
+        /* There's mo match for inode or it matches the node with the same name.
+         * In first case we don't have a match to compare with.
+         * In the second - we already compared those files. */
+      if(db == DB_NEW) {
+        newData = node->new_data;
+        oldData = moved_node->old_data;
+      } else {
+        newData = moved_node->new_data;
+        oldData = node->old_data;
+      }
+
+      localignorelist=(oldData->attr^newData->attr);
+
+      if (localignorelist!=0) {
+        error(5,"File %s in databases has different attributes, %i,%i\n",
+  	    oldData->filename,oldData->attr,newData->attr);
+      }
     
-    if(moved_node == NULL || moved_node == node) {
-      /* There's mo match for inode or it matches the node with the same name.
-       * In first case we don't have a match to compare with.
-       * In the second - we already compared those files. */
-      return;
-    }
+      localignorelist|=ignorelist|DB_CTIME;
 
-    if(db == DB_NEW) {
-      newData = node->new_data;
-      oldData = moved_node->old_data;
-    } else {
-      newData = moved_node->new_data;
-      oldData = node->old_data;
+      /* Free the data if same else leave as is for report_tree */
+      if(compare_dbline(oldData, newData, localignorelist)==RETOK){
+        node->checked |= db==DB_NEW ? NODE_MOVED_IN : NODE_MOVED_OUT;
+        moved_node->checked |= db==DB_NEW ? NODE_MOVED_OUT : NODE_MOVED_IN;
+      }
     }
-
-    localignorelist=(oldData->attr^newData->attr);
-    if (localignorelist!=0) {
-      error(5,"File %s in databases has different attributes, %i,%i\n",
-	    oldData->filename,oldData->attr,newData->attr);
-    }
-    
-    localignorelist|=ignorelist|DB_CTIME;
-
-    /* Free the data if same else leave as is for report_tree */
-    if(compare_dbline(oldData, newData, localignorelist)==RETOK){
-      node->checked |= db==DB_NEW ? NODE_MOVED_IN : NODE_MOVED_OUT;
-      moved_node->checked |= db==DB_NEW ? NODE_MOVED_OUT : NODE_MOVED_IN;
-    }
+  }
+  if( (db == DB_NEW) &&
+      (file->attr & DB_NEWFILE) && 
+      (node->new_data!=NULL) &&
+      (node->old_data==NULL)) {
+	 node->checked|=DB_NEW;
   }
 }
 

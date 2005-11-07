@@ -24,6 +24,19 @@
 #include "report.h"
 #include "db_config.h"
 #include <stdlib.h>
+#include <unistd.h>
+
+#ifndef TEMP_FAILURE_RETRY
+/* Evaluate EXPRESSION, and repeat as long as it returns -1 with errno'
+   set to EINTR.  */
+
+# define TEMP_FAILURE_RETRY(expression) \
+   (__extension__                                                              \
+     ({ long int __result;                                                     \
+        do __result = (long int) (expression);                                 \
+        while (__result == -1L && errno == EINTR);                             \
+        __result; }))
+#endif
 
 #ifdef HAVE_SNPRINTF
 #if !defined(HAVE_C99_SNPRINTF) || !defined(HAVE_C99_VSNPRINTF)

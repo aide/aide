@@ -102,6 +102,7 @@ typedef enum {
    db_rdev,                     /* "rdev"     */
    db_dev,                      /* "dev"      */
    db_checkmask,                /* "checkmask"*/
+   db_allownewfile,		/* "allownewfile */
    db_unknown } DB_FIELD; 	/* "unknown"  */
 
 /* db_unknown must be last because it is used to determine size of
@@ -142,7 +143,7 @@ typedef enum {
 #define DB_CHECKMASK (1<<25)    /* "checkmask"*/
 #define DB_SIZEG     (1<<26)	/* "unknown"  */
 #define DB_CHECKINODE (1<<27) /* "checkinode"*/
-
+#define DB_NEWFILE    (1<<28) /* "allow new file" */
 
 #define DB_HASHES    (DB_MD5|DB_SHA1|DB_RMD160|DB_TIGER|DB_CRC32|DB_HAVAL| \
 		      DB_GOST|DB_CRC32B)
@@ -174,7 +175,8 @@ const static char* db_names[] = {
    "rdev",
    "dev",
    "checkmask",
-   "unknown" } ; 
+   "unknown",
+   "allownewfiles"} ; 
 
 const static int db_value[] = { 
    db_filename, 	/* "name",   */ 
@@ -203,6 +205,7 @@ const static int db_value[] = {
    db_rdev,             /* "rdev"     */
    db_dev,              /* "dev"      */
    db_checkmask,	/* "checkmask" */
+   db_allownewfile,	/* "allownewfile" */
    db_unknown };	/* "unknown"  */
 
 /* db_namealias && db_aliasvalue are here to support earlier database 

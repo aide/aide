@@ -1,3 +1,6 @@
+2005-11-15	Richard van den Berg  <richard@vdberg.org>
+	* Applied 'allow removed files' patch by Virolainen Pablo <pablo@cs.tut.fi>
+
 2005-11-13	Richard van den Berg  <richard@vdberg.org>
 	* Applied fix to ANF by Virolainen Pablo <pablo@cs.tut.fi>
 

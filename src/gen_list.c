@@ -1102,11 +1102,11 @@ void add_file_to_tree(seltree* tree,db_line* file,int db,int status,int attr)
         oldData = node->old_data;
       }
 
-      localignorelist=(oldData->attr^newData->attr);
+      localignorelist=(oldData->attr^newData->attr)&(~(DB_NEWFILE|DB_RMFILE));
 
       if (localignorelist!=0) {
-        error(5,"File %s in databases has different attributes, %i,%i\n",
-  	    oldData->filename,oldData->attr,newData->attr);
+        error(5,"File \"%s\" \"%s\" in databases has different attributes (here3), %i,%i\n",
+  	    newData->filename,oldData->filename,oldData->attr,newData->attr);
       }
     
       localignorelist|=ignorelist|DB_CTIME;
@@ -1120,9 +1120,13 @@ void add_file_to_tree(seltree* tree,db_line* file,int db,int status,int attr)
   }
   if( (db == DB_NEW) &&
       (file->attr & DB_NEWFILE) && 
-      (node->new_data!=NULL) &&
-      (node->old_data==NULL)) {
-	 node->checked|=DB_NEW;
+      (node->new_data!=NULL) ){
+	 node->checked|=NODE_ALLOW_NEW;
+  }
+  if( (db == DB_OLD) &&
+      (file->attr & DB_RMFILE) &&
+      (node->old_data!=NULL) ){
+	  node->checked|=NODE_ALLOW_RM;
   }
 }
 

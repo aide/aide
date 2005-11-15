@@ -690,7 +690,7 @@ void compare_db(list* new,db_config* conf)
     }else {
       int localignorelist=old->attr ^ ((db_line*)r->data)->attr;
       
-      if (localignorelist!=0) {
+      if ((localignorelist&(~(DB_NEWFILE|DB_RMFILE)))!=0) {
 	error(2,"File %s in databases has different attributes, %i,%i\n",old->filename,old->attr,((db_line*)r->data)->attr);
       }
       
@@ -822,14 +822,14 @@ long report_tree(seltree* node,int stage, int* stat)
       }else if(!(node->checked&DB_OLD)&&(node->checked&DB_NEW)){
 	/* File is in new db but not old. (ADDED) */
 	/* unless it was moved in */
-	if(!(node->checked&NODE_MOVED_IN)){
+	if((!(node->checked&NODE_MOVED_IN))&&(!node->checked&NODE_ALLOW_NEW)){
 	  stat[2]++;
 	  node->checked|=NODE_ADDED;
 	}
       }else if((node->checked&DB_OLD)&&!(node->checked&DB_NEW)){
 	/* File is in old db but not new. (REMOVED) */
 	/* unless it was moved out */
-	if(!(node->checked&NODE_MOVED_OUT)) {
+	if(!(node->checked&NODE_MOVED_OUT)&&(!node->checked&NODE_ALLOW_RM)) {
 	  stat[3]++;
 	  node->checked|=NODE_REMOVED;
 	}
@@ -839,10 +839,10 @@ long report_tree(seltree* node,int stage, int* stat)
 	if(!(node->checked&(NODE_MOVED_IN|NODE_MOVED_OUT))){
 	  stat[4]++;
 	  node->checked|=NODE_CHANGED;
-	}else if(!(node->checked&NODE_MOVED_IN)) {
+	}else if((!(node->checked&NODE_MOVED_IN))&&(!node->checked&NODE_ALLOW_NEW)) {
 	  stat[2]++;
 	  node->checked|=NODE_ADDED;
-	}else if(!(node->checked&NODE_MOVED_OUT)) {
+	}else if((!(node->checked&NODE_MOVED_OUT))&&(!node->checked&NODE_ALLOW_RM)) {
 	  stat[3]++;
 	  node->checked|=NODE_REMOVED;
 	}

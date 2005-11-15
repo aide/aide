@@ -330,6 +330,7 @@ void setdefaults_before_config()
   conf->start_time=time(&(conf->start_time));
 
   do_groupdef("ANF",DB_NEWFILE);
+  do_groupdef("ARF",DB_RMFILE);
   do_groupdef("p",DB_PERM);
   do_groupdef("i",DB_INODE);
   do_groupdef("I",DB_CHECKINODE);

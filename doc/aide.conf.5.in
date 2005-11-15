@@ -153,6 +153,7 @@ Input is read from filedescriptor \fBnumber\fR or output is written to
 .IP "S:	check for growing size"
 .IP "I:	ignore changed filename"
 .IP "ANF:	allow new files
+.IP "ANF:	allow removed files
 .IP "md5:	md5 checksum"
 .IP "sha1:	sha1 checksum"
 .IP "rmd160:     rmd160 checksum"
@@ -172,6 +173,9 @@ the same rule the, a changed ctime is silently ignored.
 .LP
 When 'ANF' is used, new files are added to the new database, but are
 ignored in the report.
+.LP
+When 'ARF' is used, files missing on disk are omitted from the new database,
+but are ignored in the report.
 .PP
 .SH EXAMPLES
 .IP

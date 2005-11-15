@@ -267,7 +267,7 @@ size_t length_base64(char* src,size_t ssize)
   error(210, "decode base64\n");
   /* Exit on empty input */
   if (!ssize||src==NULL)
-    return NULL;
+    return 0;
 
 
 
@@ -290,7 +290,7 @@ size_t length_base64(char* src,size_t ssize)
 	case FAIL:
 	  error(3, "length_base64: Illegal character: %c\n", *inb);
 	  error(230, "length_base64: Illegal line:\n%s\n", src);
-	  return NULL;
+	  return 0; 
 	  break;
 	case SKIP:
 	  break;

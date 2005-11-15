@@ -68,6 +68,8 @@ db_lex.c:db_lex.l
 conf_yacc.c:conf_yacc.y
 	${YACC} ${YFLAGS} -d -p conf -o conf_yacc.c $(top_srcdir)/src/conf_yacc.y
 
+conf_yacc.h: conf_yacc.c
+
 conf_lex2.c:conf_lex.c
 
 conf_lex.c:conf_lex.l

@@ -52,6 +52,7 @@ extern const int db_value[];
 #define NODE_CHECKED      (1<<10)
 #define NODE_MOVED_OUT    (1<<11)
 #define NODE_MOVED_IN     (1<<12)
-
+#define NODE_ALLOW_NEW    (1<<13)
+#define NODE_ALLOW_RM	  (1<<14)
 
 #endif

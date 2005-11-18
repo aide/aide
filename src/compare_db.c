@@ -829,7 +829,7 @@ long report_tree(seltree* node,int stage, int* stat)
       }else if((node->checked&DB_OLD)&&!(node->checked&DB_NEW)){
 	/* File is in old db but not new. (REMOVED) */
 	/* unless it was moved out */
-	if(!(node->checked&NODE_MOVED_OUT)&&(!node->checked&NODE_ALLOW_RM)) {
+	if((!(node->checked&NODE_MOVED_OUT))&&(!node->checked&NODE_ALLOW_RM)) {
 	  stat[3]++;
 	  node->checked|=NODE_REMOVED;
 	}

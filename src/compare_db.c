@@ -822,14 +822,14 @@ long report_tree(seltree* node,int stage, int* stat)
       }else if(!(node->checked&DB_OLD)&&(node->checked&DB_NEW)){
 	/* File is in new db but not old. (ADDED) */
 	/* unless it was moved in */
-	if((!(node->checked&NODE_MOVED_IN))&&(!node->checked&NODE_ALLOW_NEW)){
+	if (!((node->checked&NODE_ALLOW_NEW)||(node->checked&NODE_MOVED_IN))) {
 	  stat[2]++;
 	  node->checked|=NODE_ADDED;
 	}
       }else if((node->checked&DB_OLD)&&!(node->checked&DB_NEW)){
 	/* File is in old db but not new. (REMOVED) */
 	/* unless it was moved out */
-	if((!(node->checked&NODE_MOVED_OUT))&&(!node->checked&NODE_ALLOW_RM)) {
+	if (!((node->checked&NODE_ALLOW_RM)||(node->checked&NODE_MOVED_OUT))) {
 	  stat[3]++;
 	  node->checked|=NODE_REMOVED;
 	}
@@ -839,10 +839,10 @@ long report_tree(seltree* node,int stage, int* stat)
 	if(!(node->checked&(NODE_MOVED_IN|NODE_MOVED_OUT))){
 	  stat[4]++;
 	  node->checked|=NODE_CHANGED;
-	}else if((!(node->checked&NODE_MOVED_IN))&&(!node->checked&NODE_ALLOW_NEW)) {
+	}else if (!((node->checked&NODE_ALLOW_NEW)||(node->checked&NODE_MOVED_IN))) {
 	  stat[2]++;
 	  node->checked|=NODE_ADDED;
-	}else if((!(node->checked&NODE_MOVED_OUT))&&(!node->checked&NODE_ALLOW_RM)) {
+	}else if (!((node->checked&NODE_ALLOW_RM)||(node->checked&NODE_MOVED_OUT))) {
 	  stat[3]++;
 	  node->checked|=NODE_REMOVED;
 	}

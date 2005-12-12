@@ -19,6 +19,7 @@
  */
 
 #include "aide.h"
+	       
 #include <string.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -295,9 +296,13 @@ void gen_seltree(list* rxlist,seltree* tree,char type)
     
     rxtok=strrxtok(curr_rule->rx);
     curnode=get_seltree_node(tree,rxtok);
+
     if(curnode==NULL){
       curnode=new_seltree_node(tree,rxtok,1,curr_rule);
     }
+
+    error(240,"Handling %s with %c \"%s\" with node \"%s\"\n",rxtok,type,curr_rule->rx,curnode->path);
+	
     
     /* We have to add '^' to the first charaster of string... 
      *
@@ -633,13 +638,15 @@ list* add_file_to_list(list* listp,char*filename,int attr,int* addok)
 
 int check_list_for_match(list* rxrlist,char* text,int* attr)
 {
-  list* r=NULL;
+  list* r=rxrlist;
   int retval=1;
-  for(r=rxrlist;r;r=r->next){
+  for(;r;r=r->prev){
     if((retval=regexec((regex_t*)((rx_rule*)r->data)->crx,text,0,0,0))==0){
       *attr=((rx_rule*)r->data)->attr;
-        error(231,"Matches rule from line #%ld: %s\n",((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
+        error(231,"\"%s\" matches rule from line #%ld: %s\n",text,((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
       break;
+    } else {
+	error(232,"\"%s\" doesn't match rule from line #%ld: %s\n",text,((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
     }
   }
   return retval;
@@ -663,8 +670,10 @@ int check_list_for_equal(list* rxrlist,char* text,int* attr)
     //we don't need to worry about buff-overflow, so strcmp is safe
     if((retval=strcmp(temp, text))==0){
       *attr=((rx_rule*)r->data)->attr;
-      error(231,"Matches string from line #%ld: %s\n",((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
+      error(231,"\"%s\" matches string from line #%ld: %s\n",text,((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
       break;
+    } else {
+      error(231,"\"%s\" doesn't match string from line #%ld: %s\n",text,((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
     }
   }
   return retval;
@@ -887,6 +896,31 @@ list* traverse_tree(seltree* tree,list* file_lst,int attr)
   return file_lst;
 }
 
+void print_tree(seltree* tree) {
+  
+  list* r;
+  rx_rule* rxc;
+  error(245,"tree: \"%s\"\n",tree->path);
+
+  for(r=tree->sel_rx_lst;r!=NULL;r=r->next) {
+	rxc=r->data;
+	error(246,"%i\t%s\n",rxc->conf_lineno,rxc->rx);
+  }
+  for(r=tree->equ_rx_lst;r!=NULL;r=r->next) {
+        rxc=r->data;
+        error(246,"%i=\t%s\n",rxc->conf_lineno,rxc->rx);
+  }
+  
+  for(r=tree->neg_rx_lst;r!=NULL;r=r->next) {
+	  rxc=r->data;
+	  error(246,"%i!\t%s\n",rxc->conf_lineno,rxc->rx);
+  }
+  
+  for(r=tree->childs;r!=NULL;r=r->next) {
+	print_tree(r->data);
+  }
+}
+
 seltree* gen_tree(list* prxlist,list* nrxlist,list* erxlist)
 {
   seltree* tree=NULL;
@@ -896,6 +930,8 @@ seltree* gen_tree(list* prxlist,list* nrxlist,list* erxlist)
   gen_seltree(prxlist,tree,'s');
   gen_seltree(nrxlist,tree,'n');
   gen_seltree(erxlist,tree,'e');
+
+  print_tree(tree);
 
   return tree;
 }

@@ -467,7 +467,7 @@ AC_CHECK_LIB([mhash],[mhash_get_block_size],
 	[CRYPTLIB="${CRYPTLIB} -lmhash"
 	compoptionstring="${compoptionstring}WITH_MHASH\\n"
 	AC_DEFINE(WITH_MHASH,1,[use mhash library])],
-	[AC_MSG_ERROR(You must have libmhash properly installed.)]
+	[AC_MSG_ERROR(You must have libmhash installed as a static library.)]
 )
 
 AC_SUBST(CRYPTLIB)

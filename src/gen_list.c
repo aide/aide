@@ -638,9 +638,9 @@ list* add_file_to_list(list* listp,char*filename,int attr,int* addok)
 
 int check_list_for_match(list* rxrlist,char* text,int* attr)
 {
-  list* r=rxrlist;
+  list* r=NULL;
   int retval=1;
-  for(;r;r=r->prev){
+  for(r=rxrlist;r;r=r->next){
     if((retval=regexec((regex_t*)((rx_rule*)r->data)->crx,text,0,0,0))==0){
       *attr=((rx_rule*)r->data)->attr;
         error(231,"\"%s\" matches rule from line #%ld: %s\n",text,((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);

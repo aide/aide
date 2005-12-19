@@ -1,5 +1,6 @@
 2005-12-19	Richard van den Berg  <richard@vdberg.org>
 	* Revert check_list_for_match to old behaviour (Marc Haber)
+	* Documentation update (Marc Haber)
 
 2005-12-12	Richard van den Berg  <richard@vdberg.org>
 	* Log tree matching verbosely, patch by Virolainen Pablo <pablo@cs.tut.fi>

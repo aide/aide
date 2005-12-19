@@ -145,8 +145,7 @@ be kept somewhere where a possible intruder cannot change them.</p>
 <h2>Configuration</h2>
 <p>
 Next you have to create a configuration file. You can find
-documentation for this in aide.conf(5) manual page. Here are a few
-pointers for what to look for.
+more documentation for this in aide.conf(5) manual page.
 </p>
 <p>
 There are three types of lines in aide.conf:
@@ -260,35 +259,67 @@ manual page of your system in this case. It might be a pain to read
 but it is worth it.
 </p>
 <p>
-In the initialisation process Aide creates a tree of the regexp
-rules. Each type of rule is placed in a separate list for each node in
-the tree. So we have an equals rule list,a select rule list and a
-negative selection rule list for all nodes. These lists may be empty.
-The node in which a rule is placed is determined by the first special
-regexp character in the rule. For example <code>!/proc</code> would be
-placed in the root node. While <code>!/proc/.*</code> would be placed
-in /proc node. Also in front of each rule Aide adds an implicit ^.
+As you already know, aide has three types of selection lines:
+<ul>
+<li>Regular selection lines, beginning with "/".</li>
+<li>Equals selection lines, beginning with "=".</li>
+<li>Negative selection lines, beginning with "!".</li>
+</ul>
+The string following the first character is taken as a regular
+expression matching to a complete filename, including the path. In a
+regular selection rule, the slash is included in the regular
+expression. An implicit ^ is added in front of each rule. A group
+definition follows the regular expression.
 </p>
 <p>
-When Aide does rule matching it uses the following algorithm.
-The following is a pseudocode adaptation from src/gen_list.c.
+When reading the configuration file, aide internally builds a tree
+that roughly resembles the directory tree to be checked. Each node
+corresponds to a directory, and each node has one rule list for the
+associated regular selection lines, one for the associated negative
+selection lines and one for the associated equals selection lines. If
+there is no associated rule, the respective list may be empty.
+</p>
+<p>
+aide tries to place a rule as far down in the tree as possible while
+still assuring that it is above all files that it matches. This is
+determined by the first "special" regexp character in the rule. For
+example, <code>!/proc</code> would be placed in the root node,
+<code>!/proc/.*</code> would be placed in the /proc node,
+<code>!/var/log/syslog*</code> is placed in the /var/log node and,
+finally, <code>!/home/[a-z0-9]+/.bashrc$</code> is placed in the /home
+node.
+</p>
+<p>
+The algorithm that aide uses for rule matching is described in the
+following paragraphs. The pseudocode is an adaption from src/gen_list.c.
 <code>
 <pre>
-check_node_for_match(node,filename)
-	if(no deeper match found)
-		check(equals list for this node)
+check_node_for_match(node,filename,first_time)
+	if (first_time)
+        	check(equals list for this node)
 
-	if(no deeper match found)
-		check(select list for this node)
+	check(regular list for this node)
 
-	check_node_for_match(nodes parent,filename)
+	if (node is not the root node)
+		check_node_for_match(nodes parent,filename,false)
 
-	if(this file is about to be added)
-		check(negative select list for this node) 
-	
+	if (this file is about to be added)
+		check(negative list for this node)
+
 	return (info about whether this file should be added or not and how)
 </pre>
 </code>
+When aide needs to determine whether a file found in the file system is
+to be checked, it first determines the deepest possible node x to
+match the current file against (that algorithm is not part of the
+pseudocode above), and then calls check-node_for_match(x, filename,
+true). So, the recursion starts at the deepest possible match.
+</p>
+<p>
+As it can also be seen, equals selection lines are only checked in the
+first recursion step, thus providing some kind of speed optimization
+by reducing the number of necessary regular expression evaluations,
+which is a quite expensive operation.
 </p>
 <h5>Pitfalls</h5>
 <p>

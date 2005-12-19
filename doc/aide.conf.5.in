@@ -17,10 +17,10 @@ ignored.
 .PP
 There are three types of lines in \fBaide.conf\fP. First there are the
 configuration lines which are used to set configuration parameters and
-define/undefine variables. Second, there are lines that used to select
-which files are added to the database. Third there are the macrolines.
-Only the second type of lines are required for aide to do anything.
-Lines beginning with # are ignored as comments.
+define/undefine variables. Second, there are selection lines that are used
+to indicate which files are added to the database. Third, macro lines 
+define or undefine variables within the config file. Lines beginning
+with # are ignored as comments.
 .PP
 .SH "CONFIG LINES"
 .PP
@@ -78,20 +78,22 @@ See DEFAULT GROUPS for an explanation of default predefined groups.
 Note that this is different from the way Tripwire(tm) does it.
 .IP
 There is also a special group named "ignore_list". The predefined 
-groups listed in it are NOT displayed in the final report.
+-groups listed in it are NOT displayed in the final report.
 .PP
 .SH "SELECTION LINES"
 .PP
-There are three types of selection lines (regular, negative, equals)
-Lines beginning with "/" are regular selective lines. Lines beginning
-with "!" are negative selection lines. And lines beginning with "="
-are equals selection lines. The string following the first character
-is taken as a regular expression matching to a complete filename (with
-path included). In regular selection rule the "/" is included in the
-regular expression. Following the regular expression in an expression.
-See CONFIG LINES for an explanation of exressions. See EXAMPLES and 
-doc/aide.conf for examples.
-
+aide supports three types of selection lines (regular, negative, equals)
+Lines beginning with "/" are regular selection lines. Lines beginning
+with "=" are equals selection lines. And lines beginning with "!"
+are negative selection lines. The string following the first character
+is taken as a regular expression matching to a complete filename,
+including the path. In a regular selection rule the "/" is included in the
+regular expression. Following the regular expression is a group
+definition as explained above. See EXAMPLES and doc/aide.conf for examples.
+.PP
+More in-depth discussion of the selection algorithm can be found in
+the aide manual.
+.IP
 .PP
 .SH "MACRO LINES"
 .PP

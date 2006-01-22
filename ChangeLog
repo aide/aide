@@ -1,6 +1,7 @@
 2006-01-22	Richard van den Berg  <richard@vdberg.org>
 	* Allow report_url to change syslog facility
 	* Only warn when DB_CHECKINODE and DB_CTIME are used together
+	* Added GPG scripts by Vincent Danen <vdanen@linsec.ca>
 
 2005-12-19	Richard van den Berg  <richard@vdberg.org>
 	* Revert check_list_for_match to old behaviour (Marc Haber)

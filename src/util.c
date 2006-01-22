@@ -25,6 +25,7 @@
 #include <sys/stat.h>
 #include <signal.h>
 #include <ctype.h>
+#include <syslog.h>
 /*for locale support*/
 #include "locale-aide.h"
 /*for locale support*/
@@ -391,6 +392,52 @@ char* strnstr(char* haystack,char* needle,int n)
   
   /* If we get this far no match was found so we return NULL */
   return NULL;
+}
+
+/* Lookup syslog facilities by name */
+int syslog_facility_lookup(char *s)
+{
+	if(!s || strlen(s)<1)
+		return(AIDE_SYSLOG_FACILITY);
+	if(strcasecmp(s,"LOG_KERN")==0)
+		return(LOG_KERN);
+	if(strcasecmp(s,"LOG_USER")==0)
+		return(LOG_USER);
+	if(strcasecmp(s,"LOG_MAIL")==0)
+		return(LOG_MAIL);
+	if(strcasecmp(s,"LOG_DAEMON")==0)
+		return(LOG_DAEMON);
+	if(strcasecmp(s,"LOG_AUTH")==0)
+		return(LOG_AUTH);
+	if(strcasecmp(s,"LOG_SYSLOG")==0)
+		return(LOG_SYSLOG);
+	if(strcasecmp(s,"LOG_LPR")==0)
+		return(LOG_LPR);
+	if(strcasecmp(s,"LOG_NEWS")==0)
+		return(LOG_NEWS);
+	if(strcasecmp(s,"LOG_UUCP")==0)
+		return(LOG_UUCP);
+	if(strcasecmp(s,"LOG_CRON")==0)
+		return(LOG_CRON);
+	if(strcasecmp(s,"LOG_LOCAL0")==0)
+		return(LOG_LOCAL0);
+	if(strcasecmp(s,"LOG_LOCAL1")==0)
+		return(LOG_LOCAL1);
+	if(strcasecmp(s,"LOG_LOCAL2")==0)
+		return(LOG_LOCAL2);
+	if(strcasecmp(s,"LOG_LOCAL3")==0)
+		return(LOG_LOCAL3);
+	if(strcasecmp(s,"LOG_LOCAL4")==0)
+		return(LOG_LOCAL4);
+	if(strcasecmp(s,"LOG_LOCAL5")==0)
+		return(LOG_LOCAL5);
+	if(strcasecmp(s,"LOG_LOCAL6")==0)
+		return(LOG_LOCAL6);
+	if(strcasecmp(s,"LOG_LOCAL7")==0)
+		return(LOG_LOCAL7);
+
+	error(0,"Syslog facility \"%s\" is unknown, using default\n",s);
+	return(AIDE_SYSLOG_FACILITY);
 }
 
 /* We need these dummy stubs to fool the linker into believing that

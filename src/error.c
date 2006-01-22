@@ -46,6 +46,7 @@ int error_init(url_t* url,int initial)
 {
   list* r=NULL;
   FILE* fh=NULL;
+	int   sfac;
   
   if (url->type==url_database) {
     conf->report_db++;
@@ -58,7 +59,8 @@ int error_init(url_t* url,int initial)
 #ifdef HAVE_SYSLOG
       conf->initial_report_url=url;
       conf->initial_report_fd=NULL;
-      openlog(AIDE_IDENT,AIDE_LOGOPT, AIDE_SYSLOG_FACILITY);
+      sfac=syslog_facility_lookup(url->value);
+      openlog(AIDE_IDENT,AIDE_LOGOPT, sfac);
       
       return RETOK;
 #endif
@@ -98,9 +100,12 @@ int error_init(url_t* url,int initial)
     /* If you add support for facility changing in config 
        consider multiple calls of openlog.
        This openlog MUST NOT mess up initial errorsto openlog.
+       RvdB 22/1/2006: the 2 openlog calls where the same before my
+       change, and they are still the same, I assume I did not brake anything
     */
+    sfac=syslog_facility_lookup(url->value);
     if(conf->report_syslog<2)
-      openlog(AIDE_IDENT,AIDE_LOGOPT, AIDE_SYSLOG_FACILITY);
+      openlog(AIDE_IDENT,AIDE_LOGOPT, sfac);
 
     return RETOK;
 #endif

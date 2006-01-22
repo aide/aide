@@ -59,4 +59,6 @@ void init_sighandler(void);
 
 char* strnstr(char* haystack,char* needle,int n);
 
+int syslog_facility_lookup(char *);
+
 #endif

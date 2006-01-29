@@ -157,7 +157,7 @@ Input is read from filedescriptor \fBnumber\fR or output is written to
 .IP "S:	check for growing size"
 .IP "I:	ignore changed filename"
 .IP "ANF:	allow new files
-.IP "ANF:	allow removed files
+.IP "ARF:	allow removed files
 .IP "md5:	md5 checksum"
 .IP "sha1:	sha1 checksum"
 .IP "rmd160:     rmd160 checksum"

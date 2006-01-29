@@ -1,5 +1,6 @@
-2006-01-22	Richard van den Berg  <richard@vdberg.org>
+2006-01-29	Richard van den Berg  <richard@vdberg.org>
 	* Fix layout of aide.conf.5 by Vincent Danen <vdanen@linsec.ca>
+	* Cleanup --help output by Vincent Danen <vdanen@linsec.ca>
 
 2006-01-22	Richard van den Berg  <richard@vdberg.org>
 	* Allow report_url to change syslog facility

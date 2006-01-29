@@ -57,30 +57,23 @@ db_config* conf;
 void usage(int exitvalue)
 {
   fprintf(stderr, 
-	  _("Aide,\n"
-	    "Usage: aide <options> command\n"
-	    "\n"
+	  _("Aide " AIDEVERSION" \n\n"
+	    "Usage: aide [options] command\n\n"
 	    "Commands:\n"
-	    "-i\n--init\n\tInitialize the database\n"
-	    "-C\n--check\n\tCheck the database\n"
-	    "-u\n--update\n\t"
-	    "Check and update the database non-interactively.\n"
-	    "--compare\n\tCompare two databases\n"
-	    "-v\n--version\n\t"
-	    "Show version of AIDE and compilation options.\n"
-	    "-h\n--help\n\tShow this help message\n"
+	    "  -i, --init\t\tInitialize the database\n"
+	    "  -C, --check\t\tCheck the database\n"
+	    "  -u, --update\t\tCheck and update the database non-interactively\n"
+	    "      --compare\t\tCompare two databases\n\n"
+	    "Miscellaneous:\n"
+	    "      --config-check\tTest the configuration file\n"
+	    "  -v, --version\t\tShow version of AIDE and compilation options\n"
+	    "  -h, --help\t\tShow this help message\n\n"
 	    "Options:\n"
-	    "-c config_file\n--config=config_file\n\t"
-	    "Get config options from config_file.\n"
-	    "-B \"config_stuff\"\n--before=\"config_stuff\"\n\t"
-	    "Before config_file is read use these options.\n"
-	    "-A \"config_stuff\"\n--after=\"config_stuff\"\n\t"
-	    "After config_file is read use these options.\n"
-	    "-r reporter\n--report=reporter\n\t"
-	    "Where report output is written to.\n"
-	    "-Vverbosity_level\n--verbose=verbosity_level\n\t"
-	    "Level of debug messages.\n"
-	    "--config-check just read config-file\n"
+	    "  -c [cfgfile]\t--config=[cfgfile]\tGet config options from [cfgfile]\n"
+	    "  -B \"OPTION\"\t--before=\"OPTION\"\tBefore configuration file is read define OPTION\n"
+	    "  -A \"OPTION\"\t--after=\"OPTION\"\tAfter configuration file is read define OPTION\n"
+	    "  -r [reporter]\t--report=[reporter]\tWrite report output to [reporter] url\n"
+	    "  -V[level]\t--verbose=[level]\tSet debug message level to [level]\n"
 	    "\n")
 	  );
   
@@ -90,8 +83,8 @@ void usage(int exitvalue)
 void print_version(void)
 {
   fprintf(stderr,
-	  "Aide, version " AIDEVERSION "\n"
-	  "Compiled with the following options\n" AIDECOMPILEOPTIONS "\n");
+	  "Aide " AIDEVERSION "\n\n"
+	  "Compiled with the following options:\n\n" AIDECOMPILEOPTIONS "\n");
   exit(0);
 }
 

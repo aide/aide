@@ -333,6 +333,10 @@ AC_ARG_WITH(sun-acl,
 AC_SUBST(ACLLIB)
 
 
+# Check whether LFS has explicitly been disabled
+AC_ARG_ENABLE(lfs,[  --disable-lfs           Disable large file support on 32-bit platforms], [aide_lfs_choice=$enableval], [aide_lfs_choice=yes])
+
+if test "$aide_lfs_choice" = "yes"; then
 # This looks weird because Linux defines lstat64 and then screws it up
 AC_CHECK_FUNC(lstat64,
     [AC_CHECK_FUNC(stat64,
@@ -388,6 +392,20 @@ AC_TRY_COMPILE([
 #include <dirent.h>],
 [struct dirent64 de;],
 AIDE_DIRENT_TYPE=dirent64,AIDE_DIRENT_TYPE=dirent)])
+else
+	AIDE_LSTAT_FUNC="lstat"
+	AIDE_STAT_FUNC="stat"
+	AIDE_FSTAT_FUNC="fstat"
+	AIDE_STAT_TYPE="stat"
+	AIDE_OFF_TYPE="off_t"
+	AIDE_BLKCNT_TYPE="blkcnt_t"
+	AIDE_READDIR_FUNC="readdir"
+	AIDE_READDIR_R_FUNC="readdir_r"
+	compoptionstring="${compoptionstring}WITH_LSTAT\\n"
+	compoptionstring="${compoptionstring}WITH_READDIR\\n"
+	AIDE_INO_TYPE=ino_t
+	AIDE_DIRENT_TYPE=dirent
+fi
 
 AC_DEFINE_UNQUOTED(AIDE_LSTAT_FUNC,$AIDE_LSTAT_FUNC,[lstat])
 AC_DEFINE_UNQUOTED(AIDE_STAT_FUNC,$AIDE_STAT_FUNC,[stat])

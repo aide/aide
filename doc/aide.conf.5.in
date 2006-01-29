@@ -70,9 +70,11 @@ other functionality.
 If the parameter is not one of the previous parameters then it is
 regarded as a group definition. Value is then regarded as an
 expression. Expression is of the following form. 
-.LP 
-<predefined group>| <expr> + <predefined group>
-		  | <expr> - <predifined group>
+.IP 
+.nf
+    <predefined group>| <expr> + <predefined group>
+                      | <expr> - <predifined group>
+.fi
 .IP
 See DEFAULT GROUPS for an explanation of default predefined groups.
 Note that this is different from the way Tripwire(tm) does it.
@@ -219,7 +221,7 @@ Note that the following still works as expected because =/foo$ stop
 recuring of directory /foo.
 .IP
 .B "=/foo p+i+n+u+g+s+m+c+md5"
-.IP
+.LP
 In the following, the first is not allowed in AIDE. Use the latter instead.
 .IP
 .B "/foo epug"

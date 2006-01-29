@@ -616,8 +616,8 @@ void print_report_header(int nfil,int nadd,int nrem,int nchg)
   error(2,_("Start timestamp: %0.4u-%0.2u-%0.2u %0.2u:%0.2u:%0.2u\n"),
 	st->tm_year+1900, st->tm_mon+1, st->tm_mday,
 	st->tm_hour, st->tm_min, st->tm_sec);
-  error(0,_("Summary:\nTotal number of files=%i,added files=%i"
-	    ",removed files=%i,changed files=%i\n\n"),nfil,nadd,nrem,nchg);
+  error(0,_("\nSummary:\n  Total number of files:\t%i\n  Added files:\t\t\t%i\n"
+	    "  Removed files:\t\t%i\n  Changed files:\t\t%i\n\n"),nfil,nadd,nrem,nchg);
   
 }
 
@@ -737,7 +737,9 @@ void compare_db(list* new,db_config* conf)
     print_report_header(nfil,nadd,nrem,nchg);
 
     if(nadd!=0){
+      error(2,_("\n---------------------------------------------------\n"));
       error(2,_("Added files:\n"));
+      error(2,_("---------------------------------------------------\n\n"));
       for(r=added;r;r=r->next){
 	error(2,"added:%s\n",((db_line*)r->data)->filename);
 	if(conf->verbose_level<20){
@@ -761,21 +763,27 @@ void compare_db(list* new,db_config* conf)
     
 
     if(nrem!=0){
+      error(2,_("\n---------------------------------------------------\n"));
       error(2,_("Removed files:\n"));
+      error(2,_("---------------------------------------------------\n\n"));
       for(r=removed;r;r=r->next){
 	error(2,"removed:%s\n",((db_line*)r->data)->filename);
       }
     }
 
     if(nchg!=0){
+      error(2,_("\n---------------------------------------------------\n"));
       error(2,_("Changed files:\n"));
+      error(2,_("---------------------------------------------------\n\n"));
       for(r=changedold;r;r=r->next){
 	error(2,"changed:%s\n",((db_line*)r->data)->filename);
       }
     }
 
     if((conf->verbose_level>=5)&&(nchg!=0)){
+      error(2,_("\n---------------------------------------------------\n"));
       error(2,_("Detailed information about changes:\n"));
+      error(2,_("---------------------------------------------------\n\n"));
       for(r=changedold,l=changednew;r;r=r->next,l=l->next){
 	int localignorelist=((db_line*)l->data)->attr^((db_line*)r->data)->attr;
 	localignorelist|=ignorelist;
@@ -851,32 +859,44 @@ long report_tree(seltree* node,int stage, int* stat)
   }
 
   if((stage==1)&&stat[2]){
-    if(top)
+    if(top){
+      error(2,_("\n---------------------------------------------------\n"));
       error(2,_("Added files:\n"));
+      error(2,_("---------------------------------------------------\n\n"));
+    }
     if(node->checked&NODE_ADDED){
       error(2,_("added:%s\n"),node->new_data->filename);
     }
   }
 
   if((stage==2)&&stat[3]){
-    if(top)
+    if(top){
+      error(2,_("\n---------------------------------------------------\n"));
       error(2,_("Removed files:\n"));
+      error(2,_("---------------------------------------------------\n\n"));
+    }
     if(node->checked&NODE_REMOVED){
       error(2,_("removed:%s\n"),node->old_data->filename);
     }
   }
 
   if((stage==3)&&stat[4]){
-    if(top)
+    if(top){
+      error(2,_("\n---------------------------------------------------\n"));
       error(2,_("Changed files:\n"));
+      error(2,_("---------------------------------------------------\n\n"));
+    }
     if(node->checked&NODE_CHANGED){
       error(2,_("changed:%s\n"),node->new_data->filename);
     }
   }
 
   if((stage==4)&&(conf->verbose_level>=5)&&stat[4]){
-    if(top)
+    if(top){
+      error(2,_("\n--------------------------------------------------\n"));
       error(2,_("Detailed information about changes:\n"));
+      error(2,_("---------------------------------------------------\n\n"));
+    }
     if(node->checked&NODE_CHANGED){
       print_dbline_changes(node->old_data,node->new_data,ignorelist);
     }

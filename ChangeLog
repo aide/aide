@@ -1,5 +1,6 @@
 2006-01-30	Richard van den Berg  <richard@vdberg.org>
-	* Released version 0.11-rc2
+	* Released version 0.11-rc3
+	* Changed version to post-0.11-rc3
 
 2006-01-29	Richard van den Berg  <richard@vdberg.org>
 	* Fix layout of aide.conf.5 by Vincent Danen <vdanen@linsec.ca>

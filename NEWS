@@ -9,6 +9,7 @@ Version 0.11
 	* Use snprintf by Mark Martinec if not in C library
 	* Support for more (legacy) Unix systems and cygwin
 	* Open files with O_NOATIME on supported Linux systems
+	* Added I/ANF/ARF directives
 
 Version 0.10
 	* Fixed bugs

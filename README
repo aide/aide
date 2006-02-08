@@ -98,10 +98,10 @@
            $ openssl md5 aide-0.10.tar.gz
            MD5(aide-0.10.tar.gz)= 39eb7d21064cac7b409c45d038b86cd8
 
-   Requirements
-   ------------
+    Requirements
+    ------------
 
-   AIDE requires the following development tools:
+    AIDE requires the following development tools:
 
        o  C compiler (such as Gcc).
        o  GNU flex.
@@ -126,6 +126,18 @@
       http://sourceforge.net/tracker/index.php?func=detail&aid=866477&group_id=72099&atid=533377
       http://sourceforge.net/mailarchive/message.php?msg_id=5415848
       http://sourceforge.net/mailarchive/message.php?msg_id=5561246
+
+
+    Large File Support
+    -----------------
+
+    To be able to store the size of files larger than 2GB, aide needs
+    large file support (LFS) to be available in the OS. The configure
+    script automatically checks for the correct defines and functions.
+    If configure fails, and during compile time you see errors containing
+    the number 64, try configure again with the --disable-lfs option.
+    This turns off the large file support.
+
 
     Feedback and Support
     --------------------

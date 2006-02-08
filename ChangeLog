@@ -1,5 +1,6 @@
 2006-02-08	Richard van den Berg  <richard@vdberg.org>
 	* Explicitly check for readdir64, by Virolainen Pablo <pablo@cs.tut.fi>
+	* Added note about --disable-lfs in README
 
 2006-01-30	Richard van den Berg  <richard@vdberg.org>
 	* Released version 0.11-rc3

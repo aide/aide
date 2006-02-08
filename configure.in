@@ -344,15 +344,19 @@ AC_CHECK_FUNC(lstat64,
 	AC_DEFINE(_LARGEFILE64_SOURCE,1,[Additional functionality from LFS])
 	AC_DEFINE(_FILE_OFFSET_BITS,64,[Select 64 bits filesystem interface])
 	AIDE_LSTAT_FUNC="lstat64"
+	compoptionstring="${compoptionstring}WITH_LSTAT64\\n"
 	AIDE_STAT_FUNC="stat64"
 	AIDE_FSTAT_FUNC="fstat64"
 	AIDE_STAT_TYPE="stat64"
 	AIDE_OFF_TYPE="off64_t"
 	AIDE_BLKCNT_TYPE="blkcnt64_t"
-	AIDE_READDIR_FUNC="readdir64"
-	AIDE_READDIR_R_FUNC="readdir64_r"
-	compoptionstring="${compoptionstring}WITH_LSTAT64\\n"
-	compoptionstring="${compoptionstring}WITH_READDIR64\\n",
+	[AC_CHECK_FUNC(readdir64,
+		AIDE_READDIR_FUNC="readdir64"
+		compoptionstring="${compoptionstring}WITH_READDIR64\\n",
+		AIDE_READDIR_FUNC="readdir")]
+	[AC_CHECK_FUNC(readdir64_r,
+		AIDE_READDIR_R_FUNC="readdir64_r",
+		AIDE_READDIR_R_FUNC="readdir_r")],
 	AIDE_LSTAT_FUNC="lstat"
 	AIDE_STAT_FUNC="stat"
 	AIDE_FSTAT_FUNC="fstat"

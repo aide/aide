@@ -43,7 +43,7 @@ readdir_r((DIR *) NULL, (struct dirent *) NULL, (struct dirent **) NULL); ],
 aide_cv_readdir_r=POSIX, aide_cv_readdir_r=other))
 if test "$aide_cv_readdir_r" = "POSIX"
 then
-	AC_DEFINE(HAVE_READDIR_R,,[ ])
+	AC_DEFINE(HAVE_READDIR_R,1,[Define to 1 if you have the `readdir_r' function.])
 fi
 ])
 

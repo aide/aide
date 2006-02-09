@@ -1,6 +1,7 @@
 2006-02-09	Richard van den Berg  <richard@vdberg.org>
 	* Fall back to strtoimax if strtoll is not available
 	* Protect against non existing syslog facilities
+	* Updated aide.spec.in as suggested in SF bug #1428576
 
 2006-02-08	Richard van den Berg  <richard@vdberg.org>
 	* Explicitly check for readdir64, by Virolainen Pablo <pablo@cs.tut.fi>

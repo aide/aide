@@ -56,6 +56,6 @@ rm -rf $RPM_BUILD_ROOT
 
 %doc AUTHORS COPYING ChangeLog NEWS README README-snprintf LICENSE-snprintf.txt Todo doc/aide*
 %{prefix}/bin/aide
-%{prefix}/man/man1/aide.1
-%{prefix}/man/man5/aide.conf.5
+%{prefix}/man/man1/aide.1.gz
+%{prefix}/man/man5/aide.conf.5.gz
 /var/lib/aide

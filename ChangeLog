@@ -1,5 +1,6 @@
 2006-02-09	Richard van den Berg  <richard@vdberg.org>
 	* Fall back to strtoimax if strtoll is not available
+	* Protect against non existing syslog facilities
 
 2006-02-08	Richard van den Berg  <richard@vdberg.org>
 	* Explicitly check for readdir64, by Virolainen Pablo <pablo@cs.tut.fi>

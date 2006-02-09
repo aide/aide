@@ -399,42 +399,78 @@ int syslog_facility_lookup(char *s)
 {
 	if(!s || strlen(s)<1)
 		return(AIDE_SYSLOG_FACILITY);
+#ifdef LOG_KERN
 	if(strcasecmp(s,"LOG_KERN")==0)
 		return(LOG_KERN);
+#endif
+#ifdef LOG_USER
 	if(strcasecmp(s,"LOG_USER")==0)
 		return(LOG_USER);
+#endif
+#ifdef LOG_MAIL
 	if(strcasecmp(s,"LOG_MAIL")==0)
 		return(LOG_MAIL);
+#endif
+#ifdef LOG_DAEMON
 	if(strcasecmp(s,"LOG_DAEMON")==0)
 		return(LOG_DAEMON);
+#endif
+#ifdef LOG_AUTH
 	if(strcasecmp(s,"LOG_AUTH")==0)
 		return(LOG_AUTH);
+#endif
+#ifdef LOG_SYSLOG
 	if(strcasecmp(s,"LOG_SYSLOG")==0)
 		return(LOG_SYSLOG);
+#endif
+#ifdef LOG_LPR
 	if(strcasecmp(s,"LOG_LPR")==0)
 		return(LOG_LPR);
+#endif
+#ifdef LOG_NEWS
 	if(strcasecmp(s,"LOG_NEWS")==0)
 		return(LOG_NEWS);
+#endif
+#ifdef LOG_UUCP
 	if(strcasecmp(s,"LOG_UUCP")==0)
 		return(LOG_UUCP);
+#endif
+#ifdef LOG_CRON
 	if(strcasecmp(s,"LOG_CRON")==0)
 		return(LOG_CRON);
+#endif
+#ifdef LOG_LOCAL0
 	if(strcasecmp(s,"LOG_LOCAL0")==0)
 		return(LOG_LOCAL0);
+#endif
+#ifdef LOG_LOCAL1
 	if(strcasecmp(s,"LOG_LOCAL1")==0)
 		return(LOG_LOCAL1);
+#endif
+#ifdef LOG_LOCAL2
 	if(strcasecmp(s,"LOG_LOCAL2")==0)
 		return(LOG_LOCAL2);
+#endif
+#ifdef LOG_LOCAL3
 	if(strcasecmp(s,"LOG_LOCAL3")==0)
 		return(LOG_LOCAL3);
+#endif
+#ifdef LOG_LOCAL4
 	if(strcasecmp(s,"LOG_LOCAL4")==0)
 		return(LOG_LOCAL4);
+#endif
+#ifdef LOG_LOCAL5
 	if(strcasecmp(s,"LOG_LOCAL5")==0)
 		return(LOG_LOCAL5);
+#endif
+#ifdef LOG_LOCAL6
 	if(strcasecmp(s,"LOG_LOCAL6")==0)
 		return(LOG_LOCAL6);
+#endif
+#ifdef LOG_LOCAL7
 	if(strcasecmp(s,"LOG_LOCAL7")==0)
 		return(LOG_LOCAL7);
+#endif
 
 	error(0,"Syslog facility \"%s\" is unknown, using default\n",s);
 	return(AIDE_SYSLOG_FACILITY);

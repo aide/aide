@@ -25,6 +25,9 @@
 #include "db_config.h"
 #include <stdlib.h>
 #include <unistd.h>
+#if HAVE_INTTYPES_H
+# include <inttypes.h>
+#endif
 
 #ifndef TEMP_FAILURE_RETRY
 /* Evaluate EXPRESSION, and repeat as long as it returns -1 with errno'
@@ -63,10 +66,22 @@
 #endif
 #endif
 
+#ifdef strtoimax
+# define HAVE_STRTOIMAX
+#endif
+
 #if AIDE_OFF_TYPE == off64_t
-#define AIDE_STRTOLL_FUNC strtoll
+# ifdef HAVE_STRTOLL
+#  define AIDE_STRTOLL_FUNC strtoll
+# else
+#  ifdef HAVE_STRTOIMAX
+#   define AIDE_STRTOLL_FUNC strtoimax
+#  else
+#   define AIDE_STRTOLL_FUNC strtol
+#  endif
+# endif
 #else
-#define AIDE_STRTOLL_FUNC strtol
+# define AIDE_STRTOLL_FUNC strtol
 #endif
 
 #ifndef __NetBSD__

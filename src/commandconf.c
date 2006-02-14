@@ -639,14 +639,24 @@ int do_ifxhost(int mode,char* name)
 {
   int doit;
   char* s=NULL;
+  char *p;
   doit=mode;
   s=(char*)malloc(sizeof(char)*MAXHOSTNAMELEN+1);
+  if (s == NULL) {
+    error(0,_("Couldn't malloc hostname buffer"));
+  }
+  s[MAXHOSTNAMELEN] = '\0';
 
   if(gethostname(s,MAXHOSTNAMELEN)==-1){
     error(0,_("Couldn't get hostname %s"),name);
     free(s);
     return -1;
   }  
+  /* strip off everything past the . */
+  p = strchr(s, '.');
+  if (p != NULL) {
+    *p = '\0';
+  }
   if(strcmp(name,s)==0) {
     doit=1-doit;
   }

@@ -1,3 +1,6 @@
+2006-02-14	Richard van den Berg  <richard@vdberg.org>
+	* Fix the broken @@ifhost and @@ifnhost directives by lcn2 (SF bug #1430482)
+
 2006-02-09	Richard van den Berg  <richard@vdberg.org>
 	* Fall back to strtoimax if strtoll is not available
 	* Protect against non existing syslog facilities

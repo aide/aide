@@ -1,3 +1,6 @@
+2006-02-18	Richard van den Berg  <richard@vdberg.org>
+	* Released version 0.11
+
 2006-02-14	Richard van den Berg  <richard@vdberg.org>
 	* Fix the broken @@ifhost and @@ifnhost directives by lcn2 (SF bug #1430482)
 

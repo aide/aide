@@ -21,6 +21,7 @@
 #define _AIDE_H_INCLUDED
 
 #include "config.h"
+#define AIDEVERSION VERSION
 #include "report.h"
 #include "db_config.h"
 #include <stdlib.h>
@@ -91,8 +92,6 @@
 #endif /* _POSIX_C_SOURCE */
 #endif /* __NetBSD__ */
 
-
-#define AIDEVERSION VERSION
 
 #define ARGUMENT_SIZE 65536
 

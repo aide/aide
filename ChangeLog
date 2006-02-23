@@ -1,5 +1,6 @@
 2006-02-23	Richard van den Berg  <richard@vdberg.org>
 	* Set AIDEVERSION right after including config.h
+	* Added note about SIGTERM (Marc Haber)
 
 2006-02-18	Richard van den Berg  <richard@vdberg.org>
 	* Released version 0.11

@@ -46,6 +46,9 @@ output. See aide.conf (5) section URLS for available values.
 \fBaide\fP prints out its version number
 .IP --help,-h
 Prints out the standard help message.
+.SH NOTES
+Please note that due to mmap issues, aide cannot be terminated with
+SIGTERM. Use SIGKILL to terminate.
 .PP
 .SH FILES
 .B @prefix@/etc/aide.conf

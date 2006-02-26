@@ -1,3 +1,6 @@
+2006-02-26	Richard van den Berg  <richard@vdberg.org>
+	* Use @sysconfdir@ as directory in aide.1, SF bug #1438995
+
 2006-02-23	Richard van den Berg  <richard@vdberg.org>
 	* Set AIDEVERSION right after including config.h
 	* Added note about SIGTERM (Marc Haber)

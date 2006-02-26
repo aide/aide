@@ -51,11 +51,11 @@ Please note that due to mmap issues, aide cannot be terminated with
 SIGTERM. Use SIGKILL to terminate.
 .PP
 .SH FILES
-.B @prefix@/etc/aide.conf
+.B @sysconfdir@/aide.conf
 Default aide configuration file.
-.B @prefix@/etc/aide.db
+.B @sysconfdir@/aide.db
 Default aide database.
-.B @prefix@/etc/aide.db.new
+.B @sysconfdir@/aide.db.new
 Default aide output database.
 .SH SEE ALSO
 .BR aide.conf (5)

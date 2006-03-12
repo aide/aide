@@ -21,7 +21,6 @@
 #define _AIDE_H_INCLUDED
 
 #include "config.h"
-#define AIDEVERSION VERSION
 #include "report.h"
 #include "db_config.h"
 #include <stdlib.h>

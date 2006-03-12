@@ -1,7 +1,8 @@
 
 dnl Initialize autoconf/automake
-AC_INIT(src/aide.c)
-AM_INIT_AUTOMAKE(aide, "post-0.11")
+AC_INIT(aide, post-0.11)
+AC_CONFIG_SRCDIR(src/aide.c)
+AM_INIT_AUTOMAKE
 
 dnl The name of the configure h-file.
 AM_CONFIG_HEADER(config.h)

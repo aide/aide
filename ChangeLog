@@ -1,3 +1,6 @@
+2006-03-12	Richard van den Berg  <richard@vdberg.org>
+	* Mordernize use of AM_INIT_AUTOMAKE
+
 2006-02-26	Richard van den Berg  <richard@vdberg.org>
 	* Use @sysconfdir@ as directory in aide.1, SF bug #1438995
 

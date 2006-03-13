@@ -212,25 +212,26 @@ It is generally a good idea to ignore directories that frequently
 change, unless you want to read long reports.  
 It is good practice to exclude tmp directories, mail spools, log
 directories, proc filesystems, user's home directories, web content
-directories, anything that changes regularly.  It is good practice to
+directories, anything that changes regularly.  It is also good practice to
 include all system binaries, libraries, include files, system source
 files.  It will also be a good idea to include directories you don't
 often look in like /dev /usr/man/.*usr/.  Of course you'll want to
 include as many files as practical, but think about what you include.        
 </p>
 <p>
-#############For example if
-you have a block device whose owner keeps changing you can just 
-record the attributes that do not normally change (inode,number of
-links,ctime).
+One example: If
+you have a block device whose owner is changing frequently, you can
+configure aide to just 
+check the attributes that do not normally change (inode, number of
+links, ctime).
 </p>
 <p>
 Note that if you are referring to a single file you should add $ to
 the end of the regexp. This matches to the name of the file exactly
 and does not include any other files that might have the same
-beginning. In the example if there were no dollar sign at the 
-end of the last line it would mean that all filenames beginning with
-/var/adm/utmp would be ignored. An intruder could then create a
+beginning. In the example, all filenames beginning with
+/var/adm/utmp would be ignored if there were no dollar sign at the 
+end of the last line. An intruder could then create a
 directory called  /var/adm/utmp_root_kit and place all the files
 he/she/they wanted there and they would be ignored by AIDE.
 </p>
@@ -243,8 +244,8 @@ your config.
 <p>
 You can use <code>aide --verbose=255</code> to generate a lot of debug 
 output to help you see which files get added and which are discarded. 
-To really understand Aide's rule matching you should probably read a
-good book about regexps and the following section.
+The following section gives some more information about
+Aide's rule matching algorithm.
 </p>
 <h4>Understanding Aide rule matching</h4>
 <p>
@@ -339,7 +340,7 @@ the files under it. Remember that regexps match always just the part
 they are referring to. The rest of the line is included by default.
 So <code>=/etc$ R+a</code> would be the correct form. If you don't
 have the <code>!/etc/ppp/logs</code> you would get the results that
-you are looking for because. There is no node /etc in the regexp
+you are looking for because there is no node /etc in the regexp
 tree and there for it is not checked when Aide constructs the list of
 files to add to the database. But when you have the negative rules the
 nodes /etc and /etc/ppp get created and they get checked when the file
@@ -371,6 +372,35 @@ Now only messages files ending in number 0-9 and not included in the
 database. Note an intruder could disguise a rootkit by creating a
 directory called messages.9. If messages.9 does not already exist that
 is.
+</p>
+<p>
+Consider the following rules:
+<code>
+<pre>
+/ n+p+i+u+g+s+b+m+c+md5+sha1+rmd160+haval+gost+crc32+tiger
+/etc$ n+p+i+u+g
+/etc/resolv.conf$ n+p+u+g
+</pre>
+</code>
+This way, changing /etc/resolv.conf will also report /etc as having
+their mtime and ctime changed, even if /etc is configured not to be
+checked for mtime and ctime. The reason is that aide only uses a
+deepest-match algorithm to find the tree node to search, but a
+first-match algorithm inside the node. Since /etc is in the /
+directory, /etc will match the rule for the root directory and ignore
+the specialized /etc rule.
+</p>
+<p>
+Rearranging the configuration like this
+<code>
+<pre>
+/etc/resolv.conf$ n+p+u+g
+/etc$ n+p+i+u+g
+/ n+p+i+u+g+s+b+m+c+md5+sha1+rmd160+haval+gost+crc32+tiger
+</pre>
+</code>
+will solve the issue. It is generally a good idea to write the most
+general rules last.
 </p>
 <a name=usage></a>
 <h2>Usage</h2>

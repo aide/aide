@@ -111,6 +111,9 @@
           available from http://mhash.sourceforge.net/. A static version of
           libmhash needs to be build using the --enable-static=yes
           configure option.
+          Many people have reported problems with mhash 0.9.x. If you run
+          into them, please try Christoph Ehret's patches for version 0.9.4
+          https://mailman.cs.tut.fi/pipermail/aide/2006-February/000419.html
 
     Note:
       flex version 2.5.31 is broken, you might see the following error

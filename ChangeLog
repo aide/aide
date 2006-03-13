@@ -1,5 +1,6 @@
 2006-03-13	Richard van den Berg  <richard@vdberg.org>
 	* Applied manual patch from Marc Haber
+	* Added note about problems with mhash 0.9.x
 
 2006-03-12	Richard van den Berg  <richard@vdberg.org>
 	* Mordernize use of AM_INIT_AUTOMAKE

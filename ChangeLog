@@ -1,3 +1,6 @@
+2006-03-17	Richard van den Berg  <richard@vdberg.org>
+	* Use system strnstr when available
+
 2006-03-13	Richard van den Berg  <richard@vdberg.org>
 	* Applied manual patch from Marc Haber
 	* Added note about problems with mhash 0.9.x

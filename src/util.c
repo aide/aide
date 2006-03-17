@@ -363,6 +363,7 @@ void sig_handler(int signal)
    needle has to be NULL terminated. NULL in needle is not used in compare.
    NULLs in haystack are ignored.
 */
+#ifndef HAVE_STRNSTR
 char* strnstr(char* haystack,char* needle,int n)
 {
   char* h=haystack;
@@ -393,6 +394,7 @@ char* strnstr(char* haystack,char* needle,int n)
   /* If we get this far no match was found so we return NULL */
   return NULL;
 }
+#endif
 
 /* Lookup syslog facilities by name */
 int syslog_facility_lookup(char *s)

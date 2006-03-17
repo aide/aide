@@ -1,5 +1,6 @@
 2006-03-17	Richard van den Berg  <richard@vdberg.org>
 	* Use system strnstr when available
+	* Add --disable-static flag to configure
 
 2006-03-13	Richard van den Berg  <richard@vdberg.org>
 	* Applied manual patch from Marc Haber

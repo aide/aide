@@ -1,3 +1,6 @@
+2006-03-25	Richard van den Berg  <richard@vdberg.org>
+	* Allow aide.db to be supplied on stdin (Pablo Virolainen)
+
 2006-03-17	Richard van den Berg  <richard@vdberg.org>
 	* Use system strnstr when available
 	* Add --disable-static flag to configure

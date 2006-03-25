@@ -197,6 +197,12 @@ int var_in_conflval=0;
   return (TENDIF);
 }
 
+^"\@\@begin_db" {
+  error(230,"%i:@@begin_db",conf_lineno);
+  BEGIN 0;
+  return (TBEGIN_DB);
+}
+
 <IFDEFSTMT>({L})+ {
   error(230," %s\n",conftext);
   conflval.s=strdup(conftext);

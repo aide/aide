@@ -28,6 +28,7 @@
 #include "db_config.h"
 #include "db_file.h"
 #include "report.h"
+#include "fopen.h"
 
 #ifdef WITH_PSQL
 #include "libpq-fe.h"
@@ -322,7 +323,18 @@ void* be_init(int inout,url_t* u,int iszipped)
     return ret;
   }
 #endif
-
+#ifdef WITH_CURL
+  case url_http:
+  case url_https:
+  case url_ftp:
+    {
+      error(200,_("Opening curl \"%s\" for %s\n"),u->value,inout?"r":"w+");
+      if (iszipped) {
+	return NULL;
+      }
+      return url_fopen(u->value,inout?"r":"w+");
+    }
+#endif /* WITH CURL */
   default:{
     error(0,"Unsupported backend:%i", u->type);
     return NULL;

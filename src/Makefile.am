@@ -45,6 +45,7 @@ aide_SOURCES =	\
 		be.c		\
 		util.c		\
 		snprintf.c	\
+		fopen.c		\
 		aide.c
 
 INCLUDES = -I$(top_srcdir)/include

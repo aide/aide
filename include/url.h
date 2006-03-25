@@ -24,7 +24,7 @@
 typedef enum {
   url_file, url_stdout, url_stdin, url_stderr, url_fd, url_http,
   url_sql, url_syslog, url_database, url_multiwriter, 
-  url_gzip, url_string, 
+  url_gzip, url_string, url_ftp, url_https, 
   url_unknown
 } URL_TYPE;
 

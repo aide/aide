@@ -330,6 +330,13 @@ AC_ARG_WITH([zlib],
 	[with_zlib=yes]
 )
 
+AC_ARG_WITH([curl],
+	AC_HELP_STRING([--with-curl],
+		[use curl for http,https and ftp backends]),
+	,
+	[with_curl=no]
+)
+
 
 AC_MSG_CHECKING(for acl-support)
 AC_ARG_WITH(sun-acl,
@@ -474,6 +481,26 @@ if test x$with_zlib = xyes; then
 )
   LDFLAGS=$save_LDFLAGS
   AC_DEFINE(WITH_ZLIB,1,[use zlib])
+fi
+
+if test x$with_curl = xyes; then
+	AC_PATH_PROG(curlconfig, "curl-config")
+	if test "_$curlconfig" != _ ; then
+		CURL_CFLAGS=`$curlconfig --cflags`
+		CURL_LIBS=`$curlconfig --libs`
+	else
+		AC_MSG_ERROR([You don't have curl properly installed. Install it or try --without-curl.])
+	fi
+  AC_CHECK_HEADERS(curl/curl.h,,
+ 	[AC_MSG_ERROR([You don't have curl properly installed. Install it or try --without-curl.])])
+#  save_LDFLAGS=$LDFLAGS
+	CFLAGS="$CFLAGS $CURL_CFLAGS"
+  LDFLAGS="$LDFLAGS $CURL_LIBS $LD_STATIC_FLAG"
+  AC_CHECK_LIB(curl,curl_easy_init,havecurl=yes,
+ 	[AC_MSG_ERROR([You don't have curl properly installed. Install it or try --without-curl.])]
+)
+#  LDFLAGS=$save_LDFLAGS
+  AC_DEFINE(WITH_CURL,1,[use curl])
 fi
 
 AC_ARG_WITH([gnu-regexp],

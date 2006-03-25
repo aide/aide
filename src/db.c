@@ -148,6 +148,11 @@ db_line* db_readline(int db){
   }
 
   switch (db_url->type) {
+#ifdef WITH_CURL
+  case url_http:
+  case url_https:
+  case url_ftp:
+#endif /* WITH CURL */
   case url_stdin:
   case url_fd:
   case url_file: {
@@ -172,6 +177,8 @@ db_line* db_readline(int db){
     
     break;
   }
+
+
 #ifdef WITH_PSQL
   case url_sql: {
     error(255,"db_sql readline...");
@@ -500,6 +507,15 @@ int db_writespec(db_config* conf)
     }
     break;
   }
+#ifdef WITH_CURL
+  case url_http:
+  case url_https:
+  case url_ftp:
+    {
+      
+      break;
+    }
+#endif /* WITH CURL */
 #ifdef WITH_PSQL
   case url_sql: {
     if(conf->db_out!=NULL){
@@ -523,6 +539,11 @@ int db_writeline(db_line* line,db_config* conf){
   if (line==NULL||conf==NULL) return RETOK;
   
   switch (conf->db_out_url->type) {
+#ifdef WITH_CURL
+  case url_http:
+  case url_https:
+  case url_ftp:
+#endif /* WITH CURL */
   case url_stdout:
   case url_stderr:
   case url_fd:
@@ -532,7 +553,7 @@ int db_writeline(db_line* line,db_config* conf){
        (conf->gzip_dbout && conf->db_gzout) ||
 #endif
        (conf->db_out!=NULL)) {
-      if (db_writeline_file(line,conf)==RETOK) {
+      if (db_writeline_file(line,conf,conf->db_out_url)==RETOK) {
 	return RETOK;
       }
     }
@@ -579,6 +600,15 @@ int db_close(db_config* conf)
     return RETFAIL;
     break;
   }
+#ifdef WITH_CURL
+  case url_http:
+  case url_https:
+  case url_ftp:
+    {
+      url_fclose(conf->db_out);
+      break;
+    }
+#endif /* WITH CURL */
 #ifdef WITH_PSQL
   case url_sql: {
     if (conf->db_out!=NULL) {

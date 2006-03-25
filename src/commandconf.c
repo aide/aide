@@ -38,7 +38,7 @@
 /*for locale support*/
 #include "locale-aide.h"
 /*for locale support*/
-
+#include "fopen.h"
 
 #define BUFSIZE 4096
 #define ZBUFSIZE 16384
@@ -243,6 +243,7 @@ int db_input_wrapper(char* buf, int max_size, int db)
   char* tmp=NULL;
   int err=0;
   int* domd=0;
+  url_t* db_url=NULL;
 #ifdef WITH_MHASH
   MHASH* md=NULL;
   void* key=NULL;
@@ -252,9 +253,9 @@ int db_input_wrapper(char* buf, int max_size, int db)
 #ifdef WITH_ZLIB
   gzFile* db_gzp=NULL;
 #endif
- 
   switch(db) {
   case DB_OLD: {
+    db_url=conf->db_in_url;
     domd=&(conf->do_dboldmd);
     md=&(conf->dboldmd);
     db_filep=&(conf->db_in);
@@ -264,6 +265,7 @@ int db_input_wrapper(char* buf, int max_size, int db)
     break;
   }
   case DB_NEW: {
+    db_url=conf->db_new_url;
     domd=&(conf->do_dbnewmd);
     md=&(conf->dbnewmd);
     db_filep=&(conf->db_new);
@@ -273,6 +275,18 @@ int db_input_wrapper(char* buf, int max_size, int db)
     break;
   }
   }
+
+#ifdef WITH_CURL
+  switch (db_url->type) {
+  case url_http:
+  case url_https:
+  case url_ftp: {
+    retval=url_fread(buf,1,max_size,(URL_FILE *)*db_filep);
+    break;
+  } 
+  default:
+#endif /* WITH CURL */
+
 
   /* Read a character at a time until we are doing md */
 #ifdef WITH_ZLIB
@@ -334,7 +348,6 @@ int db_input_wrapper(char* buf, int max_size, int db)
 #endif /* WITH_MHASH */ 
 #endif /* WITH_ZLIB */
 
-
 #ifdef WITH_MHASH    
   if(*domd){
     if(!*md){
@@ -369,6 +382,10 @@ int db_input_wrapper(char* buf, int max_size, int db)
     }
 #endif
   }
+
+#ifdef WITH_CURL
+  }
+#endif /* WITH CURL */
   return retval;
 }
 
@@ -712,6 +729,8 @@ void do_dbdef(int dbtype,char* val)
 {
   url_t* u=NULL;
   url_t** conf_db_url;
+
+  fprintf(stderr,"do_dbdef (%i) called with (%s)\n",dbtype,val);
 
   switch(dbtype) {
   case DB_OLD: {

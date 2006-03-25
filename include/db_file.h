@@ -33,7 +33,7 @@ extern long db_new_lineno;
 
 char** db_readline_file(int);
 int db_writespec_file(db_config*);
-int db_writeline_file(db_line* line,db_config* conf);
+int db_writeline_file(db_line* line,db_config* conf,url_t* url);
 int db_close_file(db_config* conf);
 #ifdef WITH_ZLIB
 void handle_gzipped_input(int out,gzFile*);

@@ -1,5 +1,6 @@
 2006-03-25	Richard van den Berg  <richard@vdberg.org>
 	* Allow aide.db to be supplied on stdin (Pablo Virolainen)
+	* Add patch to allow http/https/ftp URLs through libcurl (Pablo Virolainen)
 
 2006-03-17	Richard van den Berg  <richard@vdberg.org>
 	* Use system strnstr when available

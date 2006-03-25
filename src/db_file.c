@@ -137,6 +137,7 @@ int dofprintf( const char* s,...)
     retval=gzwrite(conf->db_gzout,temp,retval);
   }else{
 #endif
+    /* writing is ok with fwrite with curl.. */
     retval=fwrite(temp,1,retval,conf->db_out);
 #ifdef WITH_ZLIB
   }
@@ -396,7 +397,15 @@ char** db_readline_file(int db){
 	error(0,"FD database must have one db_spec specification\n");
 	break;
       }
-
+#ifdef WITH_CURL
+      case url_http:
+      case url_https:
+      case url_ftp: {
+	error(0,"CURL database must have one db_spec specification %i\n",token);
+	break;
+      }
+#endif
+	
       default : {
 	error(0,"db_readline_file():Unknown or unsupported db in type.\n");
 	
@@ -805,7 +814,7 @@ int db_writeacl(acl_type* acl,FILE* file,int a){
 }
 #endif
 
-int db_writeline_file(db_line* line,db_config* conf){
+int db_writeline_file(db_line* line,db_config* conf, url_t* url){
   int i;
 
   for(i=0;i<conf->db_out_size;i++){

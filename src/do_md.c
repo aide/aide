@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  * vi: ts=8 sw=8
  *
- * Copyright (C) 1999,2000,2001,2002 Rami Lehti, Pablo Virolainen
+ * Copyright (C) 1999,2000,2001,2002,2005 Rami Lehti, Pablo Virolainen
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -54,9 +54,9 @@
 #ifdef HAVE_MMAP
 #ifndef MAP_FAILED
 #define MAP_FAILED  (-1)
-#endif
+#endif /* MAP_FAILED */
 #define MMAP_BLOCK_SIZE 16777216
-#endif
+#endif /* HAVE_MMAP */
 
 /*
 #include <gcrypt.h>
@@ -84,11 +84,13 @@ void free_hashes(db_line* dl){
 #endif
 }
 
+/* Not use any more. calc_md is the new function.
 list* do_md(list* file_lst,db_config* conf)
 {
   abort();
   return file_lst;
 }
+*/
 
 int stat_cmp(struct AIDE_STAT_TYPE* f1,struct AIDE_STAT_TYPE* f2) {
   if (f1==NULL || f2==NULL) {
@@ -206,7 +208,7 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
 #if READ_BLOCK_SIZE>SSIZE_MAX
 #error "READ_BLOCK_SIZE" is too large. Max value is SSIZE_MAX, and current is READ_BLOCK_SIZE
 #endif
-      while ((size=read(filedes,buf,READ_BLOCK_SIZE))>0) {
+      while ((size=TEMP_FAILURE_RETRY(read(filedes,buf,READ_BLOCK_SIZE)))>0) {
 	if (update_md(&mdc,buf,size)!=RETOK) {
 	  error(0,"Message digest failed during update\n");
 	  close_md(&mdc);

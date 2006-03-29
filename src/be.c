@@ -336,7 +336,7 @@ void* be_init(int inout,url_t* u,int iszipped)
     }
 #endif /* WITH CURL */
   default:{
-    error(0,"Unsupported backend:%i", u->type);
+    error(0,"Unsupported backend: %i", u->type);
     return NULL;
   }    
   }

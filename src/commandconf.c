@@ -299,7 +299,7 @@ int db_input_wrapper(char* buf, int max_size, int db)
       buf[0]='\0';
     }else {
       if((retval=gzread(*db_gzp,buf,max_size))<0){
-	error(0,_("gzread() failed:gzerr=%s!\n"),gzerror(*db_gzp,&err));
+	error(0,_("gzread() failed: gzerr=%s!\n"),gzerror(*db_gzp,&err));
 	retval=0;
 	buf[0]='\0';
       } else {

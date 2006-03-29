@@ -1,3 +1,6 @@
+2006-03-29	Richard van den Berg  <richard@vdberg.org>
+	* Add spaces to error messages (Marc Haber)
+
 2006-03-25	Richard van den Berg  <richard@vdberg.org>
 	* Allow aide.db to be supplied on stdin (Pablo Virolainen)
 	* Add patch to allow http/https/ftp URLs through libcurl (Pablo Virolainen)

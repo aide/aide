@@ -65,7 +65,7 @@ void handle_gzipped_input(int out,gzFile* gzp){
   error(200,"handle_gzipped_input(),%d\n",out);
   while(!gzeof(*gzp)){
     if((nread=gzread(*gzp,buf,ZBUFSIZE))<0){
-      error(0,_("gzread() failed:gzerr=%s!\n"),gzerror(*gzp,&err));
+      error(0,_("gzread() failed: gzerr=%s!\n"),gzerror(*gzp,&err));
       exit(1);
     } else {
       /* gzread returns 0 even if uncompressed bytes were read */

@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999,2000,2001,2002 Rami Lehti, Pablo Virolainen
- * $Header$
+ * Copyright (C) 1999-2006 Rami Lehti, Pablo Virolainen, Richard van den Berg
+ * $Id$
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -741,7 +741,7 @@ void compare_db(list* new,db_config* conf)
       error(2,_("Added files:\n"));
       error(2,_("---------------------------------------------------\n\n"));
       for(r=added;r;r=r->next){
-	error(2,"added:%s\n",((db_line*)r->data)->filename);
+	error(2,"added: %s\n",((db_line*)r->data)->filename);
 	if(conf->verbose_level<20){
 	  if(S_ISDIR(((db_line*)r->data)->perm)){
 	    /*	    
@@ -767,7 +767,7 @@ void compare_db(list* new,db_config* conf)
       error(2,_("Removed files:\n"));
       error(2,_("---------------------------------------------------\n\n"));
       for(r=removed;r;r=r->next){
-	error(2,"removed:%s\n",((db_line*)r->data)->filename);
+	error(2,"removed: %s\n",((db_line*)r->data)->filename);
       }
     }
 
@@ -776,7 +776,7 @@ void compare_db(list* new,db_config* conf)
       error(2,_("Changed files:\n"));
       error(2,_("---------------------------------------------------\n\n"));
       for(r=changedold;r;r=r->next){
-	error(2,"changed:%s\n",((db_line*)r->data)->filename);
+	error(2,"changed: %s\n",((db_line*)r->data)->filename);
       }
     }
 
@@ -865,7 +865,7 @@ long report_tree(seltree* node,int stage, int* stat)
       error(2,_("---------------------------------------------------\n\n"));
     }
     if(node->checked&NODE_ADDED){
-      error(2,_("added:%s\n"),node->new_data->filename);
+      error(2,_("added: %s\n"),node->new_data->filename);
     }
   }
 
@@ -876,7 +876,7 @@ long report_tree(seltree* node,int stage, int* stat)
       error(2,_("---------------------------------------------------\n\n"));
     }
     if(node->checked&NODE_REMOVED){
-      error(2,_("removed:%s\n"),node->old_data->filename);
+      error(2,_("removed: %s\n"),node->old_data->filename);
     }
   }
 
@@ -887,7 +887,7 @@ long report_tree(seltree* node,int stage, int* stat)
       error(2,_("---------------------------------------------------\n\n"));
     }
     if(node->checked&NODE_CHANGED){
-      error(2,_("changed:%s\n"),node->new_data->filename);
+      error(2,_("changed: %s\n"),node->new_data->filename);
     }
   }
 
@@ -916,3 +916,5 @@ long report_tree(seltree* node,int stage, int* stat)
 
 const char* aide_key_9=CONFHMACKEY_09;
 const char* db_key_9=DBHMACKEY_09;
+
+// vi: ts=8 sw=8

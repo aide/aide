@@ -140,10 +140,10 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
   if (filedes==-1) {
     char* er=strerror(errno);
     if (er!=NULL) {
-      error(3,"do_md():open() for %s failed:%s\n",
+      error(3,"do_md(): open() for %s failed: %s\n",
 	    line->filename,er);
     } else {
-      error(3,"do_md():open() for %s failed:%i\n",
+      error(3,"do_md(): open() for %s failed: %i\n",
 	    line->filename,errno);
     }
     /*

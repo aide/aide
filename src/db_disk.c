@@ -376,6 +376,16 @@ recursion:
 						   come to this part of the code.
 						   So we don't print any error message.
 						 */
+					} else if (errno == ENOENT &&
+										 ((r->sel_rx_lst != NULL || r->neg_rx_lst != NULL ||
+											r->equ_rx_lst != NULL) || r->childs != NULL)) {
+						/* The dir did not exist and there are regexps referring to
+						   this node or there are children to this node. 
+						   The only way a nonexistent dirnode can have children is by 
+						   having rules referring to them.
+						 */
+						error (10,
+									 "There are rules referring to non-existent directory %s\n", start_path);
 					} else {
 						/* In any other case we print the message. */
 						char *er = strerror (errno);
@@ -383,17 +393,6 @@ recursion:
 							error (3, "open_dir():%s: %s\n", er, start_path);
 						} else {
 							error (3, "open_dir():%i: %s\n", errno, start_path);
-						}
-						if (errno == ENOENT &&
-								((r->sel_rx_lst != NULL || r->neg_rx_lst != NULL ||
-									r->equ_rx_lst != NULL) || r->childs != NULL)) {
-							/* The dir did not exist and there are regexps referring to
-							   this node or there are children to this node. 
-							   The only way a nonexistent dirnode can have children is by 
-							   having rules referring to them.
-							 */
-							error (3,
-										 "There are rules referring to non-existent directories!\n");
 						}
 					}
 					r->checked |= NODE_TRAVERSE | NODE_CHECKED;

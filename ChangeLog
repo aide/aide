@@ -1,5 +1,6 @@
 2006-03-29	Richard van den Berg  <richard@vdberg.org>
 	* Add spaces to error messages (Marc Haber)
+	* Don't warn about rules referring to non-existent directories by default
 
 2006-03-25	Richard van den Berg  <richard@vdberg.org>
 	* Allow aide.db to be supplied on stdin (Pablo Virolainen)

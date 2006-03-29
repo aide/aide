@@ -723,14 +723,12 @@ int get_groupval(char* group)
   return -1;
 }
 
-
-
 void do_dbdef(int dbtype,char* val)
 {
   url_t* u=NULL;
   url_t** conf_db_url;
 
-  fprintf(stderr,"do_dbdef (%i) called with (%s)\n",dbtype,val);
+  error(255,"do_dbdef (%i) called with (%s)\n",dbtype,val);
 
   switch(dbtype) {
   case DB_OLD: {

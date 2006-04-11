@@ -373,7 +373,7 @@ char** db_readline_file(int db){
     }
 
     if(FORCEDBMD&&!gotbegin_db){
-      error(0,"Database %i does not have checksum!\n");
+      error(0,"Database %i does not have checksum!\n",db);
       return NULL;
     }
 
@@ -524,6 +524,10 @@ char** db_readline_file(int db){
 
     case TEND_DBNOMD : {
       gotend_db=1;
+      if(FORCEDBMD){
+        error(0,"Database %i does not have checksum!\n",db);
+	abort();
+      }
       break;
     }
 
@@ -1010,3 +1014,4 @@ int db_close_file(db_config* conf){
 /*
 const char* aide_key_11=CONFHMACKEY_11;
 */
+// vi: ts=8 sw=8

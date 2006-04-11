@@ -24,6 +24,11 @@ The input and output databases must be different.
 .IP --compare
 Compares two databases. They must be defined in configfile with
 database=<url> and database_new=<url>.
+.IP "--config-check, -D"
+Stops after reading in the configuration file. Any errors will be reported.
+If \fBaide\fP was compiled with the \(dq\fB--with-dbhmackey\fR\(dq option,
+a hash for the config file will be calculated. See the aide manual for more
+information.
 .SH PARAMETERS
 .IP "--config=\fBconfigfile\fR , -c \fBconfigfile\fR"
 Configuration is read from file \fBconfigfile\fR instead of "./aide.conf". Use '-' for stdin.

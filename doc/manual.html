@@ -1,8 +1,7 @@
-
 <html>
-<head><title>Aide Manual version 0.1</title>
+<head><title>Aide Manual version 0.11</title>
 <meta name="cvsheader" content="
-$Header$
+$Id$
 ">
 </meta>
 </head>
@@ -14,10 +13,17 @@ $Header$
 <strong>This manual is by no means complete, usable, readable, comprihensible,
 or error free.<br>
 <p>
-If you have any corrections, additions or constructive comments, please send
-them to <a href="mailto:rammer@cs.tut.fi">me</a>.</strong></p>
-This document was written by Rami Lehti 
+If you have any corrections, additions or constructive comments, please
+report them as bugs, patches or feature requests
+<a href="http://sourceforge.net/projects/aide">here</a>.
+</strong></p>
+This document was originally written by Rami Lehti 
 <a href="mailto:rammer@cs.tut.fi">&lt;rammer@cs.tut.fi&gt;</a> 
+with additions made by Marc Haber
+<a href="mailto:mh+aide-manual@zugschlus.de">&lt;mh+aide-manual@zugschlus.de&gt;</a> 
+and Richard van den Berg
+<a href="mailto:richard@vdberg.org">&lt;richard@vdberg.org&gt;</a> 
+.
 
 <a name="toc"></a>
 <h2>Table of Contents</h2>
@@ -28,6 +34,7 @@ This document was written by Rami Lehti
 <li><a href="#compilation">Compiling Aide</a>
 <li><a href="#config">Configuration</a>
 <li><a href="#usage">Usage</a>
+<li><a href="#signing">Database and config signing</a>
 <li><a href="#general">General guidelines for security</a>
 </ol>
 
@@ -471,6 +478,128 @@ where you compare different versions of the databases with
 <code>aide --compare</code>
 This has the benefit of freeing up resources on the monitored
 machines.
+
+<a name=signing></a>
+<h2>Database and config signing</h2>
+<p>
+The security of Aide can be increased by signing the configuration and/or
+database. When a database is signed, and it is changed manually, Aide will
+refuse to use it. Likewise, if a configuration is signed, Aide will not use
+it until the embedded hash is updated as well.
+</p>
+
+<p>
+To make use of the signing features, use these options to the configure
+script:
+<dl>
+<dt>
+  --with-confighmactype=TYPE
+</dt>
+<dd>
+                          Hash type to use for checking config. Valid values
+                          are md5 and sha1.
+</dd>
+<dt>
+  --with-confighmackey=KEY
+</dt>
+<dd>
+                          HMAC hash key to use for checking config. Must be a
+                          base64 encoded byte stream. Maximum string length is
+                          31 chars.
+</dd>
+<dt>
+  --with-dbhmactype=TYPE  
+</dt>
+<dd>
+                          Hash type to use for checking db. Valid values are
+                          md5 and sha1.
+</dd>
+<dt>
+  --with-dbhmackey=KEY
+</dt>
+<dd>
+                          HMAC hash key to use for checking db. Must be a base64
+                          encoded byte stream. Maximum string lentgth is 31
+                          chars.
+</dd>
+</dl>
+
+The base64 encoding was chosen so that the keys are not limited to printable
+characters. You can use a local base64 tool or an
+<a href="http://www.opinionatedgeek.com/dotnet/tools/Base64Encode/">online
+base64 encoder</a>
+to convert the keys to the right format. Then run configure, for example:
+</p>
+
+
+<p><code>
+./configure --with-confighmactype=sha1
+-with-confighmackey="YWlkZSBhaWRlIGFpZGUgYWlkZQo=" --with-dbhmactype=sha1
+--with-dbhmackey="YWlkZSBhaWRlIGFpZGUgYWlkZQo="
+</code></p>
+
+<p>
+To make the presence of a valid signature mandatory, the following configure
+options can be used:
+
+<dl>
+<dt>
+  --enable-forced_dbmd
+</dt>
+<dd>
+                          Forces the file/pipe database's to have checksum.
+</dd>
+<dt>
+  --enable-forced_configmd
+</dt>
+<dd>
+                          Forces the config to have checksum. Also disables
+                          --config-check
+</dd>
+</dl>
+
+It is also possible to edit the <code>config.h</code> file by hand, and
+changing the values of the <code>FORCEDBMD</code> and
+<code>FORCECONFIGMD</code> macros.
+</p>
+
+<p>
+Creating the hash for the aide.db database is done by running <code>aide
+--init</code> or <code>aide --update</code>. The hash for the aide.conf
+configuration file can be obtained by running <code>aide
+--config-check</code>:
+
+<pre>
+$ aide --config-check | patch
+Config checked. Use the following to patch your config file.
+0a1
+> @@begin_config 27GF0+oKj1CvP4tltuibhu8YGIU=
+13a15
+> @@end_config
+</pre>
+
+The <code>@@begin_config</code> and <code>@@end_config</code> can be added
+to the aide.conf file manually, or the output of <code>aide
+--config-check</code> can be directly piped into <code>patch</code>:
+
+<pre>
+$ aide --config-check
+can't find file to patch at input line 2
+Perhaps you should have used the -p or --strip option?
+The text leading up to this was:
+--------------------------
+|Config checked. Use the following to patch your config file.
+--------------------------
+File to patch: /etc/aide.conf
+patching file /etc/aide.conf
+</pre>
+
+Using <code>forced_configmd</code> will make Aide refuse to use unsigned
+configuration files. This also disables the <code>--config-check</code>
+option. This only makes sense if you already have a signed configuration, or
+if you have an Aide executable on another machine that can create the signed
+configurations for you.
+</p>
 
 <a name=misc></a>
 <h2>Miscellaneous</h2>

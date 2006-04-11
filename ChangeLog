@@ -1,3 +1,7 @@
+2006-03-31	Richard van den Berg  <richard@vdberg.org>
+	* Abort if aide.db does not have checksum when FORCEDBMD is used
+	* Explain aide.conf and aide.db signing
+
 2006-03-29	Richard van den Berg  <richard@vdberg.org>
 	* Add spaces to error messages (Marc Haber)
 	* Don't warn about rules referring to non-existent directories by default

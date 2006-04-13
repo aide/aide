@@ -689,7 +689,10 @@ int check_list_for_equal(list* rxrlist,char* text,int* attr)
  * 2,  if a equals rule was matched
  * retval if no rule was matched.
  * retval&3 if no rule was matched and first in the recursion
- *
+ * to keep state revat is orred with:
+ * 4,  matched deeper on equ rule
+ * 8,  matched deeper on sel rule
+ *16,  this is a recursed call
  */    
 
 int check_node_for_match(seltree*node,char*text,int retval,int* attr)
@@ -719,7 +722,7 @@ int check_node_for_match(seltree*node,char*text,int retval,int* attr)
 	so, /bin/bash or /bin/something should return 0 as neg
       */
       if(!check_list_for_equal(node->equ_rx_lst,text,attr))
-    		retval|=(2|4);
+	retval|=(2|4);
     };
   };
   /* We'll use retval to pass information on whether to recurse 
@@ -1561,3 +1564,4 @@ void hsymlnk(db_line* line) {
 /*
 const char* aide_key_13=KEY_13;
 */
+// vi: ts=8 sw=2

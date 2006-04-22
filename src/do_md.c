@@ -177,12 +177,20 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
       /* in mmap branch r_size is used as size remaining */
       while(r_size>0){
 	if(r_size<MMAP_BLOCK_SIZE){
+#ifdef __hpux
+	  buf = mmap(0,r_size,PROT_READ,MAP_PRIVATE,filedes,curpos);
+#else
 	  buf = mmap(0,r_size,PROT_READ,MAP_SHARED,filedes,curpos);
+#endif
 	  curpos+=r_size;
 	  size=r_size;
 	  r_size=0;
 	}else {
+#ifdef __hpux
+	  buf = mmap(0,MMAP_BLOCK_SIZE,PROT_READ,MAP_PRIVATE,filedes,curpos);
+#else
 	  buf = mmap(0,MMAP_BLOCK_SIZE,PROT_READ,MAP_SHARED,filedes,curpos);
+#endif
 	  curpos+=MMAP_BLOCK_SIZE;
 	  size=MMAP_BLOCK_SIZE;
 	  r_size-=MMAP_BLOCK_SIZE;

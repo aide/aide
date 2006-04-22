@@ -1,3 +1,6 @@
+2006-04-22	Richard van den Berg  <richard@vdberg.org>
+	* Fix mmap on HPUX (fredrik@soderblom.org patch 1474555)
+
 2006-03-31	Richard van den Berg  <richard@vdberg.org>
 	* Abort if aide.db does not have checksum when FORCEDBMD is used
 	* Explain aide.conf and aide.db signing

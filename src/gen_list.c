@@ -1114,6 +1114,7 @@ void add_file_to_tree(seltree* tree,db_line* file,int db,int status,int attr)
       
       node->old_data=NULL;
       node->new_data=NULL;      
+      node->checked-=(DB_OLD + DB_NEW); /* mark old and new files as released */          
     }
   }
 
@@ -1121,8 +1122,8 @@ void add_file_to_tree(seltree* tree,db_line* file,int db,int status,int attr)
    * old and new data are NULL only if file present in both DBs
    * and has not been changed.
    */
-  if((file->attr & DB_CHECKINODE) &&
-     (node->old_data!=NULL || node->new_data!=NULL)) {
+  if( (node->old_data!=NULL || node->new_data!=NULL) &&
+    (file->attr & DB_CHECKINODE)) {
     /* Check if file was moved (same inode, different name in the other DB)*/
     db_line *oldData;
     db_line *newData;
@@ -1158,13 +1159,13 @@ void add_file_to_tree(seltree* tree,db_line* file,int db,int status,int attr)
     }
   }
   if( (db == DB_NEW) &&
-      (file->attr & DB_NEWFILE) && 
-      (node->new_data!=NULL) ){
+      (node->new_data!=NULL) &&
+      (file->attr & DB_NEWFILE) ){
 	 node->checked|=NODE_ALLOW_NEW;
   }
   if( (db == DB_OLD) &&
-      (file->attr & DB_RMFILE) &&
-      (node->old_data!=NULL) ){
+      (node->old_data!=NULL) &&
+      (file->attr & DB_RMFILE) ){
 	  node->checked|=NODE_ALLOW_RM;
   }
 }

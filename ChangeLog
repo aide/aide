@@ -1,4 +1,7 @@
 2006-04-22	Richard van den Berg  <richard@vdberg.org>
+	* Fix seg faults on OpenBSD (Axel Rau <Axel.Rau@Chaos1.DE>)
+
+2006-04-22	Richard van den Berg  <richard@vdberg.org>
 	* Fix mmap on HPUX (fredrik@soderblom.org patch 1474555)
 
 2006-03-31	Richard van den Berg  <richard@vdberg.org>

@@ -201,7 +201,7 @@ AC_ARG_WITH(mmap,
 	[AC_CHECK_FUNCS(mmap)]
 )
 
-AC_CHECK_FUNCS(snprintf vsnprintf)
+AC_CHECK_FUNCS(posix_fadvice snprintf vsnprintf)
 
 AC_CACHE_CHECK(for ISO C99 compliant snprintf,ac_cv_func_snprintf_c99,
 	[AC_TRY_RUN([

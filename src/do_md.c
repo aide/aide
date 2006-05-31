@@ -19,6 +19,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#define _POSIX_C_SOURCE 200112L
+
 #include "aide.h"
 
 #include <limits.h>
@@ -124,6 +126,8 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
   struct AIDE_STAT_TYPE fs;
   int sres=0;
   int stat_diff,filedes;
+
+  error(255,"calc_md called\n");
 #ifdef _PARAMETER_CHECK_
   if (line==NULL) {
     abort();
@@ -136,7 +140,6 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
 #endif
     filedes=open(line->filename,O_RDONLY);
 
-  error(255,"calc_md called\n");
   if (filedes==-1) {
     char* er=strerror(errno);
     if (er!=NULL) {
@@ -157,6 +160,13 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
   if(!(line->attr&DB_RDEV))
 	  fs.st_rdev=0;
   
+#ifdef HAVE_POSIX_FADVICE
+  if (posix_fadvise(filedes,0,fs.st_size,POSIX_FADV_NOREUSE)!=0) {
+	error(255,"posix_fadvise error %s\n",strerror(errno));
+  } else {
+	error(255,"posix_fadvise(%i,0,%i,POSIX_FADV_NOREUSE) ok\n",filedes,fs.st_size);
+  }
+#endif
   if ((stat_diff=stat_cmp(&fs,old_fs))==RETOK) {
     /*
       Now we have a 'valid' filehandle to read from a file.

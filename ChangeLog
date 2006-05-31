@@ -1,3 +1,6 @@
+2006-05-31	Richard van den Berg  <richard@vdberg.org>
+	* Added support for posix_fadvice() (Pablo Virolainen)
+
 2006-04-22	Richard van den Berg  <richard@vdberg.org>
 	* Fix seg faults on OpenBSD (Axel Rau <Axel.Rau@Chaos1.DE>)
 

@@ -796,7 +796,7 @@ void compare_db(list* new,db_config* conf)
   }
 }
 
-long report_tree(seltree* node,int stage, int* stat)
+long report_tree(seltree* node,int stage, long* stat)
 {
   list* r=NULL;
   int ignorelist=0;

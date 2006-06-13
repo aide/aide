@@ -1,3 +1,6 @@
+2006-06-13	Richard van den Berg  <richard@vdberg.org>
+	* Fix stat type in report_tree() (Heiko Lehmann <hlehmann@fh-lausitz.de>)
+
 2006-05-31	Richard van den Berg  <richard@vdberg.org>
 	* Added support for posix_fadvice() (Pablo Virolainen)
 

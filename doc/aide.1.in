@@ -21,7 +21,7 @@ the appropriate place before you can use the --check command.
 .IP "--update, -u"
 Checks the database and updates the database non-interactively. 
 The input and output databases must be different.
-.IP --compare
+.IP "--compare"
 Compares two databases. They must be defined in configfile with
 database=<url> and database_new=<url>.
 .IP "--config-check, -D"
@@ -47,9 +47,9 @@ value set in a configuration file.
 .IP "--report=\fBreporter\fR,-r \fBreporter\fR"
 \fBreporter\fR is a URL which tells \fBaide\fP where to send it's
 output. See aide.conf (5) section URLS for available values.
-.IP --version,-v
+.IP "--version,-v"
 \fBaide\fP prints out its version number
-.IP --help,-h
+.IP "--help,-h"
 Prints out the standard help message.
 .SH NOTES
 Please note that due to mmap issues, aide cannot be terminated with
@@ -67,8 +67,8 @@ Default aide output database.
 .BR http://www.cs.tut.fi/~rammer/aide/manual.html
 .SH BUGS
 There are probably bugs in this release. Please report them
-to rammer@cs.tut.fi. Bug fixes are more than welcome. Unified diffs 
-are preferred.
+at http://sourceforge.net/projects/aide . Bug fixes are more than welcome.
+Unified diffs are preferred.
 .SH DISCLAIMER
 All trademarks are the property of their respective owners.
 No animals were harmed while making this webpage or this piece of

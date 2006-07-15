@@ -27,42 +27,42 @@ with # are ignored as comments.
 These lines have the format parameter=value. See URLS for a list of
 valid urls. 
 .PP
-.IP database
+.IP "database"
 The url from which database is read. There can only be one of these
 lines. If there are multiple database lines then the first is used.
 The default value is "@prefix@/etc/aide.db".
-.IP database_out
+.IP "database_out"
 The url to which the new database is written to. There can only be one
 of these lines. If there are multiple database_out lines then the
 first is used. The default value is "@prefix@/etc/aide.db.new".
-.IP database_new
-The url from which the other database for --compare is read.
+.IP "database_new"
+The url from which the other database for \-\-compare is read.
 There is no default for this one.
-.IP verbose
+.IP "verbose"
 The level of messages that is output. This value can be 0-255
 inclusive. This parameter can only be given once. Value from the first
-occurence is used. If --verbose or -V is used then the value from that
+occurence is used. If \-\-verbose or \-V is used then the value from that
 is used. The default is 5. If verbosity is 20 then additional report
-output is written when doing --check, --update or --compare.
-.IP report_url
+output is written when doing \-\-check, \-\-update or \-\-compare.
+.IP "report_url"
 The url that the output is written to. There can be multiple instances
 of this parameter. Output is written to all of them. The default is
 stdout. 
-.IP gzip_dbout
+.IP "gzip_dbout"
 Whether the output to the database is gzipped or not. Valid values are
 yes,true,no and false. The default is no. This option is available only
 if zlib support is compiled in.
-.IP acl_no_symlink_follow
+.IP "acl_no_symlink_follow"
 Whether to check ACLs for symlinks or not. Valid values are
 yes,true,no and false. The default is to follow symlinks. This option
 is available only if acl support is compiled in.
-.IP warn_dead_symlinks
+.IP "warn_dead_symlinks"
 Whether to warn about dead symlinks or not. Valid values are
 yes,true,no and false. The default is not to warn about dead symlinks.
-.IP ignore_list
+.IP "ignore_list"
 Special group definition that lists parameter which are to be ignored
 from the final report.
-.IP config_version
+.IP "config_version"
 The value of config_version is printed in the report and also printed 
 to the database. This is for informational purposes only. It has no
 other functionality.
@@ -131,15 +131,15 @@ were inserted in this part of the config file.
 .SH URLS
 Urls can be one of the following. Input urls cannot be used as outputs
 and vice versa.
-.IP stdout
-.IP stderr
+.IP "stdout"
+.IP "stderr"
 Output is sent to stdout,stderr respectively.
-.IP stdin
+.IP "stdin"
 Input is read from stdin.
-.IP file://\fBfilename\fR
+.IP "file://\fBfilename\fR"
 Input is read from \fBfilename\fR or output is written to
 \fBfilename\fR. 
-.IP fd:\fBnumber\fR
+.IP "fd:\fBnumber\fR"
 Input is read from filedescriptor \fBnumber\fR or output is written to
 \fBnumber\fR.
 .PP

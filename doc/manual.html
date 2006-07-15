@@ -1,5 +1,5 @@
 <html>
-<head><title>Aide Manual version 0.11</title>
+<head><title>Aide Manual version 0.12</title>
 <meta name="cvsheader" content="
 $Id$
 ">
@@ -241,6 +241,23 @@ beginning. In the example, all filenames beginning with
 end of the last line. An intruder could then create a
 directory called  /var/adm/utmp_root_kit and place all the files
 he/she/they wanted there and they would be ignored by AIDE.
+</p>
+<p>
+There are two special group definitions to tweak what attributes are
+printed in the report. First report_attributes lists those attributes
+that are always printed from changed files. For example, if you say
+<pre>
+attributes = u+g
+</pre>
+and the size of a file changes, it's user and group id will also be printed
+in the report. Secondly, ignore_list defines which attributes to ignore from
+the report. For example, if you define
+<pre>
+ignore_list = b
+</pre>
+and this size of a file changes, it's block count will not be printed in the
+report, even if it did change as well. Ignore_list overrules
+report_attributes where they conflict.
 </p>
 <h3>Troubleshooting your config</h3>
 <p>Making a config file is a lot of hard work and must be done on a case
@@ -570,7 +587,7 @@ configuration file can be obtained by running <code>aide
 --config-check</code>:
 
 <pre>
-$ aide --config-check | patch
+$ aide --config-check
 Config checked. Use the following to patch your config file.
 0a1
 > @@begin_config 27GF0+oKj1CvP4tltuibhu8YGIU=
@@ -583,7 +600,7 @@ to the aide.conf file manually, or the output of <code>aide
 --config-check</code> can be directly piped into <code>patch</code>:
 
 <pre>
-$ aide --config-check
+$ aide --config-check | patch
 can't find file to patch at input line 2
 Perhaps you should have used the -p or --strip option?
 The text leading up to this was:

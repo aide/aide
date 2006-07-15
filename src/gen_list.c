@@ -1404,13 +1404,7 @@ void populate_tree(seltree* tree)
 	  node=new_seltree_node(tree,old->filename,0,NULL);
 	}
 	if((add=check_rxtree(old->filename,tree,&attr))>0){
-	  if(add==1){
-	    add_file_to_tree(tree,old,DB_OLD,NODE_ADD_CHILDREN,attr);
-	  }else {
-	    if(add==2){
-	      add_file_to_tree(tree,old,DB_OLD,0,attr);
-	    }
-	  }
+	  add_file_to_tree(tree,old,DB_OLD,0,attr);
 	  i++;
 	}else if(!initdbwarningprinted){
 	  error(3,_("WARNING: Old db contains a file that shouldn\'t be there, run --init or --update\n"));
@@ -1435,11 +1429,7 @@ void populate_tree(seltree* tree)
 	  node=new_seltree_node(tree,new->filename,0,NULL);
 	}
 	if((add=check_rxtree(new->filename,tree,&attr))>0){
-	  if(add==1){
-	    add_file_to_tree(tree,new,DB_NEW,NODE_ADD_CHILDREN,attr);
-	  }else if (add==2) {
-	    add_file_to_tree(tree,new,DB_NEW,0,attr);
-	  }
+	  add_file_to_tree(tree,new,DB_NEW,0,attr);
 	  i++;
 	}
 	if(i<100){
@@ -1460,11 +1450,7 @@ void populate_tree(seltree* tree)
 	/* Populate tree only if it is needed later */
 	if(conf->action&DO_COMPARE){
 	  if((add=check_rxtree(new->filename,tree,&attr))>0){
-	    if(add==1){
-	      add_file_to_tree(tree,new,DB_NEW,NODE_ADD_CHILDREN,attr);
-	    }else if (add==2) {
-	      add_file_to_tree(tree,new,DB_NEW,0,attr);
-	    }
+	    add_file_to_tree(tree,new,DB_NEW,0,attr);
 	    i++;
 	  }
 	}

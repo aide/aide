@@ -35,7 +35,7 @@ check: update-db
 update-db: all
 	src/aide -B "database_out=file://$(top_srcdir)/doc/aide.db" -c doc/aide.conf -i
 
-dist-hook: 
+dist-hook: configure
 	mkdir $(distdir)/include
 	cp -p   include/*.h $(distdir)/include
 
@@ -43,4 +43,10 @@ dist-hook:
 	cp -p   contrib/[a-z]* $(distdir)/contrib
 
 	rm -f	$(distdir)/src/conf_yacc.c $(distdir)/src/conf_yacc.h
+
+configure: configure.in version.m4
+	bash autogen.sh
+
+Makefile: Makefile.in
+	./configure
 

@@ -1,6 +1,7 @@
 2006-07-15	Richard van den Berg  <richard@vdberg.org>
 	* Remove the use of NODE_ADD_CHILDREN, hopefully it is no longer needed
 	* Added syntax changed from 10-manpages.dpatch
+	* Added newlines as per SF bug #1461182
 
 2006-06-13	Richard van den Berg  <richard@vdberg.org>
 	* Fix stat type in report_tree() (Heiko Lehmann <hlehmann@fh-lausitz.de>)

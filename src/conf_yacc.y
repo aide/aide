@@ -237,7 +237,7 @@ ifnhoststmt : TIFNHOST TSTRING {
  } ifstmtlist ;
 
 ifstmtlist : lines TENDIF { error(220,"Endif stmt matched\n");} |
-             lines TELSE lines TENDIF {error(220,"Endifelse stmt matched");} ;
+             lines TELSE lines TENDIF {error(220,"Endifelse stmt matched\n");} ;
 
 groupdef : TSTRING '=' expr { do_groupdef($1,$3); } ;
 

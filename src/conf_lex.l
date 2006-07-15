@@ -186,13 +186,13 @@ int var_in_conflval=0;
 }
 
 ^[\ \t]*"\@\@else" {
-  error(230,"%i:@@else",conf_lineno);
+  error(230,"%i:@@else\n",conf_lineno);
   BEGIN 0;
   return (TELSE);
 }
 
 ^[\ \t]*"\@\@endif" {
-  error(230,"%i:@@endif",conf_lineno);
+  error(230,"%i:@@endif\n",conf_lineno);
   BEGIN 0;
   return (TENDIF);
 }

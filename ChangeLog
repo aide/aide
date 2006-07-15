@@ -1,4 +1,5 @@
 2006-07-15	Richard van den Berg  <richard@vdberg.org>
+	* Released version 0.12-rc1
 	* Remove the use of NODE_ADD_CHILDREN, hopefully it is no longer needed
 	* Added syntax changed from 10-manpages.dpatch
 	* Added newlines as per SF bug #1461182

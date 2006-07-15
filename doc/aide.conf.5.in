@@ -59,8 +59,11 @@ is available only if acl support is compiled in.
 .IP "warn_dead_symlinks"
 Whether to warn about dead symlinks or not. Valid values are
 yes,true,no and false. The default is not to warn about dead symlinks.
+.IP "report_attributes"
+Special group definition that lists parameters which are always printed
+in the final report for changed files.
 .IP "ignore_list"
-Special group definition that lists parameter which are to be ignored
+Special group definition that lists parameters which are to be ignored
 from the final report.
 .IP "config_version"
 The value of config_version is printed in the report and also printed 

@@ -66,26 +66,26 @@ report_url=stdout
 
 # @@{TOPDIR} is replaced with @top_srcdir@ when
 # read by aide. 
-#p:     permissions
-#i:	inode
-#n:	number of links
-#u:	user
-#g:	group
-#s:	size
-#b:	block count
-#m:	mtime
-#a:	atime
-#c:	ctime
-#S:	check for growing size
-#I: ignore changed filename
-#md5:	md5 checksum
-#sha1:	sha1 checksum
-#rmd160:     rmd160 checksum
-#tiger:     tiger checksum
-#R:	p+i+n+u+g+s+m+c+md5
-#L:	p+i+n+u+g
-#E:	Empty group
-#>:	Growing logfile p+u+g+i+n+S
+#p:		permissions
+#i:		inode
+#n:		number of links
+#u:		user
+#g:		group
+#s:		size
+#b:		block count
+#m:		mtime
+#a:		atime
+#c:		ctime
+#S:		check for growing size
+#I:		ignore changed filename
+#md5:		md5 checksum
+#sha1:		sha1 checksum
+#rmd160:	rmd160 checksum
+#tiger:		tiger checksum
+#R:		p+i+n+u+g+s+m+c+md5
+#L:		p+i+n+u+g
+#E:		Empty group
+#>:		Growing logfile p+u+g+i+n+S
 #The following are available if you have mhash support enabled.
 #haval:		haval checksum
 #gost:		gost checksum
@@ -94,9 +94,15 @@ report_url=stdout
 # Rule definition
 All=R+a+sha1+rmd160
 
+# report_attributes is a special rule definition
+# the attributes listed in it are alway displayed for changed files
+# in the final report
+#report_attributes = u+g
+
 # ignore_list is a special rule definition
 # the attributes listed in it are not displayed in the
-# final report
+# final report, it overrules report_attributes where they conflict
+#ignore_list = b
 
 # Attributes that can be used to verify that aide in intact
 # by people that have downloaded it from the web.

@@ -48,10 +48,31 @@ const int new_col  = 40;
 const int part_len = 40; /* usable length of line[] */
 char      oline[40];
 char      nline[40];
-const char* entry_format="  %-9s: %-34s, %-34s\n";
+const char* entry_format=        "  %-9s: %-34s, %-34s\n";
+const char* entry_format_justnew="  %-9s: %-34c  %-34s\n";
 /*************/
 
+static int get_ignorelist() {
+  int ignorelist;
+  ignorelist=get_groupval("ignore_list");
 
+  if (ignorelist==-1) {
+    ignorelist=0;
+  }
+
+  return ignorelist;
+}
+
+static int get_report_attributes() {
+  int forced_attrs;
+  
+  forced_attrs=get_groupval("report_attributes");
+  if (forced_attrs==-1) {
+    forced_attrs=0;
+  }
+
+  return forced_attrs;
+}
 
 list* find_line_match(db_line* line,list* l)
 {
@@ -335,7 +356,7 @@ int is_time_null(struct tm *ot)
             && ot->tm_hour == 1 &&  ot->tm_min == 0 && ot->tm_sec == 0);
 }
 
-void print_time_changes(const char* name, time_t old_time, time_t new_time)
+void print_time_changes(const char* name, time_t old_time, time_t new_time,int justnew)
 {
   struct tm otm;
   struct tm *ot = &otm;
@@ -348,68 +369,87 @@ void print_time_changes(const char* name, time_t old_time, time_t new_time)
   ot->tm_min = tmp->tm_min; ot->tm_sec = tmp->tm_sec;
   
   nt = localtime(&(new_time));
-  
-  if( is_time_null(ot) )
-    snprintf(oline,part_len,"NA");
-  else
-    snprintf(oline,part_len,
-	     "%0.4u-%0.2u-%0.2u %0.2u:%0.2u:%0.2u",
-	     ot->tm_year+1900, ot->tm_mon+1, ot->tm_mday,
-	     ot->tm_hour, ot->tm_min, ot->tm_sec);
-  if( is_time_null(nt) )
+  if (!justnew) {
+    if( is_time_null(ot) ) {
+      snprintf(oline,part_len,"NA");
+    } else {
+      snprintf(oline,part_len,
+	       "%0.4u-%0.2u-%0.2u %0.2u:%0.2u:%0.2u",
+	       ot->tm_year+1900, ot->tm_mon+1, ot->tm_mday,
+	       ot->tm_hour, ot->tm_min, ot->tm_sec);
+    }
+  }
+  if( is_time_null(nt) ) {
     snprintf(nline,part_len,"NA");
-  else
+  } else {
     snprintf(nline,part_len,
 	     "%0.4u-%0.2u-%0.2u %0.2u:%0.2u:%0.2u",
 	     nt->tm_year+1900, nt->tm_mon+1, nt->tm_mday,
 	     nt->tm_hour, nt->tm_min, nt->tm_sec);
-  error(2,(char*)entry_format,name,oline,nline); 
+  }
+  if (justnew) {
+    error(2,(char*)entry_format_justnew,name,' ',nline);
+  } else {
+    error(2,(char*)entry_format,name,oline,nline); 
+  }
 }
 
-void print_int_changes(
-        const char* name,
-        int old,
-        int new
-        )
+void print_int_changes(const char* name, int old, int new, int justnew)
 {
-  snprintf(oline,part_len,"%i",old);
+  if (!justnew) {
+    snprintf(oline,part_len,"%i",old);
+  }
   snprintf(nline,part_len,"%i",new);
-  error(2,(char*)entry_format,name,oline,nline); 
+  if (justnew) {
+    error(2,(char*)entry_format_justnew,name,' ',nline);
+  } else {
+    error(2,(char*)entry_format,name,oline,nline);
+  }
 }
-void print_long_changes(
-        const char* name,
-        AIDE_OFF_TYPE old,
-        AIDE_OFF_TYPE new
-        )
+void print_long_changes(const char* name, AIDE_OFF_TYPE old, AIDE_OFF_TYPE new, int justnew)
 {
 #if AIDE_OFF_TYPE == off64_t
-  snprintf(oline,part_len,"%llu",old);
+  if (!justnew) {
+    snprintf(oline,part_len,"%llu",old);
+  }
   snprintf(nline,part_len,"%llu",new);
 #else
-  snprintf(oline,part_len,"%lu",old);
+  if (!justnew) {
+    snprintf(oline,part_len,"%lu",old);
+  }
   snprintf(nline,part_len,"%lu",new);
 #endif
-  error(2,(char*)entry_format,name,oline,nline);  
+  if (justnew) {
+    error(2,(char*)entry_format,name,nline);
+  } else {
+    error(2,(char*)entry_format,name,oline,nline);
+  }
 }
 
-void print_string_changes(
-        const char* name,
-        const char* old,
-        const char* new
-        )
+void print_string_changes(const char* name, const char* old, const char* new, int justnew)
 {
-  snprintf(oline,part_len,"%s",old);
+  if (!justnew) {
+    snprintf(oline,part_len,"%s",old);
+  }
   snprintf(nline,part_len,"%s",new);
-  error(2,(char*)entry_format,name,oline,nline); 
+  if (justnew) {
+    error(2,(char*)entry_format,name,nline); 
+  } else {
+    error(2,(char*)entry_format,name,oline,nline); 
+  }
 }
 
 
-void print_dbline_changes(db_line* old,db_line* new,int ignorelist)
+void print_dbline_changes(db_line* old,db_line* new,int ignorelist,int forced_attrs)
 {
   char* tmp=NULL;
   char* tmp2=NULL;
   
-
+  /*
+    Force just entries, that exists.
+  */
+  forced_attrs&=new->attr;
+  
   if(S_ISDIR(new->perm_o)){
     error(2,"\nDirectory: %s\n",old->filename);
   }else {
@@ -420,21 +460,21 @@ void print_dbline_changes(db_line* old,db_line* new,int ignorelist)
     print_lname_changes(old->linkname,new->linkname);
   }
   if (!(DB_SIZE&ignorelist)) {
-    if(old->size!=new->size){
-      print_long_changes("Size", old->size,new->size);
+    if(old->size!=new->size||(DB_SIZE&forced_attrs)){
+      print_long_changes("Size", old->size,new->size,old->size==new->size);
     }
   }
 
   if (!(DB_BCOUNT&ignorelist)) {
-    if(old->bcount!=new->bcount){
-      print_int_changes("Bcount", old->bcount,new->bcount);
+    if(old->bcount!=new->bcount ||(DB_BCOUNT&forced_attrs) ){
+      print_int_changes("Bcount", old->bcount,new->bcount,old->bcount==new->bcount);
     }
   }
   if (!(DB_PERM&ignorelist)) {
-    if(old->perm!=new->perm){
+    if(old->perm!=new->perm || DB_PERM&forced_attrs){
       tmp=perm_to_char(old->perm);
       tmp2=perm_to_char(new->perm);
-      print_string_changes("Permissions", tmp,tmp2);
+      print_string_changes("Permissions", tmp,tmp2,old->perm==new->perm);
       free(tmp);
       free(tmp2);
       tmp=NULL;
@@ -443,43 +483,43 @@ void print_dbline_changes(db_line* old,db_line* new,int ignorelist)
   }
   
   if (!(DB_UID&ignorelist)) {
-    if(old->uid!=new->uid){
-      print_int_changes("Uid", old->uid,new->uid);
+    if(old->uid!=new->uid||DB_UID&forced_attrs){
+      print_int_changes("Uid", old->uid,new->uid,old->uid==new->uid);
     }
   }
   
   if (!(DB_GID&ignorelist)) {
-    if(old->gid!=new->gid){
-      print_int_changes("Gid", old->gid,new->gid);
+    if(old->gid!=new->gid||DB_GID&forced_attrs){
+      print_int_changes("Gid", old->gid,new->gid,old->gid==new->gid);
     }
   }
   
   if (!(DB_ATIME&ignorelist)) {
-    if(old->atime!=new->atime){
-      print_time_changes("Atime", old->atime, new->atime);
+    if(old->atime!=new->atime||DB_ATIME&forced_attrs){
+      print_time_changes("Atime", old->atime, new->atime,old->atime==new->atime);
     }
   }
   
   if (!(DB_MTIME&ignorelist)) {
-    if(old->mtime!=new->mtime){
-      print_time_changes("Mtime", old->mtime, new->mtime);
+    if(old->mtime!=new->mtime||DB_MTIME&forced_attrs){
+      print_time_changes("Mtime", old->mtime, new->mtime,old->mtime==new->mtime);
     }
   }
   
   if (!(DB_CTIME&ignorelist)) {
-    if(old->ctime!=new->ctime){
-      print_time_changes("Ctime", old->ctime, new->ctime);
+    if(old->ctime!=new->ctime||DB_CTIME&forced_attrs){
+      print_time_changes("Ctime", old->ctime, new->ctime,old->ctime==new->ctime);
     }
   }
 
   if (!(DB_INODE&ignorelist)) {
-    if(old->inode!=new->inode){
-      print_int_changes("Inode", old->inode,new->inode);
+    if(old->inode!=new->inode||DB_INODE&forced_attrs){
+      print_int_changes("Inode", old->inode,new->inode,old->inode==new->inode);
     }
   }
   if (!(DB_LNKCOUNT&ignorelist)) {
-    if(old->nlink!=new->nlink){
-      print_int_changes("Linkcount", old->nlink,new->nlink);
+    if(old->nlink!=new->nlink||DB_LNKCOUNT&forced_attrs){
+      print_int_changes("Linkcount", old->nlink,new->nlink,old->nlink==new->nlink);
     }
   }
 
@@ -646,6 +686,7 @@ void compare_db(list* new,db_config* conf)
   int initdbwarningprinted=0;
 
   int ignorelist;
+  int forced_attrs;
 
   error(200,_("compare_db()\n"));
 
@@ -663,10 +704,12 @@ void compare_db(list* new,db_config* conf)
   
   /* We have a way to ignore some changes... */ 
   
-  ignorelist=get_groupval("ignore_list");
+  ignorelist=get_ignorelist();
   
-  if (ignorelist==-1) {
-    ignorelist=0;
+  forced_attrs=get_report_attributes();
+
+  if (forced_attrs==-1) {
+    forced_attrs=0;
   }
 
   for(old=db_readline(DB_OLD);old;old=db_readline(DB_OLD)){
@@ -788,7 +831,7 @@ void compare_db(list* new,db_config* conf)
 	int localignorelist=((db_line*)l->data)->attr^((db_line*)r->data)->attr;
 	localignorelist|=ignorelist;
 	print_dbline_changes((db_line*)r->data,
-			     (db_line*)l->data,localignorelist);
+			     (db_line*)l->data,localignorelist,forced_attrs);
       }
     }
     conf->end_time=time(&(conf->end_time));
@@ -800,13 +843,11 @@ long report_tree(seltree* node,int stage, long* stat)
 {
   list* r=NULL;
   int ignorelist=0;
+  int forced_attrs=0;
   int top=0;
 
-  ignorelist=get_groupval("ignore_list");
-  
-  if (ignorelist==-1) {
-    ignorelist=0;
-  }
+  ignorelist=get_ignorelist();
+  forced_attrs=get_report_attributes();
   
   if(stat[0]){
     stat[0]=0;
@@ -898,7 +939,8 @@ long report_tree(seltree* node,int stage, long* stat)
       error(2,_("---------------------------------------------------\n\n"));
     }
     if(node->checked&NODE_CHANGED){
-      print_dbline_changes(node->old_data,node->new_data,ignorelist);
+      int localignorelist=(node->old_data->attr ^ node->new_data->attr)|ignorelist;
+      print_dbline_changes(node->old_data,node->new_data,localignorelist,forced_attrs);
     }
   }
 

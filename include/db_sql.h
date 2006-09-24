@@ -28,7 +28,7 @@ const static char* db_sql_types[] = {
    "int", 	         /* "perm",    */
    "int", 	         /* "uid",     */
    "int", 	         /* "gid",     */
-   "int", 	         /* "size",    */
+   "bigint",         /* "size",    */
    "text", 	         /* "atime",   */
    "text", 	         /* "ctime",   */
    "text", 	         /* "mtime",   */

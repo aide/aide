@@ -231,9 +231,11 @@ void error(int errorlevel,char* error_msg,...)
       va_start(ap, error_msg);
       retval=vfprintf((FILE*)r->data, error_msg,ap);
       va_end(ap);
+/* Writing error failed twice
       if(retval==0){
 	exit(ERROR_WRITING_ERROR);
       }
+*/
     } 
   }
 

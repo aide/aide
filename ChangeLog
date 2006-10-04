@@ -1,5 +1,6 @@
 2006-10-04	Richard van den Berg  <richard@vdberg.org>
 	* Close database files earlier
+	* Released version 0.12-rc2
 
 2006-09-24	Richard van den Berg  <richard@vdberg.org>
 	* Fixed filesize stored in postgres (SF bug #1177758)

@@ -3,6 +3,11 @@
 
 =========================================================
 
+Version 0.12
+	* Fixed many bugs
+	* Allow http/https/ftp URLs through libcurl
+	* Support posix_fadvice() to avoid  caching files
+
 Version 0.11
 	* Fixed many bugs
 	* Updated automake/autoconf scripts

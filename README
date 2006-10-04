@@ -1,7 +1,7 @@
 
              AIDE - Advanced Intrusion Detection Environment
             -------------------------------------------------
-                               Version 0.11
+                               Version 0.12
 
     This file is free software; as a special exception the author gives
     unlimited permission to copy and/or distribute it, with or without
@@ -56,6 +56,9 @@
     For AIX 5.1 or 5.2 it is reported you need to use --with-gnu-regexp
     when configuring AIDE.
 
+    For Mac OS X (reported for 10.4) / Darwin you need to use
+    --disable-static when configuring AIDE. Please note that dynamic
+    linking introduces a security risk and is not recommended.
     
     Source Code Verification
     ------------------------

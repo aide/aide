@@ -533,6 +533,7 @@ int main(int argc,char**argv)
     }
       
     populate_tree(conf->tree);
+    db_close(conf);
 
     /* First terse report */
     totalchanges=report_tree(conf->tree,0,stat);
@@ -560,7 +561,6 @@ int main(int argc,char**argv)
         }
       }
     }
-    db_close(conf);
     
     exit(RETOK);
       
@@ -584,3 +584,4 @@ int main(int argc,char**argv)
 const char* aide_key_3=CONFHMACKEY_03;
 const char* db_key_3=DBHMACKEY_03;
 
+// vi: ts=8 sw=8

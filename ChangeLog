@@ -1,3 +1,6 @@
+2006-10-04	Richard van den Berg  <richard@vdberg.org>
+	* Close database files earlier
+
 2006-09-24	Richard van den Berg  <richard@vdberg.org>
 	* Fixed filesize stored in postgres (SF bug #1177758)
 

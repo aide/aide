@@ -1,3 +1,6 @@
+2006-10-05	Richard van den Berg  <richard@vdberg.org>
+	* Released version 0.12
+
 2006-10-04	Richard van den Berg  <richard@vdberg.org>
 	* Close database files earlier
 	* Released version 0.12-rc2

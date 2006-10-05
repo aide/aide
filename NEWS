@@ -4,9 +4,9 @@
 =========================================================
 
 Version 0.12
-	* Fixed many bugs
+	* Fixed bugs
 	* Allow http/https/ftp URLs through libcurl
-	* Support posix_fadvice() to avoid  caching files
+	* Support posix_fadvice() to avoid caching files
 
 Version 0.11
 	* Fixed many bugs

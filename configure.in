@@ -201,7 +201,7 @@ AC_ARG_WITH(mmap,
 	[AC_CHECK_FUNCS(mmap)]
 )
 
-AC_CHECK_FUNCS(posix_fadvice snprintf vsnprintf)
+AC_CHECK_FUNCS(fcntl ftruncate posix_fadvice snprintf vsnprintf)
 
 AC_CACHE_CHECK(for ISO C99 compliant snprintf,ac_cv_func_snprintf_c99,
 	[AC_TRY_RUN([
@@ -280,7 +280,7 @@ if test "$db_cv_open_o_noatime" = yes; then
 	AH_TEMPLATE(HAVE_O_NOATIME, [Define to 1 if you have the O_NOATIME flag.])
 fi
 
-AC_CHECK_HEADERS(syslog.h ustat.h inttypes.h)
+AC_CHECK_HEADERS(syslog.h ustat.h inttypes.h fcntl.h)
 
 AC_ARG_WITH(locale,
 	AC_HELP_STRING([--with-locale],

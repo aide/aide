@@ -128,6 +128,10 @@ void* be_init(int inout,url_t* u,int iszipped)
   void* fh=NULL;
   long a=0;
   char* err=NULL;
+  int fd;
+#if HAVE_FCNTL && HAVE_FTRUNCATE
+  struct flock fl;
+#endif
 
   if (u==NULL) {
     return NULL;
@@ -136,9 +140,37 @@ void* be_init(int inout,url_t* u,int iszipped)
   switch (u->type) {
   case url_file : {
     error(200,_("Opening file \"%s\" for %s\n"),u->value,inout?"r":"w+");
+#if HAVE_FCNTL && HAVE_FTRUNCATE
+    fd=open(u->value,inout?O_RDONLY:O_CREAT|O_RDWR,0666);
+#else
+    fd=open(u->value,inout?O_RDONLY:O_CREAT|O_RDWR|O_TRUNC,0666);
+#endif
+    if(fd==-1) {
+      error(0,_("Couldn't open file %s for %s"),u->value,
+	    inout?"reading\n":"writing\n");
+      return NULL;
+    }
+#if HAVE_FCNTL && HAVE_FTRUNCATE
+    if(!inout) {
+      fl.l_type = F_WRLCK;
+      fl.l_whence = SEEK_SET;
+      fl.l_start = 0;
+      fl.l_len = 0;
+      if (fcntl(fd, F_SETLK, &fl) == -1) {
+	if (fcntl(fd, F_SETLK, &fl) == -1)
+	  error(0,_("File %s is locked by another process.\n"),u->value);
+	else
+	  error(0,_("Cannot get lock for file %s"),u->value);
+	return NULL;
+      }
+      if(ftruncate(fd,0)==-1)
+	error(0,_("Error truncating file %s"),u->value);
+
+    }
+#endif
 #ifdef WITH_ZLIB
     if(iszipped && !inout){
-      fh=gzopen(u->value,"wb9+");
+      fh=gzdopen(fd,"wb9+");
       if(fh==NULL){
 	error(0,_("Couldn't open file %s for %s"),u->value,
 	      inout?"reading\n":"writing\n");
@@ -146,7 +178,7 @@ void* be_init(int inout,url_t* u,int iszipped)
     }
     else{
 #endif
-      fh=fopen(u->value,inout?"r":"w+");
+      fh=fdopen(fd,inout?"r":"w+");
       if(fh==NULL){
 	error(0,_("Couldn't open file %s for %s"),u->value,
 	      inout?"reading\n":"writing\n");

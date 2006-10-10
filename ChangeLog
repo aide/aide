@@ -2,6 +2,7 @@
 	* Added note about rpl_malloc on AIX 5.3 with mhash
 	* Include version.m4 in distribution tar file
 	* No need for absolute $(srcdir) in configure
+	* Use AC_CONFIG_FILES(files..) instead of AC_OUTPUT(files..)
 
 2006-10-06	Richard van den Berg  <richard@vdberg.org>
 	* Changed version to post-0.12

@@ -44,9 +44,3 @@ dist-hook: configure
 
 	rm -f	$(distdir)/src/conf_yacc.c $(distdir)/src/conf_yacc.h
 
-configure: configure.in version.m4
-	bash autogen.sh
-
-Makefile: Makefile.in
-	./configure
-

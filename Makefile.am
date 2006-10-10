@@ -27,7 +27,7 @@ CLEANFILES = *~
 
 DIST_SOURCES = src/conf_lex.l src/db_lex.l
 DIST_SUBDIRS = $(SUBDIRS)
-EXTRA_DIST = Todo LICENSE-snprintf.txt README-snprintf
+EXTRA_DIST = version.m4 Todo LICENSE-snprintf.txt README-snprintf
 
 check: update-db
 	src/aide -c doc/aide.conf -V20

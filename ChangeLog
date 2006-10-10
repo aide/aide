@@ -1,5 +1,6 @@
 2006-10-10	Richard van den Berg  <richard@vdberg.org>
 	* Added note about rpl_malloc on AIX 5.3 with mhash
+	* Include version.m4 in distribution tar file
 
 2006-10-06	Richard van den Berg  <richard@vdberg.org>
 	* Changed version to post-0.12

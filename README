@@ -56,6 +56,11 @@
     For AIX 5.1 or 5.2 it is reported you need to use --with-gnu-regexp
     when configuring AIDE.
 
+    For AIX 5.3 it has been reported there is a problem with using mhash
+    which causes an "Undefined symbol: .rpl_malloc" error. This is a problem
+    in mhash_config.h which can be fixed by removing the line that reads
+    #define malloc rpl_malloc
+
     For Mac OS X (reported for 10.4) / Darwin you need to use
     --disable-static when configuring AIDE. Please note that dynamic
     linking introduces a security risk and is not recommended.

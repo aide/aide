@@ -1,3 +1,6 @@
+2006-10-10	Richard van den Berg  <richard@vdberg.org>
+	* Added note about rpl_malloc on AIX 5.3 with mhash
+
 2006-10-06	Richard van den Berg  <richard@vdberg.org>
 	* Changed version to post-0.12
 	* Added file locking for output files

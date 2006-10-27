@@ -155,7 +155,7 @@ typedef enum {
 /* db_unknown must be last because it is used to determine size of
    DB_FILED */
 
-/* FIXME: THIS IS A HACK, somethimes we use AIDE_OFF_TYPE instead
+/* FIXME: THIS IS A HACK, sometimes we use AIDE_OFF_TYPE instead
  * because that's what internal functions take. This bitmap needs to die. */
 #define DB_ATTR_TYPE unsigned long long
 #define DB_ATTR_UNDEF ((DB_ATTR_TYPE) -1)
@@ -206,93 +206,14 @@ typedef enum {
 #define DB_HASHES    (DB_MD5|DB_SHA1|DB_RMD160|DB_TIGER|DB_CRC32|DB_HAVAL| \
 		      DB_GOST|DB_CRC32B|DB_SHA256|DB_SHA512|DB_WHIRLPOOL)
 
-/* This should be functions, but static data means if it isn't used
- * but this header is included we get a warning ... so kill the warning */
-#ifdef __GNUC__
-# define DB__ATTR_USED() __attribute__ ((used))
-#endif
-
-static DB__ATTR_USED() const char* db_names[] = {
-   "name", 
-   "lname", 
-   "perm", 
-   "uid", 
-   "gid", 
-   "size", 
-   "atime", 
-   "ctime",
-   "mtime", 
-   "inode", 
-   "bcount", 
-   "lcount", 
-   "md5", 
-   "sha1", 
-   "rmd160", 
-   "tiger",
-   "crc32", 
-   "haval",
-   "gost",
-   "crc32b",
-   "attr",
-   "acl",
-   "bsize",
-   "rdev",
-   "dev",
-   "checkmask",
-   "unknown",
-   "allownewfiles",
-   "sha256",
-   "sha512",
-   "selinux",
-   "xattrs",
-   "whirlpool"} ; 
-
-static DB__ATTR_USED() const int db_value[] = { 
-   db_filename, 	/* "name",   */ 
-   db_linkname, 	/* "lname",   */
-   db_perm, 		/* "perm",    */
-   db_uid, 		/* "uid",     */
-   db_gid,		/* "gid",     */
-   db_size, 		/* "size",    */
-   db_atime, 		/* "atime",   */
-   db_ctime, 		/* "ctime",   */
-   db_mtime, 		/* "mtime",   */
-   db_inode,		/* "inode",   */
-   db_bcount, 		/* "bcount",  */
-   db_lnkcount, 	/* "lcount",  */
-   db_md5, 		/* "md5",     */
-   db_sha1, 		/* "sha1",    */
-   db_rmd160,		/* "rmd160",  */
-   db_tiger, 		/* "tiger",   */
-   db_crc32, 		/* "crc32",   */
-   db_haval,		/* "haval",   */
-   db_gost, 		/* "gost",    */
-   db_crc32b, 		/* "crc32b",  */
-   db_attr,             /* attributes */
-   db_acl,              /* "acl"      */
-   db_bsize,            /* "bsize"    */
-   db_rdev,             /* "rdev"     */
-   db_dev,              /* "dev"      */
-   db_checkmask,	/* "checkmask" */
-   db_allownewfile,	/* "allownewfile" */
-   db_allowrmfile,	/* "allowrmfile" */
-   db_sha256,		/* "sha256",  */
-   db_sha512,		/* "sha512",  */
-   db_selinux,		/* "selinux", */
-   db_xattrs,		/* "xattrs",  */
-   db_whirlpool,	/* "whirlpool", */
-   db_unknown };	/* "unknown"  */
+extern const char* db_names[db_unknown+1];
+extern const int db_value[db_unknown+1];
 
 /* db_namealias && db_aliasvalue are here to support earlier database 
  * names that are no longer used. */
-
-static DB__ATTR_USED() const char* db_namealias[] = {
-  "count" } ;
-
-static DB__ATTR_USED() const int db_aliasvalue[] = {
-  db_lnkcount } ;       /* "count",  */
-
-static DB__ATTR_USED() const int db_alias_size=1;
+#define db_alias_size 1
+extern const char* db_namealias[db_alias_size];
+extern const int db_aliasvalue[db_alias_size];
 
 /* TIMEBUFSIZE should be exactly ceil(sizeof(time_t)*8*ln(2)/ln(10))
  * Now it is ceil(sizeof(time_t)*2.5)

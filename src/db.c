@@ -51,8 +51,87 @@ db_line* db_char2line(char** ss,int db);
 long readint(char* s,char* err);
 AIDE_OFF_TYPE readlong(char* s,char* err);
 long readoct(char* s,char* err);
-
 time_t base64totime_t(char*);
+
+const char* db_names[db_unknown+1] = {
+   "name",
+   "lname",
+   "perm",
+   "uid",
+   "gid",
+   "size",
+   "atime",
+   "ctime",
+   "mtime",
+   "inode",
+   "bcount",
+   "lcount",
+   "md5",
+   "sha1",
+   "rmd160",
+   "tiger",
+   "crc32",
+   "haval",
+   "gost",
+   "crc32b",
+   "attr",
+   "acl",
+   "bsize",
+   "rdev",
+   "dev",
+   "checkmask",
+   "allownewfiles",
+   "allowrmfiles",
+   "sha256",
+   "sha512",
+   "whirlpool"
+   "selinux",
+   "xattrs",
+   "unknown"} ;
+
+const int db_value[db_unknown+1] = {
+   db_filename,         /* "name",   */
+   db_linkname,         /* "lname",   */
+   db_perm,             /* "perm",    */
+   db_uid,              /* "uid",     */
+   db_gid,              /* "gid",     */
+   db_size,             /* "size",    */
+   db_atime,            /* "atime",   */
+   db_ctime,            /* "ctime",   */
+   db_mtime,            /* "mtime",   */
+   db_inode,            /* "inode",   */
+   db_bcount,           /* "bcount",  */
+   db_lnkcount,         /* "lcount",  */
+   db_md5,              /* "md5",     */
+   db_sha1,             /* "sha1",    */
+   db_rmd160,           /* "rmd160",  */
+   db_tiger,            /* "tiger",   */
+   db_crc32,            /* "crc32",   */
+   db_haval,            /* "haval",   */
+   db_gost,             /* "gost",    */
+   db_crc32b,           /* "crc32b",  */
+   db_attr,             /* attributes */
+   db_acl,              /* "acl"      */
+   db_bsize,            /* "bsize"    */
+   db_rdev,             /* "rdev"     */
+   db_dev,              /* "dev"      */
+   db_checkmask,        /* "checkmask" */
+   db_allownewfile,     /* "allownewfile" */
+   db_allowrmfile,      /* "allowrmfile" */
+   db_sha256,           /* "sha256",  */
+   db_sha512,           /* "sha512",  */
+   db_whirlpool,        /* "whirlpool", */
+   db_selinux,          /* "selinux", */
+   db_xattrs,           /* "xattrs",  */
+   db_unknown };        /* "unknown"  */
+
+const char* db_namealias[db_alias_size] = {
+  "count" } ;
+
+const int db_aliasvalue[db_alias_size] = {
+  db_lnkcount } ;       /* "count",  */
+
+
 int db_init(int db)
 {
   void* rv=NULL;

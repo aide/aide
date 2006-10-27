@@ -276,19 +276,27 @@ void setdefaults_before_config()
   error_init(u,1);
 
   conf->config_file=CONFIG_FILE;
+  conf->config_version=NULL;
+  
+#ifdef WITH_ACL
+  conf->no_acl_on_symlinks=0; /* zero means don't do ACLs on symlinks */
+#endif
+  
 #ifdef WITH_MHASH
   conf->do_configmd=0;
   conf->confmd=NULL;
   conf->confhmactype=CONFIGHMACTYPE;
   conf->old_confmdstr=NULL;
-  conf->do_dbnewmd=0;
-  conf->do_dboldmd=0;
   conf->dbhmactype=DBHMACTYPE;
-  conf->old_dbnewmdstr=NULL;
-  conf->old_dboldmdstr=NULL;
   conf->dbnewmd=NULL;
   conf->dboldmd=NULL;
 #endif
+  
+  conf->do_dbnewmd=0;
+  conf->do_dboldmd=0;
+  conf->old_dbnewmdstr=NULL;
+  conf->old_dboldmdstr=NULL;
+  
   conf->db_out_order=(DB_FIELD*)malloc(sizeof(DB_FIELD)*db_unknown);
   conf->db_out_size=1;
   conf->db_out_order[0]=db_filename;
@@ -303,10 +311,12 @@ void setdefaults_before_config()
   conf->db_new=NULL;
   conf->db_out_url=NULL;
   conf->db_out=NULL;
+  
 #ifdef WITH_ZLIB
   conf->db_gzin=0;
   conf->db_gznew=0;
   conf->gzip_dbout=0;
+  conf->db_gzout=0;
 #endif
 
   conf->action=0;
@@ -342,7 +352,6 @@ void setdefaults_before_config()
   do_groupdef("rmd160",DB_RMD160);
   do_groupdef("sha256",DB_SHA256);
   do_groupdef("sha512",DB_SHA512);
-  do_groupdef("whirlpool",DB_WHIRLPOOL);
   do_groupdef("acl",DB_ACL);
 
   do_groupdef("xattrs",DB_XATTRS);
@@ -356,6 +365,7 @@ void setdefaults_before_config()
   */
   do_groupdef("haval",DB_HAVAL);
   do_groupdef("gost",DB_GOST);
+  do_groupdef("whirlpool",DB_WHIRLPOOL);
 #endif
 
   do_groupdef("R",DB_PERM|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID|DB_SIZE|

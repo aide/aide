@@ -364,7 +364,10 @@ void acl2line(db_line* line) {
 
     /* use tmp, so free() can be called instead of acl_free() */
     tmp = acl_to_text(acl_a, NULL);
-    ret->acl_a = strdup(tmp);
+    if (!tmp || !*tmp)
+      ret->acl_a = NULL;
+    else
+      ret->acl_a = strdup(tmp);
     acl_free(tmp);
 
     if (!acl_d)
@@ -372,7 +375,7 @@ void acl2line(db_line* line) {
     else
     {
       tmp = acl_to_text(acl_d, NULL);
-      if (!*tmp)
+      if (!tmp || !*tmp)
         ret->acl_d = NULL;
       else
         ret->acl_d = strdup(tmp);

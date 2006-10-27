@@ -256,9 +256,14 @@ int db_input_wrapper(char* buf, int max_size, int db)
   switch(db) {
   case DB_OLD: {
     db_url=conf->db_in_url;
+    
     domd=&(conf->do_dboldmd);
+#ifdef WITH_MHASH
     md=&(conf->dboldmd);
+#endif
+    
     db_filep=&(conf->db_in);
+    
 #ifdef WITH_ZLIB
     db_gzp=&(conf->db_gzin);
 #endif
@@ -266,9 +271,14 @@ int db_input_wrapper(char* buf, int max_size, int db)
   }
   case DB_NEW: {
     db_url=conf->db_new_url;
+    
     domd=&(conf->do_dbnewmd);
+#ifdef WITH_MHASH
     md=&(conf->dbnewmd);
+#endif
+    
     db_filep=&(conf->db_new);
+    
 #ifdef WITH_ZLIB
     db_gzp=&(conf->db_gznew);
 #endif
@@ -305,10 +315,10 @@ int db_input_wrapper(char* buf, int max_size, int db)
       } else {
 	/* gzread returns 0 even if uncompressed bytes were read*/
 	error(240,"nread=%d,strlen(buf)=%d,errno=%s,gzerr=%s\n",
-		retval,strlen((char*)buf),strerror(errno),
+              retval,strnlen((char*)buf, max_size),strerror(errno),
 	      gzerror(*db_gzp,&err));
 	if(retval==0){
-	  retval=strlen((char*)buf);
+	  retval=strnlen((char*)buf, max_size);
 	}
       }
     }
@@ -380,8 +390,8 @@ int db_input_wrapper(char* buf, int max_size, int db)
 	mhash(*md,(void*)buf,retval);
       }
     }
-#endif
   }
+#endif
 
 #ifdef WITH_CURL
   }

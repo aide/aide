@@ -545,9 +545,9 @@ AC_CHECK_LIB([mhash],[mhash_get_block_size],
 	[CRYPTLIB="${CRYPTLIB} -lmhash"
 	compoptionstring="${compoptionstring}WITH_MHASH\\n"
 	AC_DEFINE(WITH_MHASH,1,[use mhash library])],
-	[AC_MSG_ERROR(You must have libmhash installed as a static library.)]
+	[AC_MSG_WARN(No mhash means no hmac.)]
 )
-#	[AC_MSG_WARN(You should have libmhash installed as a static library.)]
+#	[AC_MSG_ERROR(You must have libmhash installed as a static library.)]
 
 AC_SUBST(CRYPTLIB)
 
@@ -622,13 +622,18 @@ AC_ARG_WITH([dbhmactype],
 		[Hash type to use for checking db. Valid values are md5 and sha1.]),
 	[if test "x$withval" = "xmd5" ;then
 	   DBHMACTYPE="MHASH_MD5"
-	else 
-	   if test "x$withval" = "xsha1" ;then
+	else if test "x$withval" = "xsha1" ;then
 	      DBHMACTYPE="MHASH_SHA1"
-	   else 
-	      echo "Valid parameters for --with-dbhmactype are md5, sha1"
+	else if test "x$withval" = "xsha256" ;then
+	      CONFIGHMACTYPE="MHASH_SHA256"
+	else if test "x$withval" = "xsha512" ;then
+	      CONFIGHMACTYPE="MHASH_SHA512"
+        else 
+	      echo "Valid parameters for --with-dbhmactype are md5, sha1, sha256 and sha512"
 	      exit 1
-	   fi
+	fi
+	fi
+	fi
 	fi
 	AC_DEFINE_UNQUOTED(DBHMACTYPE,$DBHMACTYPE,[hash type for checking db])],
 	[

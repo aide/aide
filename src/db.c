@@ -232,6 +232,14 @@ static char *db_readchar(char *s)
   return strdup(s);
 }
 
+#define WARN_ONCE(x) case db_ ## x : {                                  \
+      static int warn_once_ ## x = 0;                                   \
+      if (! warn_once_ ## x )                                           \
+        error(0,_("Hash %s uses MHASH, which is not enabled.\n"),       \
+              #x );                                                     \
+      warn_once_ ## x = 1;                                              \
+    } break
+
 db_line* db_char2line(char** ss,int db){
 
   int i;
@@ -263,13 +271,13 @@ db_line* db_char2line(char** ss,int db){
   line->sha1=NULL;
   line->rmd160=NULL;
   line->tiger=NULL;
-#ifdef WITH_MHASH
-  line->crc32=NULL;
+
+  line->crc32=NULL; /* MHASH stuff.. */
   line->crc32b=NULL;
   line->haval=NULL;
   line->gost=NULL;
   line->whirlpool=NULL;
-#endif
+  
   line->sha256=NULL;
   line->sha512=NULL;
   line->perm=0;
@@ -385,6 +393,12 @@ db_line* db_char2line(char** ss,int db){
                                    strlen(ss[(*db_order)[i]]), NULL);
       break;
     }
+#else
+      WARN_ONCE(crc32);
+      WARN_ONCE(gost);
+      WARN_ONCE(haval);
+      WARN_ONCE(crc32b);
+      WARN_ONCE(whirlpool);
 #endif
     case db_sha256 : {
       line->sha256=base64tobyte(ss[(*db_order)[i]],

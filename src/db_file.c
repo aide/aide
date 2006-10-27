@@ -68,12 +68,20 @@ void handle_gzipped_input(int out,gzFile* gzp){
       error(0,_("gzread() failed: gzerr=%s!\n"),gzerror(*gzp,&err));
       exit(1);
     } else {
+      int tmp = 0;
+      
       /* gzread returns 0 even if uncompressed bytes were read */
       if(nread==0){
-	write(out, buf,strlen((char*)buf));
+        tmp = strlen((char*)buf);
       } else {
-	write(out, buf,nread);
+        tmp = nread;
       }
+      if (write(out, buf,nread) != tmp)
+      {
+        error(0,_("write() failed: %m\n"));
+        exit(1);
+      }
+      
       error(240,"nread=%d,strlen(buf)=%d,errno=%s,gzerr=%s\n",
 	    nread,strlen((char*)buf),strerror(errno),
 	    gzerror(*gzp,&err));
@@ -285,7 +293,9 @@ char** db_readline_file(int db){
   int gotbegin_db=0;
   int gotend_db=0;
   int* domd=NULL;
+#ifdef WITH_MHASH
   MHASH* md=NULL;
+#endif
   char** oldmdstr=NULL;
   int* db_osize=0;
   DB_FIELD** db_order=NULL;
@@ -297,23 +307,30 @@ char** db_readline_file(int db){
 
   switch (db) {
   case DB_OLD: {
+#ifdef WITH_MHASH
     md=&(conf->dboldmd);
+#endif
     domd=&(conf->do_dboldmd);
     oldmdstr=&(conf->old_dboldmdstr);
+    
     db_osize=&(conf->db_in_size);
     db_order=&(conf->db_in_order);
     db_filep=&(conf->db_in);
     db_url=conf->db_in_url;
     db_lineno=&db_in_lineno;
+    
 #ifdef WITH_ZLIB
     db_gzp=&(conf->db_gzin);
 #endif
     break;
   }
   case DB_NEW: {
+#ifdef WITH_MHASH
     md=&(conf->dbnewmd);
+#endif
     domd=&(conf->do_dbnewmd);
     oldmdstr=&(conf->old_dbnewmdstr);
+    
     db_osize=&(conf->db_new_size);
     db_order=&(conf->db_new_order);
     db_filep=&(conf->db_new);
@@ -493,7 +510,8 @@ char** db_readline_file(int db){
       if(token!=TSTRING){
 	error(0,_("Corrupt db. Checksum garbled\n"));
 	abort();
-      } else {
+      } else { /* FIXME: this probably isn't right */
+#ifdef WITH_MHASH
 	if(*md){
 	  byte* dig=NULL;
 	  char* digstr=NULL;
@@ -509,10 +527,13 @@ char** db_readline_file(int db){
 	    error(0,_("Db checksum mismatch for db:%i\n"),db);
 	    abort();
 	  }
-	}else {
+	}
+        else
+        {
 	  error(0,"@@end_db found without @@begin_db in db:%i\n",db);
 	  abort();
 	}
+#endif
       }
       token=db_scan();
       if(token!=TNEWLINE){

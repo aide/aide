@@ -356,20 +356,21 @@ typedef struct db_config {
   char* config_file;
   char* config_version;
 
+ 
+  int do_dbnewmd;
+  int do_dboldmd; 
 #ifdef WITH_MHASH
   int do_configmd;
   MHASH confmd;
   hashid confhmactype;
   char* old_confmdstr;
 
-  int do_dbnewmd;
-  int do_dboldmd;
   hashid dbhmactype;
   MHASH dbnewmd;
   MHASH dboldmd;
+#endif
   char* old_dbnewmdstr;
   char* old_dboldmdstr;
-#endif
 
 
   /* The following three a lists of rx_rule*s */
@@ -425,16 +426,16 @@ typedef struct db_line {
   byte* sha1;
   byte* rmd160;
   byte* tiger;
-  byte* crc32;
-  byte* haval;
-  byte* gost;
-  byte* crc32b;
 
   byte* sha256;
   byte* sha512;
  
-  byte* whirlpool;
- 
+  byte* crc32; /* MHASH only */
+  byte* haval;
+  byte* gost;
+  byte* crc32b;
+  byte* whirlpool; 
+
   acl_type* acl;
   /* Something here.. */
 

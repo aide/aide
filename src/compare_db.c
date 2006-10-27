@@ -24,6 +24,12 @@
 #include <time.h>
 #include <sys/stat.h>
 #include <math.h>
+#ifdef WITH_AUDIT
+#include <libaudit.h>
+#ifdef HAVE_SYSLOG
+#include <syslog.h>
+#endif
+#endif
 
 #include "base64.h"
 #include "report.h"
@@ -35,6 +41,7 @@
 #include "util.h"
 #include "commandconf.h"
 #include "gen_list.h"
+#include "compare_db.h"
 /*for locale support*/
 #include "locale-aide.h"
 /*for locale support*/
@@ -983,7 +990,6 @@ void compare_db(list* new,db_config* conf)
     nadd++;
   }
 
-
   if(nadd!=0||nrem!=0||nchg!=0){
     print_report_header(nfil,nadd,nrem,nchg);
 
@@ -1045,6 +1051,31 @@ void compare_db(list* new,db_config* conf)
     conf->end_time=time(&(conf->end_time));
     print_report_footer(localtime(&(conf->end_time)));
   }
+}
+
+  /* Something changed, send audit anomaly message */
+void send_audit_report(long nadd, long nrem, long nchg)
+{
+#ifdef WITH_AUDIT
+  if(nadd!=0||nrem!=0||nchg!=0){
+    int fd=audit_open();
+    if (fd>=0){
+       char msg[64];
+
+       snprintf(msg, sizeof(msg), "added=%ld removed=%ld changed=%ld", 
+                nadd, nrem, nchg);
+
+       if (audit_log_user_message(fd, AUDIT_ANOM_RBAC_INTEGRITY_FAIL,
+                                  msg, NULL, NULL, NULL, 0)<=0)
+#ifdef HAVE_SYSLOG
+          syslog(LOG_ERR, "Failed sending audit message:%s", msg);
+#else
+          ;
+#endif
+       close(fd);
+    }
+  }
+#endif /* WITH_AUDIT */
 }
 
 long report_tree(seltree* node,int stage, long* stat)
@@ -1158,6 +1189,7 @@ long report_tree(seltree* node,int stage, long* stat)
   }
 
   if(top&&(stage==0)&&((stat[2]+stat[3]+stat[4])>0)){
+    send_audit_report(stat[2],stat[3],stat[4]);
     print_report_header(stat[1],stat[2],stat[3],stat[4]);
   }
   

@@ -29,6 +29,7 @@
 #include "db_file.h"
 #include "report.h"
 #include "fopen.h"
+#include "be.h"
 
 #ifdef WITH_PSQL
 #include "libpq-fe.h"
@@ -123,9 +124,9 @@ char* get_first_value(char** in){
 
 #endif
 
-void* be_init(int inout,url_t* u,int iszipped)
+FILE* be_init(int inout,url_t* u,int iszipped)
 {
-  void* fh=NULL;
+  FILE* fh=NULL;
   long a=0;
   char* err=NULL;
   int fd;

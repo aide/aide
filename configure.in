@@ -719,6 +719,21 @@ AC_ARG_WITH(psql,
 
 AC_SUBST(PSQLLIB)
 
+# Check for Linux auditing API
+#
+AC_ARG_WITH(audit,
+	AC_HELP_STRING([--with-audit],
+		[use audit library]),
+	[AC_DEFINE(WITH_AUDIT,1,[use audit library])
+	AC_CHECK_HEADER(libaudit.h,,
+		AC_MSG_ERROR(You don't have libaudit properly installed. Install it if you need one.)
+	)
+	AUDITLIB="-laudit"
+	compoptionstring="${compoptionstring}WITH_AUDIT\\n"],
+	[with_audit=no]
+)
+AC_SUBST(AUDITLIB)
+
 AIDE_DO_LINK_FILES
 
 compoptionstring="${compoptionstring}CONFIG_FILE = \\\"${config_file}\\\"\\n"

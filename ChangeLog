@@ -1,5 +1,6 @@
 2006-10-27	Richard van den Berg  <richard@vdberg.org>
-  * Added "Add xattr support" patch from Steve Grubb <sgrubb@redhat.com>
+	* Added "Add xattr support" patch from Steve Grubb <sgrubb@redhat.com>
+	* Added "report miscompares to Linux Audit System" patch from Steve Grubb
 
 2006-10-10	Richard van den Berg  <richard@vdberg.org>
 	* Added note about rpl_malloc on AIX 5.3 with mhash

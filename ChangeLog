@@ -3,6 +3,7 @@
 	* Added "report miscompares to Linux Audit System" patch from James Antill
 	* Added "Allow building without mhash library" patch from James Antill
 	* Added "correct db_names" patch from Steve Grubb <sgrubb@redhat.com>
+	* Added "memory leaks and performance updates" patch from Steve Grubb
 
 2006-10-10	Richard van den Berg  <richard@vdberg.org>
 	* Added note about rpl_malloc on AIX 5.3 with mhash

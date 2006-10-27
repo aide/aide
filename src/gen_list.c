@@ -229,8 +229,7 @@ void copy_rule_ref(seltree* node, rx_rule* r)
 {
     if( r!=NULL ){
         node->conf_lineno = r->conf_lineno;  
-        node->rx=(char*)malloc(strlen(r->rx)+1);
-        strcpy(node->rx,r->rx);
+        node->rx=strdup(r->rx);
     } else {
         node->conf_lineno = -1;
         node->rx=NULL;
@@ -265,13 +264,17 @@ seltree* new_seltree_node(
     if(isrx){
       parent=get_seltree_node(tree,tmprxtok);
     }else {
-      parent=get_seltree_node(tree,strlastslash(path));
+      char* dirn=strlastslash(path);
+      parent=get_seltree_node(tree,dirn);
+      free(dirn);
     }      
     if(parent==NULL){
       if(isrx){
 	parent=new_seltree_node(tree,tmprxtok,isrx,r);
       }else {
-	parent=new_seltree_node(tree,strlastslash(path),isrx,r);
+        char* dirn=strlastslash(path);
+        parent=new_seltree_node(tree,dirn,isrx,r);
+        free(dirn);
       }
     }
     free(tmprxtok);
@@ -306,8 +309,7 @@ void gen_seltree(list* rxlist,seltree* tree,char type)
     error(240,"Handling %s with %c \"%s\" with node \"%s\"\n",rxtok,type,curr_rule->rx,curnode->path);
 	
     
-    /* We have to add '^' to the first charaster of string... 
-     *
+    /* We have to add '^' to the first character of string... 
      */
 
     data=(char*)malloc(strlen(curr_rule->rx)+1+1);
@@ -1518,9 +1520,14 @@ void populate_tree(seltree* tree)
 	if((add=check_rxtree(old->filename,tree,&attr))>0){
 	  add_file_to_tree(tree,old,DB_OLD,0,attr);
 	  i++;
-	}else if(!initdbwarningprinted){
-	  error(3,_("WARNING: Old db contains a file that shouldn\'t be there, run --init or --update\n"));
-	  initdbwarningprinted=1;
+	}else{
+          free_db_line(old);
+          free(old);
+          old=NULL;
+          if(!initdbwarningprinted){
+	    error(3,_("WARNING: Old db contains a file that shouldn\'t be there, run --init or --update\n"));
+	    initdbwarningprinted=1;
+	  }
 	}
 	if(i<100){
 	  old=db_readline(DB_OLD);
@@ -1543,6 +1550,10 @@ void populate_tree(seltree* tree)
 	if((add=check_rxtree(new->filename,tree,&attr))>0){
 	  add_file_to_tree(tree,new,DB_NEW,0,attr);
 	  i++;
+	} else {
+          free_db_line(new);
+          free(new);
+          new=NULL;
 	}
 	if(i<100){
 	  new=db_readline(DB_NEW);
@@ -1568,6 +1579,8 @@ void populate_tree(seltree* tree)
 	}
 	if((conf->action&DO_INIT)&&!(conf->action&DO_COMPARE)){
 	  free_db_line(new);
+          free(new);
+          new=NULL;
 	}
 	if(i<100){
 	  new=db_readline(DB_DISK);

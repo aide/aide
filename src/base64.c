@@ -103,8 +103,6 @@ char* encode_base64(byte* src,size_t ssize)
   }
   outbuf = (char *)malloc(sizeof(char)*B64_BUF);
   
-  memset((void*)outbuf,0,B64_BUF);
-  
   /* Initialize working pointers */
   inb = src;
   i = 0;
@@ -191,11 +189,9 @@ byte* decode_base64(char* src,size_t ssize, size_t *ret_len)
     return NULL;
 
 
-
   /* Initialize working pointers */
   inb = src;
   outbuf = (byte *)malloc(sizeof(byte)*B64_BUF);
-  memset(outbuf,0,sizeof(byte)*B64_BUF);
 
   l = 0;
   triple = 0;

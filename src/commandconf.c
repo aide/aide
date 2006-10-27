@@ -240,11 +240,11 @@ int db_input_wrapper(char* buf, int max_size, int db)
 {
   int retval=0;
   int c=0;
-  char* tmp=NULL;
   int err=0;
-  int* domd=0;
+  int* domd=NULL;
   url_t* db_url=NULL;
 #ifdef WITH_MHASH
+  char* tmp=NULL;
   MHASH* md=NULL;
   void* key=NULL;
   int keylen;
@@ -401,7 +401,7 @@ int db_input_wrapper(char* buf, int max_size, int db)
 
 int check_db_order(DB_FIELD* d,int size, DB_FIELD a)
 {
-  int i=0;
+  int i;
   for(i=0;i<size;i++){
     if(d[i]==a)
       return RETFAIL;

@@ -34,13 +34,13 @@ list* list_find(char* s,list* item){
     return NULL;
   }
 
-  l=item->prev;
   p=item;
   while(p!=NULL){
     if (strcmp(s,((symba*)p->data)->name)==0) return p;
     p=p->next;
   }
     
+  l=item->prev;
   while(l!=NULL){
     /* Insert bug to here return l-> return p */
     if (strcmp(s,((symba*)l->data)->name)==0) return l; 

@@ -464,6 +464,7 @@ static void xattrs2line(db_line *line)
 /* should be in do_md ? */
 static void selinux2line(db_line *line)
 {
+#ifdef WITH_SELINUX
   char *cntx = NULL;
 
   if (!(DB_SELINUX&line->attr))
@@ -478,6 +479,7 @@ static void selinux2line(db_line *line)
   line->cntx = strdup(cntx);
   
   freecon(cntx);
+#endif
 }
 
 list* add_file_to_list(list* listp,char*filename,DB_ATTR_TYPE attr,int* addok)

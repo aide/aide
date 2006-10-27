@@ -361,7 +361,6 @@ void setdefaults_before_config()
   do_groupdef("crc32",DB_CRC32);
   /*
     crc32b is same than crc32
-    do_groupdef("crc32b",DB_CRC32B);
   */
   do_groupdef("haval",DB_HAVAL);
   do_groupdef("gost",DB_GOST);
@@ -449,25 +448,6 @@ int main(int argc,char**argv)
   
   conf->tree=gen_tree(conf->selrxlst,conf->negrxlst,conf->equrxlst);
   
-  
-  /*
-    Just for debugging purposes..
-   */
-  /*
-  db_disk_init();
-  {
-    int i=0;
-    db_line* l=db_readline_disk();
-    printf("Entering to readloop\n");
-    while (l!=NULL) {
-      i++;
-      printf("%i:%s\n",i,l->filename);
-      l=db_readline_disk();
-    }
-    printf("Readloop ended\n");
-    exit(0);
-  }  
-  */  
   /* Let's do some sanity checks for the config */
   if(cmpurl(conf->db_in_url,conf->db_out_url)==RETOK){
     error(4,_("WARNING:Input and output database urls are the same.\n"));

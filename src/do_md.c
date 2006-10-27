@@ -73,7 +73,6 @@ void md_init_fail(const char* s,db_line* db,byte** hash,DB_ATTR_TYPE i) {
 
 void free_hashes(db_line* dl){
 
-  /* #define free_hash(a) if(dl->a!=NULL) {free(dl->a); dl->a=NULL;} */
 #define free_hash(a) dl->a=NULL
 
   free_hash(md5);
@@ -89,14 +88,6 @@ void free_hashes(db_line* dl){
   free_hash(sha256);
   free_hash(sha512);
 }
-
-/* Not use any more. calc_md is the new function.
-list* do_md(list* file_lst,db_config* conf)
-{
-  abort();
-  return file_lst;
-}
-*/
 
 int stat_cmp(struct AIDE_STAT_TYPE* f1,struct AIDE_STAT_TYPE* f2) {
   if (f1==NULL || f2==NULL) {

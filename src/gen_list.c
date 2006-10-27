@@ -53,9 +53,6 @@
 #ifdef WITH_MHASH
 #include <mhash.h>
 #endif
-/*
-#include <gcrypt.h>
-*/
 #include "md.h"
 #include "do_md.h"
 
@@ -627,7 +624,7 @@ list* add_file_to_list(list* listp,char*filename,DB_ATTR_TYPE attr,int* addok)
     fil->attr|=DB_LINKNAME;
   }else {
     fil->linkname=NULL;
-    /* Just remove linkname avaivilibity bit from this entry */
+    /* Just remove linkname availability bit from this entry */
     fil->attr&=(~DB_LINKNAME); 
   }
 
@@ -728,8 +725,6 @@ list* add_file_to_list(list* listp,char*filename,DB_ATTR_TYPE attr,int* addok)
   }
 
   xattrs2line(fil); /* NOTE ... this is a lie, code never gets here */
-  
-  //  selinux2line(fil);
   
   listp=list_append(listp,(void*)fil);
 
@@ -1416,69 +1411,6 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr)
   return line;
 }
 
-#if 0
-void stat_dir(char* dir)
-{
-  DIR* dirh=NULL;
-  struct AIDE_DIRENT_TYPE* entp=NULL;
-  struct AIDE_DIRENT_TYPE** resp=NULL;
-  int rdres=0;
-  int add=0;
-  
-  if(!(dirh=opendir(dir))){
-    error(3,"populate_tree():%s: %s\n", strerror(errno),tree->path);
-    return;
-  }
-  
-#ifdef HAVE_READDIR_R
-  resp=(struct AIDE_DIRENT_TYPE**)
-    malloc(sizeof(struct AIDE_DIRENT_TYPE)+_POSIX_PATH_MAX);
-  entp=(struct AIDE_DIRENT_TYPE*)
-    malloc(sizeof(struct AIDE_DIRENT_TYPE)+_POSIX_PATH_MAX);
-  
-  for(rdres=AIDE_READDIR_R_FUNC(dirh,entp,resp);
-      (rdres==0&&(*resp)!=NULL);
-      rdres=AIDE_READDIR_R_FUNC(dirh,entp,resp)){
-#else
-#ifdef HAVE_READDIR
-    for(entp=AIDE_READDIR_FUNC(dirh);
-	(entp!=NULL&&td!=telldir(dirh));
-	entp=AIDE_READDIR_FUNC(dirh)){
-      td=telldir(dirh);
-#else
-#error AIDE needs readdir or readdir_r
-#endif
-#endif
-      if(strncmp(entp->d_name,".",1)==0){
-	if(strncmp(entp->d_name,".",strlen(entp->d_name))==0)
-	  continue;
-	if(strncmp(entp->d_name,"..",strlen(entp->d_name))==0)
-	  continue;
-      }
-      /* Construct fully qualified pathname for the file in question */
-      fullname=(char*)
-	malloc(sizeof(char)*(strlen(entp->d_name)+strlen(tree->path)+2));
-      strncpy(fullname,tree->path,strlen(tree->path));
-      if(strncmp(tree->path,"/",strlen(tree->path))!=0){
-	strncpy(fullname+strlen(tree->path),"/",1);
-	    e=1;
-      }else {
-	e=0;
-      }
-      strncpy(fullname+strlen(tree->path)+e,entp->d_name,strlen(entp->d_name));
-      fullname[(strlen(tree->path)+e+strlen(entp->d_name))]='\0';
-      error(230,_("Checking %s for match\n"),fullname);
-      add=check_rxtree("/",tree,&attr);
-#ifdef HAVE_READDIR_R
-    }
-#else
-#ifdef HAVE_READDIR
-  }
-#endif
-#endif
-}
-#endif
-
 void populate_tree(seltree* tree)
 {
   /* FIXME this function could really use threads */
@@ -1615,21 +1547,6 @@ void hsymlnk(db_line* line) {
       Is this valid?? 
       No, We should do this elsewhere.
     */
-    /*    if(conf->symlinks_found==0){ 
-      int it=0; 
-      DB_FIELD dbtmp; 
-      DB_FIELD dbtmp2; 
-      dbtmp=conf->db_out_order[1]; 
-      conf->db_out_order[1]=db_linkname; 
-      for(it=2;it<conf->db_out_size;it++){ 
-      	dbtmp2=conf->db_out_order[it]; 
-      	conf->db_out_order[it]=dbtmp;
-      	dbtmp=dbtmp2;
-      } 
-      conf->db_out_order[conf->db_out_size++]=dbtmp; 
-      conf->symlinks_found=1; 
-    } 
-    */
     line->linkname=(char*)malloc(_POSIX_PATH_MAX+1);
     if(line->linkname==NULL){
       error(0,_("malloc failed in add_file_to_list()\n"));
@@ -1651,18 +1568,6 @@ void hsymlnk(db_line* line) {
     len=readlink(line->filename,line->linkname,_POSIX_PATH_MAX+1);
     
     /*
-      lnkbuf=(char*)malloc(len+1);
-      if(lnkbuf==NULL){
-      error(0,_("malloc failed in add_file_to_list()\n"));
-      abort();
-      }
-
-      strncpy(lnkbuf,lnktmp,len);
-      lnkbuf[len]='\0';
-      line->linkname=lnkbuf;
-      free(lnktmp);
-    */
-    /*
      * We use realloc :)
      */
     line->linkname=realloc(line->linkname,len+1);
@@ -1673,7 +1578,4 @@ void hsymlnk(db_line* line) {
   }
   
 }
-/*
-const char* aide_key_13=KEY_13;
-*/
 // vi: ts=8 sw=2

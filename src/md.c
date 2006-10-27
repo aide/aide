@@ -27,7 +27,6 @@
 #include <mhash.h>
 #endif
 #define HASH_HAVAL_LEN HASH_HAVAL256_LEN
-/*.#define haval haval256.*/
 
 
 /*
@@ -121,7 +120,7 @@ DB_ATTR_TYPE hash_mhash2attr(int i) {
 int init_md(struct md_container* md) {
   
   int i;
-  /*.    First we check theparameter..   */
+  /*    First we check the parameter..   */
 #ifdef _PARAMETER_CHECK_
   if (md==NULL) {
     return RETFAIL;  
@@ -296,6 +295,3 @@ void md2line(struct md_container* md,struct db_line* line) {
   copyhash(DB_SHA512,sha512,HASH_SHA512_LEN);
   copyhash(DB_WHIRLPOOL,whirlpool,HASH_WHIRLPOOL_LEN);
 }
-/*
-  const char* aide_key_14=KEY_14;
-*/

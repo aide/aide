@@ -53,12 +53,6 @@ int be_sql_readinit(psql_data* ret) {
   s=strcat(s,ret->table);
   
   ret->res=PQexec(ret->conn,s);
-  /*
-  PQclear(ret->res);
-  ret->res=PQexec(ret->conn,
-		  ret->table
-		  );
-  */
 		  
   if (!ret->res || PQresultStatus(ret->res) != PGRES_COMMAND_OK) {
     
@@ -110,11 +104,6 @@ char* get_first_value(char** in){
   while((*in)[i]!=':' && (*in)[i]!='\0') {
     i++;
   }
-  /*  
-      if (i==0) {
-      return NULL;
-      }
-  */
   if ((*in)[i]!='\0') { /* Lets not go beond the sting.. */
     (*in)[i]='\0';
     (*in)+=i+1;
@@ -314,9 +303,6 @@ FILE* be_init(int inout,url_t* u,int iszipped)
       }
     }
    
-    /*printf("host:\"%s\" port:\"%s\" database:\"%s\" login:\"%s\" passwd:\"%s\" table:\"%s\"\n",pghost,pgport,dbName,login,pwd,ret->table); */
-    
-    
     if (login[0] == '\0' ) {
       login = NULL;
     }

@@ -97,34 +97,6 @@ list* list_append(list* listp,void*data)
 }
 
 /*
- * new_list_item()
- * create a new list item with data
- */
-
-/*
-
-obsolete
-
-list* new_list_item(void* data)
-{
-
-  list* item=NULL;
-
-  item=(list*)malloc(sizeof(list));
-  item->prev=NULL;
-  item->next=NULL;
-  item->head=item;
-  item->tail=item;
-  item->data=data;
-  
-  abort();
-
-  return NULL;
-}
-
-*/
-
-/*
  * delete_list_item()
  * delete a item from list
  * returns head of a list.
@@ -191,6 +163,3 @@ list* list_delete_item(list* item){
   return r;
   
 }
-/*
-const char* aide_key_12=KEY_12;
-*/

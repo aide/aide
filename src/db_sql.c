@@ -80,10 +80,6 @@ int db_writespec_sql(db_config* conf){
 					 */
   /* We have to ensure that the database table not exist */
 
-  /*   s = strcat(s, "DROP TABLE "); */
-  /*   s = strcat(s, ((psql_data*)conf->db_out)->table); */
-  /*   s = strcat(s, ";\n"); */
-
   /* check if the table exists already */
   sprintf(s, "SELECT * FROM pg_class WHERE relname = '%s'", 
              ((psql_data*)conf->db_out)->table);

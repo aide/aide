@@ -305,12 +305,10 @@ int compare_dbline(db_line* l1,db_line* l2,DB_ATTR_TYPE ignorelist)
     if ( (DB_SIZEG&l2->attr) && !(DB_SIZE&l2->attr) ){
       if(l1->size>l2->size){
 	ret|=DB_SIZEG;
-	//return RETFAIL;
       }
     } else {
       if(l1->size!=l2->size){
 	ret|=DB_SIZEG;
-	//return RETFAIL;
       }
     }
   }
@@ -320,7 +318,6 @@ int compare_dbline(db_line* l1,db_line* l2,DB_ATTR_TYPE ignorelist)
   if (!(DB_PERM&ignorelist)) {
     if(l1->perm!=l2->perm){
       ret|=DB_PERM;
-      //return RETFAIL;
     }
   } else {
     error(0,"Ignoring permissions\n");
@@ -963,14 +960,9 @@ void compare_db(list* new,db_config* conf)
       }else {
 	/* This line was ok */
 	/*
-	  Cannot free, chech why.
+	  Cannot free, check why.
 	  It's because db_disk needs it for going back
 	  to it's parent.
-	  
-	  free_db_line(old);
-	  free(old);
-	  free_db_line((db_line*)r->data);
-	  free((db_line*)r->data);
 	*/
 	
 	l=list_delete_item(r);
@@ -1001,11 +993,6 @@ void compare_db(list* new,db_config* conf)
 	error(2,"added: %s\n",((db_line*)r->data)->filename);
 	if(conf->verbose_level<20){
 	  if(S_ISDIR(((db_line*)r->data)->perm)){
-	    /*	    
-		    free_db_line((db_line*)r->data);
-		    free(r->data);
-		    r=list_delete_item(r);
-	    */
 	    eat_files_indir(r->next,((db_line*)r->data)->filename,&filesindir);
 	    if(filesindir>0){
 	      error(2,

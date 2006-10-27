@@ -48,6 +48,3 @@ list* list_find(char* s,list* item){
   }
   return NULL;
 }
-/*
-const char* aide_key_10=KEY_10;
-*/

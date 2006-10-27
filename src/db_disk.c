@@ -148,14 +148,8 @@ void add_child (db_line * fil)
 	new_r->attr = 0;
 	i = strlen (fil->filename);
 
-	/*
-	   new_r->path_len=r->path_len+i+1;
-	 */
-
 	new_r->path = malloc (i + 1);
 	strcpy (new_r->path, fil->filename);
-	//new_r->path[i]='/';
-	//new_r->path[i+1]=0;
 	new_r->childs = NULL;
 	new_r->sel_rx_lst = NULL;
 	new_r->neg_rx_lst = NULL;
@@ -181,9 +175,7 @@ void add_child (db_line * fil)
 db_line *db_readline_disk (int db)
 {
 	db_line *fil = NULL;
-	//struct AIDE_STAT_TYPE fs;
 	char *fullname;
-	//int sres=0;
 	int add = 0;
 
 	/* root needs special handling */
@@ -227,7 +219,6 @@ recursion:
 		   If don't do the 'normal' thing.
 		 */
 		if (strcmp (entp->d_name, dot) == 0 || strcmp (entp->d_name, dotdot) == 0) {
-			//next_in_dir();
 			goto recursion;						// return db_readline_disk(db);
 		}
 
@@ -259,7 +250,6 @@ recursion:
 			/*
 			   Hack.
 			 */
-			//db_writeline(fil,conf);
 
 			if (fil == NULL) {
 				/*
@@ -268,7 +258,6 @@ recursion:
 				 */
 				free_db_line (fil);			/* Filename is freeed? */
 				fil = NULL;
-				//next_in_dir();
 				goto recursion;					// return db_readline_disk(db);
 			}
 
@@ -300,27 +289,12 @@ recursion:
 			 */
 
 			free (fullname);
-
-			/*
-			   fil=get_file_attrs(fullname,DB_FILENAME|DB_PERM);
-			   error(255,"Taverse... \n");
-			   if (fil!=NULL && S_ISDIR(fil->perm_o)) {
-			   error(255,"addind %s \n",fullname);
-			   add_childs(fil);
-			   }
-
-			   free_db_line(fil);
-			   fil=NULL;
-			 */
-
-			//next_in_dir();
-			goto recursion;						// return db_readline_disk(db);
+			goto recursion;
 		}
 		/*
 		   Make sure that next time we enter
 		   we have something.
 		 */
-		//next_in_dir();  
 	} else {
 
 		if (r == NULL) {
@@ -333,10 +307,6 @@ recursion:
 		if ((0 == (r->checked & NODE_CHECKED)) && r->childs != NULL) {
 			seltree *rr;
 			list *l;
-			/*
-			   r->childs=r->childs->header->head;
-			 */
-
 			l = r->childs->header->head;
 
 			while (l != NULL
@@ -410,7 +380,7 @@ recursion:
 				}
 				error (255, "dropping back to parent\n");
 			}
-			goto recursion;						// return db_readline_disk(db);
+			goto recursion;
 		}
 
 		if (r->parent != NULL) {
@@ -421,15 +391,12 @@ recursion:
 
 			r = r->parent;
 
-			goto recursion;						// return db_readline_disk(db);
+			goto recursion;
 		}
 		/*
 		   The end has been reached. Nothing to do.
 		 */
 	}
-	/*
-	   int add=check_rxtree(path,tree,&attr);
-	 */
 
 	return fil;
 }
@@ -447,22 +414,14 @@ int open_dir ()
 
 	dirh = opendir (start_path);
 	if (dirh == NULL) {
-		/* Errors should be printed here because then we get too many
-		   errormessages. */
-		/*    char* er=strerror(errno);
-		   if (er!=NULL) {
-		   error(3,"open_dir():%s: %s\n",er , start_path);
-		   } else {
-		   error(3,"open_dir():%i: %s\n",errno ,start_path);      
-		   }
-		 */
+		/* Errors should not be printed here because then we get too many
+		   error messages. */
 		return RETFAIL;
 	}
 
 	/*
 	   Init the first time.
 	 */
-	//next_in_dir();
 	return RETOK;
 
 }
@@ -497,21 +456,6 @@ int db_disk_read_spec (int db)
 {
 	return RETOK;
 }
-
-#if 0
-void foo ()
-{
-
-	dirh = opendir (tree->path);
-
-	for (entp = AIDE_READDIR_FUNC (dirh);
-			 (entp != NULL && td != telldir (dirh));
-			 entp = AIDE_READDIR_FUNC (dirh)) {
-		td = telldir (dirh);
-	}
-
-}
-#endif
 
 /*
   We don't support writing to disk, since we are'n a backup/restore software

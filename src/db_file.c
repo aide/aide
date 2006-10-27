@@ -1033,7 +1033,6 @@ int db_writeline_file(db_line* line,db_config* conf, url_t* url){
         xattr_node *xattr = NULL;
         size_t num = 0;
         
-        //        if (!line->xattrs || !(line->attr & DB_XATTRS))
         if (!line->xattrs)
         {
           db_writelong(0, conf->db_out, i);
@@ -1130,7 +1129,4 @@ int db_close_file(db_config* conf){
 
   return RETOK;
 }
-/*
-const char* aide_key_11=CONFHMACKEY_11;
-*/
 // vi: ts=8 sw=8

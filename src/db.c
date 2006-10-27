@@ -34,9 +34,6 @@
 #include "report.h"
 #include "be.h"
 
-/*
-#include <gcrypt.h>
-*/
 #ifdef WITH_MHASH
 #include <mhash.h>
 #endif

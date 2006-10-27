@@ -91,8 +91,6 @@ write_callback(char *buffer,
             /* realloc suceeded increase buffer size*/
             url->buffer_len+=size - rembuff;
             url->buffer=newbuff;
-
-            /*printf("Callback buffer grown to %d bytes\n",url->buffer_len);*/
         }
     }
 
@@ -254,7 +252,6 @@ url_fopen(char *url,const char *operation)
 	curl_easy_setopt(file->handle.curl, CURLOPT_UPLOAD, 0==0);
 	curl_easy_setopt(file->handle.curl, CURLOPT_PUT, 0==0);
 	curl_easy_setopt(file->handle.curl, CURLOPT_VERBOSE, 0!=0);
-        //curl_easy_setopt(file->handle.curl, CURLOPT_READFUNCTION, read_callback);
 	
         if(!multi_handle)
             multi_handle = curl_multi_init();
@@ -404,8 +401,6 @@ url_fread(void *ptr, size_t size, size_t nmemb, URL_FILE *file)
 
         want = want / size;     /* number of items - nb correct op - checked
                                  * with glibc code*/
-
-        /*printf("(fread) return %d bytes %d left\n", want,file->buffer_pos);*/
         break;
 
     default: /* unknown or supported type - oh dear */
@@ -457,8 +452,6 @@ url_fgets(char *ptr, int size, URL_FILE *file)
         ptr[want]=0;/* allways null terminate */
 
         use_buffer(file,want);
-
-        /*printf("(fgets) return %d bytes %d left\n", want,file->buffer_pos);*/
         break;
 
     default: /* unknown or supported type - oh dear */
@@ -504,7 +497,7 @@ url_rewind(URL_FILE *file)
 }
 
 
-/* Small main program to retrive from a url using fgets and fread saving the
+/* Small main program to retrieve from a url using fgets and fread saving the
  * output to two test files (note the fgets method will corrupt binary files if
  * they contain 0 chars */
 /* int */

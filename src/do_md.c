@@ -372,6 +372,9 @@ void acl2line(db_line* line) {
         ret->acl_d = strdup(tmp);
       acl_free(tmp);
     }
+
+    acl_free(acl_a);
+    acl_free(acl_d);
   }
   line->acl = ret;
 #endif  

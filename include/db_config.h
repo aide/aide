@@ -59,8 +59,6 @@ typedef struct acl_type {
  char *acl_d; /* DEFAULT, directories only */
 } acl_type;
 
-#define WITH_XATTR 1 /* FIXME: autoconf */
-
 #ifdef WITH_XATTR /* Do generic user Xattrs. */
 #include <sys/xattr.h>
 #include <attr/xattr.h>

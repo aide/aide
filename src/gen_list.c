@@ -399,6 +399,7 @@ static void xattr_add(xattrs_type *xattrs,
 /* should be in do_md ? */
 static void xattrs2line(db_line *line)
 { /* get all generic user xattrs. */
+#ifdef WITH_XATTR
   xattrs_type *xattrs = NULL;
   static ssize_t xsz = 1024;
   static char *xatrs = NULL;
@@ -459,6 +460,7 @@ static void xattrs2line(db_line *line)
   }
 
   line->xattrs = xattrs;
+#endif
 }
 
 /* should be in do_md ? */

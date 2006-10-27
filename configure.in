@@ -367,6 +367,18 @@ AC_ARG_WITH(selinux,
 
 AC_SUBST(SELINUXLIB)
 
+AC_MSG_CHECKING(for xattr-support)
+AC_ARG_WITH(xattr,
+	AC_HELP_STRING([--with-xattr],
+		[use xattr (no checking)]),
+	[AC_DEFINE(WITH_XATTR,1,[use xattr])
+	ATTRLIB=-lattr
+	AC_MSG_RESULT(yes)],
+	[AC_MSG_RESULT(no)]
+)
+
+AC_SUBST(ATTRLIB)
+
 
 # Check whether LFS has explicitly been disabled
 AC_ARG_ENABLE(lfs,[  --disable-lfs           Disable large file support on 32-bit platforms], [aide_lfs_choice=$enableval], [aide_lfs_choice=yes])

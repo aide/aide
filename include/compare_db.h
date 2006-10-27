@@ -48,6 +48,6 @@ void init_rxlst(list* rxlst);
  * compare_dbline()
  * Return RETOK if same RETFAIL if not
  */
-int compare_dbline(db_line* old,db_line* new,int ignorelist);
+int compare_dbline(db_line* old,db_line* new,DB_ATTR_TYPE ignorelist);
 
 #endif

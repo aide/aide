@@ -31,7 +31,7 @@
 #include "symboltable.h"
 #include "commandconf.h"
 
-int retval=0;
+DB_ATTR_TYPE retval=0;
 extern int conflex();
 void conferror(const char*);
 
@@ -42,7 +42,7 @@ extern long conf_lineno;
 %}
 %union {
   char* s;
-  int i;
+  DB_ATTR_TYPE i;
 }
 
 
@@ -102,6 +102,9 @@ extern long conf_lineno;
 %token <i> TATIME
 %token <i> TCTIME
 %token <i> TMTIME
+%token <i> TACL
+%token <i> TXATTRS
+%token <i> TSELINUX
 
 /* hash funktions */
 
@@ -111,6 +114,9 @@ extern long conf_lineno;
 %token <i> TMD2
 %token <i> TMD4
 %token <i> TMD5
+%token <i> TSHA256
+%token <i> TSHA512
+%token <i> TWHIRLPOOL
 
 /* predefs */
 
@@ -184,7 +190,7 @@ expr :  expr '+' expr { $$ =$1  | $3 ; } |
 
 primary : hash { $$ =$1 ; } |
 	  other { $$ =$1 ; } |
-	  TSTRING { if((retval=get_groupval($1))>=0) {
+	  TSTRING { if((retval=get_groupval($1)) != DB_ATTR_UNDEF) {
 	    $$=retval;
 	  }
 	  else {
@@ -199,10 +205,12 @@ other : TRIGHTS { $$ =$1 ;} | TUSER {$$ =$1 ;}
         | TLINKCOUNT {$$ =$1 ;} | TSIZE {$$ =$1 ;} 
 	| TGROWINGSIZE {$$ =$1 ;} | TATIME {$$ =$1 ;} 
         | TCTIME {$$ =$1 ;} | TMTIME {$$ =$1 ;} | TL {$$ = $1;}
-        | TR {$$ = $1;} ;
+        | TR {$$ = $1;} | TACL {$$ =$1 ;} | TXATTRS {$$ =$1 ;}
+        | TSELINUX {$$ =$1 ;};
 
 hash : TTIGER { $$ =$1 ;} | TSHA1 { $$ =$1 ;} | TRMD160 { $$ =$1 ;}
-	| TMD5 {$$ =$1 ;} ;
+	| TMD5 {$$ =$1 ;} | TSHA256 { $$ =$1 ;} | TSHA512 { $$ =$1 ;}
+        | TWHIRLPOOL { $$ =$1 ;};
 
 definestmt : TDEFINE TSTRING TSTRING { do_define($2,$3); };
 
@@ -252,8 +260,10 @@ verbose : TVERBOSE TSTRING { do_verbdef($2); };
 report : TREPORT_URL TSTRING { do_repurldef($2); } ;
 
 beginconfigstmt : TBEGIN_CONFIG TSTRING {
+#ifdef WITH_MHASH
   conf->do_configmd=1;
   conf->old_confmdstr=strdup($2);
+#endif
 } ;
 
 endconfigstmt : TEND_CONFIG {

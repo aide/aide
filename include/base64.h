@@ -43,7 +43,7 @@
 
 char* encode_base64(byte* src,size_t ssize);
 
-byte* decode_base64(char* src,size_t ssize);
+byte* decode_base64(char* src,size_t ssize,size_t *);
 
 /* Returns decoded length */
 size_t length_base64(char* src,size_t ssize);

@@ -33,6 +33,7 @@
 #endif
 #include <errno.h>
 #include <time.h>
+
 #include "report.h"
 #include "gnu_regex.h"
 #include "list.h"
@@ -56,6 +57,7 @@
 #include <gcrypt.h>
 */
 #include "md.h"
+#include "do_md.h"
 
 void hsymlnk(db_line* line);
 void fs2db_line(struct AIDE_STAT_TYPE* fs,db_line* line);
@@ -65,10 +67,10 @@ void no_hash(db_line* line);
 char* strrxtok(char* rx)
 {
   char*p=NULL;
-  int i=0;
+  size_t i=0;
 
   /* The following code assumes that the first character is a slash */
-  int lastslash=1;
+  size_t lastslash=1;
 
   p=strdup(rx);
   p[0]='/';
@@ -103,8 +105,8 @@ char* strrxtok(char* rx)
 char* strlastslash(char*str)
 {
   char* p=NULL;
-  int lastslash=1;
-  int i=0;
+  size_t lastslash=1;
+  size_t i=0;
 
   for(i=1;i<strlen(str);i++){
     if(str[i]=='/'){
@@ -354,11 +356,132 @@ void gen_seltree(list* rxlist,seltree* tree,char type)
      */
       free(rxtok);
   }
-
-
 }
 
-list* add_file_to_list(list* listp,char*filename,int attr,int* addok)
+static xattrs_type *xattr_new(void)
+{
+  xattrs_type *ret = NULL;
+
+  ret = malloc(sizeof(xattrs_type));
+  ret->num = 0;
+  ret->sz  = 2;
+  ret->ents = malloc(sizeof(xattr_node) * ret->sz);
+
+  return (ret);
+}
+
+static void *xzmemdup(const void *ptr, size_t len)
+{ /* always keeps a 0 at the end... */
+  void *ret = NULL;
+
+  ret = malloc(len+1);
+  memcpy(ret, ptr, len);
+  ((char*)ret)[len] = 0;
+  
+  return (ret);
+}
+
+static void xattr_add(xattrs_type *xattrs,
+                      const char *key, const char *val, size_t vsz)
+{
+  if (xattrs->num >= xattrs->sz)
+  {
+    xattrs->sz <<= 1;
+    xattrs->ents = realloc(xattrs->ents, sizeof(xattr_node) * xattrs->sz);
+  }
+
+  xattrs->ents[xattrs->num].key = strdup(key);
+  xattrs->ents[xattrs->num].val = xzmemdup(val, vsz);
+  xattrs->ents[xattrs->num].vsz = vsz;
+
+  xattrs->num += 1;
+}
+
+/* should be in do_md ? */
+static void xattrs2line(db_line *line)
+{ /* get all generic user xattrs. */
+  xattrs_type *xattrs = NULL;
+  static ssize_t xsz = 1024;
+  static char *xatrs = NULL;
+  ssize_t xret = -1;
+
+  if (!(DB_XATTRS&line->attr))
+    return;
+  
+  /* assume memory allocs work, like rest of AIDE code... */
+  if (!xatrs) xatrs = malloc(xsz);
+  
+  while (((xret = llistxattr(line->filename, xatrs, xsz)) == -1) &&
+         (errno == ERANGE))
+  {
+    xsz <<= 1;
+    xatrs = realloc(xatrs, xsz);
+  }
+
+  if ((xret == -1) && (errno == ENOSYS))
+  { /* do nothing */ }
+  else if (xret == -1)
+    error(0, "listxattrs failed for %s:%m\n", line->filename);
+  else if (xret)
+  {
+    const char *attr = xatrs;
+    static ssize_t asz = 1024;
+    static char *val = NULL;
+
+    if (!val) val = malloc(asz);
+    
+    xattrs = xattr_new();
+  
+    while (xret > 0)
+    {
+      size_t len = strlen(attr);
+      ssize_t aret = 0;
+      
+      if (strncmp(attr, "user.", strlen("user.")) &&
+          strncmp(attr, "root.", strlen("root.")))
+        goto next_attr; /* only store normal xattrs, and SELinux */
+      
+      while (((aret = getxattr(line->filename, attr, val, asz)) == -1) &&
+             (errno == ERANGE))
+      {
+        asz <<= 1;
+        val = realloc (val, asz);
+      }
+      
+      if (aret != -1)
+        xattr_add(xattrs, attr, val, aret);
+      else if (errno != ENOATTR)
+        error(0, "getxattr failed for %s:%m\n", line->filename);
+      
+     next_attr:
+      attr += len + 1;
+      xret -= len + 1;
+    }
+  }
+
+  line->xattrs = xattrs;
+}
+
+/* should be in do_md ? */
+static void selinux2line(db_line *line)
+{
+  char *cntx = NULL;
+
+  if (!(DB_SELINUX&line->attr))
+    return;
+
+  if (lgetfilecon_raw(line->filename, &cntx) == -1)
+  {
+    error(0, "lgetfilecon_raw failed for %s:%m\n", line->filename);
+    return;
+  }
+
+  line->cntx = strdup(cntx);
+  
+  freecon(cntx);
+}
+
+list* add_file_to_list(list* listp,char*filename,DB_ATTR_TYPE attr,int* addok)
 {
   db_line* fil=NULL;
   time_t cur_time;
@@ -445,8 +568,8 @@ list* add_file_to_list(list* listp,char*filename,int attr,int* addok)
     if(conf->no_acl_on_symlinks!=1) {
       fil->attr&=(~DB_ACL);
     }
-#endif   
-
+#endif
+    
     if(conf->warn_dead_symlinks==1) {
       struct AIDE_STAT_TYPE fs;
       int sres;
@@ -567,35 +690,6 @@ list* add_file_to_list(list* listp,char*filename,int attr,int* addok)
     fil->bcount=0;
   }
 
-#ifdef WITH_ACL
-  if(DB_ACL&fil->attr) { /* There might be a bug here. */
-    int res;
-    fil->acl=malloc(sizeof(acl_type));
-    fil->acl->entries=acl(fil->filename,GETACLCNT,0,NULL);
-    if (fil->acl->entries==-1) {
-      char* er=strerror(errno);
-      fil->acl->entries=0;
-      if (er==NULL) {
-	error(0,"ACL query failed for %s. strerror failed for %i\n",fil->filename,errno);
-      } else {
-	error(0,"ACL query failed for %s:%s\n",fil->filename,er);
-      }
-    } else {
-      fil->acl->acl=malloc(sizeof(aclent_t)*fil->acl->entries);
-      res=acl(fil->filename,GETACL,fil->acl->entries,fil->acl->acl);
-      if (res==-1) {
-	error(0,"ACL error %s\n",strerror(errno));
-      } else {
-	if (res!=fil->acl->entries) {
-	  error(0,"Tried to read %i acl but got %i\n",fil->acl->entries,res);
-	}
-      }
-    }
-  }else{
-    fil->acl=NULL;
-  }
-
-#endif
   
   if(S_ISDIR(fs.st_mode)||S_ISCHR(fs.st_mode)
      ||S_ISBLK(fs.st_mode)||S_ISFIFO(fs.st_mode)
@@ -630,13 +724,18 @@ list* add_file_to_list(list* listp,char*filename,int attr,int* addok)
     fil->haval=DB_HAVAL&fil->attr?(byte*)"":NULL;
 #endif
   }
+
+  xattrs2line(fil); /* NOTE ... this is a lie, code never gets here */
+  
+  //  selinux2line(fil);
+  
   listp=list_append(listp,(void*)fil);
 
   *addok=RETOK;
   return listp;
 }
 
-int check_list_for_match(list* rxrlist,char* text,int* attr)
+int check_list_for_match(list* rxrlist,char* text,DB_ATTR_TYPE* attr)
 {
   list* r=NULL;
   int retval=1;
@@ -654,7 +753,7 @@ int check_list_for_match(list* rxrlist,char* text,int* attr)
 
 //this is used to check if $text if equal to a node in $rxrlist
 //should be used to check equ_rx_lst only
-int check_list_for_equal(list* rxrlist,char* text,int* attr)
+int check_list_for_equal(list* rxrlist,char* text,DB_ATTR_TYPE* attr)
 {
   list* r=NULL;
   int retval=1;
@@ -695,7 +794,7 @@ int check_list_for_equal(list* rxrlist,char* text,int* attr)
  *16,  this is a recursed call
  */    
 
-int check_node_for_match(seltree*node,char*text,int retval,int* attr)
+int check_node_for_match(seltree*node,char*text,int retval,DB_ATTR_TYPE* attr)
 {
   int top=0;
   
@@ -753,7 +852,7 @@ int check_node_for_match(seltree*node,char*text,int retval,int* attr)
   return retval;
 }
 
-list* traverse_tree(seltree* tree,list* file_lst,int attr)
+list* traverse_tree(seltree* tree,list* file_lst,DB_ATTR_TYPE attr)
 {
   list* r=NULL;
   seltree* a=NULL;
@@ -764,7 +863,7 @@ list* traverse_tree(seltree* tree,list* file_lst,int attr)
   int addfile=0;
   char* fullname=NULL;
   int e=0;
-  int matchattr=attr;
+  DB_ATTR_TYPE matchattr=attr;
 #  ifndef HAVE_READDIR_R
   long td=-1;
 #  endif
@@ -960,14 +1059,13 @@ list* gen_list(list* prxlist,list* nrxlist,list* erxlist)
  * strip_dbline()
  * strips given dbline
  */
-void strip_dbline(db_line* line,int attr)
+void strip_dbline(db_line* line,DB_ATTR_TYPE attr)
 {
-#define checked_free(x) if(x!=NULL) free(x)
+#define checked_free(x) do { free(x); x=NULL; } while (0)
 
   /* filename is always needed, hence it is never stripped */
   if(!(attr&DB_LINKNAME)){
     checked_free(line->linkname);
-    line->linkname=NULL;
   }
   if(!(attr&DB_PERM)){
     line->perm=0;
@@ -1002,44 +1100,54 @@ void strip_dbline(db_line* line,int attr)
 
   if(!(attr&DB_MD5)){
     checked_free(line->md5);
-    line->md5=NULL;
   }
   if(!(attr&DB_SHA1)){
     checked_free(line->sha1);
-    line->sha1=NULL;
   }
   if(!(attr&DB_RMD160)){
     checked_free(line->rmd160);
-    line->rmd160=NULL;
   }
   if(!(attr&DB_TIGER)){
     checked_free(line->tiger);
-    line->tiger=NULL;
   }
 #ifdef WITH_MHASH
   if(!(attr&DB_CRC32)){
     checked_free(line->crc32);
-    line->crc32=NULL;
   }
   if(!(attr&DB_CRC32B)){
     checked_free(line->crc32b);
-    line->crc32b=NULL;
   }
   if(!(attr&DB_GOST)){
     checked_free(line->gost);
-    line->gost=NULL;
   }
   if(!(attr&DB_HAVAL)){
     checked_free(line->haval);
-    line->haval=NULL;
   }
 #endif
+  if(!(attr&DB_SHA256)){
+    checked_free(line->sha256);
+  }
+  if(!(attr&DB_SHA512)){
+    checked_free(line->sha512);
+  }
 #ifdef WITH_ACL
   if(!(attr&DB_ACL)){
+    if (line->acl)
+    {
+      free(line->acl->acl_a);
+      free(line->acl->acl_d);
+    }
     checked_free(line->acl);
-    line->acl=NULL;
   }
 #endif
+  if(!(attr&DB_XATTRS)){
+    if (line->xattrs)
+      free(line->xattrs->ents);
+    checked_free(line->xattrs);
+  }
+  if(!(attr&DB_SELINUX)){
+    checked_free(line->cntx);
+  }
 }
 
 /*
@@ -1048,11 +1156,12 @@ void strip_dbline(db_line* line,int attr)
  * status = what to do with this node
  * attr attributes to add 
  */
-void add_file_to_tree(seltree* tree,db_line* file,int db,int status,int attr)
+void add_file_to_tree(seltree* tree,db_line* file,int db,int status,
+                      DB_ATTR_TYPE attr)
 {
   seltree* node=NULL;
-  int localignorelist=0;
-  int ignorelist=0;
+  DB_ATTR_TYPE localignorelist=0;
+  DB_ATTR_TYPE ignorelist=0;
 
   node=get_seltree_node(tree,file->filename);
 
@@ -1090,14 +1199,15 @@ void add_file_to_tree(seltree* tree,db_line* file,int db,int status,int attr)
 
   ignorelist=get_groupval("ignore_list");
 
-  if (ignorelist==-1) {
+  if (ignorelist==DB_ATTR_UNDEF) {
     ignorelist=0;
   }
 
   if((node->checked&DB_OLD)&&(node->checked&DB_NEW)){
     localignorelist=(node->new_data->attr^node->old_data->attr);
     if (localignorelist!=0) {
-      error(2,"File %s in databases has different attributes, %i,%i\n",node->old_data->filename,node->old_data->attr,node->new_data->attr);
+      error(2,"File %s in databases has different attributes, %llx,%llx\n",
+            node->old_data->filename,node->old_data->attr,node->new_data->attr);
     }
     
     localignorelist|=ignorelist;
@@ -1145,7 +1255,7 @@ void add_file_to_tree(seltree* tree,db_line* file,int db,int status,int attr)
       localignorelist=(oldData->attr^newData->attr)&(~(DB_NEWFILE|DB_RMFILE));
 
       if (localignorelist!=0) {
-        error(5,"File \"%s\" \"%s\" in databases has different attributes (here3), %i,%i\n",
+        error(5,"File \"%s\" \"%s\" in databases has different attributes (here3), %llx,%llx\n",
   	    newData->filename,oldData->filename,oldData->attr,newData->attr);
       }
     
@@ -1170,7 +1280,7 @@ void add_file_to_tree(seltree* tree,db_line* file,int db,int status,int attr)
   }
 }
 
-int check_rxtree(char* filename,seltree* tree,int* attr)
+int check_rxtree(char* filename,seltree* tree,DB_ATTR_TYPE* attr)
 {
   int retval=0;
   char * tmp=NULL;
@@ -1203,7 +1313,7 @@ int check_rxtree(char* filename,seltree* tree,int* attr)
   return retval;
 }
 
-db_line* get_file_attrs(char* filename,int attr)
+db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr)
 {
   struct AIDE_STAT_TYPE fs;
   int sres=0;
@@ -1285,9 +1395,11 @@ db_line* get_file_attrs(char* filename,int attr)
   /*
     ACL stuff
   */
-#ifdef WITH_ACL
   acl2line(line);
-#endif
+
+  xattrs2line(line);
+
+  selinux2line(line);
 
   if (attr&DB_HASHES && S_ISREG(fs.st_mode)) {
     calc_md(&fs,line);
@@ -1373,8 +1485,8 @@ void populate_tree(seltree* tree)
   db_line* old=NULL;
   db_line* new=NULL;
   int initdbwarningprinted=0;
-  int ignorelist=0;
-  int attr=0;
+  DB_ATTR_TYPE ignorelist=0;
+  DB_ATTR_TYPE attr=0;
   seltree* node=NULL;
   
   /* With this we avoid unnecessary checking of removed files. */
@@ -1386,7 +1498,7 @@ void populate_tree(seltree* tree)
   
   ignorelist=get_groupval("ignore_list");
 
-  if (ignorelist==-1) {
+  if (ignorelist==DB_ATTR_UNDEF) {
     ignorelist=0;
   }
   

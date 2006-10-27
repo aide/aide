@@ -264,7 +264,7 @@ int db_file_read_spec(int db){
       conf->attr=1;
     }
   }
-  if (conf->attr==-1) {
+  if (conf->attr==DB_ATTR_UNDEF) {
     conf->attr=0;
     error(0,"Database does not have attr field.\nComparation may be incorrect\nGenerating attr-field from dbspec\nIt might be a good Idea to regenerate databases. Sorry.\n");
     for(i=0;i<conf->db_in_size;i++) {
@@ -593,6 +593,8 @@ int db_writechar(char* s,FILE* file,int i)
   char* r=NULL;
   int retval=0;
 
+  (void)file;
+  
   if(i) {
     dofprintf(" ");
   }
@@ -627,6 +629,8 @@ int db_writechar(char* s,FILE* file,int i)
 
 int db_writeint(long i,FILE* file,int a)
 {
+  (void)file;
+  
   if(a) {
     dofprintf(" ");
   }
@@ -636,6 +640,8 @@ int db_writeint(long i,FILE* file,int a)
 }
 int db_writelong(AIDE_OFF_TYPE i,FILE* file,int a)
 {
+  (void)file;
+  
   if(a) {
     dofprintf(" ");
   }
@@ -648,12 +654,13 @@ int db_writelong(AIDE_OFF_TYPE i,FILE* file,int a)
   
 }
 
-int db_write_byte_base64(byte*data,size_t len,FILE* file,int i,int th,
-			 int attr )
+int db_write_byte_base64(byte*data,size_t len,FILE* file,int i,
+                         DB_ATTR_TYPE th, DB_ATTR_TYPE attr )
 {
   char* tmpstr=NULL;
   int retval=0;
   
+  (void)file;  
   
   if (data!=NULL&&th&attr) {
     tmpstr=encode_base64(data,len);
@@ -681,6 +688,8 @@ int db_write_time_base64(time_t i,FILE* file,int a)
   char* tmpstr=NULL;
   int retval=0;
 
+  (void)file;
+  
   if(a){
     dofprintf(" ");
   }
@@ -701,7 +710,7 @@ int db_write_time_base64(time_t i,FILE* file,int a)
   sprintf(ptr,"%li",i);
 
 
-  tmpstr=encode_base64(ptr,strlen(ptr));
+  tmpstr=encode_base64((byte *)ptr,strlen(ptr));
   retval=dofprintf(tmpstr);
   free(tmpstr);
   free(ptr);
@@ -712,6 +721,8 @@ int db_write_time_base64(time_t i,FILE* file,int a)
 
 int db_writeoct(long i, FILE* file,int a)
 {
+  (void)file;
+  
   if(a) {
     dofprintf(" ");
   }
@@ -779,7 +790,7 @@ int db_writespec_file(db_config* conf)
   }
   for(i=0;i<conf->db_out_size;i++){
     for(j=0;j<db_unknown;j++){
-      if(db_value[j]==conf->db_out_order[i]){
+      if((int)db_value[j]==(int)conf->db_out_order[i]){
 	retval=dofprintf("%s ",db_names[j]);
 	if(retval==0){
 	  return RETFAIL;
@@ -795,8 +806,9 @@ int db_writespec_file(db_config* conf)
   return RETOK;
 }
 
+int db_writeacl(acl_type* acl,FILE* file,int a)
+{
 #ifdef WITH_SUN_ACL
-int db_writeacl(acl_type* acl,FILE* file,int a){
   int i;
 
   if(a) {
@@ -814,13 +826,45 @@ int db_writeacl(acl_type* acl,FILE* file,int a){
 	      acl->acl[i].a_perm);
     }
   }
+#endif
+#ifdef WITH_POSIX_ACL
+  if(a) {
+    dofprintf(" ");
+  }
+  
+  if (acl==NULL) {
+    dofprintf("0");
+  } else {    
+    dofprintf("POSIX"); /* This is _very_ incompatible */
+
+    dofprintf(",");
+    if (acl->acl_a)
+      db_write_byte_base64((byte*)acl->acl_a, strlen(acl->acl_a), file,0,1,1);
+    else
+      dofprintf("0");
+    dofprintf(",");
+    if (acl->acl_d)
+      db_write_byte_base64((byte*)acl->acl_d, strlen(acl->acl_d), file,0,1,1);
+    else
+      dofprintf("0");
+  }
+#endif
+#ifndef WITH_ACL
+  if(a) { /* compat. */
+    dofprintf(" ");
+  }
+  
+  dofprintf("0");
+#endif
+  
   return RETOK;
 }
-#endif
 
 int db_writeline_file(db_line* line,db_config* conf, url_t* url){
   int i;
 
+  (void)url;
+  
   for(i=0;i<conf->db_out_size;i++){
     switch (conf->db_out_order[i]) {
     case db_filename : {
@@ -930,9 +974,32 @@ int db_writeline_file(db_line* line,db_config* conf, url_t* url){
 			   DB_GOST,line->attr);
       break;
     }
+    case db_sha256 : {
+      db_write_byte_base64(line->sha256,
+			   HASH_SHA256_LEN,
+			   conf->db_out,i,
+			   DB_SHA256,line->attr);
+
+      break;
+    }
+    case db_sha512 : {
+      db_write_byte_base64(line->sha512,
+			   HASH_SHA512_LEN,
+			   conf->db_out,i,
+			   DB_SHA512,line->attr);
+
+      break;
+    }
+    case db_whirlpool : {
+      db_write_byte_base64(line->whirlpool,
+			   HASH_WHIRLPOOL_LEN,
+			   conf->db_out,i,
+			   DB_WHIRLPOOL,line->attr);
+
+      break;
+    }
     case db_attr : {
-      db_writeint(line->attr,
-		  conf->db_out,i);
+      db_writelong(line->attr, conf->db_out,i);
       break;
     }
 #ifdef WITH_ACL
@@ -941,6 +1008,37 @@ int db_writeline_file(db_line* line,db_config* conf, url_t* url){
       break;
     }
 #endif
+    case db_xattrs : {
+        xattr_node *xattr = NULL;
+        size_t num = 0;
+        
+        //        if (!line->xattrs || !(line->attr & DB_XATTRS))
+        if (!line->xattrs)
+        {
+          db_writelong(0, conf->db_out, i);
+          break;
+        }
+        
+        db_writelong(line->xattrs->num, conf->db_out, i);
+        
+        xattr = line->xattrs->ents;
+        while (num < line->xattrs->num)
+        {
+          dofprintf(",");
+          db_writechar(xattr->key, conf->db_out, 0);
+          dofprintf(",");
+          db_write_byte_base64(xattr->val, xattr->vsz, conf->db_out, 0, 1, 1);
+          
+          ++xattr;
+          ++num;
+        }
+      break;
+    }
+    case db_selinux : {
+      db_write_byte_base64((byte*)line->cntx, strlen(line->cntx),
+                           conf->db_out, i, 1, 1);
+      break;
+    }
     case db_checkmask : {
       db_writeoct(line->attr,conf->db_out,i);
       break;

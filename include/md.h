@@ -32,7 +32,7 @@
 
 #ifdef WITH_MHASH
 #include <mhash.h>
-#define HASH_MHASH_COUNT 18
+#define HASH_MHASH_COUNT MHASH_WHIRLPOOL /* WHIRLPOOL == 22 on 2006-10-11 */
 #define MHASH_RMD160 MHASH_RIPEMD160
 #define MHASH_HAVAL MHASH_HAVAL256
 #endif
@@ -59,6 +59,8 @@
 #define HASH_TIGER160_LEN 20
 #define HASH_MD4_LEN 16
 #define HASH_SHA256_LEN 32
+#define HASH_SHA512_LEN 64
+#define HASH_WHIRLPOOL_LEN 64
 #define HASH_ADLER32_LEN 4
 #define HASH_CRC32B_LEN 4
 #define HASH_CRC32_LEN 4
@@ -69,7 +71,8 @@
  */
 
 #define HASH_USE_MHASH (DB_MD5|DB_SHA1|DB_RMD160|DB_TIGER|DB_CRC32|\
-			DB_HAVAL|DB_GOST|DB_CRC32B)     
+			DB_HAVAL|DB_GOST|DB_CRC32B|\
+                        DB_SHA256|DB_SHA512|DB_WHIRLPOOL)
 
 #define HASH_USE_LIBGCRYPT (0)
 
@@ -100,18 +103,20 @@ typedef struct md_container {
   char tiger160[HASH_TIGER160_LEN];
   char md4[HASH_MD4_LEN];
   char sha256[HASH_SHA256_LEN];
+  char sha512[HASH_SHA512_LEN];
   char adler32[HASH_ADLER32_LEN];
+  char whirlpool[HASH_WHIRLPOOL_LEN];
   
 
   /* 
      Attr which are to be calculated.
   */
-  int calc_attr; 
+  DB_ATTR_TYPE calc_attr; 
   /*
     Attr which are not (yet) to be calculated.
     After init hold's hashes which are not calculated :)
   */
-  int todo_attr;
+  DB_ATTR_TYPE todo_attr;
 
   /*
     Variables needed to cope with the library.

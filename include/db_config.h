@@ -35,12 +35,53 @@
 /* Warning! if acl in database is corrupted then
    this will break down. See and fix db.c */
 
+#ifndef WITH_ACL
+# error "No ACL support ... but Sun ACL support."
+#endif
+
 #include <sys/acl.h>
 typedef struct acl_type{
   int entries;
   aclent_t* acl;
 } acl_type;
 
+#endif
+
+#ifdef WITH_POSIX_ACL /* POSIX acl works for Sun ACL, AIUI but anyway... */
+#include <sys/acl.h>
+#ifndef WITH_ACL
+# error "No ACL support ... but POSIX ACL support."
+#endif
+#endif
+
+typedef struct acl_type {
+ char *acl_a; /* ACCESS */
+ char *acl_d; /* DEFAULT, directories only */
+} acl_type;
+
+#define WITH_XATTR 1 /* FIXME: autoconf */
+
+#ifdef WITH_XATTR /* Do generic user Xattrs. */
+#include <sys/xattr.h>
+#include <attr/xattr.h>
+#endif
+
+typedef struct xattr_node 
+{
+ char *key;
+ byte *val;
+ size_t vsz;
+} xattr_node;
+
+typedef struct xattrs_type
+{
+  size_t num;
+  size_t sz;
+  struct xattr_node *ents;
+} xattrs_type;
+
+#ifdef WITH_SELINUX
+#include <selinux/selinux.h>
 #endif
 
 #ifdef WITH_MHASH
@@ -104,53 +145,74 @@ typedef enum {
    db_checkmask,                /* "checkmask"*/
    db_allownewfile,		/* "allownewfile */
    db_allowrmfile,		/* "allowrmfile" */
+   db_sha256, 			/* "sha256",  */
+   db_sha512, 			/* "sha512",  */
+   db_whirlpool,		/* "whirlpool",  */
+   db_selinux, 			/* "selinux",  */
+   db_xattrs, 			/* "xattrs",  */
    db_unknown } DB_FIELD; 	/* "unknown"  */
 
 /* db_unknown must be last because it is used to determine size of
    DB_FILED */
 
+/* FIXME: THIS IS A HACK, somethimes we use AIDE_OFF_TYPE instead
+ * because that's what internal functions take. This bitmap needs to die. */
+#define DB_ATTR_TYPE unsigned long long
+#define DB_ATTR_UNDEF ((DB_ATTR_TYPE) -1)
+
 /* WE need this for rx_rules since enums are not orrable (horrible) */
-#define DB_FILENAME (1<<0)	/* "name",   */ 
-#define DB_LINKNAME (1<<1)	/* "lname",   */
-#define DB_PERM     (1<<2)	/* "perm",    */
-#define DB_UID      (1<<3)	/* "uid",     */
-#define DB_GID      (1<<4)	/* "gid",     */
-#define DB_SIZE     (1<<5)	/* "size",    */
-#define DB_ATIME    (1<<6)	/* "atime",   */
-#define DB_CTIME    (1<<7)	/* "ctime",   */
-#define DB_MTIME    (1<<8)	/* "mtime",   */
-#define DB_INODE    (1<<9)	/* "inode",   */
-#define DB_BCOUNT   (1<<10)	/* "bcount",  */
-#define DB_LNKCOUNT (1<<11)	/* "lcount",  */
-#define DB_MD5      (1<<12)	/* "md5",     */
-#define DB_SHA1     (1<<13)	/* "sha1",    */
-#define DB_RMD160   (1<<14)	/* "rmd160",  */
-#define DB_TIGER    (1<<15)	/* "tiger",   */
+#define DB_FILENAME (1LLU<<0)	/* "name",   */ 
+#define DB_LINKNAME (1LLU<<1)	/* "lname",   */
+#define DB_PERM     (1LLU<<2)	/* "perm",    */
+#define DB_UID      (1LLU<<3)	/* "uid",     */
+#define DB_GID      (1LLU<<4)	/* "gid",     */
+#define DB_SIZE     (1LLU<<5)	/* "size",    */
+#define DB_ATIME    (1LLU<<6)	/* "atime",   */
+#define DB_CTIME    (1LLU<<7)	/* "ctime",   */
+#define DB_MTIME    (1LLU<<8)	/* "mtime",   */
+#define DB_INODE    (1LLU<<9)	/* "inode",   */
+#define DB_BCOUNT   (1LLU<<10)	/* "bcount",  */
+#define DB_LNKCOUNT (1LLU<<11)	/* "lcount",  */
+#define DB_MD5      (1LLU<<12)	/* "md5",     */
+#define DB_SHA1     (1LLU<<13)	/* "sha1",    */
+#define DB_RMD160   (1LLU<<14)	/* "rmd160",  */
+#define DB_TIGER    (1LLU<<15)	/* "tiger",   */
 /*
   We want to matk these newertheless we have a 
   hash-functon or not.
  */
 
-#define DB_CRC32    (1<<16)	/* "crc32",   */
-#define DB_HAVAL    (1<<17)	/* "haval",   */
-#define DB_GOST     (1<<18)	/* "gost",    */
-#define DB_CRC32B   (1<<19)	/* "crc32b",  */
-#define DB_ATTR     (1<<20)     /* "attr"      */
-#define DB_ACL      (1<<21)     /* "acl"      */
-#define DB_BSIZE    (1<<22)     /* "bsize"    */
-#define DB_RDEV     (1<<23)     /* "rdev"     */
-#define DB_DEV      (1<<24)     /* "dev"      */
+#define DB_CRC32    (1LLU<<16)	/* "crc32",   */
+#define DB_HAVAL    (1LLU<<17)	/* "haval",   */
+#define DB_GOST     (1LLU<<18)	/* "gost",    */
+#define DB_CRC32B   (1LLU<<19)	/* "crc32b",  */
+// #define DB_ATTR    (1LLU<<20)     /* "attr"    */
+#define DB_ACL      (1LLU<<21)  /* "acl"      */
+#define DB_BSIZE    (1LLU<<22)  /* "bsize"    */
+#define DB_RDEV     (1LLU<<23)  /* "rdev"     */
+#define DB_DEV      (1LLU<<24)  /* "dev"      */
 
-#define DB_CHECKMASK (1<<25)    /* "checkmask"*/
-#define DB_SIZEG     (1<<26)	/* "unknown"  */
-#define DB_CHECKINODE (1<<27) /* "checkinode"*/
-#define DB_NEWFILE    (1<<28) /* "allow new file" */
-#define DB_RMFILE     (1<<29) /* "allot rm file" */
+#define DB_CHECKMASK  (1LLU<<25) /* "checkmask"*/
+#define DB_SIZEG      (1LLU<<26) /* "unknown"  */
+#define DB_CHECKINODE (1LLU<<27) /* "checkinode"*/
+#define DB_NEWFILE    (1LLU<<28) /* "allow new file" */
+#define DB_RMFILE     (1LLU<<29) /* "allot rm file" */
+#define DB_SHA256     (1LLU<<30) /* "sha256",  */
+#define DB_SHA512     (1LLU<<31) /* "sha512",  */
+#define DB_SELINUX    (1LLU<<32) /* "selinux", */
+#define DB_XATTRS     (1LLU<<33) /* "xattrs",  */
+#define DB_WHIRLPOOL  (1LLU<<34) /* "whirlpool",  */
 
 #define DB_HASHES    (DB_MD5|DB_SHA1|DB_RMD160|DB_TIGER|DB_CRC32|DB_HAVAL| \
-		      DB_GOST|DB_CRC32B)
+		      DB_GOST|DB_CRC32B|DB_SHA256|DB_SHA512|DB_WHIRLPOOL)
 
-const static char* db_names[] = {
+/* This should be functions, but static data means if it isn't used
+ * but this header is included we get a warning ... so kill the warning */
+#ifdef __GNUC__
+# define DB__ATTR_USED() __attribute__ ((used))
+#endif
+
+static DB__ATTR_USED() const char* db_names[] = {
    "name", 
    "lname", 
    "perm", 
@@ -178,9 +240,14 @@ const static char* db_names[] = {
    "dev",
    "checkmask",
    "unknown",
-   "allownewfiles"} ; 
+   "allownewfiles",
+   "sha256",
+   "sha512",
+   "selinux",
+   "xattrs",
+   "whirlpool"} ; 
 
-const static int db_value[] = { 
+static DB__ATTR_USED() const int db_value[] = { 
    db_filename, 	/* "name",   */ 
    db_linkname, 	/* "lname",   */
    db_perm, 		/* "perm",    */
@@ -209,18 +276,23 @@ const static int db_value[] = {
    db_checkmask,	/* "checkmask" */
    db_allownewfile,	/* "allownewfile" */
    db_allowrmfile,	/* "allowrmfile" */
+   db_sha256,		/* "sha256",  */
+   db_sha512,		/* "sha512",  */
+   db_selinux,		/* "selinux", */
+   db_xattrs,		/* "xattrs",  */
+   db_whirlpool,	/* "whirlpool", */
    db_unknown };	/* "unknown"  */
 
 /* db_namealias && db_aliasvalue are here to support earlier database 
  * names that are no longer used. */
 
-const static char* db_namealias[] = {
+static DB__ATTR_USED() const char* db_namealias[] = {
   "count" } ;
 
-const static int db_aliasvalue[] = {
+static DB__ATTR_USED() const int db_aliasvalue[] = {
   db_lnkcount } ;       /* "count",  */
 
-const static int db_alias_size=1;
+static DB__ATTR_USED() const int db_alias_size=1;
 
 /* TIMEBUFSIZE should be exactly ceil(sizeof(time_t)*8*ln(2)/ln(10))
  * Now it is ceil(sizeof(time_t)*2.5)
@@ -337,7 +409,7 @@ typedef struct db_config {
   time_t end_time;
 
   int symlinks_found;
-  int attr;
+  DB_ATTR_TYPE attr;
 
 #ifdef WITH_ACL  
   int no_acl_on_symlinks;
@@ -358,10 +430,13 @@ typedef struct db_line {
   byte* gost;
   byte* crc32b;
 
-#ifdef WITH_ACL
+  byte* sha256;
+  byte* sha512;
+ 
+  byte* whirlpool;
+ 
   acl_type* acl;
   /* Something here.. */
-#endif
 
   mode_t perm;
   mode_t perm_o; /* Permission for tree traverse */
@@ -379,8 +454,12 @@ typedef struct db_line {
   char* filename;
   char* linkname;
 
+  char *cntx;
+ 
+  xattrs_type* xattrs;
+
   /* Attributes .... */
-  int attr;
+  DB_ATTR_TYPE attr;
   
 } db_line;
 

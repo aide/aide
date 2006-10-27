@@ -403,7 +403,7 @@ int check_dboo(DB_FIELD a){
   return check_db_order(conf->db_out_order,conf->db_out_size,a);
 }
 
-void update_db_out_order(int attr)
+void update_db_out_order(DB_ATTR_TYPE attr)
 {
   /* First we add those attributes that must be there */
   if (check_dboo(db_linkname)==RETOK) {
@@ -472,14 +472,29 @@ void update_db_out_order(int attr)
   if((attr&DB_CRC32B) && (check_dboo(db_crc32b)!=RETFAIL)){
     conf->db_out_order[conf->db_out_size++]=db_crc32b;
   }
+  if((attr&DB_WHIRLPOOL) && (check_dboo(db_whirlpool)!=RETFAIL)){
+    conf->db_out_order[conf->db_out_size++]=db_whirlpool;
+  }
   /*
 #endif
   */
+  if((attr&DB_SHA256) && (check_dboo(db_sha256)!=RETFAIL)){
+    conf->db_out_order[conf->db_out_size++]=db_sha256;
+  }
+  if((attr&DB_SHA512) && (check_dboo(db_sha512)!=RETFAIL)){
+    conf->db_out_order[conf->db_out_size++]=db_sha512;
+  }
 #ifdef WITH_ACL
   if((attr&DB_ACL) && (check_dboo(db_acl)!=RETFAIL)){
     conf->db_out_order[conf->db_out_size++]=db_acl;
   }
 #endif
+  if((attr&DB_XATTRS) && (check_dboo(db_xattrs)!=RETFAIL)){
+    conf->db_out_order[conf->db_out_size++]=db_xattrs;
+  }
+  if((attr&DB_SELINUX) && (check_dboo(db_selinux)!=RETFAIL)){
+    conf->db_out_order[conf->db_out_size++]=db_selinux;
+  }
   if((attr&DB_CHECKMASK) && (check_dboo(db_checkmask)!=RETFAIL)){
     conf->db_out_order[conf->db_out_size++]=db_checkmask;
   }
@@ -681,7 +696,7 @@ int do_ifxhost(int mode,char* name)
   return (handle_endif(doit,1));
 }
 
-list* append_rxlist(char* rx,int attr,list* rxlst)
+list* append_rxlist(char* rx,DB_ATTR_TYPE attr,list* rxlst)
 {
   extern long conf_lineno; /* defined & set in conf_lex.l */
     
@@ -698,7 +713,7 @@ list* append_rxlist(char* rx,int attr,list* rxlst)
   return rxlst;
 }
 
-void do_groupdef(char* group,int value)
+void do_groupdef(char* group,DB_ATTR_TYPE value)
 {
   list* r=NULL;
   symba* s=NULL;
@@ -714,9 +729,10 @@ void do_groupdef(char* group,int value)
   conf->groupsyms=list_append(conf->groupsyms,(void*)s);
 }
 
-int get_groupval(char* group)
+DB_ATTR_TYPE get_groupval(char* group)
 {
   list* r=NULL;
+
   if((r=list_find(group,conf->groupsyms))){
     return (((symba*)r->data)->ival);
   }
@@ -888,7 +904,7 @@ void* get_conf_key() {
   strcat(m,aide_key_8);
   strcat(m,aide_key_9);
   
-  r=decode_base64(m,strlen(m));
+  r=decode_base64(m,strlen(m),NULL);
 
   memset(m,0,strlen(m));
   free(m);
@@ -950,7 +966,7 @@ void* get_db_key() {
   strcat(m,db_key_8);
   strcat(m,db_key_9);
   
-  r=decode_base64(m,strlen(m));
+  r=decode_base64(m,strlen(m),NULL);
   
   memset(m,0,strlen(m));
   free(m);

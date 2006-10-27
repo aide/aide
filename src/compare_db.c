@@ -23,6 +23,7 @@
 #include <string.h>
 #include <time.h>
 #include <sys/stat.h>
+#include <math.h>
 
 #include "base64.h"
 #include "report.h"
@@ -45,11 +46,11 @@
 const int old_col  = 12;   
 const int new_col  = 40;   
 
-const int part_len = 40; /* usable length of line[] */
-char      oline[40];
-char      nline[40];
-const char* entry_format=        "  %-9s: %-34s, %-34s\n";
-const char* entry_format_justnew="  %-9s: %-34c  %-34s\n";
+const int part_len = 33; /* usable length of line[] */
+char      oline[33];
+char      nline[33];
+const char* entry_format=        "  %-9s: %-33s, %s\n";
+const char* entry_format_justnew="  %-9s: %-33c  %s\n";
 /*************/
 
 static int get_ignorelist() {
@@ -99,8 +100,34 @@ list* find_line_match(db_line* line,list* l)
   return NULL;
 }
 
-#ifdef WITH_ACL
-int compare_single_acl(aclent_t* a1,aclent_t* a2) {
+#ifdef WITH_POSIX_ACL
+int compare_acl(acl_type* a1,acl_type* a2)
+{
+  if (a1==NULL && a2==NULL) {
+    return RETOK;
+  }
+  if (a1==NULL || a2==NULL) {
+    return RETFAIL;
+  }
+
+  if (!a1->acl_a != !a2->acl_a) {
+    return RETFAIL;
+  }
+  if (!a1->acl_d != !a2->acl_d) {
+    return RETFAIL;
+  }
+
+  if (a1->acl_a && strcmp(a1->acl_a, a2->acl_a))
+    return RETFAIL;
+  if (a1->acl_d && strcmp(a1->acl_d, a2->acl_d))
+    return RETFAIL;
+
+  return RETOK;
+}
+#endif
+
+#ifdef WITH_SUN_ACL
+static int compare_single_acl(aclent_t* a1,aclent_t* a2) {
   if (a1->a_type!=a2->a_type ||
       a1->a_id!=a2->a_id ||
       a1->a_perm!=a2->a_perm) {
@@ -134,13 +161,73 @@ int compare_acl(acl_type* a1,acl_type* a2) {
 }
 #endif
 
+static int cmp_xattr_node(const void *c1, const void *c2)
+{
+  const xattr_node *x1 = c1;
+  const xattr_node *x2 = c2;
+
+  return (strcmp(x1->key, x2->key));
+}
+
+int compare_xattrs(xattrs_type* x1,xattrs_type* x2)
+{
+  size_t num = 0;
+
+  if (x1 && (x1->num == 0)) x1 = NULL;
+  if (x2 && (x2->num == 0)) x2 = NULL;
+
+  if (x1==NULL && x2==NULL) {
+    return RETOK;
+  }
+  if (x1==NULL || x2==NULL) {
+    return RETFAIL;
+  }
+
+  if (x1->num != x2->num) {
+    return RETFAIL;
+  }
+
+  qsort(x1->ents, x1->num, sizeof(xattr_node), cmp_xattr_node);
+  qsort(x2->ents, x2->num, sizeof(xattr_node), cmp_xattr_node);
+  
+  while (num++ < x1->num)
+  {
+    const char *x1key = NULL;
+    const byte *x1val = NULL;
+    size_t x1vsz = 0;
+    const char *x2key = NULL;
+    const byte *x2val = NULL;
+    size_t x2vsz = 0;
+    
+    x1key = x1->ents[num - 1].key;
+    x1val = x1->ents[num - 1].val;
+    x1vsz = x1->ents[num - 1].vsz;
+
+    x2key = x2->ents[num - 1].key;
+    x2val = x2->ents[num - 1].val;
+    x2vsz = x2->ents[num - 1].vsz;
+
+    if (strcmp(x1key, x2key) ||
+        x1vsz != x2vsz ||
+        memcmp(x1val, x2val, x1vsz))
+      return RETFAIL;
+  }
+  
+  return RETOK;
+}
+
+static int bytecmp(byte *b1, byte *b2, size_t len)
+{
+  return strncmp((char *)b1, (char *)b2, len);
+}
+
 int compare_md_entries(byte* e1,byte* e2,int len)
 {
 
   error(255,"Debug, compare_md_entries %p %p\n",e1,e2);
 
   if(e1!=NULL && e2!=NULL){
-    if(strncmp(e1,e2,len)!=0){
+    if(bytecmp(e1,e2,len)!=0){
       return RETFAIL;
     }else{
       return RETOK;
@@ -156,6 +243,21 @@ int compare_md_entries(byte* e1,byte* e2,int len)
   return RETFAIL;
 }
 
+static int compare_str(const char *s1, const char *s2)
+{
+  if(s1==NULL){
+    if(s2!=NULL){
+      return RETFAIL;
+    }
+  }else if(s2==NULL){
+    return RETFAIL;
+  }else if (strcmp(s1,s2)!=0){
+    return RETFAIL;
+  }
+
+  return RETOK;
+}
+
 
 /*
   We assume
@@ -165,7 +267,7 @@ int compare_md_entries(byte* e1,byte* e2,int len)
   - ignorelist kertoo mitä ei saa vertailla
 */
 
-int compare_dbline(db_line* l1,db_line* l2,int ignorelist)
+int compare_dbline(db_line* l1,db_line* l2,DB_ATTR_TYPE ignorelist)
 {
 
 #define easy_compare(a,b) \
@@ -184,20 +286,11 @@ int compare_dbline(db_line* l1,db_line* l2,int ignorelist)
   }
   
   
-  int ret=0;
+  DB_ATTR_TYPE ret=0;
   
   if (!(DB_LINKNAME&ignorelist)) {
-    if(l1->linkname==NULL){
-      if(l2->linkname!=NULL){
+    if(compare_str(l1->linkname, l2->linkname)){
 	ret|=DB_LINKNAME;
-	//return RETFAIL;
-      }
-    }else if(l2->linkname==NULL){
-	ret|=DB_LINKNAME;
-	//return RETFAIL;
-    }else if(strcmp(l1->linkname,l2->linkname)!=0){
-	ret|=DB_LINKNAME;
-	//return RETFAIL;
     }
   }
     
@@ -238,17 +331,22 @@ int compare_dbline(db_line* l1,db_line* l2,int ignorelist)
 
   easy_md_compare(DB_MD5,md5,HASH_MD5_LEN);
   
-  error(255,"Debug, %s, %p %p %i %i\n",l1->filename,l1->md5,l2->md5,ret&DB_MD5,ignorelist);
+  error(255,"Debug, %s, %p %p %llx %llx\n",
+        l1->filename,l1->md5,l2->md5,ret&DB_MD5,ignorelist);
   
   easy_md_compare(DB_SHA1,sha1,HASH_SHA1_LEN);
   easy_md_compare(DB_RMD160,rmd160,HASH_RMD160_LEN);
   easy_md_compare(DB_TIGER,tiger,HASH_TIGER_LEN);
+  
+  easy_md_compare(DB_SHA256,sha256,HASH_SHA256_LEN);
+  easy_md_compare(DB_SHA512,sha512,HASH_SHA512_LEN);
   
 #ifdef WITH_MHASH
   easy_md_compare(DB_CRC32,crc32,HASH_CRC32_LEN);
   easy_md_compare(DB_HAVAL,haval,HASH_HAVAL256_LEN);
   easy_md_compare(DB_GOST,gost,HASH_GOST_LEN);
   easy_md_compare(DB_CRC32B,crc32b,HASH_CRC32B_LEN);
+  easy_md_compare(DB_WHIRLPOOL,whirlpool,HASH_WHIRLPOOL_LEN);
 #endif
 
 #ifdef WITH_ACL
@@ -258,10 +356,20 @@ int compare_dbline(db_line* l1,db_line* l2,int ignorelist)
     }
   }
 #endif
+  if (!(DB_XATTRS&ignorelist)) {
+    if(compare_xattrs(l1->xattrs,l2->xattrs)) {
+      ret|=DB_XATTRS;
+    }
+  }
+  if (!(DB_SELINUX&ignorelist)) {
+    if(compare_str(l1->cntx,l2->cntx)) {
+      ret|=DB_SELINUX;
+    }
+  }
   return ret;
 }
 
-void print_lname_changes(char*old,char*new)
+void print_str_changes(char*old,char*new,const char *name)
 {
   int ok = 0;
 
@@ -281,46 +389,120 @@ void print_lname_changes(char*old,char*new)
         ok = 1;
   }
    if(ok)
-     error(2,(char*)entry_format,"Lname",oline,nline);
+     error(2,(char*)entry_format,name,oline,nline);
 
    return;
 }
 
 #ifdef WITH_ACL
-void print_single_acl(acl_type* acl){
-  char* aclt;
-  
+void print_single_acl(acl_type* acl)
+{
   if (acl==NULL) {
-    error(2,"<NULL>");
+    error(2,"<NULL>\n");
   } else {
-    
+#ifdef WITH_POSIX_ACL
+    if (!acl->acl_a)
+      error(2,"A:<NONE>\n           ");
+    else
+      error(2,"A:\n----\n%s----\n           ",acl->acl_a);
+    if (!acl->acl_d)
+      error(2,"D:<NONE>\n");
+    else
+      error(2,"D:\n----\n%s----\n",acl->acl_d);
+#endif
+#ifdef WITH_SUN_ACL
     aclt=acltotext(acl->acl,acl->entries);
     if (aclt==NULL) {
-      error(2,"ERROR");
+      error(2,"ERROR\n");
     } else {
-      error(2,"%s ,",aclt);
+      error(2,"%s ,\n",aclt);
       free(aclt);
     }
+#endif
   }
 }
 
 void print_acl_changes(acl_type* old,acl_type* new) {
   
   if (compare_acl(old,new)==RETFAIL) {
-    error(2,"Acl: old = ");
+    error(2,"ACL: old = ");
     print_single_acl(old);
-    error(2,"\n     new = ");
+    error(2,"     new = ");
     print_single_acl(new);
+  }
+}
+#endif
+
+static size_t xstrnspn(const char *s1, size_t len, const char *srch)
+{
+  const char *os1 = s1;
+  
+  while (len-- && strchr(srch, *s1))
+    ++s1;
+
+  return (s1 - os1);
+}
+
+#define PRINTABLE_XATTR_VALS                    \
+    "0123456789"                                \
+    "abcdefghijklmnopqrstuvwxyz"                \
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"                \
+    ".-_:;,[]{}<>()!@#$%^&*|\\/?~"
+
+void print_single_xattrs(xattrs_type* xattrs)
+{
+  if (xattrs==NULL) {
+    error(2,"num=0\n");
+  } else {
+    size_t num = 0;
+    int width = 0;
+    
+    error(2,"num=%d\n", xattrs->num);
+
+    width = log10(xattrs->num); /* make them the same width */
+    
+    while (num++ < xattrs->num)
+    {
+      char *val = NULL;
+      size_t len = 0;
+      
+      val = (char *)xattrs->ents[num - 1].val;
+
+      len = xstrnspn(val, xattrs->ents[num - 1].vsz, PRINTABLE_XATTR_VALS);
+      
+      if ((len ==  xattrs->ents[num - 1].vsz) ||
+          ((len == (xattrs->ents[num - 1].vsz - 1)) && !val[len]))
+        error(2,"  [%.*zd] %s = %s\n", width, num,
+              xattrs->ents[num - 1].key, val);
+      else        
+      {
+        val = encode_base64(xattrs->ents[num - 1].val,
+                            xattrs->ents[num - 1].vsz);
+        error(2,"  [%.*zd] %s <=> %s\n", width, num,
+              xattrs->ents[num - 1].key, val);
+        free(val);
+      }
+      
+    }
+  }
+}
+
+void print_xattrs_changes(xattrs_type* old,xattrs_type* new) {
+  
+  if (compare_xattrs(old,new)==RETFAIL) {
+    error(2,"XAttrs: old = ");
+    print_single_xattrs(old);
+    error(2,"        new = ");
+    print_single_xattrs(new);
   }
   
 }
-#endif
 
 void print_md_changes(byte*old,byte*new,int len,char* name)
 {
   int ok = 0;
   if(old!=NULL && new!=NULL){
-    if(strncmp(old,new,len)!=0){
+    if(bytecmp(old,new,len)!=0){
       snprintf(oline,part_len,"%s",encode_base64(old,len));
       snprintf(nline,part_len,"%s",encode_base64(new,len));
       ok = 1;
@@ -330,14 +512,14 @@ void print_md_changes(byte*old,byte*new,int len,char* name)
       return;
     }
     if(old==NULL){
-      snprintf(oline,part_len,"NA");
+      snprintf(oline,part_len,"<NONE>");
     } else {
       snprintf(oline,part_len,"%s",encode_base64(old,len));
       ok = 1;
     }
     /* OLD one */
     if(new==NULL){
-      snprintf(nline,part_len,"NA");
+      snprintf(nline,part_len,"<NONE>");
     }else {
       snprintf(nline,part_len,"%s",encode_base64(new,len));
       ok = 1;
@@ -371,19 +553,19 @@ void print_time_changes(const char* name, time_t old_time, time_t new_time,int j
   nt = localtime(&(new_time));
   if (!justnew) {
     if( is_time_null(ot) ) {
-      snprintf(oline,part_len,"NA");
+      snprintf(oline,part_len,"<NONE>");
     } else {
       snprintf(oline,part_len,
-	       "%0.4u-%0.2u-%0.2u %0.2u:%0.2u:%0.2u",
+	       "%.4u-%.2u-%.2u %.2u:%.2u:%.2u",
 	       ot->tm_year+1900, ot->tm_mon+1, ot->tm_mday,
 	       ot->tm_hour, ot->tm_min, ot->tm_sec);
     }
   }
   if( is_time_null(nt) ) {
-    snprintf(nline,part_len,"NA");
+    snprintf(nline,part_len,"<NONE>");
   } else {
     snprintf(nline,part_len,
-	     "%0.4u-%0.2u-%0.2u %0.2u:%0.2u:%0.2u",
+	     "%.4u-%.2u-%.2u %.2u:%.2u:%.2u",
 	     nt->tm_year+1900, nt->tm_mon+1, nt->tm_mday,
 	     nt->tm_hour, nt->tm_min, nt->tm_sec);
   }
@@ -440,7 +622,8 @@ void print_string_changes(const char* name, const char* old, const char* new, in
 }
 
 
-void print_dbline_changes(db_line* old,db_line* new,int ignorelist,int forced_attrs)
+void print_dbline_changes(db_line* old,db_line* new,
+                          DB_ATTR_TYPE ignorelist,DB_ATTR_TYPE forced_attrs)
 {
   char* tmp=NULL;
   char* tmp2=NULL;
@@ -457,7 +640,7 @@ void print_dbline_changes(db_line* old,db_line* new,int ignorelist,int forced_at
   }
   
   if(!(DB_LINKNAME&ignorelist)){
-    print_lname_changes(old->linkname,new->linkname);
+    print_str_changes(old->linkname,new->linkname, "Lname");
   }
   if (!(DB_SIZE&ignorelist)) {
     if(old->size!=new->size||(DB_SIZE&forced_attrs)){
@@ -547,6 +730,18 @@ void print_dbline_changes(db_line* old,db_line* new,int ignorelist,int forced_at
 		     "TIGER");
   }
   
+  if (!(DB_SHA256&ignorelist)) {
+      print_md_changes(old->sha256,new->sha256,
+		       HASH_SHA256_LEN,
+		       "SHA256");
+  }
+
+  if (!(DB_SHA512&ignorelist)) {
+      print_md_changes(old->sha512,new->sha512,
+		       HASH_SHA512_LEN,
+		       "SHA512");
+  }
+
 #ifdef WITH_MHASH
   if (!(DB_CRC32&ignorelist)) {
     print_md_changes(old->crc32,new->crc32,
@@ -571,6 +766,12 @@ void print_dbline_changes(db_line* old,db_line* new,int ignorelist,int forced_at
 		     HASH_CRC32B_LEN,
 		     "CRC32B");
   }
+
+  if (!(DB_WHIRLPOOL&ignorelist)) {
+      print_md_changes(old->whirlpool,new->whirlpool,
+		       HASH_WHIRLPOOL_LEN,
+		       "WHIRLPOOL");
+  }
 #endif                   
 
 #ifdef WITH_ACL
@@ -578,6 +779,12 @@ void print_dbline_changes(db_line* old,db_line* new,int ignorelist,int forced_at
     print_acl_changes(old->acl,new->acl);
   }
 #endif
+  if (!(DB_XATTRS&ignorelist)) {
+    print_xattrs_changes(old->xattrs,new->xattrs);
+  }
+  if (!(DB_SELINUX&ignorelist)) {
+    print_str_changes(old->cntx,new->cntx, "SELinux");
+  }
   
   return;
 }
@@ -653,7 +860,7 @@ void print_report_header(int nfil,int nadd,int nrem,int nchg)
   if(conf->config_version)
     error(2,_("Config version used: %s\n"),conf->config_version);
 
-  error(2,_("Start timestamp: %0.4u-%0.2u-%0.2u %0.2u:%0.2u:%0.2u\n"),
+  error(2,_("Start timestamp: %.4u-%.2u-%.2u %.2u:%.2u:%.2u\n"),
 	st->tm_year+1900, st->tm_mon+1, st->tm_mday,
 	st->tm_hour, st->tm_min, st->tm_sec);
   error(0,_("\nSummary:\n  Total number of files:\t%i\n  Added files:\t\t\t%i\n"
@@ -663,7 +870,7 @@ void print_report_header(int nfil,int nadd,int nrem,int nchg)
 
 void print_report_footer(struct tm* st)
 {
-    error(2,_("\nEnd timestamp: %0.4u-%0.2u-%0.2u %0.2u:%0.2u:%0.2u\n"),
+    error(2,_("\nEnd timestamp: %.4u-%.2u-%.2u %.2u:%.2u:%.2u\n"),
 	  st->tm_year+1900, st->tm_mon+1, st->tm_mday,
 	  st->tm_hour, st->tm_min, st->tm_sec);
 }
@@ -682,11 +889,11 @@ void compare_db(list* new,db_config* conf)
   long nadd=0;
   long nfil=0;
   long filesindir=0;
-  int tempignore=0;
+  DB_ATTR_TYPE tempignore=0;
   int initdbwarningprinted=0;
 
-  int ignorelist;
-  int forced_attrs;
+  DB_ATTR_TYPE ignorelist;
+  DB_ATTR_TYPE forced_attrs;
 
   error(200,_("compare_db()\n"));
 
@@ -708,7 +915,7 @@ void compare_db(list* new,db_config* conf)
   
   forced_attrs=get_report_attributes();
 
-  if (forced_attrs==-1) {
+  if (forced_attrs==DB_ATTR_UNDEF) {
     forced_attrs=0;
   }
 
@@ -734,7 +941,8 @@ void compare_db(list* new,db_config* conf)
       int localignorelist=old->attr ^ ((db_line*)r->data)->attr;
       
       if ((localignorelist&(~(DB_NEWFILE|DB_RMFILE)))!=0) {
-	error(2,"File %s in databases has different attributes, %i,%i\n",old->filename,old->attr,((db_line*)r->data)->attr);
+	error(2,"File %s in databases has different attributes, %llx,%llx\n",
+              old->filename,old->attr,((db_line*)r->data)->attr);
       }
       
       localignorelist|=ignorelist;
@@ -828,7 +1036,7 @@ void compare_db(list* new,db_config* conf)
       error(2,_("Detailed information about changes:\n"));
       error(2,_("---------------------------------------------------\n\n"));
       for(r=changedold,l=changednew;r;r=r->next,l=l->next){
-	int localignorelist=((db_line*)l->data)->attr^((db_line*)r->data)->attr;
+	DB_ATTR_TYPE localignorelist=((db_line*)l->data)->attr^((db_line*)r->data)->attr;
 	localignorelist|=ignorelist;
 	print_dbline_changes((db_line*)r->data,
 			     (db_line*)l->data,localignorelist,forced_attrs);

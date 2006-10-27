@@ -31,5 +31,6 @@
 
 list* do_md(list* file_lst,db_config* conf);
 
+void acl2line(db_line* line);
 
 #endif /* _DO_MD_H_INCLUDED */

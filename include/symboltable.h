@@ -26,7 +26,7 @@
 typedef struct symba {
   char* name;
   char* value;
-  int ival;
+  DB_ATTR_TYPE ival;
 
 } symba;
 

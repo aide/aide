@@ -542,6 +542,11 @@ char* db_get_sql(db_line* line,db_config* conf){
       /* TODO */
       break;
     }
+    case db_xattrs : {
+      error(0,"TODO db_xattrs write to db_sql.c");
+      /* TODO */
+      break;
+    }
     case db_checkmask : {
       sql_writeoct(line->attr,s,i);
       break;

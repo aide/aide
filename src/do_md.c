@@ -19,9 +19,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#define _POSIX_C_SOURCE 200112L
-
 #include "aide.h"
+
+#ifndef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 200112L
+#endif
 
 #include <limits.h>
 #include <stdio.h>
@@ -63,7 +65,7 @@
 /*
 #include <gcrypt.h>
 */
-void md_init_fail(const char* s,db_line* db,byte** hash,unsigned i) {
+void md_init_fail(const char* s,db_line* db,byte** hash,DB_ATTR_TYPE i) {
   error(0,"Message digest %s initialise failed\nDisabling %s for file %s\n",s,s,db->filename);
   db->attr=db->attr&(~i);
   (*hash)=0;
@@ -84,6 +86,8 @@ void free_hashes(db_line* dl){
   free_hash(gost);
   free_hash(crc32b);  
 #endif
+  free_hash(sha256);
+  free_hash(sha512);
 }
 
 /* Not use any more. calc_md is the new function.
@@ -332,8 +336,52 @@ void fs2db_line(struct AIDE_STAT_TYPE* fs,db_line* line) {
   
 }
 
-#ifdef WITH_ACL
 void acl2line(db_line* line) {
+  acl_type *ret = NULL;
+  
+#ifdef WITH_POSIX_ACL
+  if(DB_ACL&line->attr) {
+    acl_t acl_a;
+    acl_t acl_d;
+    char *tmp = NULL;
+
+    acl_a = acl_get_file(line->filename, ACL_TYPE_ACCESS);
+    acl_d = acl_get_file(line->filename, ACL_TYPE_DEFAULT);
+    if ((acl_a == NULL) && (errno == ENOTSUP))
+      return;
+    if (acl_a == NULL)
+      error(0, "Tried to read access ACL on %s but failed with: %m\n",
+            line->filename);
+    if ((acl_d == NULL) && (errno != EACCES)) /* ignore DEFAULT on files */
+    {
+      acl_free(acl_a);
+      error(0, "Tried to read default ACL on %s but failed with: %m\n",
+            line->filename);
+    }
+
+    /* assume memory allocs work, like rest of AIDE code... */
+    ret = malloc(sizeof(acl_type));
+
+    /* use tmp, so free() can be called instead of acl_free() */
+    tmp = acl_to_text(acl_a, NULL);
+    ret->acl_a = strdup(tmp);
+    acl_free(tmp);
+
+    if (!acl_d)
+      ret->acl_d = NULL;
+    else
+    {
+      tmp = acl_to_text(acl_d, NULL);
+      if (!*tmp)
+        ret->acl_d = NULL;
+      else
+        ret->acl_d = strdup(tmp);
+      acl_free(tmp);
+    }
+  }
+  line->acl = ret;
+#endif  
+#ifdef WITH_SUN_ACL
   if(DB_ACL&line->attr) { /* There might be a bug here. */
     int res;
     line->acl=malloc(sizeof(acl_type));
@@ -360,8 +408,8 @@ void acl2line(db_line* line) {
   }else{
     line->acl=NULL;
   }
-}
 #endif
+}
 
 void no_hash(db_line* line) {
   line->attr&=~DB_HASHES;

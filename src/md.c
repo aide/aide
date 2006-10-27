@@ -35,8 +35,9 @@
   stored. Only a speed issue.
 */
 
-int hash_mhash2attr(int i) {
-  int r=0;
+DB_ATTR_TYPE hash_mhash2attr(int i) {
+  DB_ATTR_TYPE r=0;
+#ifdef WITH_MHASH
   switch (i) {
   case MHASH_CRC32: {
     r=DB_CRC32;
@@ -92,6 +93,15 @@ int hash_mhash2attr(int i) {
     break;
   }
   case MHASH_SHA256: {
+    r=DB_SHA256;
+    break;
+  }
+  case MHASH_SHA512: {
+    r=DB_SHA512;
+    break;
+  }
+  case MHASH_WHIRLPOOL: {
+    r=DB_WHIRLPOOL;
     break;
   }
   case MHASH_ADLER32: {
@@ -100,7 +110,7 @@ int hash_mhash2attr(int i) {
   default:
     break;
   }
-
+#endif
   return r;
 }
 
@@ -125,9 +135,9 @@ int init_md(struct md_container* md) {
 #ifdef WITH_MHASH
   error(255,"Mhash library initialization\n");
   for(i=0;i<=HASH_MHASH_COUNT;i++) {
-    if (((hash_mhash2attr(i))&(HASH_USE_MHASH)&md->todo_attr)!=0) {
-      int h=hash_mhash2attr(i);
-      error(255,"inserting %i\n",h);
+    if (((hash_mhash2attr(i)&HASH_USE_MHASH)&md->todo_attr)!=0) {
+      DB_ATTR_TYPE h=hash_mhash2attr(i);
+      error(255,"inserting %llu\n",h);
       md->mhash_mdh[i]=mhash_init(i);
       if (md->mhash_mdh[i]!=MHASH_FAILED) {
 	md->calc_attr|=h;
@@ -209,7 +219,10 @@ int close_md(struct md_container* md) {
   get_libgcrypt_hash(DB_MD5,GCRY_MD_MD5,md5,HASH_MD5_LEN);
   get_libgcrypt_hash(DB_SHA1,GCRY_MD_SHA1,sha1,HASH_SHA1_LEN);
   get_libgcrypt_hash(DB_TIGER,GCRY_MD_TIGER,tiger,HASH_TIGER_LEN);
-  get_libgcrypt_hash(DB_RMD160,GCRY_MD_RMD160,rmd160,HASH_RMD160_LEN);  
+  get_libgcrypt_hash(DB_RMD160,GCRY_MD_RMD160,rmd160,HASH_RMD160_LEN);
+  
+  get_libgcrypt_hash(DB_SHA256,GCRY_MD_SHA256,sha256,HASH_SHA256_LEN);
+  get_libgcrypt_hash(DB_SHA512,GCRY_MD_SHA512,sha512,HASH_SHA512_LEN);
   
   /*.    There might be more hashes in the library. Add those here..   */
   
@@ -230,6 +243,9 @@ int close_md(struct md_container* md) {
   get_mhash_hash(MHASH_HAVAL,haval);
   get_mhash_hash(MHASH_GOST,gost);
   get_mhash_hash(MHASH_CRC32B,crc32b);
+  get_mhash_hash(MHASH_SHA256,sha256);
+  get_mhash_hash(MHASH_SHA512,sha512);
+  get_mhash_hash(MHASH_WHIRLPOOL,whirlpool);
   
   /*
     There might be more hashes in the library we want to use.
@@ -275,6 +291,10 @@ void md2line(struct md_container* md,struct db_line* line) {
   copyhash(DB_HAVAL,haval,HASH_HAVAL_LEN);
   copyhash(DB_GOST,gost,HASH_GOST_LEN);
   copyhash(DB_CRC32B,crc32b,HASH_CRC32B_LEN);
+
+  copyhash(DB_SHA256,sha256,HASH_SHA256_LEN);
+  copyhash(DB_SHA512,sha512,HASH_SHA512_LEN);
+  copyhash(DB_WHIRLPOOL,whirlpool,HASH_WHIRLPOOL_LEN);
 }
 /*
   const char* aide_key_14=KEY_14;

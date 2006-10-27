@@ -76,23 +76,29 @@ report_url=stdout
 #m:		mtime
 #a:		atime
 #c:		ctime
+#acl:		Access Control Lists
+#selinux	SELinux security context
+#xattrs:	Extended file attributes
 #S:		check for growing size
 #I:		ignore changed filename
 #md5:		md5 checksum
 #sha1:		sha1 checksum
+#sha256:	sha256 checksum
+#sha512:	sha512 checksum
 #rmd160:	rmd160 checksum
 #tiger:		tiger checksum
-#R:		p+i+n+u+g+s+m+c+md5
-#L:		p+i+n+u+g
+#whirlpool:	whirlpool checksum
+#R:		p+i+n+u+g+s+m+c+acl+selinux+xattrs+md5
+#L:		p+i+n+u+g+acl+selinux+xattrs
 #E:		Empty group
-#>:		Growing logfile p+u+g+i+n+S
+#>:		Growing logfile p+u+g+i+n+S+acl+selinux+xattrs
 #The following are available if you have mhash support enabled.
 #haval:		haval checksum
 #gost:		gost checksum
 #crc32:		crc32 checksum
 
 # Rule definition
-All=R+a+sha1+rmd160
+All=R+a+sha1+rmd160+sha256+sha512+whirlpool
 
 # report_attributes is a special rule definition
 # the attributes listed in it are alway displayed for changed files
@@ -107,7 +113,7 @@ All=R+a+sha1+rmd160
 # Attributes that can be used to verify that aide in intact
 # by people that have downloaded it from the web.
 # Let's be paranoid
-Norm=s+n+b+md5+sha1+rmd160
+Norm=s+n+b+selinux+xattrs+md5+sha1+rmd160+sha256+sha512+whirlpool
 
 # The commented rules are just examples the rest are used by 
 # make check

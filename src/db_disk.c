@@ -20,7 +20,9 @@
  */
 
 #include "aide.h"
-#define _POSIX_C_SOURCE 199506L
+#ifndef _POSIX_C_SOURCE
+# define _POSIX_C_SOURCE 199506L
+#endif
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
@@ -66,7 +68,7 @@ seltree *tree;
 
 long td = -1;
 int rdres = 0;
-int attr;
+DB_ATTR_TYPE attr;
 char *start_path = "/";
 
 int root_handled = 0;

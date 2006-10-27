@@ -109,7 +109,7 @@ int read_param(int argc,char**argv)
     { "update", no_argument, NULL, 'u'},
     { "config-check", no_argument, NULL, 'D'},
     { "compare", no_argument, NULL, 'E'},
-    { NULL }
+    { NULL,0,NULL,0 }
   };
 
   while(1){
@@ -340,9 +340,14 @@ void setdefaults_before_config()
   do_groupdef("tiger",DB_TIGER);
   do_groupdef("sha1",DB_SHA1);
   do_groupdef("rmd160",DB_RMD160);
-#ifdef WITH_ACL
+  do_groupdef("sha256",DB_SHA256);
+  do_groupdef("sha512",DB_SHA512);
+  do_groupdef("whirlpool",DB_WHIRLPOOL);
   do_groupdef("acl",DB_ACL);
-#endif
+
+  do_groupdef("xattrs",DB_XATTRS);
+  do_groupdef("selinux",DB_SELINUX);
+
 #ifdef WITH_MHASH
   do_groupdef("crc32",DB_CRC32);
   /*
@@ -354,9 +359,9 @@ void setdefaults_before_config()
 #endif
 
   do_groupdef("R",DB_PERM|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID|DB_SIZE|
-	      DB_MTIME|DB_CTIME|DB_MD5);
-  do_groupdef("L",DB_PERM|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID);
-  do_groupdef(">",DB_PERM|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID|DB_SIZEG);
+	      DB_MTIME|DB_CTIME|DB_MD5|DB_XATTRS|DB_SELINUX|DB_ACL);
+  do_groupdef("L",DB_PERM|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID|DB_XATTRS|DB_SELINUX|DB_ACL);
+  do_groupdef(">",DB_PERM|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID|DB_SIZEG|DB_XATTRS|DB_SELINUX|DB_ACL);
   do_groupdef("E",0);
   
   

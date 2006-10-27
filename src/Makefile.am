@@ -50,16 +50,16 @@ aide_SOURCES =	\
 
 INCLUDES = -I$(top_srcdir)/include
 
-LDADD = @CRYPTLIB@ @ACLLIB@
+LDADD = @CRYPTLIB@ @ACLLIB@ @SELINUXLIB@
 
-AM_LDFLAGS = @LDFLAGS@ @LD_STATIC_FLAG@
+AM_LDFLAGS = @LDFLAGS@ @LD_STATIC_FLAG@ -lm
 
 AM_CFLAGS = @CFLAGS@ @MAINTAINER_MODE_TRUE@ -Wall -g
 
 CLEANFILES = conf_yacc.h conf_yacc.c conf_lex.c db_lex.c *~
 LEX_OUTPUT_ROOT = lex.yy
 
-AM_YFLAGS= -d 
+# AM_YFLAGS= -d 
 
 db_lex2.c:db_lex.c
 

@@ -174,7 +174,7 @@ char* encode_base64(byte* src,size_t ssize)
 }
 
 /* FIXME Possible buffer overflow on outputs larger than B64_BUF */
-byte* decode_base64(char* src,size_t ssize)
+byte* decode_base64(char* src,size_t ssize, size_t *ret_len)
 {
   byte* outbuf;
   byte* retbuf;
@@ -252,6 +252,8 @@ byte* decode_base64(char* src,size_t ssize)
   
   free(outbuf);
 
+  if (ret_len) *ret_len = pos;
+  
   return retbuf;
 }
 

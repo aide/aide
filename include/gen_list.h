@@ -29,7 +29,7 @@
 typedef struct rx_rule {
   char* rx; /* Regular expression in text form */
   regex_t* crx; /* Compiled regexp */
-  int attr; /* Which attributes to save */
+  DB_ATTR_TYPE attr; /* Which attributes to save */
   long  conf_lineno; /* line no. of rule definition*/
 } rx_rule;
 
@@ -62,11 +62,11 @@ void populate_tree(seltree* tree);
 
 char* strrxtok(char*);
 
-int check_list_for_match(list*,char*,int*);
+int check_list_for_match(list*,char*,DB_ATTR_TYPE*);
 
-int check_rxtree(char* filename,seltree* tree, int* attr);
+int check_rxtree(char* filename,seltree* tree, DB_ATTR_TYPE* attr);
 
-db_line* get_file_attrs(char* filename,int attr);
+db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr);
 
 seltree* get_seltree_node(seltree* tree,char* path);
 

@@ -31,7 +31,7 @@ int commandconf(const char mode,const char* line);
 int conf_input_wrapper(char* buf, int max_size, FILE* in);
 int db_input_wrapper(char* buf, int max_size, int db);
 
-list* append_rxlist(char*,int,list*);
+list* append_rxlist(char*,DB_ATTR_TYPE,list*);
 
 void do_define(char*,char*);
 
@@ -41,9 +41,9 @@ int do_ifxdef(int,char*);
 
 int do_ifxhost(int,char*);
 
-void do_groupdef(char*,int);
+void do_groupdef(char*,DB_ATTR_TYPE);
 
-int get_groupval(char*);
+DB_ATTR_TYPE get_groupval(char*);
 
 void putbackvariable(char*);
 

@@ -47,6 +47,9 @@ AC_ARG_WITH(extra-link-libs,
 	[LIBS="$LIBS $withval"]
 )
 
+dnl Do the right thing for glibc...
+AC_DEFINE(_GNU_SOURCE,1,[unhide _GLIBC symbols])
+
 dnl This is borrowed from libtool
     
 if test $ac_cv_prog_gcc = yes; then
@@ -328,7 +331,7 @@ AC_ARG_WITH([curl],
 )
 
 
-AC_MSG_CHECKING(for acl-support)
+AC_MSG_CHECKING(for sun-acl-support)
 AC_ARG_WITH(sun-acl,
 	AC_HELP_STRING([--with-sun-acl],
 		[use ACL on solaris (no checking)]),
@@ -339,7 +342,30 @@ AC_ARG_WITH(sun-acl,
 	[AC_MSG_RESULT(no)]
 )
 
+AC_MSG_CHECKING(for posix-acl-support)
+AC_ARG_WITH(posix-acl,
+	AC_HELP_STRING([--with-posix-acl],
+		[use POSIX ACLs (no checking)]),
+	[AC_DEFINE(WITH_POSIX_ACL,1,[use POSIX ACLs])
+	AC_DEFINE(WITH_ACL,1,[use ACL])
+	ACLLIB="-lacl"
+	AC_MSG_RESULT(yes)],
+	[AC_MSG_RESULT(no)]
+)
+
 AC_SUBST(ACLLIB)
+
+AC_MSG_CHECKING(for selinux-support)
+AC_ARG_WITH(selinux,
+	AC_HELP_STRING([--with-selinux],
+		[use SELinux (no checking)]),
+	[AC_DEFINE(WITH_SELINUX,1,[use SELinux])
+	SELINUXLIB="-lselinux"
+	AC_MSG_RESULT(yes)],
+	[AC_MSG_RESULT(no)]
+)
+
+AC_SUBST(SELINUXLIB)
 
 
 # Check whether LFS has explicitly been disabled
@@ -521,21 +547,27 @@ AC_CHECK_LIB([mhash],[mhash_get_block_size],
 	AC_DEFINE(WITH_MHASH,1,[use mhash library])],
 	[AC_MSG_ERROR(You must have libmhash installed as a static library.)]
 )
+#	[AC_MSG_WARN(You should have libmhash installed as a static library.)]
 
 AC_SUBST(CRYPTLIB)
 
 AC_ARG_WITH([confighmactype],
 	AC_HELP_STRING([--with-confighmactype=TYPE],
-		[Hash type to use for checking config. Valid values are md5 and sha1.]),
+		[Hash type to use for checking config. Valid values are md5, sha1, sha256 and sha512.]),
 	[if test "x$withval" = "xmd5" ;then
 	   CONFIGHMACTYPE="MHASH_MD5"
-	else 
-	   if test "x$withval" = "xsha1" ;then
+	else if test "x$withval" = "xsha1" ;then
 	      CONFIGHMACTYPE="MHASH_SHA1"
-	   else 
-	      echo "Valid parameters for --with-confighmactype are md5, sha1"
-	      exit 1
-	   fi
+	else if test "x$withval" = "xsha256" ;then
+	      CONFIGHMACTYPE="MHASH_SHA256"
+	else if test "x$withval" = "xsha512" ;then
+	      CONFIGHMACTYPE="MHASH_SHA512"
+        else 
+	   echo "Valid parameters for --with-confighmactype are md5, sha1, sha256 and sha512"
+	   exit 1
+	fi
+	fi
+	fi
 	fi
 	AC_DEFINE_UNQUOTED(CONFIGHMACTYPE,$CONFIGHMACTYPE,[hash type for config file check])],
 	[

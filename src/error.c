@@ -35,6 +35,7 @@
 /*for locale support*/
 #include "locale-aide.h"
 /*for locale support*/
+#include "util.h"
 
 int cmp_url(url_t* url1,url_t* url2){
   

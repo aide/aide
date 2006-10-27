@@ -24,7 +24,7 @@
 #include "db.h"
 
 extern void db_buff(int, FILE*);
-extern int db_scan(); /* Rumaa.... */
+extern int db_scan(void); /* Rumaa.... */
 extern char* dbtext; /* Todella rumaa... */
 extern long* db_lineno;
 extern long db_in_lineno;

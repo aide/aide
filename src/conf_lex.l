@@ -40,7 +40,7 @@ EX      [" "\t]*
 #include "commandconf.h"
 #include "db_config.h"
 
-void includehandler() ;
+void includehandler(void) ;
 void conf_put_token(const char*);
 
 int firstnotempty(char* s);
@@ -377,7 +377,7 @@ int var_in_conflval=0;
 
 %%
 
-int confwrap(){
+int confwrap(void){
   return 1;
 }
 
@@ -414,7 +414,7 @@ int firstnotempty(char* s){
 const char* aide_key_4=CONFHMACKEY_04;
 const char* db_key_4=DBHMACKEY_04;
 
-void includehandler() { 
+void includehandler(void) { 
   /* got the include file name */
   if ( include_stack_ptr >= MAX_INCLUDE_DEPTH )
     {

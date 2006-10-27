@@ -59,10 +59,10 @@ void do_repurldef(char*);
 
 int check_db_order(DB_FIELD*,int, DB_FIELD);
 
-void* get_db_key();
-void* get_conf_key();
-size_t get_db_key_len();
-size_t get_conf_key_len();
+void* get_db_key(void);
+void* get_conf_key(void);
+size_t get_db_key_len(void);
+size_t get_conf_key_len(void);
 
 
 

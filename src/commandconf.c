@@ -890,7 +890,7 @@ void do_verbdef(char* val)
 const char* aide_key_7=CONFHMACKEY_07;
 const char* db_key_7=DBHMACKEY_07;
 
-void* get_conf_key() {
+void* get_conf_key(void) {
   void* r;
   char* m=(char*)malloc(strlen(aide_key_1)+
 			strlen(aide_key_2)+
@@ -921,7 +921,7 @@ void* get_conf_key() {
   return r;
 }
 
-size_t get_conf_key_len() {
+size_t get_conf_key_len(void) {
   size_t len=0;
   char* m=(char*)malloc(strlen(aide_key_1)+
 			strlen(aide_key_2)+
@@ -952,7 +952,7 @@ size_t get_conf_key_len() {
   return len;
 }
 
-void* get_db_key() {
+void* get_db_key(void) {
   void* r;
   char* m=(char*)malloc(strlen(db_key_1)+
 			strlen(db_key_2)+
@@ -983,7 +983,7 @@ void* get_db_key() {
   return r;
 }
 
-size_t get_db_key_len() {
+size_t get_db_key_len(void) {
   size_t len=0;
   char* m=(char*)malloc(strlen(db_key_1)+
 			strlen(db_key_2)+

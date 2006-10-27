@@ -25,9 +25,9 @@ void conf_put_token(const char* s);
 
 extern int conferror(const char*);
 
-extern int conflex();
+extern int conflex(void);
 
-extern int confparse();
+extern int confparse(void);
 
 extern void* conf_scan_string(char*);
 

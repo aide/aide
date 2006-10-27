@@ -360,7 +360,7 @@ AC_ARG_WITH(selinux,
 	AC_HELP_STRING([--with-selinux],
 		[use SELinux (no checking)]),
 	[AC_DEFINE(WITH_SELINUX,1,[use SELinux])
-	SELINUXLIB="-lselinux"
+	SELINUXLIB=$(pkg-config --libs --static libselinux)
 	AC_MSG_RESULT(yes)],
 	[AC_MSG_RESULT(no)]
 )

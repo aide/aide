@@ -27,6 +27,8 @@ if test "x${LEX}" != "xflex"; then
         exit 5
 fi
 
+AC_PATH_PROG(PKG_CONFIG, pkg-config, "")
+
 AM_MAINTAINER_MODE
 
 dnl AC_ARG_PROGRAM
@@ -360,8 +362,9 @@ AC_ARG_WITH(selinux,
 	AC_HELP_STRING([--with-selinux],
 		[use SELinux (no checking)]),
 	[AC_DEFINE(WITH_SELINUX,1,[use SELinux])
-	SELINUXLIB=$(pkg-config --libs --static libselinux)
-	if test "x$SELINUXLIB" = "x" ; then
+	if test -n "$PKG_CONFIG" && $PKG_CONFIG --exists libselinux; then
+		SELINUXLIB=$(${PKG_CONFIG} --libs libselinux --static)
+	else
 		SELINUXLIB="-lselinux"
 	fi
 	AC_MSG_RESULT(yes)],

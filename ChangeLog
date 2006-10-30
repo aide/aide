@@ -1,3 +1,6 @@
+2006-10-30	Richard van den Berg  <richard@vdberg.org>
+	* Make --with-selinux work without pkg-config
+
 2006-10-27	Richard van den Berg  <richard@vdberg.org>
 	* Added "Add xattr support" patch from James Antill <james-aide-38mkm@and.org>
 	* Added "report miscompares to Linux Audit System" patch from James Antill

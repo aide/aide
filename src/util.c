@@ -128,6 +128,10 @@ url_t* parse_url(char* val)
     
     break;
   }
+  case url_syslog : {
+    u->value=strdup(r);
+    break;
+  }
   case url_unknown : {
     error(0,"Unknown URL-type:%s\n",val_copy);
     break;

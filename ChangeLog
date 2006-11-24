@@ -5,6 +5,7 @@
 	* Don't use DB_SELINUX and DB_XATTR when not present
 	* Fix use of libgcrypt
 	* Add new group 'l' to detect changed link name
+	* Update documentation with new groups
 
 2006-11-15	Richard van den Berg  <richard@vdberg.org>
 	* Fix syslog URLs (Yves Mettier <ymettier@libertysurf.fr>)

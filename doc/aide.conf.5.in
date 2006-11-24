@@ -150,6 +150,7 @@ Input is read from filedescriptor \fBnumber\fR or output is written to
 .PP
 .IP "p:	permissions"
 .IP "i:	inode"
+.IP "l:	link name"
 .IP "n:	number of links"
 .IP "u:	user"
 .IP "g:	group"
@@ -169,13 +170,17 @@ Input is read from filedescriptor \fBnumber\fR or output is written to
 .IP "tiger: tiger checksum"
 .IP "haval: haval checksum"
 .IP "crc32:	crc32 checksum"
-.IP "R:	p+i+n+u+g+s+m+c+md5"
-.IP "L:	p+i+n+u+g"
+.IP "R:	p+i+l+n+u+g+s+m+c+md5"
+.IP "L:	p+i+l+n+u+g"
 .IP "E:	Empty group"
-.IP ">:	Growing logfile p+u+g+i+n+S"
+.IP ">:	Growing logfile p+l+u+g+i+n+S"
 .IP "And also the following if you have mhash support enabled"
 .IP "gost: gost checksum"
 .IP "whirlpool: whirlpool checksum"
+.IP "The followingg is available when explicitly enabled using configure"
+.IP "acl: access control list"
+.IP "selinux: selinux attributes"
+.IP "xattr: extended attributes"
 .LP
 Please note that 'I' and 'c' are incompatible. When the name of a file
 is changed, it's ctime is updated as well. When you put 'c' and 'I' in
@@ -212,21 +217,21 @@ then you should enable mhash support and add
 .PP
 .SH HINTS
 .IP
-.B "=/foo p+i+n+u+g+s+m+c+md5"
+.B "=/foo p+i+l+n+u+g+s+m+c+md5"
 .IP
-.B "/foo/bar p+i+n+u+g+s+m+c+md5"
+.B "/foo/bar p+i+l+n+u+g+s+m+c+md5"
 .LP
 This config adds all files under /foo because they match to regex /foo,
 which is equivalent to /foo.* . What you probably want is:
 .IP 
-.B "=/foo$ p+i+n+u+g+s+m+c+md5"
+.B "=/foo$ p+i+l+n+u+g+s+m+c+md5"
 .IP
-.B "/foo/bar p+i+n+u+g+s+m+c+md5"
+.B "/foo/bar p+i+l+n+u+g+s+m+c+md5"
 .LP 
 Note that the following still works as expected because =/foo$ stop
 recuring of directory /foo.
 .IP
-.B "=/foo p+i+n+u+g+s+m+c+md5"
+.B "=/foo p+i+l+n+u+g+s+m+c+md5"
 .LP
 In the following, the first is not allowed in AIDE. Use the latter instead.
 .IP

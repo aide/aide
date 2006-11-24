@@ -48,11 +48,13 @@ detection program. More specifically a file integrity checker.
 Aide constructs a database of the files specified in Aide.conf, Aide's configuration file. 
 The Aide database  stores various file attributes including:
 permissions, inode number, user, group, file size, mtime and ctime,
-atime, growing size and number of links.  
+atime, growing size, number of links and link name.
 Aide also creates a cryptographic checksum or hash of each file using
 one or a combination of the following message digest algorithms: sha1,
-md5, rmd160, tiger (crc32, haval and gost can be compiled in if mhash
-support is available). 
+sha256, sha512, md5, rmd160, tiger (gost and whirlpool can be compiled
+in if mhash support is available). 
+Additionaly, the extended attributes acl, xattr and selinux can be used when
+expliticly enabled during compile time.
 </p><p>
 Typically, a system administrator will create an AIDE database on a
 new system before it is brought onto the network. This first AIDE
@@ -176,6 +178,7 @@ Here is an example configuration.</p>
    #p:      permissions
    #i:      inode
    #n:      number of links
+   #l:      link name
    #u:      user
    #g:      group
    #s:      size
@@ -184,14 +187,26 @@ Here is an example configuration.</p>
    #a:      atime
    #c:      ctime
    #S:      check for growing size
+   #I:      ignore changed filename
    #md5:    md5 checksum
    #sha1:   sha1 checksum
+   #sha256: sha256 checksum
+   #sha512: sha512 checksum
    #rmd160: rmd160 checksum
    #tiger:  tiger checksum
-   #R:      p+i+n+u+g+s+m+c+md5
-   #L:      p+i+n+u+g
+   #haval:  haval checksum
+   #crc32:  crc32 checksum
+   #R:      p+i+l+n+u+g+s+m+c+acl+selinux+xattrs+md5
+   #L:      p+i+l+n+u+g+acl+selinux+xattrs
    #E:      Empty group
-   #>:      Growing logfile p+u+g+i+n+S
+   #>:      Growing logfile p+l+u+g+i+n+S+acl+selinux+xattrs
+   #The following are available if you have mhash support enabled:
+   #gost:   gost checksum
+   #whirlpool: whirlpool checksum
+   #The following are available when explicitly enabled using configure
+   #acl:    access control list
+   #selinux SELinux security context
+   #xattr:  extended file attributes
 
    # You can alse create custom rules - my home made rule definition goes like this 
    #
@@ -401,9 +416,9 @@ is.
 Consider the following rules:
 <code>
 <pre>
-/ n+p+i+u+g+s+b+m+c+md5+sha1+rmd160+haval+gost+crc32+tiger
-/etc$ n+p+i+u+g
-/etc/resolv.conf$ n+p+u+g
+/ n+p+l+i+u+g+s+b+m+c+md5+sha1+rmd160+haval+gost+crc32+tiger
+/etc$ n+p+l+i+u+g
+/etc/resolv.conf$ n+p+l+u+g
 </pre>
 </code>
 This way, changing /etc/resolv.conf will also report /etc as having
@@ -418,9 +433,9 @@ the specialized /etc rule.
 Rearranging the configuration like this
 <code>
 <pre>
-/etc/resolv.conf$ n+p+u+g
-/etc$ n+p+i+u+g
-/ n+p+i+u+g+s+b+m+c+md5+sha1+rmd160+haval+gost+crc32+tiger
+/etc/resolv.conf$ n+p+l+u+g
+/etc$ n+p+l+i+u+g
+/ n+p+l+i+u+g+s+b+m+c+md5+sha1+rmd160+haval+gost+crc32+tiger
 </pre>
 </code>
 will solve the issue. It is generally a good idea to write the most

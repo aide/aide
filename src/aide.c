@@ -399,7 +399,7 @@ void setdefaults_before_config()
 #ifdef WITH_XATTR
   p|=DB_XATTRS;
 #endif
-  do_groupdef("L",DB_PERM|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID|p);
+  do_groupdef("L",DB_PERM|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID|DB_LINKNAME|p);
 
   p=0LLU;
 #ifdef WITH_ACL
@@ -411,7 +411,8 @@ void setdefaults_before_config()
 #ifdef WITH_XATTR
   p|=DB_XATTRS;
 #endif
-  do_groupdef(">",DB_PERM|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID|DB_SIZEG|p);
+  do_groupdef(">",DB_PERM|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID|DB_SIZEG|
+		  DB_LINKNAME|p);
   do_groupdef("E",0);
 
 }

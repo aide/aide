@@ -69,6 +69,7 @@ report_url=stdout
 #p:		permissions
 #i:		inode
 #n:		number of links
+#l:		link name
 #u:		user
 #g:		group
 #s:		size
@@ -84,19 +85,19 @@ report_url=stdout
 #sha512:	sha512 checksum
 #rmd160:	rmd160 checksum
 #tiger:		tiger checksum
-#whirlpool:	whirlpool checksum
+#haval:		haval checksum
+#crc32:		crc32 checksum
 #R:		p+i+l+n+u+g+s+m+c+acl+selinux+xattrs+md5
 #L:		p+i+l+n+u+g+acl+selinux+xattrs
 #E:		Empty group
 #>:		Growing logfile p+l+u+g+i+n+S+acl+selinux+xattrs
-#The following are available if you have mhash support enabled.
-#haval:		haval checksum
+#The following are available if you have mhash support enabled:
 #gost:		gost checksum
-#crc32:		crc32 checksum
-#The following are available when explicitly enabled using configure
-#acl:     access control list
+#whirlpool:	whirlpool checksum
+#The following are available when explicitly enabled using configure:
+#acl:		access control list
 #selinux	SELinux security context
-#xattr:   extended file attributes
+#xattr:		extended file attributes
 
 # Rule definition
 All=R+a+sha1+rmd160+sha256+sha512+whirlpool

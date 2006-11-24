@@ -7,6 +7,7 @@
 	* Add new group 'l' to detect changed link name
 	* Update documentation with new groups
 	* Supply strnlen in utils.c
+	* Released version 0.13-rc1
 
 2006-11-15	Richard van den Berg  <richard@vdberg.org>
 	* Fix syslog URLs (Yves Mettier <ymettier@libertysurf.fr>)
@@ -349,7 +350,7 @@
 	* Mhash 0.8.1 required.
 
 2000-02-08  Rami Lehti  <Rami.Lehti@Finland.Sun.COM>
-        * Changed version to 0.7
+	* Changed version to 0.7
 	
 2000-02-08  Rami Lehti  <Rami.Lehti@Finland.Sun.COM>
 

@@ -1,5 +1,5 @@
 <html>
-<head><title>Aide Manual version 0.12</title>
+<head><title>AIDE Manual version 0.12</title>
 <meta name="cvsheader" content="
 $Id$
 ">
@@ -7,7 +7,7 @@ $Id$
 </head>
 <body bgcolor="#FFFFFF">
 
-<h1>The Aide manual</h1>
+<h1>The AIDE manual</h1>
 <a name="about"></a>
 <h2>About this document</h2>
 <strong>This manual is by no means complete, usable, readable, comprihensible,
@@ -30,26 +30,26 @@ and Richard van den Berg
 <ol>
 <li><a href="#about">About this document</a>
 <li><a href="#toc">Table of Contents</a>
-<li><a href="#whatisAide">What is Aide?</a>
-<li><a href="#compilation">Compiling Aide</a>
+<li><a href="#whatisAIDE">What is AIDE?</a>
+<li><a href="#compilation">Compiling AIDE</a>
 <li><a href="#config">Configuration</a>
 <li><a href="#usage">Usage</a>
 <li><a href="#signing">Database and config signing</a>
 <li><a href="#general">General guidelines for security</a>
 </ol>
 
-<a name="whatisAide"></a>
-<h2>What is Aide?</h2>
+<a name="whatisAIDE"></a>
+<h2>What is AIDE?</h2>
 <p>
 AIDE (Advanced intrusion detection environment) is an intrusion
 detection program. More specifically a file integrity checker.
 </p>
 <p>
-Aide constructs a database of the files specified in Aide.conf, Aide's configuration file. 
-The Aide database  stores various file attributes including:
+AIDE constructs a database of the files specified in AIDE.conf, AIDE's configuration file. 
+The AIDE database  stores various file attributes including:
 permissions, inode number, user, group, file size, mtime and ctime,
 atime, growing size, number of links and link name.
-Aide also creates a cryptographic checksum or hash of each file using
+AIDE also creates a cryptographic checksum or hash of each file using
 one or a combination of the following message digest algorithms: sha1,
 sha256, sha512, md5, rmd160, tiger (gost and whirlpool can be compiled
 in if mhash support is available). 
@@ -82,38 +82,38 @@ and sizes can be manipulated, some better root-kits make this trivial.
 While it is possible to manipulate file dates and sizes, it is much
 more difficult to manipulate a single cryptographic checksum like md5,
 and exponentially more difficult to manipulate each of the entire
-array of checksums that Aide supports. By rerunning Aide after a
+array of checksums that AIDE supports. By rerunning AIDE after a
 break-in, a system administrator can quickly identify changes to key
 files and have a fairly high degree of confidence as to the accuracy
 of these findings.  
 </p>
 <p>
-Unfortunately, Aide can not provide absolute sureness about change in
-files.  Like any other system files, Aide's binary and/or database can
+Unfortunately, AIDE can not provide absolute sureness about change in
+files.  Like any other system files, AIDE's binary and/or database can
 also be altered.
 </p>
 
 
 <a name=compilation></a>
-<h2>Compiling Aide</h2>
+<h2>Compiling AIDE</h2>
 <h3>I'm in a hurry. Bottomline about compilation.</h3>
 <p>
 After you have installed all the necessary sofware do
-<code>./configure;make;make install</code> in the main Aide  
+<code>./configure;make;make install</code> in the main AIDE  
 directory of the unpacked source tree. <b>You should carefully think
 about the configuration and what a possible hacker can do if
 he/her/they/it has root access.</b></p>
 
 <h3>Getting all that is needed</h3>
 <p>
-Before you can compile Aide you must have certain things.
+Before you can compile AIDE you must have certain things.
 <ul>
 <li>ANSI C-compiler (<a href="http://www.gnu.org/sofware/gcc/gcc.html">GCC</a>
 will do just fine) 
 <li><a href="ftp://ftp.gnu.org/pub/gnu/flex/">GNU Flex</a>
 <li><a href="ftp://ftp.gnu.org/pub/gnu/bison/">GNU Bison</a>
 <li><a href="ftp://ftp.gnu.org/pub/gnu/make">GNU Make</a>
-<li><a href="http://www.cs.tut.fi/~rammer/aide.html">Aide source code</a>
+<li><a href="http://www.cs.tut.fi/~rammer/aide.html">AIDE source code</a>
 <li><a href="http://schumann.cx/mhash/">Mhash library</a>
 <li>And if you want to use postgres sql for database storage you must have the 
 <a href="http://www.postgreSQL.org/">postgres sql developer
@@ -121,13 +121,13 @@ library</a> installed
 </ul>
 Please check to see if there are mirrors available.</p>
 <p>
-Once you have the source code of Aide you should unpack it. If you
+Once you have the source code of AIDE you should unpack it. If you
 have GNU tar then the command is <code>tar zxvf
 aide-version.tar.gz</code> .
 </p>
 <h3>Compile-time configuration</h3>
 <p>
-Next you must use the configure script found in Aide's source code
+Next you must use the configure script found in AIDE's source code
 package to configure the compilation process.</p><p>
 There are several options you can give to configure. You can find out
 what options are available with <code>./configure --help</code> 
@@ -138,7 +138,7 @@ If you want to use the bundled gnu regular expression package
 you can give the <code>--with-gnu-regexp</code> option. Some OS's that 
 a buggy regexp implementation you must use this option.</p><p>
 
-If you want to change the directory where Aide is installed you can 
+If you want to change the directory where AIDE is installed you can 
 use --prefix option. For example <code>./configure --prefix=/usr
 </code> 
 </p>
@@ -284,9 +284,9 @@ your config.
 You can use <code>aide --verbose=255</code> to generate a lot of debug 
 output to help you see which files get added and which are discarded. 
 The following section gives some more information about
-Aide's rule matching algorithm.
+AIDE's rule matching algorithm.
 </p>
-<h4>Understanding Aide rule matching</h4>
+<h4>Understanding AIDE rule matching</h4>
 <p>
 Before reading this you should have basic understanding of how regular
 expressions work. There are several good books about this. Several
@@ -380,7 +380,7 @@ they are referring to. The rest of the line is included by default.
 So <code>=/etc$ R+a</code> would be the correct form. If you don't
 have the <code>!/etc/ppp/logs</code> you would get the results that
 you are looking for because there is no node /etc in the regexp
-tree and there for it is not checked when Aide constructs the list of
+tree and there for it is not checked when AIDE constructs the list of
 files to add to the database. But when you have the negative rules the
 nodes /etc and /etc/ppp get created and they get checked when the file
 list is generated. So the =/etc is used to find a match in those nodes
@@ -452,20 +452,20 @@ into a network. You can do this by giving the command
 This creates a database that contains all of the files that you
 selected in your config file. The newly created database should now be 
 moved to a secure location such as read-only media. You should also
-place the configuration file and the Aide binary and preferably the
+place the configuration file and the AIDE binary and preferably the
 manual pages and this manual on that media also. Please remember to
 edit the configuration file so that the input database is read from
 that read-only media. The config file should not be kept on the 
 target machine. The attacker could read the config file and alter it
 or even if he does alter it he could place his rootkit to place that
-Aide does not check. So the read-only media should be accessible only 
+AIDE does not check. So the read-only media should be accessible only 
 during the check.</p>
 <p>
 Now you are all set to go. You can now check the integrity of the
 files. This can be done by giving the command
 <code>aide --check</code>.
-Aide now reads the database and compares it to the files found on
-disk. Aide may find changes in places that might not expect. For
+AIDE now reads the database and compares it to the files found on
+disk. AIDE may find changes in places that might not expect. For
 instance tty devices often change owners and permissions. You may want
 to read long reports and that is up to you to decide. But most of us
 do not have the time or the inclination read through tons of garbage
@@ -514,9 +514,9 @@ machines.
 <a name=signing></a>
 <h2>Database and config signing</h2>
 <p>
-The security of Aide can be increased by signing the configuration and/or
-database. When a database is signed, and it is changed manually, Aide will
-refuse to use it. Likewise, if a configuration is signed, Aide will not use
+The security of AIDE can be increased by signing the configuration and/or
+database. When a database is signed, and it is changed manually, AIDE will
+refuse to use it. Likewise, if a configuration is signed, AIDE will not use
 it until the embedded hash is updated as well.
 </p>
 
@@ -626,17 +626,17 @@ File to patch: /etc/aide.conf
 patching file /etc/aide.conf
 </pre>
 
-Using <code>forced_configmd</code> will make Aide refuse to use unsigned
+Using <code>forced_configmd</code> will make AIDE refuse to use unsigned
 configuration files. This also disables the <code>--config-check</code>
 option. This only makes sense if you already have a signed configuration, or
-if you have an Aide executable on another machine that can create the signed
+if you have an AIDE executable on another machine that can create the signed
 configurations for you.
 </p>
 
 <a name=misc></a>
 <h2>Miscellaneous</h2>
 <p>
-The Aide database can be used to find the real names and places of
+The AIDE database can be used to find the real names and places of
 files that have been moved to lost+found directory by fsck.
 </p>
 <a name=general></a>

@@ -12,7 +12,7 @@ configuration aide uses to initiailize or check the aide database.
 \fBaide.conf\fP is similar in to Tripwire(tm)'s configuration
 file. With little effort tw.conf can be converted to aide.conf. 
 .PP
-Aide.conf is case-sensitive. Leading and trailing whitespaces are
+aide.conf is case-sensitive. Leading and trailing whitespaces are
 ignored. 
 .PP
 There are three types of lines in \fBaide.conf\fP. First there are the

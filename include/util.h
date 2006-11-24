@@ -37,10 +37,6 @@
 #  define stricmp(a,b)   strcasecmp( (a), (b) )
 #endif
 
-#ifndef HAVE_STPCPY
-char * stpcpy (char*,const char* );
-#endif
-
 int cmpurl(url_t*, url_t*);
 
 url_t* parse_url(char*);

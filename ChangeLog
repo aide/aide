@@ -6,6 +6,7 @@
 	* Fix use of libgcrypt
 	* Add new group 'l' to detect changed link name
 	* Update documentation with new groups
+	* Supply strnlen in utils.c
 
 2006-11-15	Richard van den Berg  <richard@vdberg.org>
 	* Fix syslog URLs (Yves Mettier <ymettier@libertysurf.fr>)

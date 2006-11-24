@@ -400,6 +400,17 @@ char* strnstr(char* haystack,char* needle,int n)
 }
 #endif
 
+#ifndef HAVE_STRNLEN
+size_t strnlen(const char *s, size_t maxlen)
+{
+	size_t l;
+	l=strlen(s);
+	if(l>maxlen)
+		return maxlen;
+	return l;
+}
+#endif
+
 /* Lookup syslog facilities by name */
 int syslog_facility_lookup(char *s)
 {

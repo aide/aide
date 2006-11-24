@@ -187,7 +187,7 @@ AC_CHECK_SIZEOF(unsigned long long, 8)
 AC_HEADER_STDC
 AC_CHECK_FUNCS(strtoll strtoimax readdir)
 AIDE_CHECK_READDIR_R_ARGS
-AC_CHECK_FUNCS(stricmp strnstr ustat)
+AC_CHECK_FUNCS(stricmp strnstr strnlen ustat)
 
 AC_ARG_WITH(mmap,
 	AC_HELP_STRING([--without-mmap],

@@ -91,7 +91,6 @@ url_t* parse_url(char* val)
     }
   }
   
-  
   switch (u->type) {
   case url_file : {
     if(r[0]=='/'&&(r+1)[0]=='/'&&(r+2)[0]=='/'){
@@ -128,8 +127,10 @@ url_t* parse_url(char* val)
     
     break;
   }
-  case url_syslog : {
-    u->value=strdup(r);
+  case url_https :
+  case url_http :
+  case url_ftp : {
+    u->value=strdup(val);
     break;
   }
   case url_unknown : {
@@ -137,7 +138,7 @@ url_t* parse_url(char* val)
     break;
   }
   default : {
-    u->value=strdup(val);
+    u->value=strdup(r);
     break;
   }
   }

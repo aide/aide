@@ -1055,8 +1055,8 @@ int db_writeline_file(db_line* line,db_config* conf, url_t* url){
       break;
     }
     case db_selinux : {
-      db_write_byte_base64((byte*)line->cntx, strlen(line->cntx),
-                           conf->db_out, i, 1, 1);
+	db_write_byte_base64((byte*)line->cntx, line->cntx?strlen(line->cntx):0,
+                             conf->db_out, i, 1, 1);
       break;
     }
     case db_checkmask : {

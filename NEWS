@@ -3,6 +3,14 @@
 
 =========================================================
 
+Version 0.13
+	* Added support for selinux and xattr attributes
+	  (kindly contributed by Redhat)
+	* Added support for the Linux Audit System
+	  (kindly contributed by Redhat)
+	* Fixed usage of libgcrypt instead of libmhash
+	* Fixed bugs
+
 Version 0.12
 	* Fixed bugs
 	* Allow http/https/ftp URLs through libcurl

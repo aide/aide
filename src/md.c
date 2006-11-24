@@ -34,6 +34,49 @@
   stored. Only a speed issue.
 */
 
+DB_ATTR_TYPE hash_gcrypt2attr(int i) {
+  DB_ATTR_TYPE r=0;
+#ifdef WITH_GCRYPT
+  switch (i) {
+  case GCRY_MD_MD5: {
+    r=DB_MD5;
+    break;
+  }
+  case GCRY_MD_SHA1: {
+    r=DB_SHA1;
+    break;
+  }
+  case GCRY_MD_RMD160: {
+    r=DB_RMD160;
+    break;
+  }
+  case GCRY_MD_TIGER: {
+    r=DB_TIGER;
+    break;
+  }
+  case GCRY_MD_HAVAL: {
+    r=DB_HAVAL;
+    break;
+  }
+  case GCRY_MD_SHA256: {
+    r=DB_SHA256;
+    break;
+  }
+  case GCRY_MD_SHA512: {
+    r=DB_SHA512;
+    break;
+  }
+  case GCRY_MD_CRC32: {
+    r=DB_CRC32;
+    break;
+  }
+  default:
+    break;
+  }
+#endif
+  return r;
+}
+
 DB_ATTR_TYPE hash_mhash2attr(int i) {
   DB_ATTR_TYPE r=0;
 #ifdef WITH_MHASH
@@ -139,14 +182,14 @@ int init_md(struct md_container* md) {
       error(255,"inserting %llu\n",h);
       md->mhash_mdh[i]=mhash_init(i);
       if (md->mhash_mdh[i]!=MHASH_FAILED) {
-	md->calc_attr|=h;
+				md->calc_attr|=h;
       } else {
 	/*
 	  Oops.. 
 	  We just don't calculate this.
 	 */
-	
-	md->todo_attr&=~h;
+
+				md->todo_attr&=~h;
       }
 
     } else {
@@ -154,6 +197,25 @@ int init_md(struct md_container* md) {
     }
   }
 #endif 
+#ifdef WITH_GCRYPT
+  error(255,"Gcrypt library initialization\n");
+	if(gcry_md_open(&md->mdh,0,0)!=GPG_ERR_NO_ERROR){
+		error(0,"gcrypt_md_open failed\n");
+		exit(IO_ERROR);
+	}
+  for(i=0;i<=HASH_GCRYPT_COUNT;i++) {
+    if (((hash_gcrypt2attr(i)&HASH_USE_GCRYPT)&md->todo_attr)!=0) {
+      DB_ATTR_TYPE h=hash_gcrypt2attr(i);
+      error(255,"inserting %llu\n",h);
+			if(gcry_md_enable(md->mdh,i)==GPG_ERR_NO_ERROR){
+				md->calc_attr|=h;
+			} else {
+				error(0,"gcry_md_enable %i failed",i);
+				md->todo_attr&=~h;
+			}
+		}
+	}
+#endif
   return RETOK;
 }
 
@@ -182,6 +244,9 @@ int update_md(struct md_container* md,void* data,ssize_t size) {
   }
   
 #endif /* WITH_MHASH */
+#ifdef WITH_GCRYPT
+	gcry_md_write(md->mdh, data, size);
+#endif
   return RETOK;
 }
 
@@ -205,23 +270,23 @@ int close_md(struct md_container* md) {
     }  
   }
 #endif /* WITH_MHASH */
-#ifdef WITH_LIBGCRYPT
-  gcry_md_write(mdh,(byte*)buf,0);
+#ifdef WITH_GCRYPT
   gcry_md_final(md->mdh); 
   /* Let's flush the buffers */
 
 #define get_libgcrypt_hash(a,b,c,d) \
-  if(md->calc_attr&a&HASH_USE_LIBGCRYPT){\
-    memcpy(md->b,gcry_md_read(md->mdh,c),d);\
+  if(md->calc_attr&a&HASH_USE_GCRYPT){\
+		error(255,"Getting hash %i\n",b);\
+    memcpy(md->c,gcry_md_read(md->mdh,b),d);\
   }
 
   get_libgcrypt_hash(DB_MD5,GCRY_MD_MD5,md5,HASH_MD5_LEN);
   get_libgcrypt_hash(DB_SHA1,GCRY_MD_SHA1,sha1,HASH_SHA1_LEN);
   get_libgcrypt_hash(DB_TIGER,GCRY_MD_TIGER,tiger,HASH_TIGER_LEN);
   get_libgcrypt_hash(DB_RMD160,GCRY_MD_RMD160,rmd160,HASH_RMD160_LEN);
-  
   get_libgcrypt_hash(DB_SHA256,GCRY_MD_SHA256,sha256,HASH_SHA256_LEN);
   get_libgcrypt_hash(DB_SHA512,GCRY_MD_SHA512,sha512,HASH_SHA512_LEN);
+  get_libgcrypt_hash(DB_CRC32,GCRY_MD_CRC32,crc32,HASH_CRC32_LEN);
   
   /*.    There might be more hashes in the library. Add those here..   */
   

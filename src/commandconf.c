@@ -467,23 +467,23 @@ void update_db_out_order(DB_ATTR_TYPE attr)
   if((attr&DB_TIGER) && (check_dboo(db_tiger)!=RETFAIL)){
     conf->db_out_order[conf->db_out_size++]=db_tiger;
   }
-  /*
-#ifdef WITH_MHASH
-  */
   if((attr&DB_CRC32) && (check_dboo(db_crc32)!=RETFAIL)){
     conf->db_out_order[conf->db_out_size++]=db_crc32;
   }
   if((attr&DB_HAVAL) && (check_dboo(db_haval)!=RETFAIL)){
     conf->db_out_order[conf->db_out_size++]=db_haval;
   }
+  /*
+#ifdef WITH_MHASH
+  */
   if((attr&DB_GOST) && (check_dboo(db_gost)!=RETFAIL)){
     conf->db_out_order[conf->db_out_size++]=db_gost;
   }
-  if((attr&DB_CRC32B) && (check_dboo(db_crc32b)!=RETFAIL)){
-    conf->db_out_order[conf->db_out_size++]=db_crc32b;
-  }
   if((attr&DB_WHIRLPOOL) && (check_dboo(db_whirlpool)!=RETFAIL)){
     conf->db_out_order[conf->db_out_size++]=db_whirlpool;
+  }
+  if((attr&DB_CRC32B) && (check_dboo(db_crc32b)!=RETFAIL)){
+    conf->db_out_order[conf->db_out_size++]=db_crc32b;
   }
   /*
 #endif

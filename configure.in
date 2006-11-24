@@ -194,6 +194,7 @@ AC_ARG_WITH(mmap,
 		[Don't use mmap. Useful on some platforms with slow mmap implementations.]),
 	,
 	[AC_CHECK_FUNCS(mmap)]
+	compoptionstring="${compoptionstring}WITH_MMAP\\n"
 )
 
 AC_CHECK_FUNCS(fcntl ftruncate posix_fadvice snprintf vsnprintf)
@@ -283,6 +284,7 @@ AC_ARG_WITH(locale,
 	[AC_CHECK_HEADERS(libintl.h,
 		[AC_DEFINE(USE_LOCALE,1,[Define if LOCALE support should be used])
 		AIDE_USE_LOCALE=""
+		compoptionstring="${compoptionstring}WITH_LOCALE\\n"
 dnl        	AC_DEFINE_UNQUOTED(LOCALEDIR,"$prefix/lib/locale",[Localedir to use])],
 	)]
 )
@@ -292,14 +294,16 @@ AC_SUBST(AIDE_USE_LOCALE)
 AC_ARG_WITH([syslog_ident],
 	AC_HELP_STRING([--with-syslog_ident],
 	[syslog ident]),
-  	[AC_DEFINE_UNQUOTED(AIDE_IDENT,"$withval",[syslog ident])],
+  	[AC_DEFINE_UNQUOTED(AIDE_IDENT,"$withval",[syslog ident])]
+		compoptionstring="${compoptionstring}AIDE_IDENT=${withval}\\n",
   	[AC_DEFINE_UNQUOTED(AIDE_IDENT,"aide",[syslog ident])]
 )
 
 AC_ARG_WITH([syslog_facility],
 	AC_HELP_STRING([--with-syslog_facility],
 		[Specify syslog facility, see man syslog for options]),
-	[AC_DEFINE_UNQUOTED(AIDE_SYSLOG_FACILITY,$withval,[syslog facility])],
+	[AC_DEFINE_UNQUOTED(AIDE_SYSLOG_FACILITY,$withval,[syslog facility])]
+	compoptionstring="${compoptionstring}AIDE_SYSLOG_FACILITY=${withval}\\n",
 	[AC_DEFINE_UNQUOTED(AIDE_SYSLOG_FACILITY,LOG_LOCAL0,[syslog facility])]
 )
 
@@ -313,7 +317,8 @@ AC_ARG_WITH([syslog_logopt],
 AC_ARG_WITH([syslog_priority],
 	AC_HELP_STRING([--with-syslog_priority],
 		[Specify syslog priority, see man syslog for options]),
-	[AC_DEFINE_UNQUOTED(SYSLOG_PRIORITY,$withval,[syslog priority])],
+	[AC_DEFINE_UNQUOTED(SYSLOG_PRIORITY,$withval,[syslog priority])]
+	compoptionstring="${compoptionstring}SYSLOG_PRIORITY=${withval}\\n",
 	[AC_DEFINE_UNQUOTED(SYSLOG_PRIORITY,LOG_NOTICE,[syslog priority])]
 )
 
@@ -323,12 +328,13 @@ AC_ARG_WITH([zlib],
 		[use zlib compression]),
 	,
 	[with_zlib=yes]
+	 compoptionstring="${compoptionstring}WITH_ZLIB\\n"
 )
 
 AC_ARG_WITH([curl],
 	AC_HELP_STRING([--with-curl],
 		[use curl for http,https and ftp backends]),
-	,
+		compoptionstring="${compoptionstring}WITH_CURL\\n",
 	[with_curl=no]
 )
 
@@ -340,6 +346,7 @@ AC_ARG_WITH(sun-acl,
 	[AC_DEFINE(WITH_SUN_ACL,1,[use ACL on Solaris])
 	AC_DEFINE(WITH_ACL,1,[use ACL])
 	ACLLIB="-lsec"
+	compoptionstring="${compoptionstring}WITH_SUN_ACL\\n"
 	AC_MSG_RESULT(yes)],
 	[AC_MSG_RESULT(no)]
 )
@@ -351,6 +358,7 @@ AC_ARG_WITH(posix-acl,
 	[AC_DEFINE(WITH_POSIX_ACL,1,[use POSIX ACLs])
 	AC_DEFINE(WITH_ACL,1,[use ACL])
 	ACLLIB="-lacl"
+	compoptionstring="${compoptionstring}WITH_POSIX_ACL\\n"
 	AC_MSG_RESULT(yes)],
 	[AC_MSG_RESULT(no)]
 )
@@ -367,6 +375,7 @@ AC_ARG_WITH(selinux,
 	else
 		SELINUXLIB="-lselinux"
 	fi
+	compoptionstring="${compoptionstring}WITH_SELINUX\\n"
 	AC_MSG_RESULT(yes)],
 	[AC_MSG_RESULT(no)]
 )
@@ -379,6 +388,7 @@ AC_ARG_WITH(xattr,
 		[use xattr (no checking)]),
 	[AC_DEFINE(WITH_XATTR,1,[use xattr])
 	ATTRLIB=-lattr
+	compoptionstring="${compoptionstring}WITH_XATTR\\n"
 	AC_MSG_RESULT(yes)],
 	[AC_MSG_RESULT(no)]
 )
@@ -541,9 +551,11 @@ fi
 AC_ARG_WITH([gnu-regexp],
 	AC_HELP_STRING([--with-gnu-regexp],
 		[use the bundled GNU regexp library. use only if necessary]),
-	[AC_DEFINE(REGEX, 1, [use bundled GNU regex])],
+	[AC_DEFINE(REGEX, 1, [use bundled GNU regex])
+	compoptionstring="${compoptionstring}WITH_GNU_REGEXP\\n"],
 	[AC_CHECK_FUNCS(regexec regcomp,,
-		[AC_DEFINE(REGEX,1,[use bundled GNU regex])]
+		[AC_DEFINE(REGEX,1,[use bundled GNU regex])
+		compoptionstring="${compoptionstring}WITH_GNU_REGEXP\\n"]
 	)]
 )
 
@@ -554,7 +566,7 @@ AC_ARG_WITH(gcrypt,
 	AC_CHECK_HEADER(gcrypt.h,,
 		AC_MSG_ERROR(You don't have libgcrypt properly installed. Install it if you need one.)
 	)
-	CRYPTLIB="${CRYPTLIB} -lgcrypt"
+	CRYPTLIB="${CRYPTLIB} -lgcrypt -lgpg-error"
 	compoptionstring="${compoptionstring}WITH_GCRYPT\\n"],
 	[with_gcrypt=no]
 )

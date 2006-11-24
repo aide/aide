@@ -162,17 +162,20 @@ Input is read from filedescriptor \fBnumber\fR or output is written to
 .IP "ANF:	allow new files
 .IP "ARF:	allow removed files
 .IP "md5:	md5 checksum"
-.IP "sha1:	sha1 checksum"
-.IP "rmd160:     rmd160 checksum"
-.IP "tiger:     tiger checksum"
+.IP "sha1: sha1 checksum"
+.IP "sha256: sha256 checksum"
+.IP "sha512: sha512 checksum"
+.IP "rmd160: rmd160 checksum"
+.IP "tiger: tiger checksum"
+.IP "haval: haval checksum"
+.IP "crc32:	crc32 checksum"
 .IP "R:	p+i+n+u+g+s+m+c+md5"
 .IP "L:	p+i+n+u+g"
 .IP "E:	Empty group"
 .IP ">:	Growing logfile p+u+g+i+n+S"
 .IP "And also the following if you have mhash support enabled"
-.IP "crc32:	crc32 checksum"
-.IP "haval:	haval checksum"
-.IP "gost:	gost checksum"
+.IP "gost: gost checksum"
+.IP "whirlpool: whirlpool checksum"
 .LP
 Please note that 'I' and 'c' are incompatible. When the name of a file
 is changed, it's ctime is updated as well. When you put 'c' and 'I' in

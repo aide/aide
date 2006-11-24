@@ -347,28 +347,35 @@ void setdefaults_before_config()
   do_groupdef("m",DB_MTIME);
   do_groupdef("c",DB_CTIME);
   do_groupdef("a",DB_ATIME);
+#if defined(WITH_MHASH) || defined(WITH_GCRYPT)
   do_groupdef("md5",DB_MD5);
   do_groupdef("tiger",DB_TIGER);
+  do_groupdef("haval",DB_HAVAL);
+  do_groupdef("crc32",DB_CRC32);
   do_groupdef("sha1",DB_SHA1);
   do_groupdef("rmd160",DB_RMD160);
   do_groupdef("sha256",DB_SHA256);
   do_groupdef("sha512",DB_SHA512);
+#endif
+#ifdef WITH_ACL
   do_groupdef("acl",DB_ACL);
-
+#endif
+#ifdef WITH_XATTR
   do_groupdef("xattrs",DB_XATTRS);
+#endif
+#ifdef WITH_SELINUX
   do_groupdef("selinux",DB_SELINUX);
+#endif
 
 #ifdef WITH_MHASH
-  do_groupdef("crc32",DB_CRC32);
-  /*
-    crc32b is same than crc32
-  */
-  do_groupdef("haval",DB_HAVAL);
   do_groupdef("gost",DB_GOST);
   do_groupdef("whirlpool",DB_WHIRLPOOL);
 #endif
 
   p=0LLU;
+#if defined(WITH_MHASH) || defined(WITH_GCRYPT)
+  p|=DB_MD5;
+#endif
 #ifdef WITH_ACL
   p|=DB_ACL;
 #endif
@@ -379,7 +386,7 @@ void setdefaults_before_config()
   p|=DB_XATTRS;
 #endif
   do_groupdef("R",DB_PERM|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID|DB_SIZE|
-	      DB_MTIME|DB_CTIME|DB_MD5|p);
+	      DB_MTIME|DB_CTIME|p);
 
   p=0LLU;
 #ifdef WITH_ACL

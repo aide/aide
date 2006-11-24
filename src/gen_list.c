@@ -698,20 +698,23 @@ list* add_file_to_list(list* listp,char*filename,DB_ATTR_TYPE attr,int* addok)
      ||S_ISBLK(fs.st_mode)||S_ISFIFO(fs.st_mode)
      ||S_ISLNK(fs.st_mode)||S_ISSOCK(fs.st_mode)){
     
-    fil->attr&=(~DB_MD5)&(~DB_SHA1)&(~DB_RMD160)&(~DB_TIGER);
+    fil->attr&=(~DB_MD5)&(~DB_SHA1)&(~DB_SHA256)&(~DB_SHA512)&(~DB_RMD160)&(~DB_TIGER)&(~DB_CRC32)&(~DB_HAVAL);
     
     fil->md5=NULL;
     fil->sha1=NULL;
+    fil->sha256=NULL;
+    fil->sha512=NULL;
     fil->tiger=NULL;
     fil->rmd160=NULL;
+    fil->haval=NULL;
+    fil->crc32=NULL;
 #ifdef WITH_MHASH
 
-    fil->attr&=(~DB_CRC32)&(~DB_HAVAL)&(~DB_CRC32B);
+    fil->attr&=(~DB_CRC32B)&(~DB_GOST)&(~DB_WHIRLPOOL);
 
-    fil->crc32=NULL;
     fil->crc32b=NULL;
-    fil->haval=NULL;
     fil->gost=NULL;
+    fil->whirlpool=NULL;
 #endif
   }else {
     /* 1 if needs to be set
@@ -720,11 +723,12 @@ list* add_file_to_list(list* listp,char*filename,DB_ATTR_TYPE attr,int* addok)
     fil->sha1=DB_SHA1&fil->attr?(byte*)"":NULL;
     fil->tiger=DB_TIGER&fil->attr?(byte*)"":NULL;
     fil->rmd160=DB_RMD160&fil->attr?(byte*)"":NULL;
-#ifdef WITH_MHASH
     fil->crc32=DB_CRC32&fil->attr?(byte*)"":NULL;
+    fil->haval=DB_HAVAL&fil->attr?(byte*)"":NULL;
+#ifdef WITH_MHASH
     fil->crc32b=DB_CRC32B&fil->attr?(byte*)"":NULL;
     fil->gost=DB_GOST&fil->attr?(byte*)"":NULL;
-    fil->haval=DB_HAVAL&fil->attr?(byte*)"":NULL;
+    fil->whirlpool=DB_WHIRLPOOL&fil->attr?(byte*)"":NULL;
 #endif
   }
 
@@ -1111,18 +1115,21 @@ void strip_dbline(db_line* line,DB_ATTR_TYPE attr)
   if(!(attr&DB_TIGER)){
     checked_free(line->tiger);
   }
-#ifdef WITH_MHASH
+  if(!(attr&DB_HAVAL)){
+    checked_free(line->haval);
+  }
   if(!(attr&DB_CRC32)){
     checked_free(line->crc32);
   }
+#ifdef WITH_MHASH
   if(!(attr&DB_CRC32B)){
     checked_free(line->crc32b);
   }
   if(!(attr&DB_GOST)){
     checked_free(line->gost);
   }
-  if(!(attr&DB_HAVAL)){
-    checked_free(line->haval);
+  if(!(attr&DB_WHIRLPOOL)){
+    checked_free(line->whirlpool);
   }
 #endif
   if(!(attr&DB_SHA256)){
@@ -1141,14 +1148,18 @@ void strip_dbline(db_line* line,DB_ATTR_TYPE attr)
     checked_free(line->acl);
   }
 #endif
+#ifdef WITH_XATTR
   if(!(attr&DB_XATTRS)){
     if (line->xattrs)
       free(line->xattrs->ents);
     checked_free(line->xattrs);
   }
+#endif
+#ifdef WITH_SELINUX
   if(!(attr&DB_SELINUX)){
     checked_free(line->cntx);
   }
+#endif
 }
 
 /*

@@ -3,6 +3,7 @@
 	* Fix segfault when line->cntx is NULL
 	* Add --without-mhash to configure
 	* Don't use DB_SELINUX and DB_XATTR when not present
+	* Fix use of libgcrypt
 
 2006-11-15	Richard van den Berg  <richard@vdberg.org>
 	* Fix syslog URLs (Yves Mettier <ymettier@libertysurf.fr>)

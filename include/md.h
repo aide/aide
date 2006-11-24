@@ -37,8 +37,13 @@
 #define MHASH_HAVAL MHASH_HAVAL256
 #endif
 
-#ifdef WITH_LIBGCRYPT
+#ifdef WITH_GCRYPT
 #include <gcrypt.h>
+#define HASH_GCRYPT_COUNT GCRY_MD_CRC32
+#ifndef WITH_MHASH
+#define HASH_USE_GCRYPT (DB_MD5|DB_SHA1|DB_RMD160|DB_TIGER|DB_CRC32|\
+                         DB_HAVAL|DB_CRC32|DB_SHA256|DB_SHA512)
+#endif
 #endif
 
 /*
@@ -70,11 +75,13 @@
   What we use from what library?
  */
 
+#ifdef WITH_MHASH
 #define HASH_USE_MHASH (DB_MD5|DB_SHA1|DB_RMD160|DB_TIGER|DB_CRC32|\
-			DB_HAVAL|DB_GOST|DB_CRC32B|\
+                        DB_HAVAL|DB_GOST|DB_CRC32|\
                         DB_SHA256|DB_SHA512|DB_WHIRLPOOL)
 
-#define HASH_USE_LIBGCRYPT (0)
+#define HASH_USE_GCRYPT (0)
+#endif
 
 
 /*
@@ -125,8 +132,8 @@ typedef struct md_container {
   MHASH mhash_mdh[HASH_MHASH_COUNT+1];
 #endif
 
-#ifdef WITH_LIBGCRYPT
-  GCRY_MD_HD mdh;
+#ifdef WITH_GCRYPT
+  gcry_md_hd_t mdh;
 #endif
 
 

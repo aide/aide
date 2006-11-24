@@ -15,9 +15,9 @@
     Introduction
     ------------
 
-    AIDE is a tool for monitoring file system changes.  It can be used
-    to detect unauthorized monitored files and directories.  AIDE was
-    written to be a simple and free alternative to Tripwire.  Features
+    AIDE is a tool for monitoring file system changes. It can be used
+    to detect unauthorized monitored files and directories. AIDE was
+    written to be a simple and free alternative to Tripwire. Features
     currently included in AIDE are as follows:
 
         o  File attributes monitored: perissions, inode, user, group
@@ -38,14 +38,14 @@
     Current Version
     ---------------
 
-    AIDE is currently maintained on the SourceForge.  Details of the
+    AIDE is currently maintained on the SourceForge. Details of the
     latest version of AIDE can be found on the server project page under
     http://sourceforge.net/projects/aide/.
 
     Documentation
     -------------
 
-    The documentation for AIDE can be found in the doc/ directory.  The
+    The documentation for AIDE can be found in the doc/ directory. The
     most up-to-date documentation an be found on the SourceForge project
     web site.
 
@@ -69,8 +69,8 @@
     ------------------------
 
     We highly recommend checking that the version of AIDE downloaded and
-    install is an original and unmodified one.  You have two options to
-    verify the source code; PGP and md5 has.  PGP verification is the
+    install is an original and unmodified one. You have two options to
+    verify the source code; PGP and md5 has. PGP verification is the
     preferred method.
 
     a) To check the supplied signature with GnuPG:
@@ -78,14 +78,14 @@
         $ gpg --verify aide-0.11.tar.gz.asc
 
        This checks that the detached signature file is indeed a signature
-       of aide-0.11.tar.gz.  The key used to create this signature is:
+       of aide-0.11.tar.gz. The key used to create this signature is:
     
            pub 1024D/5930D198 2005-10-04 [expires: 2007-01-01]
                Aide Developers <aide-devel@lists.sourceforge.net>
 
        If you do not have this key, you can get it from the SourceForge
-       web site or from one of the well known PGP key servers.  You have
-       to make sure that the key you install is not a faked one.  You can
+       web site or from one of the well known PGP key servers. You have
+       to make sure that the key you install is not a faked one. You can
        do this with reasonable assurance by comparing the output of:
 
            gpg --fingerprint 0x5930D198
@@ -115,13 +115,12 @@
        o  GNU flex.
        o  GNU yacc (bison).
        o  GNU make.
-       o  Mhash (optional, but highly recommended).  Mhash is currently
+       o  Mhash (optional, but highly recommended). Mhash is currently
           available from http://mhash.sourceforge.net/. A static version of
           libmhash needs to be build using the --enable-static=yes
           configure option.
-          Many people have reported problems with mhash 0.9.x. If you run
-          into them, please try Christoph Ehret's patches for version 0.9.4
-          https://mailman.cs.tut.fi/pipermail/aide/2006-February/000419.html
+          Aide requires at least mhash version 0.9.7.
+          
 
     Note:
       flex version 2.5.31 is broken, you might see the following error
@@ -153,7 +152,7 @@
     Feedback and Support
     --------------------
 
-    End user support is available on the AIDE mailing list.  To subscribe,
+    End user support is available on the AIDE mailing list. To subscribe,
     send a message to majordomo@cs.tut.fi with an empty Subject: line and
     the following text as the BODY of the message:
 

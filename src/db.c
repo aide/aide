@@ -81,7 +81,7 @@ const char* db_names[db_unknown+1] = {
    "allowrmfiles",
    "sha256",
    "sha512",
-   "whirlpool"
+   "whirlpool",
    "selinux",
    "xattrs",
    "unknown"} ;

@@ -732,7 +732,8 @@ AC_ARG_ENABLE(forced_dbmd,
 AC_ARG_WITH(initial_errors_to,
 	AC_HELP_STRING([--with-initial_errors_to=URL],
 		[Where errors should go while checking config. Default is stderr.]),
-	AC_DEFINE_UNQUOTED(INITIALERRORSTO,"$withval",[send errors here]),
+	AC_DEFINE_UNQUOTED(INITIALERRORSTO,"$withval",[send errors here])
+	compoptionstring="${compoptionstring}INITIALERRORSTO=${withval}\\n",
 	AC_DEFINE_UNQUOTED(INITIALERRORSTO,"stderr",[send errors to stderr])
 )
 

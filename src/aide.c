@@ -246,6 +246,7 @@ void setdefaults_before_config()
   char* urlstr=INITIALERRORSTO;
   url_t* u=NULL;
   char* s=(char*)malloc(sizeof(char)*MAXHOSTNAMELEN+1);
+  unsigned long long p;
 
   /*
     Set up the hostname
@@ -367,13 +368,44 @@ void setdefaults_before_config()
   do_groupdef("whirlpool",DB_WHIRLPOOL);
 #endif
 
+  p=0LLU;
+#ifdef WITH_ACL
+  p|=DB_ACL;
+#endif
+#ifdef WITH_SELINUX
+  p|=DB_SELINUX;
+#endif
+#ifdef WITH_XATTR
+  p|=DB_XATTRS;
+#endif
   do_groupdef("R",DB_PERM|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID|DB_SIZE|
-	      DB_MTIME|DB_CTIME|DB_MD5|DB_XATTRS|DB_SELINUX|DB_ACL);
-  do_groupdef("L",DB_PERM|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID|DB_XATTRS|DB_SELINUX|DB_ACL);
-  do_groupdef(">",DB_PERM|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID|DB_SIZEG|DB_XATTRS|DB_SELINUX|DB_ACL);
+	      DB_MTIME|DB_CTIME|DB_MD5|p);
+
+  p=0LLU;
+#ifdef WITH_ACL
+  p|=DB_ACL;
+#endif
+#ifdef WITH_SELINUX
+  p|=DB_SELINUX;
+#endif
+#ifdef WITH_XATTR
+  p|=DB_XATTRS;
+#endif
+  do_groupdef("L",DB_PERM|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID|p);
+
+  p=0LLU;
+#ifdef WITH_ACL
+  p|=DB_ACL;
+#endif
+#ifdef WITH_SELINUX
+  p|=DB_SELINUX;
+#endif
+#ifdef WITH_XATTR
+  p|=DB_XATTRS;
+#endif
+  do_groupdef(">",DB_PERM|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID|DB_SIZEG|p);
   do_groupdef("E",0);
-  
-  
+
 }
 
 void setdefaults_after_config()

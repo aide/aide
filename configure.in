@@ -559,13 +559,17 @@ AC_ARG_WITH(gcrypt,
 	[with_gcrypt=no]
 )
 
-AC_CHECK_LIB([mhash],[mhash_get_block_size],
-	[CRYPTLIB="${CRYPTLIB} -lmhash"
-	compoptionstring="${compoptionstring}WITH_MHASH\\n"
-	AC_DEFINE(WITH_MHASH,1,[use mhash library])],
-	[AC_MSG_WARN(No mhash means no hmac.)]
+AC_ARG_WITH(mhash,
+	AC_HELP_STRING([--without-mhash],
+		[Don't use libmhash. This means aide cannot use hmacs.]),
+	,
+	AC_CHECK_LIB([mhash],[mhash_get_block_size],
+		[CRYPTLIB="${CRYPTLIB} -lmhash"
+		compoptionstring="${compoptionstring}WITH_MHASH\\n"
+		AC_DEFINE(WITH_MHASH,1,[use mhash library])],
+		[AC_MSG_WARN(No mhash means no hmac.)]
+	)
 )
-#	[AC_MSG_ERROR(You must have libmhash installed as a static library.)]
 
 AC_SUBST(CRYPTLIB)
 

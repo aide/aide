@@ -148,6 +148,11 @@
     the number 64, try configure again with the --disable-lfs option.
     This turns off the large file support.
 
+    Cross Compilation
+    -----------------
+    When cross compiling, manually verify the data types defines in config.h
+    as they cannot be accurately determined by configure. Most notably,
+    AIDE_INO_TYPE will be set to "cross".
 
     Feedback and Support
     --------------------

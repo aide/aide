@@ -341,6 +341,7 @@ void setdefaults_before_config()
   do_groupdef("n",DB_LNKCOUNT);
   do_groupdef("u",DB_UID);
   do_groupdef("g",DB_GID);
+  do_groupdef("l",DB_LINKNAME);
   do_groupdef("s",DB_SIZE);
   do_groupdef("S",DB_SIZEG);
   do_groupdef("b",DB_BCOUNT);
@@ -386,7 +387,7 @@ void setdefaults_before_config()
   p|=DB_XATTRS;
 #endif
   do_groupdef("R",DB_PERM|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID|DB_SIZE|
-	      DB_MTIME|DB_CTIME|p);
+                  DB_LINKNAME|DB_MTIME|DB_CTIME|p);
 
   p=0LLU;
 #ifdef WITH_ACL

@@ -189,10 +189,14 @@ AC_CHECK_FUNCS(strtoll strtoimax readdir)
 AIDE_CHECK_READDIR_R_ARGS
 AC_CHECK_FUNCS(stricmp strnstr strnlen ustat)
 
-AC_ARG_WITH(mmap,
-	AC_HELP_STRING([--without-mmap],
-		[Don't use mmap. Useful on some platforms with slow mmap implementations.]),
-	,
+AC_ARG_WITH([mmap],
+	[AC_HELP_STRING([--with-mmap],
+		[use mmap @<:@default=check@:>@])],
+	[],
+	[with_mmap=check]
+)
+
+AS_IF([test "x$with_mmap" != xno],
 	[AC_CHECK_FUNCS(mmap)]
 	compoptionstring="${compoptionstring}WITH_MMAP\\n"
 )
@@ -521,8 +525,8 @@ if test x$with_zlib = xyes; then
   save_LDFLAGS=$LDFLAGS
   LDFLAGS="$LDFLAGS $LD_STATIC_FLAG"
   AC_CHECK_LIB(z,gzdopen,,
- 	[AC_MSG_ERROR([You don't have zlib properly installed. Install it or try --without-zlib.])]
-)
+ 	  [AC_MSG_ERROR([You don't have zlib properly installed. Install it or try --without-zlib.])]
+  )
   LDFLAGS=$save_LDFLAGS
   AC_DEFINE(WITH_ZLIB,1,[use zlib])
 fi
@@ -559,28 +563,52 @@ AC_ARG_WITH([gnu-regexp],
 	)]
 )
 
-AC_ARG_WITH(gcrypt,
-	AC_HELP_STRING([--with-gcrypt],
-		[use gcrypt library]),
-	[AC_DEFINE(WITH_GCRYPT,1,[use gcrypt library])
-	AC_CHECK_HEADER(gcrypt.h,,
-		AC_MSG_ERROR(You don't have libgcrypt properly installed. Install it if you need one.)
-	)
-	CRYPTLIB="${CRYPTLIB} -lgcrypt -lgpg-error"
-	compoptionstring="${compoptionstring}WITH_GCRYPT\\n"],
-	[with_gcrypt=no]
+AC_ARG_WITH(mhash,
+	AC_HELP_STRING([--with-mhash],
+		[use libmhash, needed for hmacs @<:@default=check@:>@]),
+	[],
+	[with_mhash=check]
 )
 
-AC_ARG_WITH(mhash,
-	AC_HELP_STRING([--without-mhash],
-		[Don't use libmhash. This means aide cannot use hmacs.]),
-	,
+AS_IF([test "x$with_mhash" != xno],
 	AC_CHECK_LIB([mhash],[mhash_get_block_size],
 		[CRYPTLIB="${CRYPTLIB} -lmhash"
 		compoptionstring="${compoptionstring}WITH_MHASH\\n"
+		with_mhash=yes
 		AC_DEFINE(WITH_MHASH,1,[use mhash library])],
 		[AC_MSG_WARN(No mhash means no hmac.)]
 	)
+)
+
+AC_ARG_WITH([gcrypt],
+	[AC_HELP_STRING([--with-gcrypt],
+		[use gcrypt library])],
+		[],
+		[if test "x$with_mhash" != xyes; then
+			with_gcrypt=check
+		else
+			with_gcrypt=no
+		fi]
+)
+
+AS_IF([test "x$with_gcrypt" != xno],
+	[AC_DEFINE(WITH_GCRYPT,1,[use gcrypt library])
+	if test "x$with_mhash" = xyes; then
+		AC_MSG_ERROR([Using gcrypt together with mhash makes no sense. To disable mhash use --without-mhash])
+	fi
+	AC_CHECK_LIB([gpg-error], [gpg_strerror],
+		[saveLIBS="$LIBS"
+		LIBS="$LIBS -lgpg-error"
+		AC_CHECK_LIB([gcrypt], [gcry_md_hash_buffer],,
+			AC_MSG_ERROR([Aide requires mhash or libcrypt to be installed with static libraries.])
+		LIBS="$saveLIBS"
+		)],
+		[AC_MSG_ERROR([You need to have libgpg-error.a installed to use libgcrypt.])]
+	)
+	CRYPTLIB="${CRYPTLIB} -lgpg-error -lgcrypt"
+	with_gcrypt=yes
+	compoptionstring="${compoptionstring}WITH_GCRYPT\\n"],
+	[with_gcrypt=no]
 )
 
 AC_SUBST(CRYPTLIB)

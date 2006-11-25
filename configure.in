@@ -601,11 +601,11 @@ AS_IF([test "x$with_gcrypt" != xno],
 		LIBS="$LIBS -lgpg-error"
 		AC_CHECK_LIB([gcrypt], [gcry_md_hash_buffer],,
 			AC_MSG_ERROR([Aide requires mhash or libcrypt to be installed with static libraries.])
-		LIBS="$saveLIBS"
-		)],
+		)
+		LIBS="$saveLIBS"],
 		[AC_MSG_ERROR([You need to have libgpg-error.a installed to use libgcrypt.])]
 	)
-	CRYPTLIB="${CRYPTLIB} -lgpg-error -lgcrypt"
+	CRYPTLIB="${CRYPTLIB} -lgcrypt -lgpg-error"
 	with_gcrypt=yes
 	compoptionstring="${compoptionstring}WITH_GCRYPT\\n"],
 	[with_gcrypt=no]

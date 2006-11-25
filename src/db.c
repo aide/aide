@@ -443,19 +443,19 @@ db_line* db_char2line(char** ss,int db){
 			       strlen(ss[(*db_order)[i]]), NULL);
       break;
     }
-#ifdef WITH_MHASH
     case db_crc32 : {
       line->crc32=base64tobyte(ss[(*db_order)[i]],
 			       strlen(ss[(*db_order)[i]]), NULL);
       break;
     }
-    case db_gost : {
-      line->gost=base64tobyte(ss[(*db_order)[i]],
+    case db_haval : {
+      line->haval=base64tobyte(ss[(*db_order)[i]],
 			       strlen(ss[(*db_order)[i]]), NULL);
       break;
     }
-    case db_haval : {
-      line->haval=base64tobyte(ss[(*db_order)[i]],
+#ifdef WITH_MHASH
+    case db_gost : {
+      line->gost=base64tobyte(ss[(*db_order)[i]],
 			       strlen(ss[(*db_order)[i]]), NULL);
       break;
     }
@@ -470,9 +470,7 @@ db_line* db_char2line(char** ss,int db){
       break;
     }
 #else
-      WARN_ONCE(crc32);
       WARN_ONCE(gost);
-      WARN_ONCE(haval);
       WARN_ONCE(crc32b);
       WARN_ONCE(whirlpool);
 #endif

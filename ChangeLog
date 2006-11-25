@@ -1,3 +1,6 @@
+2006-11-25	Richard van den Berg  <richard@vdberg.org>
+	* Fix error message about HAVAL and CRC32 with --update and gcrypt
+
 2006-11-24	Richard van den Berg  <richard@vdberg.org>
 	* Remove stpcpy declaration because it is not defined in util.c
 	* Fix segfault when line->cntx is NULL

@@ -2,6 +2,7 @@
 	* Fix error message about HAVAL and CRC32 with --update and gcrypt
 	* Fix --with and --without logic of configure
 	* Make --without switches of configure work
+	* Released version 0.13-rc2
 
 2006-11-24	Richard van den Berg  <richard@vdberg.org>
 	* Remove stpcpy declaration because it is not defined in util.c

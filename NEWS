@@ -9,6 +9,7 @@ Version 0.13
 	* Added support for the Linux Audit System
 	  (kindly contributed by Redhat)
 	* Fixed usage of libgcrypt instead of libmhash
+	* Added file locking for output files
 	* Fixed bugs
 
 Version 0.12

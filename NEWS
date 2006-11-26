@@ -5,9 +5,9 @@
 
 Version 0.13
 	* Added support for selinux and xattr attributes
-	  (kindly contributed by Redhat)
+	  (kindly contributed by Red Hat)
 	* Added support for the Linux Audit System
-	  (kindly contributed by Redhat)
+	  (kindly contributed by Red Hat)
 	* Fixed usage of libgcrypt instead of libmhash
 	* Added file locking for output files
 	* Fixed bugs

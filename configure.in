@@ -608,6 +608,10 @@ AS_IF([test "x$with_mhash" != xno],
 		[CRYPTLIB="${CRYPTLIB} -lmhash"
 		compoptionstring="${compoptionstring}WITH_MHASH\\n"
 		with_mhash=yes
+		AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+		[[#include <mhash.h>
+		int i=MHASH_WHIRLPOOL;
+		]])],AC_DEFINE(HAVE_MHASH_WHIRLPOOL,1,[mhash has whirlpool]))
 		AC_DEFINE(WITH_MHASH,1,[use mhash library])],
 		[AC_MSG_WARN(No mhash means no hmac.)]
 	)

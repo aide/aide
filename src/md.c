@@ -142,10 +142,12 @@ DB_ATTR_TYPE hash_mhash2attr(int i) {
     r=DB_SHA512;
     break;
   }
+#ifdef HAVE_MHASH_WHIRLPOOL		 
   case MHASH_WHIRLPOOL: {
     r=DB_WHIRLPOOL;
     break;
   }
+#endif
   case MHASH_ADLER32: {
     break;
   }
@@ -309,7 +311,9 @@ int close_md(struct md_container* md) {
   get_mhash_hash(MHASH_CRC32B,crc32b);
   get_mhash_hash(MHASH_SHA256,sha256);
   get_mhash_hash(MHASH_SHA512,sha512);
+#ifdef HAVE_MHASH_WHIRLPOOL
   get_mhash_hash(MHASH_WHIRLPOOL,whirlpool);
+#endif
   
   /*
     There might be more hashes in the library we want to use.

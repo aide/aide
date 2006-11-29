@@ -370,7 +370,9 @@ void setdefaults_before_config()
 
 #ifdef WITH_MHASH
   do_groupdef("gost",DB_GOST);
+#ifdef HAVE_MHASH_WHIRLPOOL
   do_groupdef("whirlpool",DB_WHIRLPOOL);
+#endif
 #endif
 
   p=0LLU;

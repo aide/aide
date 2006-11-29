@@ -1,5 +1,6 @@
 2006-11-29	Richard van den Berg  <richard@vdberg.org>
 	* Changed version to post-0.13-rc2
+	* Check for WHIRLPOOL so old mhash can be used (Pablo Virolainen)
 
 2006-11-25	Richard van den Berg  <richard@vdberg.org>
 	* Fix error message about HAVAL and CRC32 with --update and gcrypt

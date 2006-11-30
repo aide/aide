@@ -51,6 +51,23 @@ output. See aide.conf (5) section URLS for available values.
 \fBaide\fP prints out its version number
 .IP "--help,-h"
 Prints out the standard help message.
+.PP
+.SH DIAGNOSTICS
+Normally, the exit status is 0 if no errors occurred. Except when the
+.B --check
+command was requested, in which case the exit status is defined as:
+.IP "1 * (new files detected?)     +"
+.IP "2 * (removed files detected?) +"
+.IP "4 * (changed files detected?)"
+.PP
+Additionally, the following exit codes are defined for generic error
+conditions:
+.IP "14 Error writing error"
+.IP "15 Invalid argument error"
+.IP "16 Unimplemented function error"
+.IP "17 Invalid configureline error"
+.IP "18 IO error"
+.PP
 .SH NOTES
 Please note that due to mmap issues, aide cannot be terminated with
 SIGTERM. Use SIGKILL to terminate.

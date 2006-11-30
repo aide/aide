@@ -542,7 +542,7 @@ int main(int argc,char**argv)
 #endif
   conf->use_initial_errorsto=0;
   if (!conf->config_check) {
-  
+    int exitcode=0;
     long totalchanges=0;
     long stat[5]={1,0,0,0,0};
     if(conf->action&DO_INIT){
@@ -576,6 +576,7 @@ int main(int argc,char**argv)
     /* First terse report */
     totalchanges=report_tree(conf->tree,0,stat);
     if(totalchanges>0){
+      exitcode=(stat[2]!=0)*1+(stat[3]!=0)*2+(stat[4]!=0)*4;
       stat[0]=1;
       report_tree(conf->tree,1,stat);
       stat[0]=1;
@@ -600,8 +601,8 @@ int main(int argc,char**argv)
       }
     }
     
-    exit(RETOK);
-      
+    exit(exitcode);
+    
   }else {
 #ifdef WITH_MHASH
     if(conf->confmd){

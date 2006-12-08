@@ -28,9 +28,6 @@
 #include <limits.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#ifdef HAVE_USTAT
-#include <ustat.h>
-#endif
 #include <errno.h>
 #include <time.h>
 
@@ -537,27 +534,6 @@ list* add_file_to_list(list* listp,char*filename,DB_ATTR_TYPE attr,int* addok)
       error(CLOCK_SKEW,_("%s ctime in future\n"),fil->filename);
     }
   }
-  
-#ifdef HAVE_USTAT
-  /* 
-   * This should not use ustat and should be implemented otherwise
-   * since ustat is not universally known function
-   * check find(1) for clues
-   */
-  /*
-    Here we should check if we need to add it..
-   */  
-  
-  {
-    struct ustat buf;
-    if (ustat(fs.st_dev, &buf) != 0 || buf.f_fname[0]==0) {
-      
-    } else {
-      
-    }
-
-  }
-#endif
   
   fil->perm_o=fs.st_mode;
   fil->size_o=fs.st_size;

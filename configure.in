@@ -187,7 +187,7 @@ AC_CHECK_SIZEOF(unsigned long long, 8)
 AC_HEADER_STDC
 AC_CHECK_FUNCS(strtoll strtoimax readdir)
 AIDE_CHECK_READDIR_R_ARGS
-AC_CHECK_FUNCS(stricmp strnstr strnlen ustat)
+AC_CHECK_FUNCS(stricmp strnstr strnlen)
 
 AC_ARG_WITH([mmap],
 	[AC_HELP_STRING([--with-mmap],
@@ -280,7 +280,7 @@ if test "$db_cv_open_o_noatime" = yes; then
 	AH_TEMPLATE(HAVE_O_NOATIME, [Define to 1 if you have the O_NOATIME flag.])
 fi
 
-AC_CHECK_HEADERS(syslog.h ustat.h inttypes.h fcntl.h)
+AC_CHECK_HEADERS(syslog.h inttypes.h fcntl.h)
 
 AC_ARG_WITH([locale],
 	[AC_HELP_STRING([--with-locale],

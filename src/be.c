@@ -135,6 +135,7 @@ FILE* be_init(int inout,url_t* u,int iszipped)
 #else
     fd=open(u->value,inout?O_RDONLY:O_CREAT|O_RDWR|O_TRUNC,0666);
 #endif
+    error(255,"Opened file \"%s\" with fd=%i\n",u->value,fd);
     if(fd==-1) {
       error(0,_("Couldn't open file %s for %s"),u->value,
 	    inout?"reading\n":"writing\n");
@@ -168,7 +169,13 @@ FILE* be_init(int inout,url_t* u,int iszipped)
     }
     else{
 #endif
-      fh=fdopen(fd,inout?"r":"w+");
+      if(inout) {
+	// gzdopen() doesn't work later on if we use fdopen() !?
+	close(fd);
+	fh=fopen(u->value,"r");
+      } else {
+	fh=fdopen(fd,"w+");
+      }
       if(fh==NULL){
 	error(0,_("Couldn't open file %s for %s"),u->value,
 	      inout?"reading\n":"writing\n");

@@ -1,3 +1,6 @@
+2006-12-13	Richard van den Berg  <richard@vdberg.org>
+	* Work around for error while reading gzipped aide.db files
+
 2006-12-08	Richard van den Berg  <richard@vdberg.org>
 	* Removed ustat dead code
 

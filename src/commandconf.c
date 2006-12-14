@@ -334,7 +334,7 @@ int db_input_wrapper(char* buf, int max_size, int db)
       if(c==(unsigned char)'\213'){
 	/* We got gzip header. */
 	error(255,"Got Gzip header. Handling..\n");
-	fseek(*db_filep,0L,SEEK_SET);
+	lseek(fileno(*db_filep),0L,SEEK_SET);
 	*db_gzp=gzdopen(fileno(*db_filep),"rb");
 	c=gzgetc(*db_gzp);
 	error(255,"First character after gzip header is: %c(%#X)\n",c,c);

@@ -3,6 +3,10 @@
 
 =========================================================
 
+Version 0.13.1
+	* Fixed bug with reading gzipped aide.db files
+	* Removed dead ustat code
+
 Version 0.13
 	* Added support for selinux and xattr attributes
 	  (kindly contributed by Red Hat)

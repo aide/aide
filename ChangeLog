@@ -1,3 +1,6 @@
+2006-12-19	Richard van den Berg  <richard@vdberg.org>
+	* Do not warn about files not being directories
+
 2006-12-15	Richard van den Berg  <richard@vdberg.org>
 	* Released version 0.13.1
 	* Changed version to post-0.13.1

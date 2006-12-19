@@ -358,8 +358,8 @@ recursion:
 						 */
 						error (10,
 									 "There are rules referring to non-existent directory %s\n", start_path);
-					} else {
-						/* In any other case we print the message. */
+					} else if (errno != ENOTDIR) {
+						/* We print the message unless it is "Not a directory". */
 						char *er = strerror (errno);
 						if (er != NULL) {
 							error (3, "open_dir():%s: %s\n", er, start_path);

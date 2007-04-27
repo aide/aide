@@ -19,7 +19,7 @@
 # corresponding line.
 #
 
-@@define TOPDIR @top_srcdir@
+@@define TOPDIR @abs_top_srcdir@
 
 @@ifndef TOPDIR 
 @@define TOPDIR /
@@ -64,7 +64,7 @@ verbose=20
 #report_url=syslog:LOG_AUTH
 report_url=stdout
 
-# @@{TOPDIR} is replaced with @top_srcdir@ when
+# @@{TOPDIR} is replaced with @abs_top_srcdir@ when
 # read by aide. 
 #p:		permissions
 #i:		inode

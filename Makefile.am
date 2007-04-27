@@ -33,7 +33,7 @@ check: update-db
 	src/aide -c doc/aide.conf -V20
 
 update-db: all
-	src/aide -B "database_out=file://$(top_srcdir)/doc/aide.db" -c doc/aide.conf -i
+	src/aide -B "database_out=file://@abs_top_srcdir@/doc/aide.db" -c doc/aide.conf -i
 
 dist-hook: configure
 	mkdir $(distdir)/include

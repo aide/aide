@@ -8,6 +8,16 @@ AM_INIT_AUTOMAKE
 AC_DEFINE_UNQUOTED(AIDEVERSION, "AIDE_VERSION")
 AH_TEMPLATE([AIDEVERSION], [package version])
 
+# We want an absolute path to the source-dir for "make check"
+case "$srcdir" in
+ 	/*)
+	;;
+	*)
+		oldsrcdir="$srcdir"
+		srcdir="`cd \"$srcdir\";pwd`"
+	;;
+esac
+
 dnl The name of the configure h-file.
 AM_CONFIG_HEADER(config.h)
 

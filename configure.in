@@ -854,7 +854,8 @@ AS_IF([test "x$with_audit" != xno],
 )
 AC_SUBST(AUDITLIB)
 
-extrasub="s&@aideextragroups@&$aideextragroups&;t t"
+extrasub="s&@aideextragroups@&$aideextragroups&;t t
+s&@AIDEVERSION@&$PACKAGE_VERSION&;t t"
 
 AIDE_DO_LINK_FILES
 

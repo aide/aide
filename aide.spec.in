@@ -9,7 +9,7 @@ Version: %ver
 Release: %rel
 Copyright: GPL
 Group: Console/Security
-Source: http://prdownloads.sourceforge.net/aide/aide-@AIDEVERSION@.tar.gz
+Source: http://prdownloads.sourceforge.net/aide/aide-%ver.tar.gz
 BuildRoot: /var/tmp/aide-%{PACKAGE_VERSION}-root
 Obsoletes: %name
 URL: http://sourceforge.net/projects/aide
@@ -45,7 +45,7 @@ CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=%prefix --sysconfdir=/etc --with-co
 %install
 rm -rf $RPM_BUILD_ROOT
 
-make prefix=$RPM_BUILD_ROOT%{prefix} install-strip
+make prefix=$RPM_BUILD_ROOT%{prefix} install-strip install-man
 mkdir -p -m700 $RPM_BUILD_ROOT/var/lib/aide
 
 %clean
@@ -56,6 +56,6 @@ rm -rf $RPM_BUILD_ROOT
 
 %doc AUTHORS COPYING ChangeLog NEWS README README-snprintf LICENSE-snprintf.txt Todo doc/aide*
 %{prefix}/bin/aide
-%{prefix}/man/man1/aide.1.gz
-%{prefix}/man/man5/aide.conf.5.gz
+%{_mandir}/man1/aide.1*
+%{_mandir}/man5/aide.conf.5*
 /var/lib/aide

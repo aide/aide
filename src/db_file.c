@@ -682,6 +682,8 @@ int db_write_byte_base64(byte*data,size_t len,FILE* file,int i,
   int retval=0;
   
   (void)file;  
+  if (data && !len)
+    len = strlen((const char *)data);
   
   if (data!=NULL&&th&attr) {
     tmpstr=encode_base64(data,len);
@@ -860,12 +862,12 @@ int db_writeacl(acl_type* acl,FILE* file,int a)
 
     dofprintf(",");
     if (acl->acl_a)
-      db_write_byte_base64((byte*)acl->acl_a, strlen(acl->acl_a), file,0,1,1);
+      db_write_byte_base64((byte*)acl->acl_a, 0, file,0,1,1);
     else
       dofprintf("0");
     dofprintf(",");
     if (acl->acl_d)
-      db_write_byte_base64((byte*)acl->acl_d, strlen(acl->acl_d), file,0,1,1);
+      db_write_byte_base64((byte*)acl->acl_d, 0, file,0,1,1);
     else
       dofprintf("0");
   }
@@ -1055,8 +1057,7 @@ int db_writeline_file(db_line* line,db_config* conf, url_t* url){
       break;
     }
     case db_selinux : {
-	db_write_byte_base64((byte*)line->cntx, line->cntx?strlen(line->cntx):0,
-                             conf->db_out, i, 1, 1);
+	db_write_byte_base64((byte*)line->cntx, 0, conf->db_out, i, 1, 1);
       break;
     }
     case db_checkmask : {

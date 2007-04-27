@@ -360,6 +360,7 @@ AS_IF([test "x$with_sun_acl" != xno],
 	AC_DEFINE(WITH_ACL,1,[use ACL])
 	ACLLIB="-lsec"
 	compoptionstring="${compoptionstring}WITH_SUN_ACL\\n"
+	aideextragroups="${aideextragroups}+acl"
 	AC_MSG_RESULT(yes)],
 	[AC_MSG_RESULT(no)]
 )
@@ -377,6 +378,7 @@ AS_IF([test "x$with_posix_acl_support" != xno],
 	AC_DEFINE(WITH_ACL,1,[use ACL])
 	ACLLIB="-lacl"
 	compoptionstring="${compoptionstring}WITH_POSIX_ACL\\n"
+	aideextragroups="${aideextragroups}+acl"
 	AC_MSG_RESULT(yes)],
 	[AC_MSG_RESULT(no)]
 )
@@ -399,6 +401,7 @@ AS_IF([test "x$with_selinux_support" != xno],
 		SELINUXLIB="-lselinux"
 	fi
 	compoptionstring="${compoptionstring}WITH_SELINUX\\n"
+	aideextragroups="${aideextragroups}+selinux"
 	AC_MSG_RESULT(yes)],
 	[AC_MSG_RESULT(no)]
 )
@@ -417,6 +420,7 @@ AS_IF([test "x$with_xattr_support" != xno],
 	[AC_DEFINE(WITH_XATTR,1,[use xattr])
 	ATTRLIB=-lattr
 	compoptionstring="${compoptionstring}WITH_XATTR\\n"
+	aideextragroups="${aideextragroups}+xattr"
 	AC_MSG_RESULT(yes)],
 	[AC_MSG_RESULT(no)]
 )
@@ -608,6 +612,7 @@ AS_IF([test "x$with_mhash" != xno],
 		[CRYPTLIB="${CRYPTLIB} -lmhash"
 		compoptionstring="${compoptionstring}WITH_MHASH\\n"
 		with_mhash=yes
+		aideextragroups="${aideextragroups}+whirlpool"
 		AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 		[[#include <mhash.h>
 		int i=MHASH_WHIRLPOOL;
@@ -848,6 +853,8 @@ AS_IF([test "x$with_audit" != xno],
 	[with_audit=no]
 )
 AC_SUBST(AUDITLIB)
+
+extrasub="s&@aideextragroups@&$aideextragroups&;t t"
 
 AIDE_DO_LINK_FILES
 

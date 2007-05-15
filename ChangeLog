@@ -1,3 +1,6 @@
+2007-05-15	Richard van den Berg  <richard@vdberg.org>
+	* Quit autogen.sh if required tools are not found
+
 2007-04-27	Richard van den Berg  <richard@vdberg.org>
 	* Only use optional groups in "make check" when enabled
 	* Prevent segfaults in db_write_byte_base64, patch from James Antill

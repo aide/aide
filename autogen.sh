@@ -35,7 +35,7 @@ function check_exists() {
 function print_error() {
     echo "**Error**: "\`$1\'" is too old or not installed"
     echo '           (version ' $2 ' or newer is required)'
-    DIE="yes"
+		DIE="yes"
 }
 
 function my_try() {
@@ -58,12 +58,18 @@ function check() {
 	  return 0
       fi
     done
-    echo "No "
+    echo " No"
+    print_error $a $vers
+		return 1
 }
 
 check autoconf
 check automake
 check aclocal
+
+if test "$DIE" = "yes"; then
+    exit 1
+fi
 
 echo "Running aclocal..."
 $aclocal_bin

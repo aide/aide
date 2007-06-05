@@ -1,3 +1,6 @@
+2007-06-05	Richard van den Berg  <richard@vdberg.org>
+	* Display complete selinux context, patch by Steve Conklin <sconklin@redhat.com>
+
 2007-05-15	Richard van den Berg  <richard@vdberg.org>
 	* Quit autogen.sh if required tools are not found
 

@@ -53,9 +53,10 @@
 const int old_col  = 12;   
 const int new_col  = 40;   
 
-const int part_len = 33; /* usable length of line[] */
-char      oline[33];
-char      nline[33];
+const int part_len = 33; /* usable length of line[] for most purposes */
+const int long_part_len = 129; /* length of line[] for link names and selinux contexts */
+char      oline[129];
+char      nline[129];
 const char* entry_format=        "  %-9s: %-33s, %s\n";
 const char* entry_format_justnew="  %-9s: %-33c  %s\n";
 /*************/
@@ -379,17 +380,17 @@ void print_str_changes(char*old,char*new,const char *name)
 
   if(old==NULL){
     if(new!=NULL){
-       snprintf(oline,part_len,"<NULL>");
-       snprintf(nline,part_len,"%s",new);
+       snprintf(oline,long_part_len,"<NULL>");
+       snprintf(nline,long_part_len,"%s",new);
        ok = 1;
     }
   } else if(new==NULL){
-       snprintf(oline,part_len,"%s",old);
-       snprintf(nline,part_len,"<NULL>");
+       snprintf(oline,long_part_len,"%s",old);
+       snprintf(nline,long_part_len,"<NULL>");
        ok = 1;
    } else if(strcmp(old,new)!=0){
-        snprintf(oline,part_len,"%s",old);
-        snprintf(nline,part_len,"%s",new);
+        snprintf(oline,long_part_len,"%s",old);
+        snprintf(nline,long_part_len,"%s",new);
         ok = 1;
   }
    if(ok)

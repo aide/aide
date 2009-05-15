@@ -1,3 +1,6 @@
+2007-12-20	Richard van den Berg  <richard@vdberg.org>
+	* Fix equals matches, patch by Brian De Wolf <bldewolf@csupomona.edu>
+
 2007-08-22	Richard van den Berg  <richard@vdberg.org>
 	* Turn CR/LF into LF, patch by Steve Conklin <sconklin@redhat.com>
 

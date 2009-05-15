@@ -65,6 +65,86 @@
 /*
 #include <gcrypt.h>
 */
+
+#ifdef WITH_PRELINK
+#include <sys/wait.h>
+#include <gelf.h>
+
+/*
+ *  Is file descriptor prelinked binary/library?
+ *  Return: 1(yes) / 0(no)
+ *  
+ */
+int is_prelinked(int fd) {
+        Elf *elf = NULL;
+        Elf_Scn *scn = NULL;
+        Elf_Data *data = NULL;
+        GElf_Ehdr ehdr;
+        GElf_Shdr shdr;
+        GElf_Dyn dyn;
+        int bingo;
+
+        (void) elf_version(EV_CURRENT);
+
+        if ((elf = elf_begin (fd, ELF_C_READ, NULL)) == NULL
+            || elf_kind(elf) != ELF_K_ELF
+            || gelf_getehdr(elf, &ehdr) == NULL
+            || !(ehdr.e_type == ET_DYN || ehdr.e_type == ET_EXEC))
+                return 0;
+
+        bingo = 0;
+        while (!bingo && (scn = elf_nextscn(elf, scn)) != NULL) {
+                (void) gelf_getshdr(scn, &shdr);
+
+                if (shdr.sh_type != SHT_DYNAMIC)
+                        continue;
+
+                while (!bingo && (data = elf_getdata (scn, data)) != NULL) {
+                        int maxndx = data->d_size / shdr.sh_entsize;
+                        int ndx;
+
+                        for (ndx = 0; ndx < maxndx; ++ndx) {
+                                (void) gelf_getdyn (data, ndx, &dyn);
+                                if (!(dyn.d_tag == DT_GNU_PRELINKED || dyn.d_tag == DT_GNU_LIBLIST))
+                                        continue;
+                                bingo = 1;
+                                break;
+                        }
+                }
+        }
+
+        return bingo;
+}
+
+/*
+ * Open path via prelink -y, set fd
+ * Return: 0(not success) / !0(prelink child process)
+ *
+ */
+pid_t open_prelinked(const char * path, int * fd) {
+        const char *cmd = PRELINK_PATH;
+        pid_t pid = 0;
+        int pipes[2];
+
+        pipes[0] = pipes[1] = -1;
+        pipe(pipes);
+        if (!(pid = fork())) {
+                /* child */
+                close(pipes[0]);
+                dup2(pipes[1], STDOUT_FILENO);
+                close(pipes[1]);
+                unsetenv("MALLOC_CHECK_");
+                execl(cmd, cmd, "--verify", path, (char *) NULL);
+        }
+        /* parent */
+        close(pipes[1]);
+        *fd = pipes[0];
+        return pid;
+
+}
+
+#endif
+
 void md_init_fail(const char* s,db_line* db,byte** hash,DB_ATTR_TYPE i) {
   error(0,"Message digest %s initialise failed\nDisabling %s for file %s\n",s,s,db->filename);
   db->attr=db->attr&(~i);
@@ -121,6 +201,9 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
   struct AIDE_STAT_TYPE fs;
   int sres=0;
   int stat_diff,filedes;
+#ifdef WITH_PRELINK
+  pid_t pid;
+#endif
 
   error(255,"calc_md called\n");
 #ifdef _PARAMETER_CHECK_
@@ -166,6 +249,22 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
     /*
       Now we have a 'valid' filehandle to read from a file.
      */
+
+#ifdef WITH_PRELINK
+    /*
+     * Let's take care of prelinked libraries/binaries 	
+     */
+    pid=0;
+    if ( is_prelinked(filedes) ) {
+      close(filedes);
+      pid = open_prelinked(line->filename, &filedes);
+      if (pid == 0) {
+        error(0, "Error on starting prelink undo\n");
+	return;
+      }
+    }
+#endif
+
     off_t r_size=0;
     off_t size=0;
     char* buf;
@@ -176,47 +275,58 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
     
     if (init_md(&mdc)==RETOK) {
 #ifdef HAVE_MMAP
-      off_t curpos=0;
+#ifdef WITH_PRELINK
+      if (pid == 0) {
+#endif
+        off_t curpos=0;
 
-      r_size=fs.st_size;
-      /* in mmap branch r_size is used as size remaining */
-      while(r_size>0){
-	if(r_size<MMAP_BLOCK_SIZE){
+        r_size=fs.st_size;
+        /* in mmap branch r_size is used as size remaining */
+        while(r_size>0){
+         if(r_size<MMAP_BLOCK_SIZE){
 #ifdef __hpux
-	  buf = mmap(0,r_size,PROT_READ,MAP_PRIVATE,filedes,curpos);
+           buf = mmap(0,r_size,PROT_READ,MAP_PRIVATE,filedes,curpos);
 #else
-	  buf = mmap(0,r_size,PROT_READ,MAP_SHARED,filedes,curpos);
+           buf = mmap(0,r_size,PROT_READ,MAP_SHARED,filedes,curpos);
 #endif
-	  curpos+=r_size;
-	  size=r_size;
-	  r_size=0;
-	}else {
+           curpos+=r_size;
+           size=r_size;
+           r_size=0;
+         }else {
 #ifdef __hpux
-	  buf = mmap(0,MMAP_BLOCK_SIZE,PROT_READ,MAP_PRIVATE,filedes,curpos);
+	   buf = mmap(0,MMAP_BLOCK_SIZE,PROT_READ,MAP_PRIVATE,filedes,curpos);
 #else
-	  buf = mmap(0,MMAP_BLOCK_SIZE,PROT_READ,MAP_SHARED,filedes,curpos);
+	   buf = mmap(0,MMAP_BLOCK_SIZE,PROT_READ,MAP_SHARED,filedes,curpos);
 #endif
-	  curpos+=MMAP_BLOCK_SIZE;
-	  size=MMAP_BLOCK_SIZE;
-	  r_size-=MMAP_BLOCK_SIZE;
-	}
-	if ( buf == MAP_FAILED ) {
-	  error(0,"error mmap'ing %s: %s\n", line->filename,strerror(errno));
-	  close(filedes);
-	  close_md(&mdc);
-	  return;
-	}
-	conf->catch_mmap=1;
-	if (update_md(&mdc,buf,size)!=RETOK) {
-	  error(0,"Message digest failed during update\n");
-	  close_md(&mdc);
-	  munmap(buf,size);
-	  return;
-	}
-	munmap(buf,size);
-	conf->catch_mmap=0;
+	   curpos+=MMAP_BLOCK_SIZE;
+	   size=MMAP_BLOCK_SIZE;
+	   r_size-=MMAP_BLOCK_SIZE;
+	 }
+	 if ( buf == MAP_FAILED ) {
+	   error(0,"error mmap'ing %s: %s\n", line->filename,strerror(errno));
+	   close(filedes);
+	   close_md(&mdc);
+	   return;
+	 }
+	 conf->catch_mmap=1;
+	 if (update_md(&mdc,buf,size)!=RETOK) {
+	   error(0,"Message digest failed during update\n");
+	   close_md(&mdc);
+	   munmap(buf,size);
+	   return;
+	 }
+	 munmap(buf,size);
+	 conf->catch_mmap=0;
+        }
+	/* we have used MMAP, let's return */
+        close_md(&mdc);
+        md2line(&mdc,line);
+        close(filedes);
+        return;
+#ifdef WITH_PRELINK
       }
-#else /* not HAVE_MMAP */
+#endif
+#endif /* not HAVE_MMAP */
       buf=malloc(READ_BLOCK_SIZE);
 #if READ_BLOCK_SIZE>SSIZE_MAX
 #error "READ_BLOCK_SIZE" is too large. Max value is SSIZE_MAX, and current is READ_BLOCK_SIZE
@@ -229,11 +339,22 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
 	}
 	r_size+=size;
       }
+
+#ifdef WITH_PRELINK
+      if (pid) {
+        int status;
+        (void) waitpid(pid, &status, 0);
+        if (!WIFEXITED(status) || WEXITSTATUS(status)) {
+          error(0, "Error on exit of prelink child process\n");
+	  close_md(&mdc);
+          return;
+        }
+      }
+#endif
       free(buf);
-#endif /* HAVE_MMAP else branch */    
       close_md(&mdc);
       md2line(&mdc,line);
-      
+
     } else {
       error(3,"Message digest initialization failed.\n");
       no_hash(line);

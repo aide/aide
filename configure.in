@@ -408,6 +408,32 @@ AS_IF([test "x$with_selinux_support" != xno],
 
 AC_SUBST(SELINUXLIB)
 
+
+AC_MSG_CHECKING(for prelink-support)
+AC_ARG_WITH([prelink], 
+            [AC_HELP_STRING([--with-prelink],[use prelink (no checking)])],
+            [case $with_prelink in 
+		yes) AC_DEFINE_UNQUOTED(PRELINK_PATH, "/usr/sbin/prelink", [path to prelink])
+		     AC_DEFINE(WITH_PRELINK,1,[use prelink])
+		     ELFLIB="-lelf"
+		     compoptionstring="${compoptionstring}WITH_PRELINK\\n"
+		     AC_MSG_RESULT([/usr/sbin/prelink])
+		     ;;
+		no)  AC_MSG_RESULT(no)
+		     ;;
+		*)   AC_DEFINE_UNQUOTED(PRELINK_PATH, "$with_prelink", [path to prelink])
+		     AC_DEFINE(WITH_PRELINK,1,[use prelink])
+		     ELFLIB="-lelf"
+		     compoptionstring="${compoptionstring}WITH_PRELINK\\n"
+		     AC_MSG_RESULT([$with_prelink])
+		     ;;
+	     esac],
+	    [with_prelink=no
+			AC_MSG_RESULT(no)
+			]
+)
+AC_SUBST(ELFLIB)
+
 AC_MSG_CHECKING(for xattr-support)
 AC_ARG_WITH([xattr],
 	[AC_HELP_STRING([--with-xattr],

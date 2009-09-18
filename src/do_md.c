@@ -214,7 +214,7 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
 
 #ifdef HAVE_O_NOATIME
   filedes=open(line->filename,O_RDONLY|O_NOATIME);
-  if(filedes==-1)
+  if(filedes<0)
 #endif
     filedes=open(line->filename,O_RDONLY);
 
@@ -238,7 +238,7 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
   if(!(line->attr&DB_RDEV))
 	  fs.st_rdev=0;
   
-#ifdef HAVE_POSIX_FADVICE
+#ifdef HAVE_POSIX_FADVISE
   if (posix_fadvise(filedes,0,fs.st_size,POSIX_FADV_NOREUSE)!=0) {
 	error(255,"posix_fadvise error %s\n",strerror(errno));
   } else {

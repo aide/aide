@@ -9,8 +9,8 @@ PGM=AIDE
 
 DIE=no
 autoconf_vers=2.50
-automake_vers=1.7
-aclocal_vers=1.7
+automake_vers=1.10
+aclocal_vers=1.10
 
 autoconf_guess=("autoconf" "autoconf2.50")
 automake_guess=("automake")

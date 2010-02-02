@@ -1,3 +1,6 @@
+2010-02-01	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Added new option to summarize changes in output file
+
 2009-05-15	Richard van den Berg  <richard@vdberg.org>
 	* Prelink patch by Peter Vrabec <pvrabec@redhat.com>
 

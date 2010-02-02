@@ -626,6 +626,94 @@ void print_string_changes(const char* name, const char* old, const char* new, in
   }
 }
 
+void print_added_line(db_line* data) {
+    if(conf->summarize_changes==1) {
+        char tag;
+        if(S_ISDIR(data->perm_o)){
+            tag='d';
+        } else {
+            tag='f';
+        }
+        error(2,"%c+++++++++++++++: %s\n",tag, data->filename);
+    } else {
+        error(2,"added: %s\n",data->filename);
+    }
+}
+
+void print_removed_line(db_line* data) {
+    if(conf->summarize_changes==1) {
+        char tag;
+        if(S_ISDIR(data->perm_o)){
+            tag='d';
+        } else {
+            tag='f';
+        }
+        error(2,"%c---------------: %s\n",tag, data->filename);
+    } else {
+        error(2,"removed: %s\n",data->filename);
+    }
+}
+
+int str_has_changed(char*old,char*new)
+{
+    return (((old!=NULL && new!=NULL) &&
+            strcmp(old,new)!=0 ) ||
+            (old!=NULL || new!=NULL));
+}
+
+int md_has_changed(byte*old,byte*new,int len)
+{
+  int ok=0;
+  if(old!=NULL && new!=NULL){
+    if(bytecmp(old,new,len)!=0){
+      ok=1;
+    }
+  } else if((old!=NULL && new==NULL) || (old==NULL && new!=NULL)){
+      ok=1;
+  }
+  return ok;
+}
+
+void print_changed_line(db_line* old,db_line* new, DB_ATTR_TYPE ignorelist)
+{
+    if(conf->summarize_changes==1) {
+        char summary[16]="f...............";
+        if(S_ISDIR(new->perm_o)) { summary[0]='d'; }
+        if (!(DB_LINKNAME&ignorelist) && str_has_changed(old->linkname,new->linkname)) { summary[1]='l'; }
+        if (!(DB_SIZE&ignorelist) && old->size!=new->size) { summary[2]='s'; }
+        if (!(DB_BCOUNT&ignorelist) && old->bcount!=new->bcount) { summary[3]='b'; }
+        if (!(DB_PERM&ignorelist) && old->perm!=new->perm) { summary[4]='p'; }
+        if (!(DB_UID&ignorelist) && old->uid!=new->uid) { summary[5]='u'; }
+        if (!(DB_GID&ignorelist) && old->gid!=new->gid) { summary[6]='g'; }
+        if (!(DB_ATIME&ignorelist) && old->atime!=new->atime) { summary[7]='a'; }
+        if (!(DB_MTIME&ignorelist) && old->mtime!=new->mtime) { summary[8]='m'; }
+        if (!(DB_CTIME&ignorelist) && old->ctime!=new->ctime) { summary[9]='c'; }
+        if (!(DB_INODE&ignorelist) && old->inode!=new->inode) { summary[10]='i'; }
+        if (!(DB_LNKCOUNT&ignorelist) && old->nlink!=new->nlink) { summary[11]='n'; }
+        if ((!(DB_MD5&ignorelist) && md_has_changed(old->md5,new->md5,HASH_MD5_LEN)) ||
+                (!(DB_SHA1&ignorelist) && md_has_changed(old->sha1,new->sha1,HASH_SHA1_LEN)) ||
+                (!(DB_RMD160&ignorelist) && md_has_changed(old->rmd160,new->rmd160,HASH_RMD160_LEN)) ||
+                (!(DB_TIGER&ignorelist) && md_has_changed(old->tiger,new->tiger,HASH_TIGER_LEN)) ||
+                (!(DB_SHA256&ignorelist) && md_has_changed(old->sha256,new->sha256,HASH_SHA256_LEN)) ||
+                (!(DB_SHA512&ignorelist) && md_has_changed(old->sha512,new->sha512,HASH_SHA512_LEN))
+#ifdef WITH_MHASH
+                || (!(DB_CRC32&ignorelist) && md_has_changed(old->crc32,new->crc32,HASH_CRC32_LEN)) ||
+                (!(DB_HAVAL&ignorelist) && md_has_changed(old->haval,new->haval,HASH_HAVAL256_LEN)) ||
+                (!(DB_GOST&ignorelist) && md_has_changed(old->gost,new->gost,HASH_GOST_LEN)) ||
+                (!(DB_CRC32B&ignorelist) && md_has_changed(old->crc32b,new->crc32b,HASH_CRC32B_LEN)) ||
+                (!(DB_WHIRLPOOL&ignorelist) && md_has_changed(old->whirlpool,new->whirlpool,HASH_WHIRLPOOL_LEN))
+#endif
+           ) { summary[12]='C'; }
+#ifdef WITH_ACL
+        if (!(DB_ACL&ignorelist) && compare_acl(old->acl,new->acl)==RETFAIL) { summary[13]='A'; }
+#endif
+        if (!(DB_XATTRS&ignorelist) && compare_xattrs(old->xattrs,new->xattrs)==RETFAIL) { summary[14]='X'; }
+        if (!(DB_SELINUX&ignorelist) && str_has_changed(old->cntx,new->cntx)) { summary[15]='S'; }
+        error(2,"%s: %s\n",summary, new->filename);
+    } else {
+        error(2,"changed: %s\n",new->filename);
+    }
+}
 
 void print_dbline_changes(db_line* old,db_line* new,
                           DB_ATTR_TYPE ignorelist,DB_ATTR_TYPE forced_attrs)
@@ -991,7 +1079,7 @@ void compare_db(list* new,db_config* conf)
       error(2,_("Added files:\n"));
       error(2,_("---------------------------------------------------\n\n"));
       for(r=added;r;r=r->next){
-	error(2,"added: %s\n",((db_line*)r->data)->filename);
+       print_added_line((db_line*)r->data);
 	if(conf->verbose_level<20){
 	  if(S_ISDIR(((db_line*)r->data)->perm)){
 	    eat_files_indir(r->next,((db_line*)r->data)->filename,&filesindir);
@@ -1012,7 +1100,7 @@ void compare_db(list* new,db_config* conf)
       error(2,_("Removed files:\n"));
       error(2,_("---------------------------------------------------\n\n"));
       for(r=removed;r;r=r->next){
-	error(2,"removed: %s\n",((db_line*)r->data)->filename);
+       print_removed_line((db_line*)r->data);
       }
     }
 
@@ -1020,8 +1108,11 @@ void compare_db(list* new,db_config* conf)
       error(2,_("\n---------------------------------------------------\n"));
       error(2,_("Changed files:\n"));
       error(2,_("---------------------------------------------------\n\n"));
-      for(r=changedold;r;r=r->next){
-	error(2,"changed: %s\n",((db_line*)r->data)->filename);
+      for(r=changedold,l=changednew;r;r=r->next,l=l->next){
+	DB_ATTR_TYPE localignorelist=((db_line*)l->data)->attr^((db_line*)r->data)->attr;
+	localignorelist|=ignorelist;
+	print_changed_line((db_line*)r->data,
+			     (db_line*)l->data,localignorelist);
       }
     }
 
@@ -1133,7 +1224,7 @@ long report_tree(seltree* node,int stage, long* stat)
       error(2,_("---------------------------------------------------\n\n"));
     }
     if(node->checked&NODE_ADDED){
-      error(2,_("added: %s\n"),node->new_data->filename);
+      print_added_line(node->new_data);
     }
   }
 
@@ -1144,7 +1235,7 @@ long report_tree(seltree* node,int stage, long* stat)
       error(2,_("---------------------------------------------------\n\n"));
     }
     if(node->checked&NODE_REMOVED){
-      error(2,_("removed: %s\n"),node->old_data->filename);
+      print_removed_line(node->old_data);
     }
   }
 
@@ -1155,7 +1246,8 @@ long report_tree(seltree* node,int stage, long* stat)
       error(2,_("---------------------------------------------------\n\n"));
     }
     if(node->checked&NODE_CHANGED){
-      error(2,_("changed: %s\n"),node->new_data->filename);
+      int localignorelist=(node->old_data->attr ^ node->new_data->attr)|ignorelist;
+      print_changed_line(node->old_data,node->new_data,localignorelist);
     }
   }
 

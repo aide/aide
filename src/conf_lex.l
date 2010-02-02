@@ -313,6 +313,12 @@ int var_in_conflval=0;
   return (TWARNDEADSYMLINKS);
 }
 
+^[\t\ ]*"summarize_changes"{E} {
+  error(230,"%i:summarize_changes =\n",conf_lineno);
+  BEGIN CONFVALHUNT;
+  return (TSUMMARIZECHANGES);
+}
+
 ^[\t\ ]*"acl_no_symlink_follow"{E} {
   error(230,"%i:acl_no_symlink_follow =\n",conf_lineno);
   BEGIN CONFVALHUNT;

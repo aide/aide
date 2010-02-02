@@ -325,6 +325,8 @@ void setdefaults_before_config()
 
   conf->warn_dead_symlinks=0;
 
+  conf->summarize_changes=0;
+
   conf->selrxlst=NULL;
   conf->equrxlst=NULL;
   conf->negrxlst=NULL;

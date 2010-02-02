@@ -335,7 +335,9 @@ typedef struct db_config {
   int no_acl_on_symlinks;
 #endif
   int warn_dead_symlinks;
-  
+
+  int summarize_changes;
+
   struct seltree* tree;
 
 } db_config;

@@ -59,6 +59,53 @@ is available only if acl support is compiled in.
 .IP "warn_dead_symlinks"
 Whether to warn about dead symlinks or not. Valid values are
 yes,true,no and false. The default is not to warn about dead symlinks.
+.IP "summarize_changes"
+Whether to summarize changes in the added, removed and changed files
+sections of the report or not. Valid values are yes,true,no and false.
+The default is not to summarize the changes.
+
+The general format is like the string YlsbpugamcinCAXS, where Y is
+replaced by the file-type (\fBf\fP for a file and \fBd\fP for a directory)
+and the other letters in the string are the actual letters that will
+be output if the associated attribute for the item is being updated or a
+"." for no change. The exceptions to this are: (1) a newly created file
+replaces each letter with a "+", and (2) a removed file replaces each
+letter with a "-".
+
+The attribute that is associated with each letter is as follows:
+
+.RS
+.IP o
+A \fBl\fP means that the link name has changed.
+.IP o
+A \fBs\fP means that the size has changed.
+.IP o
+A \fBb\fP means that the block count has changed.
+.IP o
+A \fBp\fP means that the permissions have changed.
+.IP o
+A \fBu\fP means that the uid has changed.
+.IP o
+A \fBg\fP means that the gid has changed.
+.IP o
+A \fBa\fP means that the access time has changed.
+.IP o
+A \fBm\fP means that the modification time has changed.
+.IP o
+A \fBc\fP means that the change time has changed.
+.IP o
+A \fBi\fP means that the inode has changed.
+.IP o
+A \fBn\fP means that the link count has changed.
+.IP o
+A \fBC\fP means that one or more checksums have changed.
+.IP o
+A \fBA\fP means that the access control list has changed.
+.IP o
+A \fBX\fP means that the extended attributes have changed.
+.IP o
+A \fBS\fP means that the SELinux attributes have changed.
+.RE
 .IP "report_attributes"
 Special group definition that lists parameters which are always printed
 in the final report for changed files.

@@ -677,7 +677,7 @@ int md_has_changed(byte*old,byte*new,int len)
 void print_changed_line(db_line* old,db_line* new, DB_ATTR_TYPE ignorelist)
 {
     if(conf->summarize_changes==1) {
-        char summary[16]="f...............";
+        char summary[]="f...............";
         if(S_ISDIR(new->perm_o)) { summary[0]='d'; }
         if (!(DB_LINKNAME&ignorelist) && str_has_changed(old->linkname,new->linkname)) { summary[1]='l'; }
         if (!(DB_SIZE&ignorelist) && old->size!=new->size) { summary[2]='s'; }

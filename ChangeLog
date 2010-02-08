@@ -1,3 +1,6 @@
+2010-02-06	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Fixed wrong char array size
+
 2010-02-01	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Added new option to summarize changes in output file
 

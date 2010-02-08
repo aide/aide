@@ -202,6 +202,7 @@ Input is read from filedescriptor \fBnumber\fR or output is written to
 .IP "u:	user"
 .IP "g:	group"
 .IP "s:	size"
+.IP "b:	block count"
 .IP "m:	mtime"
 .IP "a:	atime"
 .IP "c:	ctime"

@@ -21,4 +21,4 @@ CLEANFILES = *~
 
 man_MANS = aide.1 aide.conf.5
 
-EXTRA_DIST = aide.1 aide.conf.5 manual.html
+EXTRA_DIST = $(man_MANS)  manual.html

@@ -20,13 +20,15 @@
 
 #ifndef _DB_LIST_H_INCLUDED
 #define _DB_LIST_H_INCLUDED
+
+#include <stdio.h>	/* for NULL */
+
 typedef struct db_list{
-  dbline* data
-  db_list* next
-  db_list* prev
-  db_list* head
-  db_list* tail
-} db_list
+  struct db_list* next;
+  struct db_list* prev;
+  struct db_list* head;
+  struct db_list* tail;
+} db_list;
 
 /* Only the head knows for sure where the tail is */
 static db_list* db_list_head=NULL;

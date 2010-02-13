@@ -17,61 +17,58 @@
 # Boston, MA 02111-1307, USA.
 #
 
-# This is no longer needed
-# SUBDIRS = crypt
-
 bin_PROGRAMS = aide
+noinst_HEADERS = conf_yacc.h
+BUILT_SOURCES = conf_yacc.h
 
-aide_SOURCES =	\
-		conf_yacc.y	\
-		conf_lex2.c	\
-		getopt.c	\
-		getopt1.c	\
-		gnu_regex.c	\
-		error.c		\
-		md.c		\
-		db.c		\
-		commandconf.c	\
-		db_file.c	\
-		db_disk.c	\
-		db_lex2.c	\
-		db_sql.c	\
-		gen_list.c	\
-		list.c		\
-		do_md.c		\
-		base64.c	\
-		symboltable.c	\
-		compare_db.c	\
-		be.c		\
-		util.c		\
-		snprintf.c	\
-		fopen.c		\
-		aide.c
-
-INCLUDES = -I$(top_srcdir)/include
-
-LDADD = -lm @CRYPTLIB@ @ACLLIB@ @SELINUXLIB@ @AUDITLIB@ @ATTRLIB@ @ELFLIB@
-
-AM_LDFLAGS = @LDFLAGS@ @LD_STATIC_FLAG@
-
-AM_CFLAGS = @CFLAGS@ @MAINTAINER_MODE_TRUE@ -Wall -g
-
-CLEANFILES = conf_yacc.h conf_yacc.c conf_lex.c db_lex.c *~
+AM_YFLAGS= -d
+#AM_LFLAGS= -d
 LEX_OUTPUT_ROOT = lex.yy
 
-# AM_YFLAGS= -d 
+LDADD = -lm @CRYPTLIB@ @ACLLIB@ @SELINUXLIB@ @AUDITLIB@ @ATTRLIB@ @ELFLIB@
+AM_CFLAGS = @AIDE_DEFS@ -W -Wall -g
 
-db_lex2.c:db_lex.c
+CLEANFILES = conf_yacc.h conf_yacc.c conf_lex.c db_lex.c *~
 
-db_lex.c:db_lex.l
-	${LEX} -Pdb -odb_lex.c $(top_srcdir)/src/db_lex.l
+INCLUDES = -I$(top_srcdir) -I$(top_srcdir)/include -I$(top_srcdir)/src \
+	-I$(top_builddir)/src
 
-conf_yacc.c:conf_yacc.y
-	${YACC} ${YFLAGS} -d -p conf -o conf_yacc.c $(top_srcdir)/src/conf_yacc.y
+aide_SOURCES =	aide.c		\
+		base64.c	\
+		be.c		\
+		commandconf.c	\
+		compare_db.c	\
+		conf_lex.l 	\
+		conf_yacc.y	\
+		db.c		\
+		db_disk.c	\
+		db_file.c	\
+		db_lex.l	\
+		db_list.c	\
+		db_sql.c	\
+		do_md.c		\
+		error.c		\
+		fopen.c		\
+		gen_list.c	\
+		getopt1.c	\
+		getopt.c	\
+		gnu_regex.c	\
+		list.c		\
+		md.c		\
+		snprintf.c	\
+		symboltable.c	\
+		util.c 
 
-conf_yacc.h: conf_yacc.c
+conf_yacc.c: conf_yacc.y
+	$(YACC) $(AM_YFLAGS) -o $@ -p conf $<
 
-conf_lex2.c:conf_lex.c
+conf_lex.c: conf_lex.l conf_yacc.c
+	$(LEX) $(AM_LFLAGS) -o$@ -Pconf $<
 
-conf_lex.c:conf_lex.l
-	${LEX} -l -Pconf -oconf_lex.c $(top_srcdir)/src/conf_lex.l
+conf_lex2.c: conf_lex.c
+
+db_lex.c: db_lex.l conf_yacc.h
+	$(LEX) $(AM_LFLAGS) -o$@ -Pdb $<
+
+db_lex2.c: db_lex.c
+

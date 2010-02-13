@@ -32,13 +32,12 @@ EX      [" "\t]*
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include "aide.h"
 #include <string.h>
 #include "conf_yacc.h"
-#include "report.h"
 #include "list.h"
 #include "symboltable.h"
 #include "commandconf.h"
-#include "db_config.h"
 
 void includehandler(void) ;
 void conf_put_token(const char*);

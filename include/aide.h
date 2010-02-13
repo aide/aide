@@ -21,7 +21,7 @@
 #define _AIDE_H_INCLUDED
 
 #include "config.h"
-#include "report.h"
+#include "types.h"
 #include "db_config.h"
 #include <stdlib.h>
 #include <unistd.h>
@@ -31,6 +31,7 @@
 #if HAVE_FCNTL_H
 # include <fcntl.h>
 #endif
+#include "report.h"
 
 #ifndef TEMP_FAILURE_RETRY
 /* Evaluate EXPRESSION, and repeat as long as it returns -1 with errno'

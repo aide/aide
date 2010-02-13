@@ -21,7 +21,6 @@
 
 #ifndef _TYPES_H_INCLUDED
 #define _TYPES_H_INCLUDED
-#include "aide.h"
 
 /* The AC_CHECK_SIZEOF() in configure fails for some machines.
  * we provide some fallback values here */
@@ -38,9 +37,7 @@
 #  define SIZEOF_UNSIGNED_LONG 4
 #endif
 
-
 #include <sys/types.h>
-
 
 #ifndef HAVE_BYTE
 #  undef byte	    /* maybe there is a macro with this name */

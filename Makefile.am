@@ -17,7 +17,7 @@
 # Boston, MA 02111-1307, USA.
 #
 
-SUBDIRS = src doc
+SUBDIRS = include src doc
 
 datadir = @datadir@
 localedir = $(datadir)/locale
@@ -25,22 +25,8 @@ DEFS = -DLOCALEDIR=\"$(localedir)\" @DEFS@
 
 CLEANFILES = *~
 
-DIST_SOURCES = src/conf_lex.l src/db_lex.l
-DIST_SUBDIRS = $(SUBDIRS)
-EXTRA_DIST = version.m4 Todo LICENSE-snprintf.txt README-snprintf
-
-check: update-db
-	src/aide -c doc/aide.conf -V20
-
-update-db: all
-	src/aide -B "database_out=file://@abs_top_srcdir@/doc/aide.db" -c doc/aide.conf -i
-
-dist-hook: configure
-	mkdir $(distdir)/include
-	cp -p   include/*.h $(distdir)/include
-
-	mkdir $(distdir)/contrib
-	cp -p   contrib/[a-z]* $(distdir)/contrib
-
-	rm -f	$(distdir)/src/conf_yacc.c $(distdir)/src/conf_yacc.h
+EXTRA_DIST = version.m4 AUTHORS ChangeLog INSTALL README Todo \
+	contrib/bzip2.sh contrib/gpg2_check.sh contrib/gpg2_update.sh \
+	contrib/gpg_check.sh contrib/gpg_update.sh contrib/sshaide.sh \
+	LICENSE-snprintf.txt README-snprintf
 

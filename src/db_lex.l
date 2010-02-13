@@ -46,6 +46,7 @@ extern YYSTYPE yylval;
 
 #define YYDEBUG
 
+#include "aide.h"
 #include "conf_yacc.h"
 #include <string.h>
 #include "report.h"

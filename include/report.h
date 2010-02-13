@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include "db_config.h"
+#include "url.h"
 
 /* Exitcodes */
 #define ERROR_WRITING_ERROR 14

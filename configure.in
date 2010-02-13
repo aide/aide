@@ -2,7 +2,8 @@ m4_include([version.m4])
 
 dnl Initialize autoconf/automake
 AC_INIT(aide, AIDE_VERSION)
-AC_CONFIG_SRCDIR(src/aide.c)
+AC_CONFIG_MACRO_DIR([m4])
+AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE
 
 AC_DEFINE_UNQUOTED(AIDEVERSION, "AIDE_VERSION")
@@ -15,6 +16,7 @@ dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_MAKE_SET
 AC_PROG_RANLIB
+AC_PROG_INSTALL
 AC_PROG_YACC
 if test "x${YACC}" != "xbison -y"; then
         echo "AIDE requires GNU bison"
@@ -28,8 +30,8 @@ if test "x${LEX}" != "xflex"; then
 fi
 
 AC_PATH_PROG(PKG_CONFIG, pkg-config, "")
-
-AM_MAINTAINER_MODE
+dnl We only ask for libtool so that $LD is set later
+AM_PROG_LIBTOOL
 
 dnl AC_ARG_PROGRAM
 
@@ -50,7 +52,7 @@ AC_ARG_WITH(extra-link-libs,
 )
 
 dnl Do the right thing for glibc...
-AC_DEFINE(_GNU_SOURCE,1,[unhide _GLIBC symbols])
+AIDE_DEFS="-D_GNU_SOURCE"
 
 dnl This is borrowed from libtool
     
@@ -162,14 +164,82 @@ fi
 # Check whether static linking has explicitly been disabled
 AC_ARG_ENABLE(static,[  --disable-static        Disable static linking (lowers the security of aide)], [aide_static_choice=$enableval], [aide_static_choice=yes])
 
+dnl Borrowed from dbus
+cc_supports_flag() {
+  AC_MSG_CHECKING(whether $CC supports "$@")
+  Cfile=/tmp/foo${$}
+  touch ${Cfile}.c
+  $CC -c "$@" ${Cfile}.c -o ${Cfile}.o >/dev/null 2>&1
+  rc=$?
+  rm -f ${Cfile}.c ${Cfile}.o
+  case $rc in
+    0) AC_MSG_RESULT(yes);;
+    *) AC_MSG_RESULT(no);;
+  esac
+  return $rc
+}
+
+dnl Borrowed from dbus
+ld_supports_flag() {
+  AC_MSG_CHECKING([whether $LD supports "$@"])
+  AC_TRY_LINK([
+    int one(void) { return 1; }
+    int two(void) { return 2; }
+  ], [ two(); ] , [_ac_ld_flag_supported=yes], [_ac_ld_flag_supported=no])
+
+  if test "$_ac_ld_flag_supported" = "yes"; then
+    rm -f conftest.c
+    touch conftest.c
+    if $CC -c conftest.c; then
+      ld_out=`$LD $@ -o conftest conftest.o 2>&1`
+      ld_ret=$?
+      if test $ld_ret -ne 0 ; then
+        _ac_ld_flag_supported=no
+      elif echo "$ld_out" | egrep 'option ignored|^usage:|unrecognized option|illegal option' >/dev/null ; then
+        _ac_ld_flag_supported=no
+      fi
+    fi
+    rm -f conftest.c conftest.o conftest
+  fi
+
+  AC_MSG_RESULT($_ac_ld_flag_supported)
+  if test "$_ac_ld_flag_supported" = "yes" ; then
+    return 0
+  else
+    return 1
+  fi
+}
+
 if test "$aide_static_choice" != "yes"; then
-	LD_STATIC_FLAG=""
+  LD_STATIC_FLAG=""
+  EXTRA_LDFLAGS=""
+  EXTRA_CFLAGS=""
+  if test x$CC = "xgcc"; then
+    if ld_supports_flag -z,relro; then
+      EXTRA_LDFLAGS="$EXTRA_LDFLAGS -z relro"
+    fi
+    if ld_supports_flag -z now; then
+      EXTRA_LDFLAGS="$EXTRA_LDFLAGS -z now"
+    fi
+    if cc_supports_flag -fPIE -DPIE; then
+      EXTRA_CFLAGS="$EXTRA_CFLAGS -fPIE -DPIE"
+      EXTRA_LDFLAGS="$EXTRA_LDFLAGS -pie"
+    fi
+    dnl Check for some optional warnings
+    if cc_supports_flag -Wundef; then
+      EXTRA_CFLAGS="$EXTRA_CFLAGS -Wundef"
+    fi
+    if cc_supports_flag -Wmissing-format-attribute; then
+      EXTRA_CFLAGS="$EXTRA_CFLAGS -Wmissing-format-attribute"
+    fi
+    if cc_supports_flag -Wshadow; then
+      EXTRA_CFLAGS="$EXTRA_CFLAGS -Wshadow"
+    fi
+    if cc_supports_flag -Wlogical-op; then
+      EXTRA_CFLAGS="$EXTRA_CFLAGS -Wlogical-op"
+    fi
+  fi
 fi
-
-CFLAGS="$CFLAGS $LD_STATIC_FLAG"
-CPPFLAGS="$CPPFLAGS $LD_STATIC_FLAG"
-
-AC_SUBST(LD_STATIC_FLAG)
 
 dnl This macro is new in autoconf-2.13
 AC_SEARCH_LIBS(syslog, bsd socket inet, [AC_DEFINE(HAVE_SYSLOG,1,[syslog available?])])
@@ -461,9 +531,7 @@ if test "$aide_lfs_choice" = "yes"; then
 # This looks weird because Linux defines lstat64 and then screws it up
 AC_CHECK_FUNC(lstat64,
     [AC_CHECK_FUNC(stat64,
-	AC_DEFINE(_LARGEFILE_SOURCE,1,[Functions for correct standard I/O])
-	AC_DEFINE(_LARGEFILE64_SOURCE,1,[Additional functionality from LFS])
-	AC_DEFINE(_FILE_OFFSET_BITS,64,[Select 64 bits filesystem interface])
+	AIDE_DEFS+=" -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS"
 	AIDE_LSTAT_FUNC="lstat64"
 	compoptionstring="${compoptionstring}WITH_LSTAT64\\n"
 	AIDE_STAT_FUNC="stat64"
@@ -573,15 +641,15 @@ fi
 AC_DEFINE_UNQUOTED(DEFAULT_DB,"$default_db",[Default location of signature database])
 AC_DEFINE_UNQUOTED(DEFAULT_DB_OUT,"$default_db_out",[Default output location for newly-generated signature database])
 
+dnl Do the library tests with the static flag
+LDFLAGS="$LDFLAGS $LD_STATIC_FLAG"
 if test x$with_zlib = xyes; then
-  AC_CHECK_HEADERS(zlib.h,,
+  AC_CHECK_HEADERS(zlib.h,[],
  	[AC_MSG_ERROR([You don't have zlib properly installed. Install it or try --without-zlib.])])
   save_LDFLAGS=$LDFLAGS
-  LDFLAGS="$LDFLAGS $LD_STATIC_FLAG"
-  AC_CHECK_LIB(z,gzdopen,,
+  AC_CHECK_LIB(z, deflate,[],
  	  [AC_MSG_ERROR([You don't have zlib properly installed. Install it or try --without-zlib.])]
   )
-  LDFLAGS=$save_LDFLAGS
   AC_DEFINE(WITH_ZLIB,1,[use zlib])
 fi
 
@@ -595,13 +663,11 @@ if test x$with_curl = xyes; then
 	fi
   AC_CHECK_HEADERS(curl/curl.h,,
  	[AC_MSG_ERROR([You don't have curl properly installed. Install it or try --without-curl.])])
-#  save_LDFLAGS=$LDFLAGS
-	CFLAGS="$CFLAGS $CURL_CFLAGS"
-  LDFLAGS="$LDFLAGS $CURL_LIBS $LD_STATIC_FLAG"
+  CFLAGS="$CFLAGS $CURL_CFLAGS"
+  LDFLAGS="$LDFLAGS $CURL_LIBS"
   AC_CHECK_LIB(curl,curl_easy_init,havecurl=yes,
  	[AC_MSG_ERROR([You don't have curl properly installed. Install it or try --without-curl.])]
 )
-#  LDFLAGS=$save_LDFLAGS
   AC_DEFINE(WITH_CURL,1,[use curl])
 	compoptionstring="${compoptionstring}WITH_CURL\\n"],
 fi
@@ -617,7 +683,7 @@ AS_IF([test "x$with_gnu_regexp" = xyes],
 	[AC_DEFINE(REGEX, 1, [use bundled GNU regex])
 	compoptionstring="${compoptionstring}WITH_GNU_REGEXP\\n"],
 	[test "x$with_gnu_regexp" = xcheck],
-	[AC_CHECK_FUNCS(regexec regcomp,,
+	[AC_CHECK_FUNCS(regexec regcomp,[],
 		[AC_DEFINE(REGEX,1,[use bundled GNU regex])
 		compoptionstring="${compoptionstring}WITH_GNU_REGEXP\\n"]
 	)],
@@ -667,7 +733,7 @@ AS_IF([test "x$with_gcrypt" != xno],
 	AC_CHECK_LIB([gpg-error], [gpg_strerror],
 		[saveLIBS="$LIBS"
 		LIBS="$LIBS -lgpg-error"
-		AC_CHECK_LIB([gcrypt], [gcry_md_hash_buffer],,
+		AC_CHECK_LIB([gcrypt], [gcry_md_hash_buffer],[],
 			AC_MSG_ERROR([Aide requires mhash or libcrypt to be installed with static libraries.])
 		)
 		LIBS="$saveLIBS"],
@@ -844,9 +910,9 @@ AC_ARG_WITH([psql],
 	[with_psql=no]
 )
 
-AS_IF([test "x$with_psql" != xno ],
+AS_IF([test "x$with_psql" != xno],
 	AC_DEFINE(WITH_PSQL,1,[postgresql support])
-	AC_CHECK_LIB(pq,PQclear,,
+	AC_CHECK_LIB(pq,PQclear,[],
 		with_psql=no
 		AC_MSG_RESULT([not found])
   	)
@@ -889,7 +955,10 @@ compoptionstring="${compoptionstring}CONFIG_FILE = \\\"${config_file}\\\"\\n"
 
 AC_DEFINE_UNQUOTED(AIDECOMPILEOPTIONS, "${compoptionstring}",[Compile-time options displayed in -v output])
 
+dnl Add in the optional compiler features
+LDFLAGS="$LDFLAGS $EXTRA_LDFLAGS"
+CFLAGS="$CFLAGS $EXTRA_CFLAGS"
 
-AC_CONFIG_FILES(Makefile src/Makefile doc/Makefile doc/aide.conf doc/aide.1 doc/aide.conf.5 aide.spec)
-AC_OUTPUT
+AC_SUBST(AIDE_DEFS)
+AC_OUTPUT(Makefile src/Makefile include/Makefile doc/Makefile doc/aide.conf doc/aide.1 doc/aide.conf.5 aide.spec)
 

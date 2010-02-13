@@ -30,8 +30,6 @@ if test "x${LEX}" != "xflex"; then
 fi
 
 AC_PATH_PROG(PKG_CONFIG, pkg-config, "")
-dnl We only ask for libtool so that $LD is set later
-AM_PROG_LIBTOOL
 
 dnl AC_ARG_PROGRAM
 

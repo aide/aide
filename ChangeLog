@@ -1,5 +1,6 @@
 2010-02-13	Richard van den Berg  <richard@vdberg.org>
 	* Added autoconf patch from Steve Grubb <sgrubb@redhat.com>
+	* Removed AM_PROG_LIBTOOL from configure.in
 
 2010-02-06	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fixed wrong char array size

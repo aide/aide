@@ -626,15 +626,27 @@ void print_string_changes(const char* name, const char* old, const char* new, in
   }
 }
 
+char get_file_type_string(mode_t mode) {
+    if (S_ISREG(mode)) return 'f';
+    else if(S_ISDIR(mode)) return 'd';
+#ifdef S_ISFIFO
+    else if (S_ISFIFO(mode)) return 'F';
+#endif
+    else if (S_ISLNK(mode)) return 'L';
+    else if (S_ISBLK(mode)) return 'B';
+    else if (S_ISCHR(mode)) return 'D';
+#ifdef S_ISSOCK
+    else if (S_ISSOCK(mode)) return 's';
+#endif
+#ifdef S_ISDOOR
+    else if (S_ISDOOR(mode)) return '|';
+#endif
+    else return '?';
+}
+
 void print_added_line(db_line* data) {
     if(conf->summarize_changes==1) {
-        char tag;
-        if(S_ISDIR(data->perm_o)){
-            tag='d';
-        } else {
-            tag='f';
-        }
-        error(2,"%c+++++++++++++++: %s\n",tag, data->filename);
+        error(2,"%c+++++++++++++++: %s\n",get_file_type_string(data->perm_o) , data->filename);
     } else {
         error(2,"added: %s\n",data->filename);
     }
@@ -642,13 +654,7 @@ void print_added_line(db_line* data) {
 
 void print_removed_line(db_line* data) {
     if(conf->summarize_changes==1) {
-        char tag;
-        if(S_ISDIR(data->perm_o)){
-            tag='d';
-        } else {
-            tag='f';
-        }
-        error(2,"%c---------------: %s\n",tag, data->filename);
+        error(2,"%c---------------: %s\n",'-', data->filename);
     } else {
         error(2,"removed: %s\n",data->filename);
     }
@@ -657,58 +663,178 @@ void print_removed_line(db_line* data) {
 int str_has_changed(char*old,char*new)
 {
     return (((old!=NULL && new!=NULL) &&
-            strcmp(old,new)!=0 ) ||
+                strcmp(old,new)!=0 ) &&
             (old!=NULL || new!=NULL));
 }
 
 int md_has_changed(byte*old,byte*new,int len)
 {
-  int ok=0;
-  if(old!=NULL && new!=NULL){
-    if(bytecmp(old,new,len)!=0){
-      ok=1;
-    }
-  } else if((old!=NULL && new==NULL) || (old==NULL && new!=NULL)){
-      ok=1;
-  }
-  return ok;
+    return (((old!=NULL && new!=NULL) &&
+                (bytecmp(old,new,len)!=0)) || 
+            ((old!=NULL && new==NULL) || 
+             (old==NULL && new!=NULL)));
 }
 
-void print_changed_line(db_line* old,db_line* new, DB_ATTR_TYPE ignorelist)
-{
+char get_size_char(int ignorelist, db_line* old, db_line* new) {
+    if (DB_SIZE&old->attr || DB_SIZEG&old->attr) {
+        if ((DB_SIZE&old->attr && DB_SIZE&new->attr) || (DB_SIZEG&old->attr && DB_SIZEG&new->attr)) {
+            if (((DB_SIZE&old->attr && DB_SIZE&new->attr) && DB_SIZE&ignorelist) || 
+                    ((DB_SIZEG&old->attr && DB_SIZEG&new->attr) && DB_SIZEG&ignorelist)) {
+                return ':';
+            } else if (old->size < new->size) {
+                return '>';
+            } else if (old->size > new->size) {
+                return '<';
+            } else {
+                return '=';
+            }
+        } else {
+            return '-';
+        }
+    } else if ((!(DB_SIZE&old->attr) && DB_SIZE&new->attr) || (!(DB_SIZEG&old->attr) && DB_SIZEG&new->attr) ) {
+        return '+';
+    } else {
+        return ' ';
+    }
+}
+
+void print_changed_line(db_line* old,db_line* new, DB_ATTR_TYPE ignorelist) {
+
+#define easy_compare_char(a,b,c,d) \
+    if (a&old->attr) { \
+        if (a&new->attr) { \
+            if (a&ignorelist) { \
+                summary[d]=':'; \
+            } else if (b) { \
+                summary[d]=c; \
+            } else { \
+                summary[d]='.'; \
+            } \
+        } else { \
+            summary[d]='-'; \
+        } \
+    } else if (a&new->attr) { \
+        summary[d]='+'; \
+    }
+
+#define easy_char(a,b,c,d) \
+    if (a&old->attr) { \
+        if (a&new->attr) { \
+            if (a&ignorelist) { \
+                summary[d]=':'; \
+            } else if (old->b!=new->b) { \
+                summary[d]=c; \
+            } else { \
+                summary[d]='.'; \
+            } \
+        } else { \
+            summary[d]='-'; \
+        } \
+    } else if (a&new->attr) { \
+        summary[d]='+'; \
+    }
+
     if(conf->summarize_changes==1) {
-        char summary[]="f...............";
-        if(S_ISDIR(new->perm_o)) { summary[0]='d'; }
-        if (!(DB_LINKNAME&ignorelist) && str_has_changed(old->linkname,new->linkname)) { summary[1]='l'; }
-        if (!(DB_SIZE&ignorelist) && old->size!=new->size) { summary[2]='s'; }
-        if (!(DB_BCOUNT&ignorelist) && old->bcount!=new->bcount) { summary[3]='b'; }
-        if (!(DB_PERM&ignorelist) && old->perm!=new->perm) { summary[4]='p'; }
-        if (!(DB_UID&ignorelist) && old->uid!=new->uid) { summary[5]='u'; }
-        if (!(DB_GID&ignorelist) && old->gid!=new->gid) { summary[6]='g'; }
-        if (!(DB_ATIME&ignorelist) && old->atime!=new->atime) { summary[7]='a'; }
-        if (!(DB_MTIME&ignorelist) && old->mtime!=new->mtime) { summary[8]='m'; }
-        if (!(DB_CTIME&ignorelist) && old->ctime!=new->ctime) { summary[9]='c'; }
-        if (!(DB_INODE&ignorelist) && old->inode!=new->inode) { summary[10]='i'; }
-        if (!(DB_LNKCOUNT&ignorelist) && old->nlink!=new->nlink) { summary[11]='n'; }
-        if ((!(DB_MD5&ignorelist) && md_has_changed(old->md5,new->md5,HASH_MD5_LEN)) ||
-                (!(DB_SHA1&ignorelist) && md_has_changed(old->sha1,new->sha1,HASH_SHA1_LEN)) ||
-                (!(DB_RMD160&ignorelist) && md_has_changed(old->rmd160,new->rmd160,HASH_RMD160_LEN)) ||
-                (!(DB_TIGER&ignorelist) && md_has_changed(old->tiger,new->tiger,HASH_TIGER_LEN)) ||
-                (!(DB_SHA256&ignorelist) && md_has_changed(old->sha256,new->sha256,HASH_SHA256_LEN)) ||
-                (!(DB_SHA512&ignorelist) && md_has_changed(old->sha512,new->sha512,HASH_SHA512_LEN))
+        char summary[]="                ";
+        summary[0]=get_file_type_string(new->perm_o);
+        easy_compare_char(DB_LINKNAME,str_has_changed(old->linkname,new->linkname),'l',1);
+        summary[2]=get_size_char(ignorelist, old, new);
+        easy_char(DB_BCOUNT,bcount,'b',3);
+        easy_char(DB_PERM,perm,'p',4);
+        easy_char(DB_UID,uid,'u',5);
+        easy_char(DB_GID,gid,'g',6);
+        easy_char(DB_ATIME,atime,'a',7);
+        easy_char(DB_MTIME,mtime,'m',8);
+        easy_char(DB_CTIME,ctime,'c',9);
+        easy_char(DB_INODE,inode,'i',10);
+        easy_char(DB_LNKCOUNT,nlink,'n',11);
+        if (
+                ((DB_MD5&old->attr && DB_MD5&new->attr) && md_has_changed(old->md5,new->md5,HASH_MD5_LEN)) ||
+                ((DB_SHA1&old->attr &&  DB_SHA1&new->attr) && md_has_changed(old->sha1,new->sha1,HASH_SHA1_LEN)) ||
+                ((DB_RMD160&old->attr && DB_RMD160&new->attr) && md_has_changed(old->rmd160,new->rmd160,HASH_RMD160_LEN)) ||
+                ((DB_TIGER&old->attr && DB_TIGER&new->attr) && md_has_changed(old->tiger,new->tiger,HASH_TIGER_LEN)) ||
+                ((DB_SHA256&old->attr && DB_SHA256&new->attr) && md_has_changed(old->sha256,new->sha256,HASH_SHA256_LEN)) ||
+                ((DB_SHA512&old->attr && DB_SHA512&new->attr) && md_has_changed(old->sha512,new->sha512,HASH_SHA512_LEN)) 
 #ifdef WITH_MHASH
-                || (!(DB_CRC32&ignorelist) && md_has_changed(old->crc32,new->crc32,HASH_CRC32_LEN)) ||
-                (!(DB_HAVAL&ignorelist) && md_has_changed(old->haval,new->haval,HASH_HAVAL256_LEN)) ||
-                (!(DB_GOST&ignorelist) && md_has_changed(old->gost,new->gost,HASH_GOST_LEN)) ||
-                (!(DB_CRC32B&ignorelist) && md_has_changed(old->crc32b,new->crc32b,HASH_CRC32B_LEN)) ||
-                (!(DB_WHIRLPOOL&ignorelist) && md_has_changed(old->whirlpool,new->whirlpool,HASH_WHIRLPOOL_LEN))
-#endif
-           ) { summary[12]='C'; }
+                || ((DB_CRC32&old->attr && DB_CRC32&new->attr) && md_has_changed(old->crc32,new->crc32,HASH_CRC32_LEN)) ||
+                ((DB_HAVAL&old->attr && DB_HAVAL&new->attr) && md_has_changed(old->haval,new->haval,HASH_HAVAL256_LEN)) ||
+                ((DB_GOST&old->attr && DB_GOST&new->attr) && md_has_changed(old->gost,new->gost,HASH_GOST_LEN)) ||
+                ((DB_CRC32B&old->attr && DB_CRC32B&new->attr) && md_has_changed(old->crc32b,new->crc32b,HASH_CRC32B_LEN)) ||
+                ((DB_WHIRLPOOL&old->attr && DB_WHIRLPOOL&new->attr) && md_has_changed(old->whirlpool,new->whirlpool,HASH_WHIRLPOOL_LEN))
+#endif        
+           ) {
+            summary[12]='C';
+        } else if (
+                ((DB_MD5&old->attr) && !(DB_MD5&new->attr)) ||
+                ((DB_SHA1&old->attr) &&  !(DB_SHA1&new->attr)) ||
+                ((DB_RMD160&old->attr) && !(DB_RMD160&new->attr)) ||
+                ((DB_TIGER&old->attr) && !(DB_TIGER&new->attr)) ||
+                ((DB_SHA256&old->attr) && !(DB_SHA256&new->attr)) ||
+                ((DB_SHA512&old->attr) && !(DB_SHA512&new->attr))
+#ifdef WITH_MHASH
+                || ((DB_CRC32&old->attr) && !(DB_CRC32&new->attr)) ||
+                ((DB_HAVAL&old->attr) && !(DB_HAVAL&new->attr)) ||
+                ((DB_GOST&old->attr) && !(DB_GOST&new->attr)) ||
+                ((DB_CRC32B&old->attr) && !(DB_CRC32B&new->attr)) ||
+                ((DB_WHIRLPOOL&old->attr) && !(DB_WHIRLPOOL&new->attr))
+#endif        
+                ) {
+            summary[12]='-';
+        } else if (
+                (!(DB_MD5&old->attr) && (DB_MD5&new->attr)) ||
+                (!(DB_SHA1&old->attr) &&  (DB_SHA1&new->attr)) ||
+                (!(DB_RMD160&old->attr) && (DB_RMD160&new->attr)) ||
+                (!(DB_TIGER&old->attr) && (DB_TIGER&new->attr)) ||
+                (!(DB_SHA256&old->attr) && (DB_SHA256&new->attr)) ||
+                (!(DB_SHA512&old->attr) && (DB_SHA512&new->attr))
+#ifdef WITH_MHASH
+                || (!(DB_CRC32&old->attr) && (DB_CRC32&new->attr)) ||
+                (!(DB_HAVAL&old->attr) && (DB_HAVAL&new->attr)) ||
+                (!(DB_GOST&old->attr) && (DB_GOST&new->attr)) ||
+                (!(DB_CRC32B&old->attr) && (DB_CRC32B&new->attr)) ||
+                (!(DB_WHIRLPOOL&old->attr) && (DB_WHIRLPOOL&new->attr))
+#endif        
+                ) {
+            summary[12]='+';
+        } else if (
+                DB_MD5&ignorelist ||
+                DB_SHA1&ignorelist ||
+                DB_RMD160&ignorelist ||
+                DB_TIGER&ignorelist ||
+                DB_SHA256&ignorelist ||
+                DB_SHA512&ignorelist
+#ifdef WITH_MHASH
+                || DB_CRC32&ignorelist ||
+                DB_HAVAL&ignorelist ||
+                DB_GOST&ignorelist ||
+                DB_CRC32B&ignorelist ||
+                DB_WHIRLPOOL&ignorelist
+#endif        
+                ) {
+            summary[12]=':';
+        } else if (
+                (DB_MD5&old->attr && DB_MD5&new->attr) ||
+                (DB_SHA1&old->attr &&  DB_SHA1&new->attr) ||
+                (DB_RMD160&old->attr && DB_RMD160&new->attr) ||
+                (DB_TIGER&old->attr && DB_TIGER&new->attr) ||
+                (DB_SHA256&old->attr && DB_SHA256&new->attr) ||
+                (DB_SHA512&old->attr && DB_SHA512&new->attr)
+#ifdef WITH_MHASH
+                || (DB_CRC32&old->attr && DB_CRC32&new->attr) ||
+                (DB_HAVAL&old->attr && DB_HAVAL&new->attr) ||
+                (DB_GOST&old->attr && DB_GOST&new->attr) ||
+                (DB_CRC32B&old->attr && DB_CRC32B&new->attr) ||
+                (DB_WHIRLPOOL&old->attr && DB_WHIRLPOOL&new->attr)
+#endif        
+                ) {
+            summary[12]='.';
+        }
 #ifdef WITH_ACL
-        if (!(DB_ACL&ignorelist) && compare_acl(old->acl,new->acl)==RETFAIL) { summary[13]='A'; }
+        easy_compare_char(DB_ACL,compare_acl(old->acl,new->acl)==RETFAIL,'A',13);
 #endif
-        if (!(DB_XATTRS&ignorelist) && compare_xattrs(old->xattrs,new->xattrs)==RETFAIL) { summary[14]='X'; }
-        if (!(DB_SELINUX&ignorelist) && str_has_changed(old->cntx,new->cntx)) { summary[15]='S'; }
+        easy_compare_char(DB_XATTRS,compare_xattrs(old->xattrs,new->xattrs)==RETFAIL,'X',14);
+        easy_compare_char(DB_SELINUX,str_has_changed(old->cntx,new->cntx),'S',15);
+
         error(2,"%s: %s\n",summary, new->filename);
     } else {
         error(2,"changed: %s\n",new->filename);
@@ -1109,10 +1235,8 @@ void compare_db(list* new,db_config* dbconf)
       error(2,_("Changed files:\n"));
       error(2,_("---------------------------------------------------\n\n"));
       for(r=changedold,l=changednew;r;r=r->next,l=l->next){
-	DB_ATTR_TYPE localignorelist=((db_line*)l->data)->attr^((db_line*)r->data)->attr;
-	localignorelist|=ignorelist;
 	print_changed_line((db_line*)r->data,
-			     (db_line*)l->data,localignorelist);
+			     (db_line*)l->data,ignorelist);
       }
     }
 

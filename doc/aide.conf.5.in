@@ -64,13 +64,21 @@ Whether to summarize changes in the added, removed and changed files
 sections of the report or not. Valid values are yes,true,no and false.
 The default is not to summarize the changes.
 
-The general format is like the string YlsbpugamcinCAXS, where Y is
-replaced by the file-type (\fBf\fP for a file and \fBd\fP for a directory)
-and the other letters in the string are the actual letters that will
-be output if the associated attribute for the item is being updated or a
-"." for no change. The exceptions to this are: (1) a newly created file
-replaces each letter with a "+", and (2) a removed file replaces each
-letter with a "-".
+The general format is like the string YlZbpugamcinCAXS, where Y is
+replaced by the file-type (\fBf\fP for a regular file, \fBd\fP for a 
+directory, \fBL\fP for a symbolic link, \fBD\fP for a character device, 
+\fBB\fP for a block device, \fBF\fP for a FIFO, \fBs\fP for a unix
+socket and \fB?\fP otherwise). 
+
+The Z is replaced as follows: A \fB=\fP means that the size has not changed,
+a \fB<\fP reports a shrinked size and a \fB>\fP reports a grown size.
+
+The other letters in the string are the actual letters that will be output 
+if the associated attribute for the item has been changed or a "." for no
+change, a "+" if the attribute has been added, a "-" if it has been removed,
+a ":" if the attribute is listed in ignore_list or a " " if the attribute has
+not been checked. The exceptions to this are: (1) a newly created file replaces 
+each letter with a "+", and (2) a removed file replaces each letter with a "-".
 
 The attribute that is associated with each letter is as follows:
 
@@ -78,23 +86,21 @@ The attribute that is associated with each letter is as follows:
 .IP o
 A \fBl\fP means that the link name has changed.
 .IP o
-A \fBs\fP means that the size has changed.
-.IP o
 A \fBb\fP means that the block count has changed.
 .IP o
 A \fBp\fP means that the permissions have changed.
 .IP o
-A \fBu\fP means that the uid has changed.
+An \fBu\fP means that the uid has changed.
 .IP o
 A \fBg\fP means that the gid has changed.
 .IP o
-A \fBa\fP means that the access time has changed.
+An \fBa\fP means that the access time has changed.
 .IP o
 A \fBm\fP means that the modification time has changed.
 .IP o
 A \fBc\fP means that the change time has changed.
 .IP o
-A \fBi\fP means that the inode has changed.
+An \fBi\fP means that the inode has changed.
 .IP o
 A \fBn\fP means that the link count has changed.
 .IP o

@@ -1,6 +1,7 @@
 2010-02-17	Richard van den Berg  <richard@vdberg.org>
-	* Fix several warnings Steve Grubb <sgrubb@redhat.com>
-	* Check LD in configure Steve Grubb <sgrubb@redhat.com>
+	* Fix several warnings by Steve Grubb <sgrubb@redhat.com>
+	* Check LD in configure by Steve Grubb <sgrubb@redhat.com>
+	* Fix xattrs typos by Hannes von Haugwitz <hannes@vonhaugwitz.com>
 
 2010-02-13	Richard van den Berg  <richard@vdberg.org>
 	* Added autoconf patch from Steve Grubb <sgrubb@redhat.com>

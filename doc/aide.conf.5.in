@@ -228,7 +228,7 @@ Input is read from filedescriptor \fBnumber\fR or output is written to
 .IP "The followingg is available when explicitly enabled using configure"
 .IP "acl: access control list"
 .IP "selinux: selinux attributes"
-.IP "xattr: extended attributes"
+.IP "xattrs: extended attributes"
 .LP
 Please note that 'I' and 'c' are incompatible. When the name of a file
 is changed, it's ctime is updated as well. When you put 'c' and 'I' in

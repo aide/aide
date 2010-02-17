@@ -97,7 +97,7 @@ report_url=stdout
 #The following are available when explicitly enabled using configure:
 #acl:		access control list
 #selinux	SELinux security context
-#xattr:		extended file attributes
+#xattrs:		extended file attributes
 
 # Rule definition
 All=R+a+sha1+rmd160+sha256+sha512+tiger@aideextragroups@

@@ -28,6 +28,7 @@ if test "x${LEX}" != "xflex"; then
         echo "AIDE requires GNU flex"
         exit 5
 fi
+AC_CHECK_PROGS(LD, ld)
 
 AC_PATH_PROG(PKG_CONFIG, pkg-config, "")
 

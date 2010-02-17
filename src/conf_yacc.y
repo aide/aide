@@ -329,7 +329,7 @@ config_version : TCONFIG_VERSION TSTRING {
 
 
 void conferror(const char *msg){
-  error(0,"%i:%s:%s\n",conf_lineno-1,msg,conftext);
+  error(0,"%li:%s:%s\n",conf_lineno-1,msg,conftext);
 
 }
 

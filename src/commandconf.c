@@ -314,7 +314,7 @@ int db_input_wrapper(char* buf, int max_size, int db)
 	buf[0]='\0';
       } else {
 	/* gzread returns 0 even if uncompressed bytes were read*/
-	error(240,"nread=%d,strlen(buf)=%d,errno=%s,gzerr=%s\n",
+	error(240,"nread=%d,strlen(buf)=%u,errno=%s,gzerr=%s\n",
               retval,strnlen((char*)buf, max_size),strerror(errno),
 	      gzerror(*db_gzp,&err));
 	if(retval==0){
@@ -722,7 +722,7 @@ list* append_rxlist(char* rx,DB_ATTR_TYPE attr,list* rxlst)
   r->attr=attr;
   r->conf_lineno = conf_lineno;
   if (attr&DB_CHECKINODE && attr&DB_CTIME)
-    error(20,"Rule at line %i has c and I flags enabled at the same time. If same inode is found, flag c is ignored\n",conf_lineno);
+    error(20,"Rule at line %li has c and I flags enabled at the same time. If same inode is found, flag c is ignored\n",conf_lineno);
   update_db_out_order(r->attr);
   rxlst=list_append(rxlst,(void*)r);
   

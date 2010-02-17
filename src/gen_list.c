@@ -550,9 +550,8 @@ list* add_file_to_list(list* listp,char*filename,DB_ATTR_TYPE attr,int* addok)
 #endif
     
     if(conf->warn_dead_symlinks==1) {
-      struct AIDE_STAT_TYPE fs;
-      int sres;
-      sres=AIDE_STAT_FUNC(fil->filename,&fs);
+      struct AIDE_STAT_TYPE tmp_fs;
+      sres=AIDE_STAT_FUNC(fil->filename,&tmp_fs);
       if (sres!=0) {
 	error(4,"Dead symlink detected at %s\n",fil->filename);
       }
@@ -949,16 +948,16 @@ void print_tree(seltree* tree) {
 
   for(r=tree->sel_rx_lst;r!=NULL;r=r->next) {
 	rxc=r->data;
-	error(246,"%i\t%s\n",rxc->conf_lineno,rxc->rx);
+	error(246,"%li\t%s\n",rxc->conf_lineno,rxc->rx);
   }
   for(r=tree->equ_rx_lst;r!=NULL;r=r->next) {
         rxc=r->data;
-        error(246,"%i=\t%s\n",rxc->conf_lineno,rxc->rx);
+        error(246,"%li=\t%s\n",rxc->conf_lineno,rxc->rx);
   }
   
   for(r=tree->neg_rx_lst;r!=NULL;r=r->next) {
 	  rxc=r->data;
-	  error(246,"%i!\t%s\n",rxc->conf_lineno,rxc->rx);
+	  error(246,"%li!\t%s\n",rxc->conf_lineno,rxc->rx);
   }
   
   for(r=tree->childs;r!=NULL;r=r->next) {

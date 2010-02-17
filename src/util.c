@@ -321,9 +321,9 @@ void init_sighandler()
   return;
 }
 
-void sig_handler(int signal)
+void sig_handler(int signum)
 {
-  switch(signal){
+  switch(signum){
   case SIGBUS  : 
   case SIGSEGV :{
     error(200,"Caught SIGBUS/SIGSEGV\n");
@@ -356,7 +356,7 @@ void sig_handler(int signal)
     break;
   }
   }
-  error(220,"Caught signal %d\n",signal);
+  error(220,"Caught signal %d\n",signum);
   init_sighandler();
 
   return;

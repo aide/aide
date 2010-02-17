@@ -40,7 +40,7 @@ void compare_db(list*,db_config*);
  * 1: total number of files 2: # added files, 
  * 3: # removed, 4: # changed
  */
-long report_tree(seltree* tree,int stage, long* stat);
+long report_tree(seltree* tree,int stage, long* status);
 
 void init_rxlst(list* rxlst);
 

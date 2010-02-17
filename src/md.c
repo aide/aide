@@ -340,9 +340,9 @@ void md2line(struct md_container* md,struct db_line* line) {
 
 #define copyhash(a,b,c)        \
   if (line->attr&a) {          \
-    error(255,"Line has %i\n",a); \
+    error(255,"Line has %llu\n",a); \
     if (md->calc_attr&a) {     \
-      error(255,"copying %i\n",a); \
+      error(255,"copying %llu\n",a); \
       line->b=(byte*)malloc(c);       \
       memcpy(line->b,md->b,c); \
     } else {                   \

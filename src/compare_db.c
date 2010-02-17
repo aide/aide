@@ -462,7 +462,7 @@ void print_single_xattrs(xattrs_type* xattrs)
     size_t num = 0;
     int width = 0;
     
-    error(2,"num=%d\n", xattrs->num);
+    error(2,"num=%u\n", xattrs->num);
 
     width = log10(xattrs->num); /* make them the same width */
     
@@ -597,9 +597,9 @@ void print_long_changes(const char* name, AIDE_OFF_TYPE old, AIDE_OFF_TYPE new, 
 {
 #if AIDE_OFF_TYPE == off64_t
   if (!justnew) {
-    snprintf(oline,part_len,"%llu",old);
+    snprintf(oline,part_len,"%llu",(long long unsigned)old);
   }
-  snprintf(nline,part_len,"%llu",new);
+  snprintf(nline,part_len,"%llu",(long long unsigned)new);
 #else
   if (!justnew) {
     snprintf(oline,part_len,"%lu",old);
@@ -968,7 +968,7 @@ void print_report_footer(struct tm* st)
 	  st->tm_hour, st->tm_min, st->tm_sec);
 }
 
-void compare_db(list* new,db_config* conf)
+void compare_db(list* new,db_config* dbconf)
 {
   db_line* old=NULL;
   list* l=new;
@@ -992,14 +992,14 @@ void compare_db(list* new,db_config* conf)
 
 
   /* With this we avoid unnecessary checking of removed files. */
-  if(conf->action&DO_INIT){
+  if(dbconf->action&DO_INIT){
     initdbwarningprinted=1;
   } else {
     /* We have to init the rxlsts since they are copied and then 
        initialized in gen_list.c */
-    init_rxlst(conf->selrxlst);
-    init_rxlst(conf->equrxlst);
-    init_rxlst(conf->negrxlst);
+    init_rxlst(dbconf->selrxlst);
+    init_rxlst(dbconf->equrxlst);
+    init_rxlst(dbconf->negrxlst);
   }
   
   /* We have a way to ignore some changes... */ 
@@ -1020,10 +1020,10 @@ void compare_db(list* new,db_config* conf)
       /* FIXME There should be a check for this in changed part also */
       /* This part should also be rethinked */
       if(!initdbwarningprinted &&
-	 (check_list_for_match(conf->selrxlst,old->filename,&tempignore) ||
-	  check_list_for_match(conf->equrxlst,old->filename,&tempignore)) &&
-	 !check_list_for_match(conf->negrxlst,old->filename,&tempignore)){
-	if(!(conf->action&DO_INIT)){
+	 (check_list_for_match(dbconf->selrxlst,old->filename,&tempignore) ||
+	  check_list_for_match(dbconf->equrxlst,old->filename,&tempignore)) &&
+	 !check_list_for_match(dbconf->negrxlst,old->filename,&tempignore)){
+	if(!(dbconf->action&DO_INIT)){
 	  error(2,_("WARNING: Old db contains a file that shouldn\'t be there, run --init or --update\n"));
 	}
 	initdbwarningprinted=1;
@@ -1080,7 +1080,7 @@ void compare_db(list* new,db_config* conf)
       error(2,_("---------------------------------------------------\n\n"));
       for(r=added;r;r=r->next){
        print_added_line((db_line*)r->data);
-	if(conf->verbose_level<20){
+	if(dbconf->verbose_level<20){
 	  if(S_ISDIR(((db_line*)r->data)->perm)){
 	    eat_files_indir(r->next,((db_line*)r->data)->filename,&filesindir);
 	    if(filesindir>0){
@@ -1116,7 +1116,7 @@ void compare_db(list* new,db_config* conf)
       }
     }
 
-    if((conf->verbose_level>=5)&&(nchg!=0)){
+    if((dbconf->verbose_level>=5)&&(nchg!=0)){
       error(2,_("\n---------------------------------------------------\n"));
       error(2,_("Detailed information about changes:\n"));
       error(2,_("---------------------------------------------------\n\n"));
@@ -1127,8 +1127,8 @@ void compare_db(list* new,db_config* conf)
 			     (db_line*)l->data,localignorelist,forced_attrs);
       }
     }
-    conf->end_time=time(&(conf->end_time));
-    print_report_footer(localtime(&(conf->end_time)));
+    dbconf->end_time=time(&(dbconf->end_time));
+    print_report_footer(localtime(&(dbconf->end_time)));
   }
 }
 
@@ -1157,7 +1157,7 @@ void send_audit_report(long nadd, long nrem, long nchg)
 #endif /* WITH_AUDIT */
 }
 
-long report_tree(seltree* node,int stage, long* stat)
+long report_tree(seltree* node,int stage, long* status)
 {
   list* r=NULL;
   int ignorelist=0;
@@ -1167,8 +1167,8 @@ long report_tree(seltree* node,int stage, long* stat)
   ignorelist=get_ignorelist();
   forced_attrs=get_report_attributes();
   
-  if(stat[0]){
-    stat[0]=0;
+  if(status[0]){
+    status[0]=0;
     top=1;
   }
 
@@ -1182,7 +1182,7 @@ long report_tree(seltree* node,int stage, long* stat)
        If checked == 0 there is nothing to report
     */
     if(node->checked!=0){
-      stat[1]++;
+      status[1]++;
       if((node->checked&DB_OLD)&&(node->checked&DB_NEW)&&
 	 (node->old_data==NULL)&&(node->new_data==NULL)){
 	/* Node was added to twice and discovered to be not changed*/
@@ -1190,34 +1190,34 @@ long report_tree(seltree* node,int stage, long* stat)
 	/* File is in new db but not old. (ADDED) */
 	/* unless it was moved in */
 	if (!((node->checked&NODE_ALLOW_NEW)||(node->checked&NODE_MOVED_IN))) {
-	  stat[2]++;
+	  status[2]++;
 	  node->checked|=NODE_ADDED;
 	}
       }else if((node->checked&DB_OLD)&&!(node->checked&DB_NEW)){
 	/* File is in old db but not new. (REMOVED) */
 	/* unless it was moved out */
 	if (!((node->checked&NODE_ALLOW_RM)||(node->checked&NODE_MOVED_OUT))) {
-	  stat[3]++;
+	  status[3]++;
 	  node->checked|=NODE_REMOVED;
 	}
       }else if((node->checked&DB_OLD)&&(node->checked&DB_NEW)&&
 	       (node->old_data!=NULL)&&(node->new_data!=NULL)){
 	/* File is in both db's and the data is still there. (CHANGED) */
 	if(!(node->checked&(NODE_MOVED_IN|NODE_MOVED_OUT))){
-	  stat[4]++;
+	  status[4]++;
 	  node->checked|=NODE_CHANGED;
 	}else if (!((node->checked&NODE_ALLOW_NEW)||(node->checked&NODE_MOVED_IN))) {
-	  stat[2]++;
+	  status[2]++;
 	  node->checked|=NODE_ADDED;
 	}else if (!((node->checked&NODE_ALLOW_RM)||(node->checked&NODE_MOVED_OUT))) {
-	  stat[3]++;
+	  status[3]++;
 	  node->checked|=NODE_REMOVED;
 	}
       }
     }
   }
 
-  if((stage==1)&&stat[2]){
+  if((stage==1)&&status[2]){
     if(top){
       error(2,_("\n---------------------------------------------------\n"));
       error(2,_("Added files:\n"));
@@ -1228,7 +1228,7 @@ long report_tree(seltree* node,int stage, long* stat)
     }
   }
 
-  if((stage==2)&&stat[3]){
+  if((stage==2)&&status[3]){
     if(top){
       error(2,_("\n---------------------------------------------------\n"));
       error(2,_("Removed files:\n"));
@@ -1239,7 +1239,7 @@ long report_tree(seltree* node,int stage, long* stat)
     }
   }
 
-  if((stage==3)&&stat[4]){
+  if((stage==3)&&status[4]){
     if(top){
       error(2,_("\n---------------------------------------------------\n"));
       error(2,_("Changed files:\n"));
@@ -1251,7 +1251,7 @@ long report_tree(seltree* node,int stage, long* stat)
     }
   }
 
-  if((stage==4)&&(conf->verbose_level>=5)&&stat[4]){
+  if((stage==4)&&(conf->verbose_level>=5)&&status[4]){
     if(top){
       error(2,_("\n--------------------------------------------------\n"));
       error(2,_("Detailed information about changes:\n"));
@@ -1265,15 +1265,15 @@ long report_tree(seltree* node,int stage, long* stat)
 
   /* All stage dependent things done for this node. Let's check children */
   for(r=node->childs;r;r=r->next){
-    report_tree((seltree*)r->data,stage,stat);
+    report_tree((seltree*)r->data,stage,status);
   }
 
-  if(top&&(stage==0)&&((stat[2]+stat[3]+stat[4])>0)){
-    send_audit_report(stat[2],stat[3],stat[4]);
-    print_report_header(stat[1],stat[2],stat[3],stat[4]);
+  if(top&&(stage==0)&&((status[2]+status[3]+status[4])>0)){
+    send_audit_report(status[2],status[3],status[4]);
+    print_report_header(status[1],status[2],status[3],status[4]);
   }
   
-  return (stat[2]+stat[3]+stat[4]);
+  return (status[2]+status[3]+status[4]);
 }
 
 const char* aide_key_9=CONFHMACKEY_09;

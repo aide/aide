@@ -242,7 +242,7 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
   if (posix_fadvise(filedes,0,fs.st_size,POSIX_FADV_NOREUSE)!=0) {
 	error(255,"posix_fadvise error %s\n",strerror(errno));
   } else {
-	error(255,"posix_fadvise(%i,0,%i,POSIX_FADV_NOREUSE) ok\n",filedes,fs.st_size);
+	error(255,"posix_fadvise(%i,0,%li,POSIX_FADV_NOREUSE) ok\n",filedes,fs.st_size);
   }
 #endif
   if ((stat_diff=stat_cmp(&fs,old_fs))==RETOK) {

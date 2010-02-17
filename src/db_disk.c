@@ -54,28 +54,28 @@
 #include <zlib.h>
 #endif
 
-DIR *dirh = NULL;
-struct AIDE_DIRENT_TYPE *entp = NULL;
-struct AIDE_DIRENT_TYPE **resp = NULL;
+static DIR *dirh = NULL;
+static struct AIDE_DIRENT_TYPE *entp = NULL;
+static struct AIDE_DIRENT_TYPE **resp = NULL;
 
-struct seltree *r = NULL;
+static struct seltree *r = NULL;
 
 
-char *dot = ".";
-char *dotdot = "..";
+static const char *dot = ".";
+static const char *dotdot = "..";
 
-seltree *tree;
+#if defined HAVE_READDIR && !defined HAVE_READDIR_R
+static long td = -1;
+#endif
+static int rdres = 0;
+static DB_ATTR_TYPE attr;
+static char *start_path = "/";
 
-long td = -1;
-int rdres = 0;
-DB_ATTR_TYPE attr;
-char *start_path = "/";
+static int root_handled = 0;
 
-int root_handled = 0;
+static int open_dir (void);
 
-int open_dir ();
-
-void next_in_dir ()
+static void next_in_dir (void)
 {
 #ifdef HAVE_READDIR_R
 	if (dirh != NULL)
@@ -94,7 +94,7 @@ void next_in_dir ()
 
 }
 
-int in_this ()
+static int in_this (void)
 {
 #ifdef HAVE_READDIR_R
 	return (dirh != NULL && rdres == 0 && (*resp) != NULL);
@@ -105,7 +105,7 @@ int in_this ()
 #endif
 }
 
-char *name_construct (char *s)
+static char *name_construct (const char *s)
 {
 	char *ret;
 	int len2 = strlen (r->path);
@@ -183,15 +183,15 @@ db_line *db_readline_disk (int db)
 		fullname = malloc (1 + 1);
 		strcpy (fullname, "/");
 		add = check_rxtree (fullname, conf->tree, &attr);
-		error (240, "%s match=%d, tree=%i, attr=%i\n", fullname, add,
+		error (240, "%s match=%d, tree=%p, attr=%llu\n", fullname, add,
 					 conf->tree, attr);
 
 		if (add) {
 			fil = get_file_attrs (fullname, attr);
 
-			error (240, "%s attr=%i\n", fullname, attr);
+			error (240, "%s attr=%llu\n", fullname, attr);
 			if (fil != NULL) {
-				error (240, "%s attr=%i\n", fil->filename, fil->attr);
+				error (240, "%s attr=%llu\n", fil->filename, fil->attr);
 			}
 
 			if (fil == NULL) {
@@ -237,15 +237,15 @@ recursion:
 		 */
 
 		add = check_rxtree (fullname, conf->tree, &attr);
-		error (240, "%s match=%d, tree=%i, attr=%i\n", fullname, add,
+		error (240, "%s match=%d, tree=%p, attr=%llu\n", fullname, add,
 					 conf->tree, attr);
 
 		if (add) {
 			fil = get_file_attrs (fullname, attr);
 
-			error (240, "%s attr=%i\n", fullname, attr);
+			error (240, "%s attr=%llu\n", fullname, attr);
 			if (fil != NULL) {
-				error (240, "%s attr=%i\n", fil->filename, fil->attr);
+				error (240, "%s attr=%llu\n", fil->filename, fil->attr);
 			}
 			/*
 			   Hack.
@@ -301,7 +301,7 @@ recursion:
 			return NULL;
 		}
 
-		error (255, "r->childs %i, r->parent %i, r->checked %i\n", r->childs,
+		error (255, "r->childs %p, r->parent %p, r->checked %i\n", r->childs,
 					 r->parent, r->checked);
 
 		if ((0 == (r->checked & NODE_CHECKED)) && r->childs != NULL) {
@@ -325,7 +325,7 @@ recursion:
 
 				r = rr;
 
-				error (255, "r->childs %i, r->parent %i,r->checked %i\n",
+				error (255, "r->childs %p, r->parent %p,r->checked %i\n",
 							 r->childs, r->parent, r->checked);
 				/*
 				   Hack.
@@ -401,7 +401,7 @@ recursion:
 	return fil;
 }
 
-int open_dir ()
+static int open_dir (void)
 {
 	if (dirh != NULL) {
 		if (closedir (dirh) != 0) {
@@ -461,17 +461,17 @@ int db_disk_read_spec (int db)
   We don't support writing to disk, since we are'n a backup/restore software
  */
 
-int db_writespec_disk (db_config * conf)
+int db_writespec_disk (db_config * dbconf)
 {
 	return RETFAIL;
 }
 
-int db_writeline_disk (db_line * line, db_config * conf)
+int db_writeline_disk (db_line * line, db_config * dbconf)
 {
 	return RETFAIL;
 }
 
-int db_close_disk (db_config * conf)
+int db_close_disk (db_config * dbconf)
 {
 	return RETOK;
 }

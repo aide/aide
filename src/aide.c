@@ -546,7 +546,7 @@ int main(int argc,char**argv)
   if (!conf->config_check) {
     int exitcode=0;
     long totalchanges=0;
-    long stat[5]={1,0,0,0,0};
+    long status[5]={1,0,0,0,0};
     if(conf->action&DO_INIT){
       if(db_init(DB_WRITE)==RETFAIL) {
 	exit(IO_ERROR);
@@ -576,18 +576,18 @@ int main(int argc,char**argv)
     db_close(conf);
 
     /* First terse report */
-    totalchanges=report_tree(conf->tree,0,stat);
+    totalchanges=report_tree(conf->tree,0,status);
     if(totalchanges>0){
-      exitcode=(stat[2]!=0)*1+(stat[3]!=0)*2+(stat[4]!=0)*4;
-      stat[0]=1;
-      report_tree(conf->tree,1,stat);
-      stat[0]=1;
-      report_tree(conf->tree,2,stat);
-      stat[0]=1;
-      report_tree(conf->tree,3,stat);
+      exitcode=(status[2]!=0)*1+(status[3]!=0)*2+(status[4]!=0)*4;
+      status[0]=1;
+      report_tree(conf->tree,1,status);
+      status[0]=1;
+      report_tree(conf->tree,2,status);
+      status[0]=1;
+      report_tree(conf->tree,3,status);
       /* Then detailed list of changes */
-      stat[0]=1;
-      report_tree(conf->tree,4,stat);
+      status[0]=1;
+      report_tree(conf->tree,4,status);
     } else {
       if (conf->verbose_level >= 5) {
         printf("\nAIDE, version " AIDEVERSION "\n\n");
@@ -611,9 +611,9 @@ int main(int argc,char**argv)
       error(0,"Config checked. Use the following to patch your config file.\n");
       error(0,"0a1\n");
       if(newlinelastinconfig==1){
-	error(0,"> @@begin_config %s\n%ia%i\n> @@end_config\n",digstr,conf_lineno-1,conf_lineno+1);
+	error(0,"> @@begin_config %s\n%lia%li\n> @@end_config\n",digstr,conf_lineno-1,conf_lineno+1);
       }else {
-	error(0,"> @@begin_config %s\n%ia%i\n> @@end_config\n",digstr,conf_lineno,conf_lineno+2);
+	error(0,"> @@begin_config %s\n%lia%li\n> @@end_config\n",digstr,conf_lineno,conf_lineno+2);
       }
       free(dig);
       free(digstr);

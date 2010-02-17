@@ -665,19 +665,19 @@ long readoct(char* s,char* err){
 }
 
 
-int db_writespec(db_config* conf)
+int db_writespec(db_config* dbconf)
 {
-  switch (conf->db_out_url->type) {
+  switch (dbconf->db_out_url->type) {
   case url_stdout:
   case url_stderr:
   case url_fd:
   case url_file: {
     if(
 #ifdef WITH_ZLIB
-       (conf->gzip_dbout && conf->db_gzout) ||
+       (dbconf->gzip_dbout && dbconf->db_gzout) ||
 #endif
-       (conf->db_out!=NULL)){
-      if(db_writespec_file(conf)==RETOK){
+       (dbconf->db_out!=NULL)){
+      if(db_writespec_file(dbconf)==RETOK){
 	return RETOK;
       }
     }
@@ -694,8 +694,8 @@ int db_writespec(db_config* conf)
 #endif /* WITH CURL */
 #ifdef WITH_PSQL
   case url_sql: {
-    if(conf->db_out!=NULL){
-      if(db_writespec_sql(conf)==RETOK){
+    if(dbconf->db_out!=NULL){
+      if(db_writespec_sql(dbconf)==RETOK){
 	return RETOK;
       }
     }
@@ -710,11 +710,11 @@ int db_writespec(db_config* conf)
   return RETFAIL;
 }
 
-int db_writeline(db_line* line,db_config* conf){
+int db_writeline(db_line* line,db_config* dbconf){
 
-  if (line==NULL||conf==NULL) return RETOK;
+  if (line==NULL||dbconf==NULL) return RETOK;
   
-  switch (conf->db_out_url->type) {
+  switch (dbconf->db_out_url->type) {
 #ifdef WITH_CURL
   case url_http:
   case url_https:
@@ -726,10 +726,10 @@ int db_writeline(db_line* line,db_config* conf){
   case url_file: {
     if (
 #ifdef WITH_ZLIB
-       (conf->gzip_dbout && conf->db_gzout) ||
+       (dbconf->gzip_dbout && dbconf->db_gzout) ||
 #endif
-       (conf->db_out!=NULL)) {
-      if (db_writeline_file(line,conf,conf->db_out_url)==RETOK) {
+       (dbconf->db_out!=NULL)) {
+      if (db_writeline_file(line,dbconf,dbconf->db_out_url)==RETOK) {
 	return RETOK;
       }
     }
@@ -738,8 +738,8 @@ int db_writeline(db_line* line,db_config* conf){
   }
 #ifdef WITH_PSQL
   case url_sql: {
-    if (conf->db_out!=NULL) {
-      if (db_writeline_sql(line,conf)==RETOK) {
+    if (dbconf->db_out!=NULL) {
+      if (db_writeline_sql(line,dbconf)==RETOK) {
 	return RETOK;
       }
     }
@@ -755,21 +755,21 @@ int db_writeline(db_line* line,db_config* conf){
   return RETFAIL;
 }
 
-int db_close(db_config* conf)
+int db_close(db_config* dbconf)
 {
-  if (conf==NULL) return RETOK;
+  if (dbconf==NULL) return RETOK;
   
-  switch (conf->db_out_url->type) {
+  switch (dbconf->db_out_url->type) {
   case url_stdout:
   case url_stderr:
   case url_fd:
   case url_file: {
     if (
 #ifdef WITH_ZLIB
-       (conf->gzip_dbout && conf->db_gzout) ||
+       (dbconf->gzip_dbout && dbconf->db_gzout) ||
 #endif
-       (conf->db_out!=NULL)) {
-      if (db_close_file(conf)==RETOK) {
+       (dbconf->db_out!=NULL)) {
+      if (db_close_file(dbconf)==RETOK) {
 	return RETOK;
       }
     }
@@ -781,14 +781,14 @@ int db_close(db_config* conf)
   case url_https:
   case url_ftp:
     {
-      url_fclose(conf->db_out);
+      url_fclose(dbconf->db_out);
       break;
     }
 #endif /* WITH CURL */
 #ifdef WITH_PSQL
   case url_sql: {
-    if (conf->db_out!=NULL) {
-      if (db_close_sql(conf->db_out)==RETOK) {
+    if (dbconf->db_out!=NULL) {
+      if (db_close_sql(dbconf->db_out)==RETOK) {
 	return RETOK;
       } else {
 	return RETFAIL;

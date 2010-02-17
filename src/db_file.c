@@ -54,6 +54,12 @@
 #ifdef WITH_ZLIB
 #define ZBUFSIZE 16384
 
+static int dofprintf( const char* s,...)
+#ifdef __GNUC__
+        __attribute__ ((format (printf, 1, 2)));
+#else
+        ;
+#endif
 
 /* FIXME get rid of this */
 void handle_gzipped_input(int out,gzFile* gzp){
@@ -82,7 +88,7 @@ void handle_gzipped_input(int out,gzFile* gzp){
         exit(1);
       }
       
-      error(240,"nread=%d,strlen(buf)=%d,errno=%s,gzerr=%s\n",
+      error(240,"nread=%d,strlen(buf)=%u,errno=%s,gzerr=%s\n",
 	    nread,strlen((char*)buf),strerror(errno),
 	    gzerror(*gzp,&err));
       buf[0]='\0';
@@ -459,7 +465,7 @@ char** db_readline_file(int db){
       
     case TDBSPEC : {
       
-      error(0,"Database file can have only one db_spec.\nTrying to continue on line %i\n",*db_lineno);      
+      error(0,"Database file can have only one db_spec.\nTrying to continue on line %li\n",*db_lineno);      
       break;
     }
     case TNAME : {
@@ -487,7 +493,7 @@ char** db_readline_file(int db){
       }
       /*  */
 
-      error(0,"Not enough parameters in db:%i. Trying to continue.\n",
+      error(0,"Not enough parameters in db:%li. Trying to continue.\n",
 	    *db_lineno);
       for(a=0;a<i;a++){
 	free(s[(*db_order)[a]]);
@@ -558,7 +564,7 @@ char** db_readline_file(int db){
       }	
       /* This can be the first token on a line */
       if(i>0){
-	error(0,"Not enough parameters in db:%i\n",*db_lineno);
+	error(0,"Not enough parameters in db:%li\n",*db_lineno);
       };
       for(a=0;a<i;a++){
 	free(s[(*db_order)[a]]);
@@ -568,7 +574,7 @@ char** db_readline_file(int db){
       break;
     }
     case TERROR : {
-      error(0,"There was an error in the database file on line:%i.\n",*db_lineno);
+      error(0,"There was an error in the database file on line:%li.\n",*db_lineno);
       break;
     }
     
@@ -754,7 +760,7 @@ int db_writeoct(long i, FILE* file,int a)
   
 }
 
-int db_writespec_file(db_config* conf)
+int db_writespec_file(db_config* dbconf)
 {
   int i=0;
   int j=0;
@@ -774,12 +780,12 @@ int db_writespec_file(db_config* conf)
   /* From hereon everything must MD'd before write to db */
   if((key=get_db_key())!=NULL){
     keylen=get_db_key_len();
-    conf->do_dbnewmd=1;
-    if( (conf->dbnewmd=
-	 mhash_hmac_init(conf->dbhmactype,
+    dbconf->do_dbnewmd=1;
+    if( (dbconf->dbnewmd=
+	 mhash_hmac_init(dbconf->dbhmactype,
 			 key,
 			 keylen,
-			 mhash_get_hash_pblock(conf->dbhmactype)))==
+			 mhash_get_hash_pblock(dbconf->dbhmactype)))==
 	MHASH_FAILED){
       error(0, "mhash_hmac_init() failed for db write. Aborting\n");
       abort();
@@ -799,10 +805,10 @@ int db_writespec_file(db_config* conf)
   if(retval==0){
     return RETFAIL;
   }
-  if(conf->config_version){
+  if(dbconf->config_version){
     retval=dofprintf(
 		     "# The config version used to generate this file was:\n"
-		     "# %s\n", conf->config_version);
+		     "# %s\n", dbconf->config_version);
     if(retval==0){
       return RETFAIL;
     }
@@ -811,9 +817,9 @@ int db_writespec_file(db_config* conf)
   if(retval==0){
     return RETFAIL;
   }
-  for(i=0;i<conf->db_out_size;i++){
+  for(i=0;i<dbconf->db_out_size;i++){
     for(j=0;j<db_unknown;j++){
-      if((int)db_value[j]==(int)conf->db_out_order[i]){
+      if((int)db_value[j]==(int)dbconf->db_out_order[i]){
 	retval=dofprintf("%s ",db_names[j]);
 	if(retval==0){
 	  return RETFAIL;
@@ -883,62 +889,62 @@ int db_writeacl(acl_type* acl,FILE* file,int a)
   return RETOK;
 }
 
-int db_writeline_file(db_line* line,db_config* conf, url_t* url){
+int db_writeline_file(db_line* line,db_config* dbconf, url_t* url){
   int i;
 
   (void)url;
   
-  for(i=0;i<conf->db_out_size;i++){
-    switch (conf->db_out_order[i]) {
+  for(i=0;i<dbconf->db_out_size;i++){
+    switch (dbconf->db_out_order[i]) {
     case db_filename : {
-      db_writechar(line->filename,conf->db_out,i);
+      db_writechar(line->filename,dbconf->db_out,i);
       break;
     }
     case db_linkname : {
-      db_writechar(line->linkname,conf->db_out,i);
+      db_writechar(line->linkname,dbconf->db_out,i);
       break;
     }
     case db_bcount : {
-      db_writeint(line->bcount,conf->db_out,i);
+      db_writeint(line->bcount,dbconf->db_out,i);
       break;
     }
 
     case db_mtime : {
-      db_write_time_base64(line->mtime,conf->db_out,i);
+      db_write_time_base64(line->mtime,dbconf->db_out,i);
       break;
     }
     case db_atime : {
-      db_write_time_base64(line->atime,conf->db_out,i);
+      db_write_time_base64(line->atime,dbconf->db_out,i);
       break;
     }
     case db_ctime : {
-      db_write_time_base64(line->ctime,conf->db_out,i);
+      db_write_time_base64(line->ctime,dbconf->db_out,i);
       break;
     }
     case db_inode : {
-      db_writeint(line->inode,conf->db_out,i);
+      db_writeint(line->inode,dbconf->db_out,i);
       break;
     }
     case db_lnkcount : {
-      db_writeint(line->nlink,conf->db_out,i);
+      db_writeint(line->nlink,dbconf->db_out,i);
       break;
     }
     case db_uid : {
-      db_writeint(line->uid,conf->db_out,i);
+      db_writeint(line->uid,dbconf->db_out,i);
       break;
     }
     case db_gid : {
-      db_writeint(line->gid,conf->db_out,i);
+      db_writeint(line->gid,dbconf->db_out,i);
       break;
     }
     case db_size : {
-      db_writelong(line->size,conf->db_out,i);
+      db_writelong(line->size,dbconf->db_out,i);
       break;
     }
     case db_md5 : {
       db_write_byte_base64(line->md5,
 			   HASH_MD5_LEN,
-			   conf->db_out,i,
+			   dbconf->db_out,i,
 			   DB_MD5,line->attr);
 	
       break;
@@ -946,7 +952,7 @@ int db_writeline_file(db_line* line,db_config* conf, url_t* url){
     case db_sha1 : {
       db_write_byte_base64(line->sha1,
 			   HASH_SHA1_LEN,
-			   conf->db_out,i,
+			   dbconf->db_out,i,
 			   DB_SHA1,line->attr);
 
       break;
@@ -954,53 +960,53 @@ int db_writeline_file(db_line* line,db_config* conf, url_t* url){
     case db_rmd160 : {
       db_write_byte_base64(line->rmd160,
 			   HASH_RMD160_LEN,
-			   conf->db_out,i,
+			   dbconf->db_out,i,
 			   DB_RMD160,line->attr);
       break;
     }
     case db_tiger : {
       db_write_byte_base64(line->tiger,
 			   HASH_TIGER_LEN,
-			   conf->db_out,i,
+			   dbconf->db_out,i,
 			   DB_TIGER,line->attr);
       break;
     }
     case db_perm : {
-      db_writeoct(line->perm,conf->db_out,i);
+      db_writeoct(line->perm,dbconf->db_out,i);
       break;
     }
     case db_crc32 : {
       db_write_byte_base64(line->crc32,
 			   HASH_CRC32_LEN,
-			   conf->db_out,i,
+			   dbconf->db_out,i,
 			   DB_CRC32,line->attr);
       break;
     }
     case db_crc32b : {
       db_write_byte_base64(line->crc32b,
 			   HASH_CRC32B_LEN,
-			   conf->db_out,i,
+			   dbconf->db_out,i,
 			   DB_CRC32B,line->attr);
       break;
     }
     case db_haval : {
       db_write_byte_base64(line->haval,
 			   HASH_HAVAL256_LEN,
-			   conf->db_out,i,
+			   dbconf->db_out,i,
 			   DB_HAVAL,line->attr);
       break;
     }
     case db_gost : {
       db_write_byte_base64(line->gost ,
 			   HASH_GOST_LEN,
-			   conf->db_out,i,
+			   dbconf->db_out,i,
 			   DB_GOST,line->attr);
       break;
     }
     case db_sha256 : {
       db_write_byte_base64(line->sha256,
 			   HASH_SHA256_LEN,
-			   conf->db_out,i,
+			   dbconf->db_out,i,
 			   DB_SHA256,line->attr);
 
       break;
@@ -1008,7 +1014,7 @@ int db_writeline_file(db_line* line,db_config* conf, url_t* url){
     case db_sha512 : {
       db_write_byte_base64(line->sha512,
 			   HASH_SHA512_LEN,
-			   conf->db_out,i,
+			   dbconf->db_out,i,
 			   DB_SHA512,line->attr);
 
       break;
@@ -1016,18 +1022,18 @@ int db_writeline_file(db_line* line,db_config* conf, url_t* url){
     case db_whirlpool : {
       db_write_byte_base64(line->whirlpool,
 			   HASH_WHIRLPOOL_LEN,
-			   conf->db_out,i,
+			   dbconf->db_out,i,
 			   DB_WHIRLPOOL,line->attr);
 
       break;
     }
     case db_attr : {
-      db_writelong(line->attr, conf->db_out,i);
+      db_writelong(line->attr, dbconf->db_out,i);
       break;
     }
 #ifdef WITH_ACL
     case db_acl : {
-      db_writeacl(line->acl,conf->db_out,i);
+      db_writeacl(line->acl,dbconf->db_out,i);
       break;
     }
 #endif
@@ -1037,19 +1043,19 @@ int db_writeline_file(db_line* line,db_config* conf, url_t* url){
         
         if (!line->xattrs)
         {
-          db_writelong(0, conf->db_out, i);
+          db_writelong(0, dbconf->db_out, i);
           break;
         }
         
-        db_writelong(line->xattrs->num, conf->db_out, i);
+        db_writelong(line->xattrs->num, dbconf->db_out, i);
         
         xattr = line->xattrs->ents;
         while (num < line->xattrs->num)
         {
           dofprintf(",");
-          db_writechar(xattr->key, conf->db_out, 0);
+          db_writechar(xattr->key, dbconf->db_out, 0);
           dofprintf(",");
-          db_write_byte_base64(xattr->val, xattr->vsz, conf->db_out, 0, 1, 1);
+          db_write_byte_base64(xattr->val, xattr->vsz, dbconf->db_out, 0, 1, 1);
           
           ++xattr;
           ++num;
@@ -1057,16 +1063,16 @@ int db_writeline_file(db_line* line,db_config* conf, url_t* url){
       break;
     }
     case db_selinux : {
-	db_write_byte_base64((byte*)line->cntx, 0, conf->db_out, i, 1, 1);
+	db_write_byte_base64((byte*)line->cntx, 0, dbconf->db_out, i, 1, 1);
       break;
     }
     case db_checkmask : {
-      db_writeoct(line->attr,conf->db_out,i);
+      db_writeoct(line->attr,dbconf->db_out,i);
       break;
     }
     default : {
       error(0,"Not implemented in db_writeline_file %i\n",
-	    conf->db_out_order[i]);
+	    dbconf->db_out_order[i]);
       return RETFAIL;
     }
     
@@ -1081,25 +1087,25 @@ int db_writeline_file(db_line* line,db_config* conf, url_t* url){
   return RETOK;
 }
 
-int db_close_file(db_config* conf){
+int db_close_file(db_config* dbconf){
   
 #ifdef WITH_MHASH
   byte* dig=NULL;
   char* digstr=NULL;
 
-  if(conf->db_out
+  if(dbconf->db_out
 #ifdef WITH_ZLIB
-     || conf->db_gzout
+     || dbconf->db_gzout
 #endif
      ){
 
     /* Let's write @@end_db <checksum> */
-    if (conf->dbnewmd!=NULL) {
-      mhash(conf->dbnewmd, NULL ,0);
-      dig=(byte*)malloc(sizeof(byte)*mhash_get_block_size(conf->dbhmactype));
-      mhash_deinit(conf->dbnewmd,(void*)dig);
-      digstr=encode_base64(dig,mhash_get_block_size(conf->dbhmactype));
-      conf->do_dbnewmd=0;
+    if (dbconf->dbnewmd!=NULL) {
+      mhash(dbconf->dbnewmd, NULL ,0);
+      dig=(byte*)malloc(sizeof(byte)*mhash_get_block_size(dbconf->dbhmactype));
+      mhash_deinit(dbconf->dbnewmd,(void*)dig);
+      digstr=encode_base64(dig,mhash_get_block_size(dbconf->dbhmactype));
+      dbconf->do_dbnewmd=0;
       dofprintf("@@end_db %s\n",digstr);
       free(dig);
       free(digstr);
@@ -1110,18 +1116,18 @@ int db_close_file(db_config* conf){
 #endif
 
 #ifndef WITH_ZLIB
-  if(fclose(conf->db_out)){
+  if(fclose(dbconf->db_out)){
     error(0,"Unable to close database:%s\n",strerror(errno));
     return RETFAIL;
   }
 #else
-  if(conf->gzip_dbout){
-    if(gzclose(conf->db_gzout)){
+  if(dbconf->gzip_dbout){
+    if(gzclose(dbconf->db_gzout)){
       error(0,"Unable to close gzdatabase:%s\n",strerror(errno));
       return RETFAIL;
     }
   }else {
-    if(fclose(conf->db_out)){
+    if(fclose(dbconf->db_out)){
       error(0,"Unable to close database:%s\n",strerror(errno));
       return RETFAIL;
     }

@@ -224,14 +224,14 @@ FILE* be_init(int inout,url_t* u,int iszipped)
     if(iszipped && !inout){
       fh=gzdopen(a,"w");
       if(fh==NULL){
-	error(0,"Couldn't reopen file descriptor %i\n",a);
+	error(0,"Couldn't reopen file descriptor %li\n",a);
       }
     }
     else{
 #endif
       fh=fdopen(a,inout?"r":"w");
       if(fh==NULL){
-	error(0,"Couldn't reopen file descriptor %i\n",a);
+	error(0,"Couldn't reopen file descriptor %li\n",a);
       }
 #ifdef WITH_ZLIB
     }

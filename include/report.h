@@ -36,7 +36,12 @@
 /* Errorcodes */
 #define HASH_ALGO_ERROR 30
 
-void error(int errorlevel, char* error_msg,...);
+void error(int errorlevel, char* error_msg,...)
+#ifdef __GNUC__
+        __attribute__ ((format (printf, 2, 3)));
+#else
+ ;
+#endif
 
 int error_init(url_t*,int);
 

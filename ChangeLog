@@ -1,5 +1,6 @@
 2010-02-18	Richard van den Berg  <richard@vdberg.org>
 	* Adjust building of fopen.c by Steve Grubb <sgrubb@redhat.com>
+	* Fix error handling for prelink by Steve Grubb <sgrubb@redhat.com>
 
 2010-02-17	Richard van den Berg  <richard@vdberg.org>
 	* Fix several warnings by Steve Grubb <sgrubb@redhat.com>

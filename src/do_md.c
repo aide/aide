@@ -118,7 +118,7 @@ int is_prelinked(int fd) {
 
 /*
  * Open path via prelink -y, set fd
- * Return: 0(not success) / !0(prelink child process)
+ * Return: 0 failure / > 0 success
  *
  */
 pid_t open_prelinked(const char * path, int * fd) {
@@ -127,20 +127,28 @@ pid_t open_prelinked(const char * path, int * fd) {
         int pipes[2];
 
         pipes[0] = pipes[1] = -1;
-        pipe(pipes);
-        if (!(pid = fork())) {
-                /* child */
-                close(pipes[0]);
-                dup2(pipes[1], STDOUT_FILENO);
-                close(pipes[1]);
-                unsetenv("MALLOC_CHECK_");
-                execl(cmd, cmd, "--verify", path, (char *) NULL);
+        if (pipe(pipes) < 0)
+           return 0;
+        pid = fork();
+        switch (pid) {
+           case 0:
+              /* child */
+              close(pipes[0]);
+              dup2(pipes[1], STDOUT_FILENO);
+              close(pipes[1]);
+              unsetenv("MALLOC_CHECK_");
+              execl(cmd, cmd, "--verify", path, (char *) NULL);
+              exit(1);
+              break;
+           case -1:
+              close(pipes[0]);
+              close(pipes[1]);
+              return 0;
         }
         /* parent */
         close(pipes[1]);
         *fd = pipes[0];
         return pid;
-
 }
 
 #endif
@@ -311,6 +319,7 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
 	 conf->catch_mmap=1;
 	 if (update_md(&mdc,buf,size)!=RETOK) {
 	   error(0,"Message digest failed during update\n");
+	   close(filedes);
 	   close_md(&mdc);
 	   munmap(buf,size);
 	   return;
@@ -334,6 +343,7 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
       while ((size=TEMP_FAILURE_RETRY(read(filedes,buf,READ_BLOCK_SIZE)))>0) {
 	if (update_md(&mdc,buf,size)!=RETOK) {
 	  error(0,"Message digest failed during update\n");
+	  close(filedes);
 	  close_md(&mdc);
 	  return;
 	}
@@ -346,6 +356,7 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
         (void) waitpid(pid, &status, 0);
         if (!WIFEXITED(status) || WEXITSTATUS(status)) {
           error(0, "Error on exit of prelink child process\n");
+	  close(filedes);
 	  close_md(&mdc);
           return;
         }

@@ -48,7 +48,6 @@ aide_SOURCES =	aide.c		\
 		db_sql.c	\
 		do_md.c		\
 		error.c		\
-		fopen.c		\
 		gen_list.c	\
 		getopt1.c	\
 		getopt.c	\
@@ -58,6 +57,10 @@ aide_SOURCES =	aide.c		\
 		snprintf.c	\
 		symboltable.c	\
 		util.c 
+
+if USE_CURL
+aide_SOURCES += fopen.c
+endif
 
 conf_yacc.c: conf_yacc.y
 	$(YACC) $(AM_YFLAGS) -o $@ -p conf $<

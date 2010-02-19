@@ -1,3 +1,6 @@
+2010-02-18	Richard van den Berg  <richard@vdberg.org>
+	* Adjust building of fopen.c by Steve Grubb <sgrubb@redhat.com>
+
 2010-02-17	Richard van den Berg  <richard@vdberg.org>
 	* Fix several warnings by Steve Grubb <sgrubb@redhat.com>
 	* Check LD in configure by Steve Grubb <sgrubb@redhat.com>

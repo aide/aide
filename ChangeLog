@@ -1,5 +1,7 @@
-2010-02-21	Richard van den Berg  <richard@vdberg.org>
-	* Fix checksums letter by Hannes von Haugwitz <hannes@vonhaugwitz.com>
+2010-02-21	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Fix checksums letter
+	* Always save the permission to database
+	* summarize_changes: Re-enabled file-type detection for removed files
 
 2010-02-18	Richard van den Berg  <richard@vdberg.org>
 	* Adjust building of fopen.c by Steve Grubb <sgrubb@redhat.com>

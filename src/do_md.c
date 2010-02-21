@@ -415,11 +415,7 @@ void fs2db_line(struct AIDE_STAT_TYPE* fs,db_line* line) {
     line->gid=0;
   }
 
-  if(DB_PERM&line->attr){
-    line->perm=fs->st_mode;
-  }else{
-    line->perm=0;
-  }
+  line->perm=fs->st_mode;
 
   if(DB_SIZE&line->attr||DB_SIZEG&line->attr){
     line->size=fs->st_size;

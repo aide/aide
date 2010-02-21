@@ -2,6 +2,7 @@
 	* Fix checksums letter
 	* Always save the permission to database
 	* summarize_changes: Re-enabled file-type detection for removed files
+	* Fix line->attr&DB_LINKNAME is always true issue
 
 2010-02-18	Richard van den Berg  <richard@vdberg.org>
 	* Adjust building of fopen.c by Steve Grubb <sgrubb@redhat.com>

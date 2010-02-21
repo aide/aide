@@ -1309,10 +1309,10 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr)
   memset(line,0,sizeof(db_line));
   
   /*
-    We want filename and linkname
+    We want filename
   */
 
-  line->attr=attr|DB_FILENAME|DB_LINKNAME;
+  line->attr=attr|DB_FILENAME;
   
   /*
     Just copy some needed fields.
@@ -1517,10 +1517,6 @@ void hsymlnk(db_line* line) {
      * We use realloc :)
      */
     line->linkname=realloc(line->linkname,len+1);
-    line->attr|=DB_LINKNAME;
-  }else {
-    /* Just remove linkname avaivilibity bit from this entry */
-    line->attr&=(~DB_LINKNAME); 
   }
   
 }

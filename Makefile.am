@@ -27,6 +27,5 @@ CLEANFILES = *~
 
 EXTRA_DIST = version.m4 AUTHORS ChangeLog INSTALL README Todo \
 	contrib/bzip2.sh contrib/gpg2_check.sh contrib/gpg2_update.sh \
-	contrib/gpg_check.sh contrib/gpg_update.sh contrib/sshaide.sh \
-	LICENSE-snprintf.txt README-snprintf
+	contrib/gpg_check.sh contrib/gpg_update.sh contrib/sshaide.sh
 

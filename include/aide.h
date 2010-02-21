@@ -45,22 +45,15 @@
         __result; }))
 #endif
 
-#ifdef HAVE_SNPRINTF
-#if !defined(HAVE_C99_SNPRINTF) || !defined(HAVE_C99_VSNPRINTF)
-#define PREFER_PORTABLE_SNPRINTF
-#endif
-#endif
-
-#ifdef HAVE_VSNPRINTF
-#ifndef HAVE_SNPRINTF
-#define HAVE_SNPRINTF
-#define PREFER_PORTABLE_SNPRINTF
-#endif
+#if !defined HAVE_VSNPRINTF || !defined HAVE_C99_VSNPRINTF
+#define vsnprintf rsync_vsnprintf
+int vsnprintf(char *str, size_t count, const char *fmt, va_list args);
 #endif
 
-#define SNPRINTF_LONGLONG_SUPPORT
-
-#include "snprintf.h"
+#if !defined HAVE_SNPRINTF || !defined HAVE_C99_VSNPRINTF
+#define snprintf rsync_snprintf
+int snprintf(char *str,size_t count,const char *fmt,...);
+#endif
 
 #ifndef O_NOATIME
 #if defined(__linux__) && (defined(__i386__) || defined(__PPC__))

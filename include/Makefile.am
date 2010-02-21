@@ -20,5 +20,5 @@
 noinst_HEADERS = aide.h base64.h be.h commandconf.h compare_db.h \
 	conf_lex.h db_config.h db_disk.h db_file.h db.h db_list.h \
 	db_sql.h do_md.h fopen.h gen_list.h getopt.h gnu_regex.h \
-	list.h locale-aide.h md.h report.h seltree.h snprintf.h \
+	list.h locale-aide.h md.h report.h seltree.h \
 	symboltable.h types.h url.h util.h

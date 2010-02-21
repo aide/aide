@@ -466,8 +466,10 @@ void acl2line(db_line* line) {
 
     acl_a = acl_get_file(line->filename, ACL_TYPE_ACCESS);
     acl_d = acl_get_file(line->filename, ACL_TYPE_DEFAULT);
-    if ((acl_a == NULL) && (errno == ENOTSUP))
+    if ((acl_a == NULL) && (errno == ENOTSUP)) {
+      line->attr&=(~DB_ACL);
       return;
+    }
     if (acl_a == NULL)
       error(0, "Tried to read access ACL on %s but failed with: %m\n",
             line->filename);

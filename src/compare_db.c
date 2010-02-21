@@ -749,18 +749,18 @@ void print_changed_line(db_line* old,db_line* new, DB_ATTR_TYPE ignorelist) {
         easy_char(DB_INODE,inode,'i',10);
         easy_char(DB_LNKCOUNT,nlink,'n',11);
         if (
-                ((DB_MD5&old->attr && DB_MD5&new->attr) && md_has_changed(old->md5,new->md5,HASH_MD5_LEN)) ||
-                ((DB_SHA1&old->attr &&  DB_SHA1&new->attr) && md_has_changed(old->sha1,new->sha1,HASH_SHA1_LEN)) ||
-                ((DB_RMD160&old->attr && DB_RMD160&new->attr) && md_has_changed(old->rmd160,new->rmd160,HASH_RMD160_LEN)) ||
-                ((DB_TIGER&old->attr && DB_TIGER&new->attr) && md_has_changed(old->tiger,new->tiger,HASH_TIGER_LEN)) ||
-                ((DB_SHA256&old->attr && DB_SHA256&new->attr) && md_has_changed(old->sha256,new->sha256,HASH_SHA256_LEN)) ||
-                ((DB_SHA512&old->attr && DB_SHA512&new->attr) && md_has_changed(old->sha512,new->sha512,HASH_SHA512_LEN)) 
+                ((DB_MD5&old->attr && DB_MD5&new->attr) && md_has_changed(old->md5,new->md5,HASH_MD5_LEN) && !(DB_MD5&ignorelist)) ||
+                ((DB_SHA1&old->attr &&  DB_SHA1&new->attr) && md_has_changed(old->sha1,new->sha1,HASH_SHA1_LEN) && !(DB_SHA1&ignorelist)) ||
+                ((DB_RMD160&old->attr && DB_RMD160&new->attr) && md_has_changed(old->rmd160,new->rmd160,HASH_RMD160_LEN) && !(DB_RMD160&ignorelist)) ||
+                ((DB_TIGER&old->attr && DB_TIGER&new->attr) && md_has_changed(old->tiger,new->tiger,HASH_TIGER_LEN) && !(DB_TIGER&ignorelist)) ||
+                ((DB_SHA256&old->attr && DB_SHA256&new->attr) && md_has_changed(old->sha256,new->sha256,HASH_SHA256_LEN) && !(DB_SHA256&ignorelist)) ||
+                ((DB_SHA512&old->attr && DB_SHA512&new->attr) && md_has_changed(old->sha512,new->sha512,HASH_SHA512_LEN) && !(DB_SHA512&ignorelist)) 
 #ifdef WITH_MHASH
-                || ((DB_CRC32&old->attr && DB_CRC32&new->attr) && md_has_changed(old->crc32,new->crc32,HASH_CRC32_LEN)) ||
-                ((DB_HAVAL&old->attr && DB_HAVAL&new->attr) && md_has_changed(old->haval,new->haval,HASH_HAVAL256_LEN)) ||
-                ((DB_GOST&old->attr && DB_GOST&new->attr) && md_has_changed(old->gost,new->gost,HASH_GOST_LEN)) ||
-                ((DB_CRC32B&old->attr && DB_CRC32B&new->attr) && md_has_changed(old->crc32b,new->crc32b,HASH_CRC32B_LEN)) ||
-                ((DB_WHIRLPOOL&old->attr && DB_WHIRLPOOL&new->attr) && md_has_changed(old->whirlpool,new->whirlpool,HASH_WHIRLPOOL_LEN))
+                || ((DB_CRC32&old->attr && DB_CRC32&new->attr) && md_has_changed(old->crc32,new->crc32,HASH_CRC32_LEN) && !(DB_CRC32&ignorelist)) ||
+                ((DB_HAVAL&old->attr && DB_HAVAL&new->attr) && md_has_changed(old->haval,new->haval,HASH_HAVAL256_LEN) && !(DB_HAVAL&ignorelist)) ||
+                ((DB_GOST&old->attr && DB_GOST&new->attr) && md_has_changed(old->gost,new->gost,HASH_GOST_LEN) && !(DB_GOST&ignorelist)) ||
+                ((DB_CRC32B&old->attr && DB_CRC32B&new->attr) && md_has_changed(old->crc32b,new->crc32b,HASH_CRC32B_LEN) && !(DB_CRC32B&ignorelist)) ||
+                ((DB_WHIRLPOOL&old->attr && DB_WHIRLPOOL&new->attr) && md_has_changed(old->whirlpool,new->whirlpool,HASH_WHIRLPOOL_LEN && !(DB_WHIRLPOOL&ignorelist)))
 #endif        
            ) {
             summary[12]='C';
@@ -797,18 +797,18 @@ void print_changed_line(db_line* old,db_line* new, DB_ATTR_TYPE ignorelist) {
                 ) {
             summary[12]='+';
         } else if (
-                DB_MD5&ignorelist ||
-                DB_SHA1&ignorelist ||
-                DB_RMD160&ignorelist ||
-                DB_TIGER&ignorelist ||
-                DB_SHA256&ignorelist ||
-                DB_SHA512&ignorelist
+                ((DB_MD5&old->attr && DB_MD5&new->attr) && DB_MD5&ignorelist) ||
+                ((DB_SHA1&old->attr &&  DB_SHA1&new->attr) && DB_SHA1&ignorelist) ||
+                ((DB_RMD160&old->attr && DB_RMD160&new->attr) && DB_RMD160&ignorelist) ||
+                ((DB_TIGER&old->attr && DB_TIGER&new->attr) && DB_TIGER&ignorelist) ||
+                ((DB_SHA256&old->attr && DB_SHA256&new->attr) && DB_SHA256&ignorelist) ||
+                ((DB_SHA512&old->attr && DB_SHA512&new->attr) && DB_SHA512&ignorelist)
 #ifdef WITH_MHASH
-                || DB_CRC32&ignorelist ||
-                DB_HAVAL&ignorelist ||
-                DB_GOST&ignorelist ||
-                DB_CRC32B&ignorelist ||
-                DB_WHIRLPOOL&ignorelist
+                || ((DB_CRC32&old->attr && DB_CRC32&new->attr) && DB_CRC32&ignorelist) ||
+                ((DB_HAVAL&old->attr && DB_HAVAL&new->attr) && DB_HAVAL&ignorelist) ||
+                ((DB_GOST&old->attr && DB_GOST&new->attr) && DB_GOST&ignorelist) ||
+                ((DB_CRC32B&old->attr && DB_CRC32B&new->attr) && DB_CRC32B&ignorelist) ||
+                ((DB_WHIRLPOOL&old->attr && DB_WHIRLPOOL&new->attr) && DB_WHIRLPOOL&ignorelist)
 #endif        
                 ) {
             summary[12]=':';

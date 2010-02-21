@@ -1,3 +1,6 @@
+2010-02-21	Richard van den Berg  <richard@vdberg.org>
+	* Fix checksums letter by Hannes von Haugwitz <hannes@vonhaugwitz.com>
+
 2010-02-18	Richard van den Berg  <richard@vdberg.org>
 	* Adjust building of fopen.c by Steve Grubb <sgrubb@redhat.com>
 	* Fix error handling for prelink by Steve Grubb <sgrubb@redhat.com>

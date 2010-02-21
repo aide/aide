@@ -1370,8 +1370,7 @@ long report_tree(seltree* node,int stage, long* status)
       error(2,_("---------------------------------------------------\n\n"));
     }
     if(node->checked&NODE_CHANGED){
-      int localignorelist=(node->old_data->attr ^ node->new_data->attr)|ignorelist;
-      print_changed_line(node->old_data,node->new_data,localignorelist);
+      print_changed_line(node->old_data,node->new_data,ignorelist);
     }
   }
 

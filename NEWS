@@ -3,6 +3,13 @@
 
 =========================================================
 
+Version 0.14
+	* Renewed autoconf mechanism
+	* Resolved licensing conflicts
+	* New feature to summarize changes
+	* Added prelink support
+	* Many bugfixes
+
 Version 0.13.1
 	* Fixed bug with reading gzipped aide.db files
 	* Removed dead ustat code

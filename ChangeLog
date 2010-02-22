@@ -1,5 +1,6 @@
 2010-02-22	Richard van den Berg  <richard@vdberg.org>
 	* Released version 0.14-rc1
+	* Changed version to post-0.14-rc1
 
 2010-02-21	Richard van den Berg  <richard@vdberg.org>
 	* Replaced snprintf.c with the version from rsync-2.6.9

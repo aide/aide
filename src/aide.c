@@ -65,7 +65,7 @@ void usage(int exitvalue)
 	    "  -u, --update\t\tCheck and update the database non-interactively\n"
 	    "      --compare\t\tCompare two databases\n\n"
 	    "Miscellaneous:\n"
-	    "      --config-check\tTest the configuration file\n"
+	    "  -D, --config-check\tTest the configuration file\n"
 	    "  -v, --version\t\tShow version of AIDE and compilation options\n"
 	    "  -h, --help\t\tShow this help message\n\n"
 	    "Options:\n"

@@ -1,3 +1,6 @@
+2010-02-23	Richard van den Berg  <richard@vdberg.org>
+	* Show -D in --help by Steve Grubb <sgrubb@redhat.com>
+
 2010-02-22	Richard van den Berg  <richard@vdberg.org>
 	* Released version 0.14-rc1
 	* Changed version to post-0.14-rc1

@@ -1517,6 +1517,8 @@ void hsymlnk(db_line* line) {
      * We use realloc :)
      */
     line->linkname=realloc(line->linkname,len+1);
+  } else {
+      line->attr&=(~DB_LINKNAME);
   }
   
 }

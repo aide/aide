@@ -1,5 +1,6 @@
 2010-02-23	Richard van den Berg  <richard@vdberg.org>
 	* Show -D in --help by Steve Grubb <sgrubb@redhat.com>
+	* Refix line->attr&DB_LINKNAME is always true issue by Hannes von Haugwitz <hannes@vonhaugwitz.com>
 
 2010-02-22	Richard van den Berg  <richard@vdberg.org>
 	* Released version 0.14-rc1

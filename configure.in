@@ -568,6 +568,8 @@ AC_CHECK_FUNC(lstat64,
 	compoptionstring="${compoptionstring}WITH_READDIR\\n"]
 )
 
+saved_CFLAGS="$CFLAGS"
+CFLAGS+=" $AIDE_DEFS"
 AC_CACHE_CHECK([for LFS ino_t],AIDE_INO_TYPE,[
 AC_TRY_RUN([
 #include <unistd.h>
@@ -598,6 +600,7 @@ else
 	AIDE_INO_TYPE=ino_t
 	AIDE_DIRENT_TYPE=dirent
 fi
+CFLAGS="$saved_CFLAGS"
 
 AC_DEFINE_UNQUOTED(AIDE_LSTAT_FUNC,$AIDE_LSTAT_FUNC,[lstat])
 AC_DEFINE_UNQUOTED(AIDE_STAT_FUNC,$AIDE_STAT_FUNC,[stat])

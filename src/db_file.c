@@ -88,8 +88,8 @@ void handle_gzipped_input(int out,gzFile* gzp){
         exit(1);
       }
       
-      error(240,"nread=%d,strlen(buf)=%u,errno=%s,gzerr=%s\n",
-	    nread,strlen((char*)buf),strerror(errno),
+      error(240,"nread=%d,strlen(buf)=%lu,errno=%s,gzerr=%s\n",
+	    nread,(unsigned long)strlen((char*)buf),strerror(errno),
 	    gzerror(*gzp,&err));
       buf[0]='\0';
     }
@@ -673,8 +673,8 @@ int db_writelong(AIDE_OFF_TYPE i,FILE* file,int a)
     dofprintf(" ");
   }
   
-#if AIDE_OFF_TYPE == off64_t
-  return dofprintf("%lli",i);
+#if SIZEOF_OFF64_T == SIZEOF_LONG_LONG
+  return dofprintf("%lli",(long long)i);
 #else
   return dofprintf("%li",i);
 #endif

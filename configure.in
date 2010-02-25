@@ -251,6 +251,7 @@ AC_CHECK_TYPES([byte, ushort, ulong, u16, u32, u64])
 AC_CHECK_SIZEOF(unsigned short, 2)
 AC_CHECK_SIZEOF(unsigned int, 4)
 AC_CHECK_SIZEOF(unsigned long, 4)
+AC_CHECK_SIZEOF(long long, 8)
 AC_CHECK_SIZEOF(unsigned long long, 8)
 AC_C_LONG_DOUBLE
 
@@ -572,6 +573,8 @@ AC_CHECK_FUNC(lstat64,
 
 saved_CFLAGS="$CFLAGS"
 CFLAGS+=" $AIDE_DEFS"
+AC_CHECK_SIZEOF(off_t)
+AC_CHECK_SIZEOF(off64_t)
 AC_CACHE_CHECK([for LFS ino_t],AIDE_INO_TYPE,[
 AC_TRY_RUN([
 #include <unistd.h>

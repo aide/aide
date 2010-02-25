@@ -462,7 +462,7 @@ void print_single_xattrs(xattrs_type* xattrs)
     size_t num = 0;
     int width = 0;
     
-    error(2,"num=%u\n", xattrs->num);
+    error(2,"num=%lu\n", (unsigned long)xattrs->num);
 
     width = log10(xattrs->num); /* make them the same width */
     
@@ -595,7 +595,7 @@ void print_int_changes(const char* name, int old, int new, int justnew)
 }
 void print_long_changes(const char* name, AIDE_OFF_TYPE old, AIDE_OFF_TYPE new, int justnew)
 {
-#if AIDE_OFF_TYPE == off64_t
+#if SIZEOF_OFF64_T == SIZEOF_LONG_LONG
   if (!justnew) {
     snprintf(oline,part_len,"%llu",(long long unsigned)old);
   }

@@ -314,9 +314,9 @@ int db_input_wrapper(char* buf, int max_size, int db)
 	buf[0]='\0';
       } else {
 	/* gzread returns 0 even if uncompressed bytes were read*/
-	error(240,"nread=%d,strlen(buf)=%u,errno=%s,gzerr=%s\n",
-              retval,strnlen((char*)buf, max_size),strerror(errno),
-	      gzerror(*db_gzp,&err));
+	error(240,"nread=%d,strlen(buf)=%lu,errno=%s,gzerr=%s\n",
+              retval,(unsigned long)strnlen((char*)buf, max_size),
+              strerror(errno),gzerror(*db_gzp,&err));
 	if(retval==0){
 	  retval=strnlen((char*)buf, max_size);
 	}

@@ -1,5 +1,6 @@
 2010-02-25	Richard van den Berg  <richard@vdberg.org>
 	* Released version 0.14-rc2
+	* Fix xattrs and selinux bits by Hannes von Haugwitz <hannes@vonhaugwitz.com>
 
 2010-02-25	Steve Grubb <sgrubb@redhat.com>
 	* Additional checks for snprintf.c

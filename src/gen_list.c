@@ -415,8 +415,8 @@ static void xattrs2line(db_line *line)
     xatrs = realloc(xatrs, xsz);
   }
 
-  if ((xret == -1) && (errno == ENOSYS))
-  { /* do nothing */ }
+  if ((xret == -1) && ((errno == ENOSYS) || (errno == ENOTSUP)))
+  {   line->attr&=(~DB_XATTRS); }
   else if (xret == -1)
     error(0, "listxattrs failed for %s:%m\n", line->filename);
   else if (xret)
@@ -471,8 +471,10 @@ static void selinux2line(db_line *line)
 
   if (lgetfilecon_raw(line->filename, &cntx) == -1)
   {
-    error(0, "lgetfilecon_raw failed for %s:%m\n", line->filename);
-    return;
+      line->attr&=(~DB_SELINUX);
+      if ((errno != ENOATTR) && (errno != EOPNOTSUPP))
+          error(0, "lgetfilecon_raw failed for %s:%m\n", line->filename);
+      return;
   }
 
   line->cntx = strdup(cntx);

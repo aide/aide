@@ -1,3 +1,6 @@
+2010-02-25	Steve Grubb <sgrubb@redhat.com>
+	* Additional checks for snprintf.c
+
 2010-02-24	Richard van den Berg  <richard@vdberg.org>
 	* Re-enable large file support on 32 bit systems by Steve Grubb <sgrubb@redhat.com>
 

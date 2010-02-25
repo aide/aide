@@ -252,6 +252,7 @@ AC_CHECK_SIZEOF(unsigned short, 2)
 AC_CHECK_SIZEOF(unsigned int, 4)
 AC_CHECK_SIZEOF(unsigned long, 4)
 AC_CHECK_SIZEOF(unsigned long long, 8)
+AC_C_LONG_DOUBLE
 
 AC_HEADER_STDC
 AC_CHECK_FUNCS(strtoll strtoimax readdir)
@@ -270,7 +271,8 @@ AS_IF([test "x$with_mmap" != xno],
 	compoptionstring="${compoptionstring}WITH_MMAP\\n"
 )
 
-AC_CHECK_FUNCS(fcntl ftruncate posix_fadvise snprintf vsnprintf)
+AC_CHECK_FUNCS(fcntl ftruncate posix_fadvise asprintf snprintf \
+	vasprintf vsnprintf va_copy __va_copy)
 
 AC_CACHE_CHECK(for ISO C99 compliant snprintf,ac_cv_func_snprintf_c99,
 	[AC_TRY_RUN([
@@ -349,7 +351,7 @@ if test "$db_cv_open_o_noatime" = yes; then
 	AH_TEMPLATE(HAVE_O_NOATIME, [Define to 1 if you have the O_NOATIME flag.])
 fi
 
-AC_CHECK_HEADERS(syslog.h inttypes.h fcntl.h)
+AC_CHECK_HEADERS(syslog.h inttypes.h fcntl.h ctype.h)
 
 AC_ARG_WITH([locale],
 	[AC_HELP_STRING([--with-locale],

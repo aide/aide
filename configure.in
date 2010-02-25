@@ -215,10 +215,10 @@ if test "$aide_static_choice" != "yes"; then
   EXTRA_CFLAGS=""
   if test x$CC = "xgcc"; then
     if ld_supports_flag -z,relro; then
-      EXTRA_LDFLAGS="$EXTRA_LDFLAGS -z relro"
+      EXTRA_LDFLAGS="$EXTRA_LDFLAGS -Wl,-z,relro"
     fi
-    if ld_supports_flag -z now; then
-      EXTRA_LDFLAGS="$EXTRA_LDFLAGS -z now"
+    if ld_supports_flag -z,now; then
+      EXTRA_LDFLAGS="$EXTRA_LDFLAGS -Wl,-z,now"
     fi
     if cc_supports_flag -fPIE -DPIE; then
       EXTRA_CFLAGS="$EXTRA_CFLAGS -fPIE -DPIE"

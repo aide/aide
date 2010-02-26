@@ -80,6 +80,9 @@ typedef struct xattrs_type
 
 #ifdef WITH_SELINUX
 #include <selinux/selinux.h>
+#ifndef ENOATTR
+# define ENOATTR ENODATA 
+#endif
 #endif
 
 #ifdef WITH_MHASH

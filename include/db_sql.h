@@ -22,7 +22,7 @@
 #define _DB_SQL_H_INCLUDED
 
 
-static __attribute__ ((used)) const char* db_sql_types[] = {
+static const char* db_sql_types[] = {
    "text unique primary key",/* "name",   */
    "text", 	         /* "lname",   */
    "int", 	         /* "perm",    */
@@ -51,5 +51,7 @@ static __attribute__ ((used)) const char* db_sql_types[] = {
 
 int db_close_sql(void*);
 db_line* db_readline_sql(int db, db_config* conf);
+int db_writeline_sql(db_line* line,db_config* conf);
+int db_writespec_sql(db_config* conf);
 
 #endif

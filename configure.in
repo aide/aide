@@ -532,7 +532,7 @@ if test "$aide_lfs_choice" = "yes"; then
 # This looks weird because Linux defines lstat64 and then screws it up
 AC_CHECK_FUNC(lstat64,
     [AC_CHECK_FUNC(stat64,
-	AIDE_DEFS+=" -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS"
+	AIDE_DEFS="$AIDE_DEFS -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS"
 	AIDE_LSTAT_FUNC="lstat64"
 	compoptionstring="${compoptionstring}WITH_LSTAT64\\n"
 	AIDE_STAT_FUNC="stat64"
@@ -571,7 +571,7 @@ AC_CHECK_FUNC(lstat64,
 )
 
 saved_CFLAGS="$CFLAGS"
-CFLAGS+=" $AIDE_DEFS"
+CFLAGS="$CFLAGS $AIDE_DEFS"
 AC_CHECK_SIZEOF(off_t)
 AC_CHECK_SIZEOF(off64_t)
 AC_CACHE_CHECK([for LFS ino_t],AIDE_INO_TYPE,[

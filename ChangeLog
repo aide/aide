@@ -2,6 +2,7 @@
 	* Changed version to post-0.14
 	* Do not use += in configure, fixes bug 2972100
 	* Change gzdopen() from wb+ to wb, fixes bug 2976146
+	* Do not strcat into uninitialized data, fixes bug 2919946
 
 2010-03-16	Richard van den Berg  <richard@vdberg.org>
 	* Released version 0.14

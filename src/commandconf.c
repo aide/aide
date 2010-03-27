@@ -84,7 +84,7 @@ int commandconf(const char mode,const char* line)
     else {
       tmp=(char*)malloc(sizeof(char)
 			*(strlen(after)+strlen(line)+2));
-      strcat(tmp,after);
+      strcpy(tmp,after);
       strcat(tmp,"\n");
       strcat(tmp,line);
       free(after);

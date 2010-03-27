@@ -201,6 +201,12 @@ int init_md(struct md_container* md) {
 #endif 
 #ifdef WITH_GCRYPT
   error(255,"Gcrypt library initialization\n");
+  	if(!gcry_check_version(GCRYPT_VERSION)) {
+		error(0,"libgcrypt version mismatch\n");
+		exit(VERSION_MISMATCH_ERROR);
+	}
+	gcry_control(GCRYCTL_DISABLE_SECMEM, 0);
+	gcry_control(GCRYCTL_INITIALIZATION_FINISHED, 0);
 	if(gcry_md_open(&md->mdh,0,0)!=GPG_ERR_NO_ERROR){
 		error(0,"gcrypt_md_open failed\n");
 		exit(IO_ERROR);

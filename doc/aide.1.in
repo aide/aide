@@ -67,6 +67,7 @@ conditions:
 .IP "16 Unimplemented function error"
 .IP "17 Invalid configureline error"
 .IP "18 IO error"
+.IP "19 Version mismatch error"
 .PP
 .SH NOTES
 Please note that due to mmap issues, aide cannot be terminated with

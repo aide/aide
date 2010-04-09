@@ -275,7 +275,7 @@ static int compare_str(const char *s1, const char *s2)
   - ignorelist kertoo mitä ei saa vertailla
 */
 
-int compare_dbline(db_line* l1,db_line* l2,DB_ATTR_TYPE ignorelist)
+DB_ATTR_TYPE compare_dbline(db_line* l1,db_line* l2,DB_ATTR_TYPE ignorelist)
 {
 
 #define easy_compare(a,b) \

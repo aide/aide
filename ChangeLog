@@ -1,3 +1,6 @@
+2010-04-09	Richard van den Berg  <richard@vdberg.org>
+	* Use DB_ATTR_TYPE for compare_dbline() by Patrick Neely <patrick.neely@gtri.gatech.edu>
+
 2010-03-27	Richard van den Berg  <richard@vdberg.org>
 	* Changed version to post-0.14
 	* Do not use += in configure, fixes bug 2972100

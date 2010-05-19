@@ -1,3 +1,6 @@
+2010-05-19	Richard van den Berg  <richard@vdberg.org>
+	* Use exit() instead of abort() by Steve Grubb <sgrubb@redhat.com>
+
 2010-04-09	Richard van den Berg  <richard@vdberg.org>
 	* Use DB_ATTR_TYPE for compare_dbline() by Patrick Neely <patrick.neely@gtri.gatech.edu>
 

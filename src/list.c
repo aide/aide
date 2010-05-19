@@ -47,7 +47,7 @@
 
 
 /* 
- * Some way to handle mallocs failure would be nice. Now it say abort().
+ * Some way to handle mallocs failure would be nice.
  */
 
 list* list_append(list* listp,void*data)
@@ -57,7 +57,7 @@ list* list_append(list* listp,void*data)
 
   if (newitem==NULL) {
     error(0,"Not enough memory to add a new item to list.\n");
-    abort();
+    exit(EXIT_FAILURE);
   }
   
   if(listp==NULL){
@@ -65,7 +65,7 @@ list* list_append(list* listp,void*data)
     
     if (header==NULL){
       error(0,"Not enough memory for list header allocation\n");
-      abort();
+      exit(EXIT_FAILURE);
     }
     
     newitem->data=data;

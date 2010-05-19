@@ -382,7 +382,7 @@ db_line* db_char2line(char** ss,int db){
 	line->filename=strdup(ss[(*db_order)[i]]);
       } else {
 	error(0,"db_char2line():Error while reading database\n");
-	abort();
+	exit(EXIT_FAILURE);
       }
       break;
     }

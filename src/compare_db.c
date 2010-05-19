@@ -1025,7 +1025,7 @@ void init_rxlst(list* rxlst)
     
     if (data==NULL){
       error(0,_("Not enough memory for regexpr compile... exiting..\n"));
-      abort();
+      exit(EXIT_FAILURE);
     }
     
     strcpy(data+1,((rx_rule*)r->data)->rx);

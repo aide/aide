@@ -216,7 +216,7 @@ int conf_input_wrapper(char* buf, int max_size, FILE* in)
 	    MHASH_FAILED){
 	  error(0, "mhash_hmac_init() failed for %i for config check. Aborting\n",
 		conf->confhmactype);
-	  abort();
+	  exit(EXIT_FAILURE);
 	}
       } else {
 	conf->do_configmd=0;
@@ -341,7 +341,7 @@ int db_input_wrapper(char* buf, int max_size, int db)
   if(c==-1) {
     int xx;
 	  error(0,"Error reading gzipped file: %s\n",gzerror(*db_gzp,&xx));
-    abort();
+    exit(EXIT_FAILURE);
   }
       }else {
 	/* False alarm */
@@ -377,7 +377,7 @@ int db_input_wrapper(char* buf, int max_size, int db)
 			     mhash_get_hash_pblock(conf->dbhmactype)))==
 	    MHASH_FAILED){
 	  error(0, "mhash_hmac_init() failed for db check. Aborting\n");
-	  abort();
+	  exit(EXIT_FAILURE);
 	}
       } else {
 	*domd=0;

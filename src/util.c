@@ -332,8 +332,7 @@ void sig_handler(int signum)
       conf->catch_mmap=0;
     } else {
       error(0,"Caught SIGBUS/SEGV. Exiting\n");
-      abort();
-      exit(1);
+      exit(EXIT_FAILURE);
     }
     break;
   }

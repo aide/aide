@@ -317,7 +317,7 @@ DB_ATTR_TYPE compare_dbline(db_line* l1,db_line* l2,DB_ATTR_TYPE ignorelist)
   easy_compare(DB_BCOUNT,bcount);
   
   if (!(DB_PERM&ignorelist)) {
-    if(l1->perm!=l2->perm){
+    if (DB_PERM&l1->attr && DB_PERM&l2->attr && l1->perm!=l2->perm) {
       ret|=DB_PERM;
     }
   } else {

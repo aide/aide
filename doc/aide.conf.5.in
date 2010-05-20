@@ -146,8 +146,10 @@ with "=" are equals selection lines. And lines beginning with "!"
 are negative selection lines. The string following the first character
 is taken as a regular expression matching to a complete filename,
 including the path. In a regular selection rule the "/" is included in the
-regular expression. Following the regular expression is a group
-definition as explained above. See EXAMPLES and doc/aide.conf for examples.
+regular expression. Special characters in your filenames can be escaped
+using two-digit URL encoding (for example, %20 to represent a space).
+Following the regular expression is a group definition as explained above.
+See EXAMPLES and doc/aide.conf for examples.
 .PP
 More in-depth discussion of the selection algorithm can be found in
 the aide manual.

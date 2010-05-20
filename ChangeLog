@@ -1,3 +1,6 @@
+2010-05-20	Richard van den Berg  <richard@vdberg.org>
+	* Support spaces and other characters in file paths in config by Byron Darrah  <bdarrah@corp.netzero.net>
+
 2010-05-19	Richard van den Berg  <richard@vdberg.org>
 	* Use exit() instead of abort() by Steve Grubb <sgrubb@redhat.com>
 	* Fixed changed permissions are always reported issue by Hannes von Haugwitz <hannes@vonhaugwitz.com>

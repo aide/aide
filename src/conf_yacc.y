@@ -29,6 +29,7 @@
 #include "db.h"
 #include "db_config.h"
 #include "symboltable.h"
+#include "util.h"
 #include "commandconf.h"
 
 DB_ATTR_TYPE retval=0;
@@ -169,15 +170,15 @@ line : rule | equrule | negrule | definestmt | undefstmt
           } ;
 
 rule : TSELRXRULE expr newlineoreof
-{ conf->selrxlst=append_rxlist($1,$2,conf->selrxlst); } ;
+{ decode_string($1); conf->selrxlst=append_rxlist($1,$2,conf->selrxlst); } ;
 
 equrule : TEQURXRULE expr newlineoreof
-{ conf->equrxlst=append_rxlist($1,$2,conf->equrxlst); } ;
+{ decode_string($1); conf->equrxlst=append_rxlist($1,$2,conf->equrxlst); } ;
 
 negrule : TNEGRXRULE newlineoreof
-{ conf->negrxlst=append_rxlist($1,0,conf->negrxlst); } |
+{ decode_string($1); conf->negrxlst=append_rxlist($1,0,conf->negrxlst); } |
           TNEGRXRULE expr newlineoreof 
-{ conf->negrxlst=append_rxlist($1,0,conf->negrxlst); };
+{ decode_string($1); conf->negrxlst=append_rxlist($1,0,conf->negrxlst); };
 
 newlineoreof : TNEWLINE |
           TEOF {

@@ -8,9 +8,11 @@ The main authors of this package are:
 
 Other contributors (people who have given us code/patches):
 	* KELEMEN Peter <Peter.Kelemen@cern.ch>
+	* Mike Markley (mike@markley.org)
+	* Steve Grubb <sgrubb@redhat.com>
 
 This package is currently maintained by:
 	* Richard van den Berg (richard@vdberg.org)
-	* Mike Markley (mike@markley.org)
+	* Hannes von Haugwitz <hannes@vonhaugwitz.com>
 
 Thanks to the people who have given good bug reports.

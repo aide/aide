@@ -1,5 +1,6 @@
 2010-05-30	Richard van den Berg  <richard@vdberg.org>
 	* Released version 0.14.1
+	* Changed version to post-0.14.1
 
 2010-05-20	Richard van den Berg  <richard@vdberg.org>
 	* Support spaces and other characters in file paths in config by Byron Darrah  <bdarrah@corp.netzero.net>

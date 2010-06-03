@@ -321,7 +321,7 @@ void gen_seltree(list* rxlist,seltree* tree,char type)
     
     rxtmp=(regex_t*)malloc(sizeof(regex_t));
     if( regcomp(rxtmp,data,REG_EXTENDED|REG_NOSUB)){
-      error(0,_("Error in selective regexp:%s"),curr_rule->rx);
+      error(0,_("Error in selective regexp: %s\n"),curr_rule->rx);
       free(data);
     }else{
       /* replace regexp text with regexp compiled */

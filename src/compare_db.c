@@ -1036,7 +1036,7 @@ void init_rxlst(list* rxlst)
     rxrultmp->conf_lineno=-1;
     rxtmp=(regex_t*)malloc(sizeof(regex_t));
     if( regcomp(rxtmp,data,REG_EXTENDED|REG_NOSUB)){
-      error(0,_("Error in selective regexp:%s"),((rx_rule*)r->data)->rx);
+      error(0,_("Error in selective regexp: %s\n"),((rx_rule*)r->data)->rx);
       free(data);
     }else {
       rxrultmp->conf_lineno=((rx_rule*)r)->conf_lineno;

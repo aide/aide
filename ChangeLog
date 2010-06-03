@@ -1,6 +1,7 @@
 2010-06-03	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Added missing space and new line to "Error in selective regexp" message,
 	  fixes bug 1944700
+	* Added missing '-' to separator line in the report
 
 2010-05-30	Richard van den Berg  <richard@vdberg.org>
 	* Released version 0.14.1

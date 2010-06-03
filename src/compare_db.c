@@ -1376,7 +1376,7 @@ long report_tree(seltree* node,int stage, long* status)
 
   if((stage==4)&&(conf->verbose_level>=5)&&status[4]){
     if(top){
-      error(2,_("\n--------------------------------------------------\n"));
+      error(2,_("\n---------------------------------------------------\n"));
       error(2,_("Detailed information about changes:\n"));
       error(2,_("---------------------------------------------------\n\n"));
     }

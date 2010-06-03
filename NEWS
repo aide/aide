@@ -3,6 +3,10 @@
 
 =========================================================
 
+Version 0.14.1
+    * Added aide-attributes.sh contrib script
+    * Bug fixes
+
 Version 0.14
 	* Renewed autoconf mechanism
 	* Resolved licensing conflicts

@@ -1151,7 +1151,7 @@ void add_file_to_tree(seltree* tree,db_line* file,int db,int status,
   if((node->checked&DB_OLD)&&(node->checked&DB_NEW)){
     localignorelist=(node->new_data->attr^node->old_data->attr);
     if (localignorelist!=0) {
-      error(2,"Entry %s in databases has different attributes, %llx,%llx\n",
+      error(2,"Entry %s in databases has different attributes: %llx %llx\n",
             node->old_data->filename,node->old_data->attr,node->new_data->attr);
     }
     
@@ -1200,7 +1200,7 @@ void add_file_to_tree(seltree* tree,db_line* file,int db,int status,
       localignorelist=(oldData->attr^newData->attr)&(~(DB_NEWFILE|DB_RMFILE));
 
       if (localignorelist!=0) {
-        error(5,"Entry \"%s\" \"%s\" in databases has different attributes (here3), %llx,%llx\n",
+        error(5,"Entry \"%s\" \"%s\" in databases has different attributes (here3): %llx %llx\n",
   	    newData->filename,oldData->filename,oldData->attr,newData->attr);
       }
     

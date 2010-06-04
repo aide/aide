@@ -1160,7 +1160,7 @@ void compare_db(list* new,db_config* dbconf)
       int localignorelist=old->attr ^ ((db_line*)r->data)->attr;
       
       if ((localignorelist&(~(DB_NEWFILE|DB_RMFILE)))!=0) {
-	error(2,"Entry %s in databases has different attributes, %llx,%llx\n",
+	error(2,"Entry %s in databases has different attributes: %llx %llx\n",
               old->filename,old->attr,((db_line*)r->data)->attr);
       }
       

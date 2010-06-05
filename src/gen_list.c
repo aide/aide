@@ -61,6 +61,7 @@ void no_hash(db_line* line);
 char* strrxtok(char* rx)
 {
   char*p=NULL;
+  char*t=NULL;
   size_t i=0;
 
   /* The following code assumes that the first character is a slash */
@@ -83,8 +84,10 @@ char* strrxtok(char* rx)
 	i=strlen(p);
 	break;
       case '\\':
-	strcpy(p+i,p+i+1);
-	i++;
+	t=strdup(p);
+	strcpy(p+i,t+i+1);
+	free(t);
+	t=NULL;
 	break;
       default:
 	break;

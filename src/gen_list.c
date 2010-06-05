@@ -1405,7 +1405,7 @@ void populate_tree(seltree* tree)
           free(old);
           old=NULL;
           if(!initdbwarningprinted){
-	    error(3,_("WARNING: Old db contains a file that shouldn\'t be there, run --init or --update\n"));
+	    error(3,_("WARNING: Old db contains a entry that shouldn\'t be there, run --init or --update\n"));
 	    initdbwarningprinted=1;
 	  }
 	}

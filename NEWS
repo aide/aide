@@ -4,6 +4,8 @@
 =========================================================
 
 Version UNRELEASED
+    * Report correct file type in "Detailed information
+      about changes" section
     * Bug fixes
 
 Version 0.14.1

@@ -626,7 +626,7 @@ void print_string_changes(const char* name, const char* old, const char* new, in
   }
 }
 
-char get_file_type_string(mode_t mode) {
+char get_file_type_char(mode_t mode) {
     if (S_ISREG(mode)) return 'f';
     else if(S_ISDIR(mode)) return 'd';
 #ifdef S_ISFIFO
@@ -644,9 +644,23 @@ char get_file_type_string(mode_t mode) {
     else return '?';
 }
 
+char* get_file_type_string(mode_t mode) {
+    switch (get_file_type_char(mode)) {
+        case 'f': return "File";
+        case 'd': return "Directory";
+        case 'F': return "FIFO";
+        case 'L': return "Link";
+        case 'B': return "Block device";
+        case 'D': return "Character device";
+        case 's': return "Socket";
+        case '|': return "Door";
+        default: return "Unknown file type";
+    }
+}
+
 void print_added_line(db_line* data) {
     if(conf->summarize_changes==1) {
-        error(2,"%c+++++++++++++++: %s\n",get_file_type_string(data->perm) , data->filename);
+        error(2,"%c+++++++++++++++: %s\n",get_file_type_char(data->perm) , data->filename);
     } else {
         error(2,"added: %s\n",data->filename);
     }
@@ -654,7 +668,7 @@ void print_added_line(db_line* data) {
 
 void print_removed_line(db_line* data) {
     if(conf->summarize_changes==1) {
-        error(2,"%c---------------: %s\n",get_file_type_string(data->perm), data->filename);
+        error(2,"%c---------------: %s\n",get_file_type_char(data->perm), data->filename);
     } else {
         error(2,"removed: %s\n",data->filename);
     }
@@ -736,7 +750,7 @@ void print_changed_line(db_line* old,db_line* new, DB_ATTR_TYPE ignorelist) {
 
     if(conf->summarize_changes==1) {
         char summary[]="                ";
-        summary[0]=get_file_type_string(new->perm);
+        summary[0]=get_file_type_char(new->perm);
         easy_compare_char(DB_LINKNAME,str_has_changed(old->linkname,new->linkname),'l',1);
         summary[2]=get_size_char(ignorelist, old, new);
         easy_char(DB_BCOUNT,bcount,'b',3);
@@ -852,11 +866,7 @@ void print_dbline_changes(db_line* old,db_line* new,
   */
   forced_attrs&=new->attr;
   
-  if(S_ISDIR(new->perm_o)){
-    error(2,"\nDirectory: %s\n",old->filename);
-  }else {
-    error(2,"\nFile: %s\n",old->filename);
-  }
+  error(2,"\n%s: %s\n",get_file_type_string(new->perm),new->filename);
   
   if(!(DB_LINKNAME&ignorelist)){
     print_str_changes(old->linkname,new->linkname, "Lname");

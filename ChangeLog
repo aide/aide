@@ -1,5 +1,6 @@
 2010-06-05	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Added missing description for '|' in aide.conf man page
+	* Report correct file type in "Detailed information about changes" section
 
 2010-06-04	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Replaced 'File' by 'Entry' in database warnings

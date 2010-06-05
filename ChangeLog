@@ -1,5 +1,6 @@
 2010-06-05	Richard van den Berg  <richard@vdberg.org>
 	* Released version 0.14.2
+	* Changed version to post-0.14.2
 
 2010-06-05	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Added missing description for '|' in aide.conf man page

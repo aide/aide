@@ -68,7 +68,7 @@ The general format is like the string YlZbpugamcinCAXS, where Y is
 replaced by the file-type (\fBf\fP for a regular file, \fBd\fP for a 
 directory, \fBL\fP for a symbolic link, \fBD\fP for a character device, 
 \fBB\fP for a block device, \fBF\fP for a FIFO, \fBs\fP for a unix
-socket and \fB?\fP otherwise). 
+socket, \fB|\fP for a Solaris door and \fB?\fP otherwise).
 
 The Z is replaced as follows: A \fB=\fP means that the size has not changed,
 a \fB<\fP reports a shrinked size and a \fB>\fP reports a grown size.

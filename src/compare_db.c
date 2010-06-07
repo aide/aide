@@ -57,8 +57,8 @@ const int part_len = 33; /* usable length of line[] for most purposes */
 const int long_part_len = 129; /* length of line[] for link names and selinux contexts */
 char      oline[129];
 char      nline[129];
-const char* entry_format=        "  %-9s: %-33s, %s\n";
-const char* entry_format_justnew="  %-9s: %-33c  %s\n";
+const char* entry_format=        " %-9s: %-33s, %s\n";
+const char* entry_format_justnew=" %-9s: %-33c  %s\n";
 /*************/
 
 static int get_ignorelist() {

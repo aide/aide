@@ -1,5 +1,6 @@
 2010-06-07	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Replaced 'Permissions' by 'Perm' to fit 9 columns
+	* Fit detailed output in 80 columns, closes feature request 1337759
 
 2010-06-05	Richard van den Berg  <richard@vdberg.org>
 	* Released version 0.14.2

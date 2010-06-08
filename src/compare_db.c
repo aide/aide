@@ -883,7 +883,7 @@ void print_dbline_changes(db_line* old,db_line* new,
     }
   }
   if (!(DB_PERM&ignorelist)) {
-    if(old->perm!=new->perm || DB_PERM&forced_attrs){
+    if((DB_PERM&old->attr && DB_PERM&new->attr && old->perm!=new->perm) || DB_PERM&forced_attrs){
       tmp=perm_to_char(old->perm);
       tmp2=perm_to_char(new->perm);
       print_string_changes("Perm", tmp,tmp2,old->perm==new->perm);

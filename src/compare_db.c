@@ -301,17 +301,17 @@ DB_ATTR_TYPE compare_dbline(db_line* l1,db_line* l2,DB_ATTR_TYPE ignorelist)
 	ret|=DB_LINKNAME;
     }
   }
-    
+
   if (!(DB_SIZEG&ignorelist)) {
-    if ( (DB_SIZEG&l2->attr) && !(DB_SIZE&l2->attr) ){
-      if(l1->size>l2->size){
-	ret|=DB_SIZEG;
+      if ((DB_SIZEG&l1->attr && (DB_SIZEG&l2->attr))  && l1->size>l2->size){
+          ret|=DB_SIZEG;
       }
-    } else {
-      if(l1->size!=l2->size){
-	ret|=DB_SIZEG;
+  }
+
+  if (!(DB_SIZE&ignorelist)) {
+      if ((DB_SIZE&l1->attr && DB_SIZE&l2->attr) && l1->size!=l2->size){
+          ret|=DB_SIZE;
       }
-    }
   }
   
   easy_compare(DB_BCOUNT,bcount);
@@ -871,10 +871,10 @@ void print_dbline_changes(db_line* old,db_line* new,
   if(!(DB_LINKNAME&ignorelist)){
     print_str_changes(old->linkname,new->linkname, "Lname");
   }
-  if (!(DB_SIZE&ignorelist)) {
-    if(old->size!=new->size||(DB_SIZE&forced_attrs)){
-      print_long_changes("Size", old->size,new->size,old->size==new->size);
-    }
+
+  if (((!(DB_SIZEG&ignorelist)) && (((DB_SIZEG&old->attr && DB_SIZEG&new->attr)  && old->size>new->size) || DB_SIZEG&forced_attrs))
+     || ((!(DB_SIZE&ignorelist)) && (((DB_SIZE&old->attr && DB_SIZE&new->attr) && old->size!=new->size) || DB_SIZE&forced_attrs)) ) {
+          print_long_changes("Size", old->size,new->size,old->size==new->size);
   }
 
   if (!(DB_BCOUNT&ignorelist)) {

@@ -1,3 +1,6 @@
+2010-06-10	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Added file type change detection support
+
 2010-06-09	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fixed handling of size and growing size bits
 

@@ -376,6 +376,7 @@ void setdefaults_before_config()
   do_groupdef("whirlpool",DB_WHIRLPOOL);
 #endif
 #endif
+  do_groupdef("ftype",DB_FTYPE);
 
   p=0LLU;
 #if defined(WITH_MHASH) || defined(WITH_GCRYPT)

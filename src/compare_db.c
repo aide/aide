@@ -266,6 +266,24 @@ static int compare_str(const char *s1, const char *s2)
   return RETOK;
 }
 
+char get_file_type_char(mode_t mode) {
+    if (S_ISREG(mode)) return 'f';
+    else if(S_ISDIR(mode)) return 'd';
+#ifdef S_ISFIFO
+    else if (S_ISFIFO(mode)) return 'F';
+#endif
+    else if (S_ISLNK(mode)) return 'L';
+    else if (S_ISBLK(mode)) return 'B';
+    else if (S_ISCHR(mode)) return 'D';
+#ifdef S_ISSOCK
+    else if (S_ISSOCK(mode)) return 's';
+#endif
+#ifdef S_ISDOOR
+    else if (S_ISDOOR(mode)) return '|';
+#endif
+    else return '?';
+}
+
 
 /*
   We assume
@@ -296,6 +314,12 @@ DB_ATTR_TYPE compare_dbline(db_line* l1,db_line* l2,DB_ATTR_TYPE ignorelist)
   
   DB_ATTR_TYPE ret=0;
   
+  if (!(DB_FTYPE&ignorelist)) {
+      if ((DB_FTYPE&l1->attr && DB_FTYPE&l2->attr) && get_file_type_char(l1->perm)!=get_file_type_char(l2->perm)) {
+	    ret|=DB_FTYPE;
+      }
+  }
+
   if (!(DB_LINKNAME&ignorelist)) {
     if(compare_str(l1->linkname, l2->linkname)){
 	ret|=DB_LINKNAME;
@@ -626,24 +650,6 @@ void print_string_changes(const char* name, const char* old, const char* new, in
   }
 }
 
-char get_file_type_char(mode_t mode) {
-    if (S_ISREG(mode)) return 'f';
-    else if(S_ISDIR(mode)) return 'd';
-#ifdef S_ISFIFO
-    else if (S_ISFIFO(mode)) return 'F';
-#endif
-    else if (S_ISLNK(mode)) return 'L';
-    else if (S_ISBLK(mode)) return 'B';
-    else if (S_ISCHR(mode)) return 'D';
-#ifdef S_ISSOCK
-    else if (S_ISSOCK(mode)) return 's';
-#endif
-#ifdef S_ISDOOR
-    else if (S_ISDOOR(mode)) return '|';
-#endif
-    else return '?';
-}
-
 char* get_file_type_string(mode_t mode) {
     switch (get_file_type_char(mode)) {
         case 'f': return "File";
@@ -750,7 +756,9 @@ void print_changed_line(db_line* old,db_line* new, DB_ATTR_TYPE ignorelist) {
 
     if(conf->summarize_changes==1) {
         char summary[]="                ";
-        summary[0]=get_file_type_char(new->perm);
+        summary[0]= ((!(DB_FTYPE&ignorelist)) &&
+                (((DB_FTYPE&old->attr && DB_FTYPE&new->attr) &&
+                  get_file_type_char(old->perm)!=get_file_type_char(new->perm)))) ? '!' : get_file_type_char(new->perm);
         easy_compare_char(DB_LINKNAME,str_has_changed(old->linkname,new->linkname),'l',1);
         summary[2]=get_size_char(ignorelist, old, new);
         easy_char(DB_BCOUNT,bcount,'b',3);
@@ -867,7 +875,11 @@ void print_dbline_changes(db_line* old,db_line* new,
   forced_attrs&=new->attr;
   
   error(2,"\n%s: %s\n",get_file_type_string(new->perm),new->filename);
-  
+
+  if ((!(DB_FTYPE&ignorelist)) && (((DB_FTYPE&old->attr && DB_FTYPE&new->attr) && get_file_type_char(old->perm)!=get_file_type_char(new->perm)) || DB_FTYPE&forced_attrs)) {
+          print_string_changes("File type", get_file_type_string(old->perm),get_file_type_string(new->perm), get_file_type_char(old->perm)==get_file_type_char(new->perm));
+  }
+
   if(!(DB_LINKNAME&ignorelist)){
     print_str_changes(old->linkname,new->linkname, "Lname");
   }

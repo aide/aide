@@ -4,6 +4,7 @@
 =========================================================
 
 Version UNRELEASED
+    * Added support for ftype attribute
     * Bug fixes
 
 Version 0.14.2

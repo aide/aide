@@ -68,7 +68,7 @@ The general format is like the string YlZbpugamcinCAXS, where Y is
 replaced by the file-type (\fBf\fP for a regular file, \fBd\fP for a 
 directory, \fBL\fP for a symbolic link, \fBD\fP for a character device, 
 \fBB\fP for a block device, \fBF\fP for a FIFO, \fBs\fP for a unix
-socket, \fB|\fP for a Solaris door and \fB?\fP otherwise).
+socket, \fB|\fP for a Solaris door, \fB!\fP if file type has changed and \fB?\fP otherwise).
 
 The Z is replaced as follows: A \fB=\fP means that the size has not changed,
 a \fB<\fP reports a shrinked size and a \fB>\fP reports a grown size.
@@ -233,6 +233,7 @@ Input is read from filedescriptor \fBnumber\fR or output is written to
 .IP "And also the following if you have mhash support enabled"
 .IP "gost: gost checksum"
 .IP "whirlpool: whirlpool checksum"
+.IP "ftype: file type"
 .IP "The followingg is available when explicitly enabled using configure"
 .IP "acl: access control list"
 .IP "selinux: selinux attributes"

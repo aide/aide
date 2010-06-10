@@ -203,6 +203,7 @@ typedef enum {
 #define DB_SELINUX    (1LLU<<32) /* "selinux", */
 #define DB_XATTRS     (1LLU<<33) /* "xattrs",  */
 #define DB_WHIRLPOOL  (1LLU<<34) /* "whirlpool",  */
+#define DB_FTYPE      (1LLU<<35) /* "file type",  */
 
 #define DB_HASHES    (DB_MD5|DB_SHA1|DB_RMD160|DB_TIGER|DB_CRC32|DB_HAVAL| \
 		      DB_GOST|DB_CRC32B|DB_SHA256|DB_SHA512|DB_WHIRLPOOL)

@@ -1010,7 +1010,8 @@ void strip_dbline(db_line* line,DB_ATTR_TYPE attr)
   if(!(attr&DB_LINKNAME)){
     checked_free(line->linkname);
   }
-  /* permissions are always needed for summarize_changes, hence it is never stripped */
+  /* permissions are always needed for file type detection, hence they are
+   * never stripped */
   if(!(attr&DB_UID)){
     line->uid=0;
   }

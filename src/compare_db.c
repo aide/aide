@@ -61,8 +61,8 @@ const char* entry_format=        " %-9s: %-33s, %s\n";
 const char* entry_format_justnew=" %-9s: %-33c  %s\n";
 /*************/
 
-static int get_ignorelist() {
-  int ignorelist;
+static DB_ATTR_TYPE get_ignorelist() {
+  DB_ATTR_TYPE ignorelist;
   ignorelist=get_groupval("ignore_list");
 
   if (ignorelist==-1) {
@@ -72,8 +72,8 @@ static int get_ignorelist() {
   return ignorelist;
 }
 
-static int get_report_attributes() {
-  int forced_attrs;
+static DB_ATTR_TYPE get_report_attributes() {
+  DB_ATTR_TYPE forced_attrs;
   
   forced_attrs=get_groupval("report_attributes");
   if (forced_attrs==-1) {
@@ -695,7 +695,7 @@ int md_has_changed(byte*old,byte*new,int len)
              (old==NULL && new!=NULL)));
 }
 
-char get_size_char(int ignorelist, db_line* old, db_line* new) {
+char get_size_char(DB_ATTR_TYPE ignorelist, db_line* old, db_line* new) {
     if (DB_SIZE&old->attr || DB_SIZEG&old->attr) {
         if ((DB_SIZE&old->attr && DB_SIZE&new->attr) || (DB_SIZEG&old->attr && DB_SIZEG&new->attr)) {
             if (((DB_SIZE&old->attr && DB_SIZE&new->attr) && DB_SIZE&ignorelist) || 
@@ -1179,7 +1179,7 @@ void compare_db(list* new,db_config* dbconf)
       removed=list_append(removed,(void*)old);
       nrem++;
     }else {
-      int localignorelist=old->attr ^ ((db_line*)r->data)->attr;
+      DB_ATTR_TYPE localignorelist=old->attr ^ ((db_line*)r->data)->attr;
       
       if ((localignorelist&(~(DB_NEWFILE|DB_RMFILE)))!=0) {
 	error(2,"Entry %s in databases has different attributes: %llx %llx\n",
@@ -1306,8 +1306,8 @@ void send_audit_report(long nadd, long nrem, long nchg)
 long report_tree(seltree* node,int stage, long* status)
 {
   list* r=NULL;
-  int ignorelist=0;
-  int forced_attrs=0;
+  DB_ATTR_TYPE ignorelist=0;
+  DB_ATTR_TYPE forced_attrs=0;
   int top=0;
 
   ignorelist=get_ignorelist();
@@ -1403,7 +1403,7 @@ long report_tree(seltree* node,int stage, long* status)
       error(2,_("---------------------------------------------------\n\n"));
     }
     if(node->checked&NODE_CHANGED){
-      int localignorelist=(node->old_data->attr ^ node->new_data->attr)|ignorelist;
+      DB_ATTR_TYPE localignorelist=(node->old_data->attr ^ node->new_data->attr)|ignorelist;
       print_dbline_changes(node->old_data,node->new_data,localignorelist,forced_attrs);
     }
   }

@@ -1172,7 +1172,7 @@ void compare_db(list* new,db_config* dbconf)
 	  check_list_for_match(dbconf->equrxlst,old->filename,&tempignore)) &&
 	 !check_list_for_match(dbconf->negrxlst,old->filename,&tempignore)){
 	if(!(dbconf->action&DO_INIT)){
-	  error(2,_("WARNING: Old db contains a entry that shouldn\'t be there, run --init or --update\n"));
+	  error(2,_("WARNING: Old db contains one or more entries that shouldn\'t be there, run --init or --update\n"));
 	}
 	initdbwarningprinted=1;
       }

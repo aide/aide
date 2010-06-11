@@ -1,3 +1,6 @@
+2010-06-11	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Adjusted old database warning message
+
 2010-06-10	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Added file type change detection support
 	* Use DB_ATTR_TYPE for ignorelist and forced_attrs

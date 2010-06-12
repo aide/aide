@@ -428,7 +428,7 @@ void update_db_out_order(DB_ATTR_TYPE attr)
   if (check_dboo(db_attr)==RETOK) {
     conf->db_out_order[conf->db_out_size++]=db_attr;
   }
-  if((attr&DB_PERM) && (check_dboo(db_perm)!=RETFAIL)){
+  if(check_dboo(db_perm)==RETOK){
     conf->db_out_order[conf->db_out_size++]=db_perm;
   }
   if((attr&DB_BCOUNT) && (check_dboo(db_bcount)!=RETFAIL)){

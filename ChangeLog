@@ -1,5 +1,6 @@
 2010-06-12	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Always add permissions attribute to database
+	* Added AIDEVERSION to report
 
 2010-06-11	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Adjusted old database warning message

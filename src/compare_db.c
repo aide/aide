@@ -1094,10 +1094,10 @@ void print_report_header(int nfil,int nadd,int nrem,int nchg)
 {
   struct tm* st=localtime(&(conf->start_time));
   if(conf->action&DO_COMPARE)
-    error(0,_("AIDE found differences between database and filesystem!!\n"));
+    error(0,_("AIDE " AIDEVERSION " found differences between database and filesystem!!\n"));
 
   if(conf->action&DO_DIFF)
-    error(0,_("AIDE found differences between the two databases!!\n"));
+    error(0,_("AIDE " AIDEVERSION " found differences between the two databases!!\n"));
   if(conf->config_version)
     error(2,_("Config version used: %s\n"),conf->config_version);
 

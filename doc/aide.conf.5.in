@@ -204,6 +204,7 @@ Input is read from filedescriptor \fBnumber\fR or output is written to
 .SH "DEFAULT GROUPS"
 .PP
 .IP "p:	permissions"
+.IP "ftype: file type"
 .IP "i:	inode"
 .IP "l:	link name"
 .IP "n:	number of links"
@@ -233,7 +234,6 @@ Input is read from filedescriptor \fBnumber\fR or output is written to
 .IP "And also the following if you have mhash support enabled"
 .IP "gost: gost checksum"
 .IP "whirlpool: whirlpool checksum"
-.IP "ftype: file type"
 .IP "The followingg is available when explicitly enabled using configure"
 .IP "acl: access control list"
 .IP "selinux: selinux attributes"

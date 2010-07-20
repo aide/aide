@@ -59,6 +59,14 @@ char      oline[129];
 char      nline[129];
 const char* entry_format=        " %-9s: %-33s, %s\n";
 const char* entry_format_justnew=" %-9s: %-33c  %s\n";
+#ifdef WITH_E2FSATTRS
+    /* flag->character mappings defined in lib/e2p/pf.c (part of e2fsprogs-1.41.12 sources) */
+    unsigned long flag_bits[] = { EXT2_SECRM_FL, EXT2_UNRM_FL, EXT2_SYNC_FL, EXT2_DIRSYNC_FL, EXT2_IMMUTABLE_FL,
+        EXT2_APPEND_FL, EXT2_NODUMP_FL, EXT2_NOATIME_FL, EXT2_COMPR_FL, EXT2_COMPRBLK_FL,
+        EXT2_DIRTY_FL, EXT2_NOCOMPR_FL, EXT2_ECOMPR_FL, EXT3_JOURNAL_DATA_FL, EXT2_INDEX_FL,
+        EXT2_NOTAIL_FL, EXT2_TOPDIR_FL, EXT4_EXTENTS_FL, EXT4_HUGE_FILE_FL};
+    char flag_char[] = "suSDiadAcBZXEjItTeh";
+#endif
 /*************/
 
 static DB_ATTR_TYPE get_ignorelist() {
@@ -390,6 +398,9 @@ DB_ATTR_TYPE compare_dbline(db_line* l1,db_line* l2,DB_ATTR_TYPE ignorelist)
       ret|=DB_XATTRS;
     }
   }
+#ifdef WITH_E2FSATTRS
+  easy_compare(DB_E2FSATTRS,e2fsattrs);
+#endif
   if (!(DB_SELINUX&ignorelist)) {
     if(compare_str(l1->cntx,l2->cntx)) {
       ret|=DB_SELINUX;
@@ -526,6 +537,22 @@ void print_xattrs_changes(xattrs_type* old,xattrs_type* new) {
   }
   
 }
+
+#ifdef WITH_E2FSATTRS
+char* e2fsattrs2char(unsigned long flags) {
+    char* string = malloc (20 * sizeof (char));
+    int i;
+    for (i = 0 ; i < 19 ; i++) {
+        if (flag_bits[i] & flags) {
+            string[i]=flag_char[i];
+        } else {
+            string[i]='-';
+        }
+    }
+    string[19] = '\0';
+    return string;
+}
+#endif
 
 void print_md_changes(byte*old,byte*new,int len,char* name)
 {
@@ -666,7 +693,7 @@ char* get_file_type_string(mode_t mode) {
 
 void print_added_line(db_line* data) {
     if(conf->summarize_changes==1) {
-        error(2,"%c+++++++++++++++: %s\n",get_file_type_char(data->perm) , data->filename);
+        error(2,"%c++++++++++++++++: %s\n",get_file_type_char(data->perm) , data->filename);
     } else {
         error(2,"added: %s\n",data->filename);
     }
@@ -674,7 +701,7 @@ void print_added_line(db_line* data) {
 
 void print_removed_line(db_line* data) {
     if(conf->summarize_changes==1) {
-        error(2,"%c---------------: %s\n",get_file_type_char(data->perm), data->filename);
+        error(2,"%c----------------: %s\n",get_file_type_char(data->perm), data->filename);
     } else {
         error(2,"removed: %s\n",data->filename);
     }
@@ -755,7 +782,7 @@ void print_changed_line(db_line* old,db_line* new, DB_ATTR_TYPE ignorelist) {
     }
 
     if(conf->summarize_changes==1) {
-        char summary[]="                ";
+        char summary[]="                 ";
         summary[0]= ((!(DB_FTYPE&ignorelist)) &&
                 (((DB_FTYPE&old->attr && DB_FTYPE&new->attr) &&
                   get_file_type_char(old->perm)!=get_file_type_char(new->perm)))) ? '!' : get_file_type_char(new->perm);
@@ -857,6 +884,9 @@ void print_changed_line(db_line* old,db_line* new, DB_ATTR_TYPE ignorelist) {
         easy_compare_char(DB_XATTRS,compare_xattrs(old->xattrs,new->xattrs)==RETFAIL,'X',14);
         easy_compare_char(DB_SELINUX,str_has_changed(old->cntx,new->cntx),'S',15);
 
+#ifdef WITH_E2FSATTRS
+        easy_char(DB_E2FSATTRS,e2fsattrs,'E',16);
+#endif
         error(2,"%s: %s\n",summary, new->filename);
     } else {
         error(2,"changed: %s\n",new->filename);
@@ -1027,6 +1057,18 @@ void print_dbline_changes(db_line* old,db_line* new,
     print_str_changes(old->cntx,new->cntx, "SELinux");
   }
   
+#ifdef WITH_E2FSATTRS
+  if ( !(DB_E2FSATTRS&ignorelist) ) {
+      if(old->e2fsattrs!=new->e2fsattrs || DB_E2FSATTRS&forced_attrs ) {
+          tmp=e2fsattrs2char(old->e2fsattrs);
+          tmp2=e2fsattrs2char(new->e2fsattrs);
+          print_string_changes("E2fsAttrs", tmp, tmp2, old->e2fsattrs==new->e2fsattrs);
+          free(tmp); free(tmp2);
+          tmp=NULL; tmp2=NULL;
+      }
+  }
+#endif
+
   return;
 }
 

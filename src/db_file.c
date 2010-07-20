@@ -1066,6 +1066,12 @@ int db_writeline_file(db_line* line,db_config* dbconf, url_t* url){
 	db_write_byte_base64((byte*)line->cntx, 0, dbconf->db_out, i, 1, 1);
       break;
     }
+#ifdef WITH_E2FSATTRS
+    case db_e2fsattrs : {
+      db_writelong(line->e2fsattrs,dbconf->db_out,i);
+      break;
+    }
+#endif
     case db_checkmask : {
       db_writeoct(line->attr,dbconf->db_out,i);
       break;

@@ -84,6 +84,7 @@ const char* db_names[db_unknown+1] = {
    "whirlpool",
    "selinux",
    "xattrs",
+   "e2fsattrs",
    "unknown"} ;
 
 const int db_value[db_unknown+1] = {
@@ -120,6 +121,7 @@ const int db_value[db_unknown+1] = {
    db_whirlpool,        /* "whirlpool", */
    db_selinux,          /* "selinux", */
    db_xattrs,           /* "xattrs",  */
+   db_e2fsattrs,        /* "e2fsattrs",  */
    db_unknown };        /* "unknown"  */
 
 const char* db_namealias[db_alias_size] = {
@@ -370,6 +372,7 @@ db_line* db_char2line(char** ss,int db){
   line->linkname=NULL;
   line->acl=NULL;
   line->xattrs=NULL;
+  line->e2fsattrs=0;
   line->cntx=NULL;
   
   line->attr=conf->attr; /* attributes from @@dbspec */
@@ -591,6 +594,11 @@ db_line* db_char2line(char** ss,int db){
       break;
     }
     
+    case db_e2fsattrs : {
+      line->e2fsattrs=readlong(ss[(*db_order)[i]],"e2fsattrs");
+      break;
+    }
+
     case db_unknown : {
       /* Unknown fields are ignored. */
       break;

@@ -4,6 +4,7 @@
 =========================================================
 
 Version UNRELEASED
+    * Added support for e2fsattrs attribute
     * Added support for ftype attribute
     * Bug fixes
 

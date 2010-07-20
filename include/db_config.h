@@ -85,6 +85,10 @@ typedef struct xattrs_type
 #endif
 #endif
 
+#ifdef WITH_E2FSATTRS
+#include <e2p/e2p.h>
+#endif
+
 #ifdef WITH_MHASH
 #include <mhash.h>
 #endif
@@ -151,6 +155,7 @@ typedef enum {
    db_whirlpool,		/* "whirlpool",  */
    db_selinux, 			/* "selinux",  */
    db_xattrs, 			/* "xattrs",  */
+   db_e2fsattrs,        /* "e2fsattrs"     */
    db_unknown } DB_FIELD; 	/* "unknown"  */
 
 /* db_unknown must be last because it is used to determine size of
@@ -204,6 +209,7 @@ typedef enum {
 #define DB_XATTRS     (1LLU<<33) /* "xattrs",  */
 #define DB_WHIRLPOOL  (1LLU<<34) /* "whirlpool",  */
 #define DB_FTYPE      (1LLU<<35) /* "file type",  */
+#define DB_E2FSATTRS  (1LLU<<36) /* "ext2 file system attributes"  */
 
 #define DB_HASHES    (DB_MD5|DB_SHA1|DB_RMD160|DB_TIGER|DB_CRC32|DB_HAVAL| \
 		      DB_GOST|DB_CRC32B|DB_SHA256|DB_SHA512|DB_WHIRLPOOL)
@@ -383,6 +389,8 @@ typedef struct db_line {
   char *cntx;
  
   xattrs_type* xattrs;
+
+  unsigned long e2fsattrs;
 
   /* Attributes .... */
   DB_ATTR_TYPE attr;

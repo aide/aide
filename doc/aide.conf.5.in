@@ -64,7 +64,7 @@ Whether to summarize changes in the added, removed and changed files
 sections of the report or not. Valid values are yes,true,no and false.
 The default is not to summarize the changes.
 
-The general format is like the string YlZbpugamcinCAXS, where Y is
+The general format is like the string YlZbpugamcinCAXSE, where Y is
 replaced by the file-type (\fBf\fP for a regular file, \fBd\fP for a 
 directory, \fBL\fP for a symbolic link, \fBD\fP for a character device, 
 \fBB\fP for a block device, \fBF\fP for a FIFO, \fBs\fP for a unix
@@ -111,6 +111,8 @@ A \fBA\fP means that the access control list has changed.
 A \fBX\fP means that the extended attributes have changed.
 .IP o
 A \fBS\fP means that the SELinux attributes have changed.
+.IP o
+A \fBE\fP means that the file attributes on a second extended file system have changed.
 .RE
 .IP "report_attributes"
 Special group definition that lists parameters which are always printed
@@ -238,6 +240,7 @@ Input is read from filedescriptor \fBnumber\fR or output is written to
 .IP "acl: access control list"
 .IP "selinux: selinux attributes"
 .IP "xattrs: extended attributes"
+.IP "e2fsattrs: file attributes on a second extended file system
 .LP
 Please note that 'I' and 'c' are incompatible. When the name of a file
 is changed, it's ctime is updated as well. When you put 'c' and 'I' in

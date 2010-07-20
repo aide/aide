@@ -107,6 +107,7 @@ extern long conf_lineno;
 %token <i> TACL
 %token <i> TXATTRS
 %token <i> TSELINUX
+%token <i> TE2FSATTRS
 
 /* hash funktions */
 
@@ -208,7 +209,7 @@ other : TRIGHTS { $$ =$1 ;} | TUSER {$$ =$1 ;}
 	| TGROWINGSIZE {$$ =$1 ;} | TATIME {$$ =$1 ;} 
         | TCTIME {$$ =$1 ;} | TMTIME {$$ =$1 ;} | TL {$$ = $1;}
         | TR {$$ = $1;} | TACL {$$ =$1 ;} | TXATTRS {$$ =$1 ;}
-        | TSELINUX {$$ =$1 ;};
+        | TSELINUX {$$ =$1 ;} | TE2FSATTRS {$$ =$1 ;};
 
 hash : TTIGER { $$ =$1 ;} | TSHA1 { $$ =$1 ;} | TRMD160 { $$ =$1 ;}
 	| TMD5 {$$ =$1 ;} | TSHA256 { $$ =$1 ;} | TSHA512 { $$ =$1 ;}

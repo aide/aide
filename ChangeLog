@@ -1,3 +1,6 @@
+2010-07-20	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Added ext2 file attributes support
+
 2010-06-12	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Always add permissions attribute to database
 	* Added AIDEVERSION to report

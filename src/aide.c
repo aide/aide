@@ -377,6 +377,9 @@ void setdefaults_before_config()
 #endif
 #endif
   do_groupdef("ftype",DB_FTYPE);
+#ifdef WITH_E2FSATTRS
+  do_groupdef("e2fsattrs",DB_E2FSATTRS);
+#endif
 
   p=0LLU;
 #if defined(WITH_MHASH) || defined(WITH_GCRYPT)

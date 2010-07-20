@@ -538,6 +538,22 @@ void acl2line(db_line* line) {
 #endif
 }
 
+#ifdef WITH_E2FSATTRS
+void e2fsattrs2line(db_line* line) {
+    unsigned long flags;
+    if (DB_E2FSATTRS&line->attr) {
+        if (fgetflags(line->filename, &flags) == 0) {
+            line->e2fsattrs=flags;
+        } else {
+            line->attr&=(~DB_E2FSATTRS);
+            line->e2fsattrs=0;
+        }
+    } else {
+        line->e2fsattrs=0;
+    }
+}
+#endif
+
 void no_hash(db_line* line) {
   line->attr&=~DB_HASHES;
 }

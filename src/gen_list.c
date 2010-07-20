@@ -1097,6 +1097,7 @@ void strip_dbline(db_line* line,DB_ATTR_TYPE attr)
     checked_free(line->cntx);
   }
 #endif
+  /* e2fsattrs is stripped within e2fsattrs2line in do_md */
 }
 
 /*
@@ -1349,6 +1350,10 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr)
   xattrs2line(line);
 
   selinux2line(line);
+
+#ifdef WITH_E2FSATTRS
+    e2fsattrs2line(line);
+#endif
 
   if (attr&DB_HASHES && S_ISREG(fs.st_mode)) {
     calc_md(&fs,line);

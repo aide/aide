@@ -243,7 +243,7 @@ Input is read from filedescriptor \fBnumber\fR or output is written to
 .IP "And also the following if you have mhash support enabled"
 .IP "gost: gost checksum"
 .IP "whirlpool: whirlpool checksum"
-.IP "The followingg is available when explicitly enabled using configure"
+.IP "The following is available when explicitly enabled using configure"
 .IP "acl: access control list"
 .IP "selinux: selinux attributes"
 .IP "xattrs: extended attributes"

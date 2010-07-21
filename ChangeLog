@@ -1,4 +1,5 @@
 2010-07-21	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Fixed typo in aide.conf man page
 	* summarize_changes: made length of summary string dynamic
 	* Always save the inode to database (needed for DB_CHECKINODE)
 	* Documented ftype and e2fsattrs in aide.conf

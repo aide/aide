@@ -99,6 +99,7 @@ extern long conf_lineno;
 %token <i> TGROUP
 %token <i> TINODE
 %token <i> TLINKCOUNT
+%token <i> TFTYPE
 %token <i> TSIZE
 %token <i> TGROWINGSIZE
 %token <i> TATIME
@@ -205,7 +206,7 @@ primary : hash { $$ =$1 ; } |
 
 other : TRIGHTS { $$ =$1 ;} | TUSER {$$ =$1 ;} 
         | TGROUP {$$ =$1 ;} | TINODE {$$ =$1 ;}
-        | TLINKCOUNT {$$ =$1 ;} | TSIZE {$$ =$1 ;} 
+        | TLINKCOUNT {$$ =$1 ;} | TFTYPE {$$ =$1 ;} | TSIZE {$$ =$1 ;}
 	| TGROWINGSIZE {$$ =$1 ;} | TATIME {$$ =$1 ;} 
         | TCTIME {$$ =$1 ;} | TMTIME {$$ =$1 ;} | TL {$$ = $1;}
         | TR {$$ = $1;} | TACL {$$ =$1 ;} | TXATTRS {$$ =$1 ;}

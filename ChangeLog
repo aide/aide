@@ -1,4 +1,5 @@
 2010-07-21	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Added TFTYPE token
 	* Prompt for ./configure and make only if autoreconf was successful
 
 2010-07-20	Hannes von Haugwitz <hannes@vonhaugwitz.com>

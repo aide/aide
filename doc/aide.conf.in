@@ -67,6 +67,7 @@ report_url=stdout
 # @@{TOPDIR} is replaced with @abs_top_srcdir@ when
 # read by aide. 
 #p:		permissions
+#ftype:	file type
 #i:		inode
 #n:		number of links
 #l:		link name
@@ -97,7 +98,8 @@ report_url=stdout
 #The following are available when explicitly enabled using configure:
 #acl:		access control list
 #selinux	SELinux security context
-#xattrs:		extended file attributes
+#xattrs:	extended file attributes
+#e2fsattrs:	file attributes on a second extended file system
 
 # Rule definition
 All=R+a+sha1+rmd160+sha256+sha512+tiger@aideextragroups@

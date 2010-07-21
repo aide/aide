@@ -397,11 +397,7 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
 
 void fs2db_line(struct AIDE_STAT_TYPE* fs,db_line* line) {
   
-  if(DB_INODE&line->attr||DB_CHECKINODE&line->attr){
-    line->inode=fs->st_ino;
-  } else {
-    line->inode=0;
-  }
+  line->inode=fs->st_ino;
 
   if(DB_UID&line->attr) {
     line->uid=fs->st_uid;

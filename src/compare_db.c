@@ -362,8 +362,11 @@ DB_ATTR_TYPE compare_dbline(db_line* l1,db_line* l2,DB_ATTR_TYPE ignorelist)
   easy_compare(DB_MTIME,mtime);
   easy_compare(DB_CTIME,ctime);
 
-
-  easy_compare(DB_INODE,inode);
+  if (!(DB_INODE&ignorelist)) {
+      if ((DB_INODE&l1->attr && DB_INODE&l2->attr) && (l1->inode!=l2->inode)){
+          ret|=DB_INODE;
+      }
+  }
   easy_compare(DB_LNKCOUNT,nlink);
 
   easy_md_compare(DB_MD5,md5,HASH_MD5_LEN);
@@ -967,7 +970,7 @@ void print_dbline_changes(db_line* old,db_line* new,
   }
 
   if (!(DB_INODE&ignorelist)) {
-    if(old->inode!=new->inode||DB_INODE&forced_attrs){
+    if(((DB_INODE&old->attr && (DB_INODE&new->attr)) && old->inode!=new->inode) ||DB_INODE&forced_attrs){
       print_int_changes("Inode", old->inode,new->inode,old->inode==new->inode);
     }
   }

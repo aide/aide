@@ -613,11 +613,7 @@ list* add_file_to_list(list* listp,char*filename,DB_ATTR_TYPE attr,int* addok)
   }
 
   
-  if(DB_INODE&fil->attr||DB_CHECKINODE&fil->attr){
-    fil->inode=fs.st_ino;
-  } else {
-    fil->inode=0;
-  }
+  fil->inode=fs.st_ino;
 
   if(DB_UID&fil->attr) {
     fil->uid=fs.st_uid;
@@ -1027,9 +1023,8 @@ void strip_dbline(db_line* line,DB_ATTR_TYPE attr)
   if(!(attr&DB_MTIME)){
     line->mtime=0;
   }
-  if(!(attr&DB_INODE)){
-    line->inode=0;
-  }
+  /* inode is always needed for ignoring changed filename, hence it is
+   * never stripped */
   if(!(attr&DB_LNKCOUNT)){
     line->nlink=0;
   }

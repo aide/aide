@@ -431,6 +431,9 @@ void update_db_out_order(DB_ATTR_TYPE attr)
   if(check_dboo(db_perm)==RETOK){
     conf->db_out_order[conf->db_out_size++]=db_perm;
   }
+  if(check_dboo(db_inode)==RETOK){
+    conf->db_out_order[conf->db_out_size++]=db_inode;
+  }
   if((attr&DB_BCOUNT) && (check_dboo(db_bcount)!=RETFAIL)){
     conf->db_out_order[conf->db_out_size++]=db_bcount;
   }
@@ -454,9 +457,6 @@ void update_db_out_order(DB_ATTR_TYPE attr)
   }
   if((attr&DB_CTIME) && (check_dboo(db_ctime)!=RETFAIL)){
     conf->db_out_order[conf->db_out_size++]=db_ctime;
-  }
-  if((attr&DB_INODE||attr&DB_CHECKINODE) && (check_dboo(db_inode)!=RETFAIL)){
-    conf->db_out_order[conf->db_out_size++]=db_inode;
   }
   if((attr&DB_LNKCOUNT) && (check_dboo(db_lnkcount)!=RETFAIL)){
     conf->db_out_order[conf->db_out_size++]=db_lnkcount;

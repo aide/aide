@@ -105,6 +105,13 @@ An \fBi\fP means that the inode has changed.
 A \fBn\fP means that the link count has changed.
 .IP o
 A \fBC\fP means that one or more checksums have changed.
+.RE
+
+.RS
+The following letters are only available when explicitly enabled using configure:
+.RE
+
+.RS
 .IP o
 A \fBA\fP means that the access control list has changed.
 .IP o

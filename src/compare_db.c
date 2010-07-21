@@ -319,7 +319,6 @@ DB_ATTR_TYPE compare_dbline(db_line* l1,db_line* l2,DB_ATTR_TYPE ignorelist)
     } \
   }
   
-  
   DB_ATTR_TYPE ret=0;
   
   if (!(DB_FTYPE&ignorelist)) {
@@ -765,6 +764,8 @@ void print_changed_line(db_line* old,db_line* new, DB_ATTR_TYPE ignorelist) {
         } \
     } else if (a&new->attr) { \
         summary[d]='+'; \
+    } else { \
+        summary[d]=' '; \
     }
 
 #define easy_char(a,b,c,d) \
@@ -782,10 +783,27 @@ void print_changed_line(db_line* old,db_line* new, DB_ATTR_TYPE ignorelist) {
         } \
     } else if (a&new->attr) { \
         summary[d]='+'; \
+    } else { \
+        summary[d]=' '; \
     }
 
     if(conf->summarize_changes==1) {
-        char summary[]="                 ";
+        int offset = 0;
+        /* The length of the summary string depends on compiled groups */
+        int summary_len = 14;
+#ifdef WITH_ACL
+        summary_len++;
+#endif
+#ifdef WITH_XATTR
+        summary_len++;
+#endif
+#ifdef WITH_SELINUX
+        summary_len++;
+#endif
+#ifdef WITH_E2FSATTRS
+        summary_len++;
+#endif
+        char* summary = malloc (summary_len * sizeof (char));
         summary[0]= ((!(DB_FTYPE&ignorelist)) &&
                 (((DB_FTYPE&old->attr && DB_FTYPE&new->attr) &&
                   get_file_type_char(old->perm)!=get_file_type_char(new->perm)))) ? '!' : get_file_type_char(new->perm);
@@ -880,17 +898,26 @@ void print_changed_line(db_line* old,db_line* new, DB_ATTR_TYPE ignorelist) {
 #endif        
                 ) {
             summary[12]='.';
+        } else {
+            summary[12]=' ';
         }
-#ifdef WITH_ACL
-        easy_compare_char(DB_ACL,compare_acl(old->acl,new->acl)==RETFAIL,'A',13);
-#endif
-        easy_compare_char(DB_XATTRS,compare_xattrs(old->xattrs,new->xattrs)==RETFAIL,'X',14);
-        easy_compare_char(DB_SELINUX,str_has_changed(old->cntx,new->cntx),'S',15);
 
-#ifdef WITH_E2FSATTRS
-        easy_char(DB_E2FSATTRS,e2fsattrs,'E',16);
+#ifdef WITH_ACL
+        easy_compare_char(DB_ACL,compare_acl(old->acl,new->acl)==RETFAIL,'A',13+offset++);
 #endif
+#ifdef WITH_XATTR
+        easy_compare_char(DB_XATTRS,compare_xattrs(old->xattrs,new->xattrs)==RETFAIL,'X',13+offset++);
+#endif
+#ifdef WITH_SELINUX
+        easy_compare_char(DB_SELINUX,str_has_changed(old->cntx,new->cntx),'S',13+offset++);
+#endif
+#ifdef WITH_E2FSATTRS
+        easy_char(DB_E2FSATTRS,e2fsattrs,'E',13+offset++);
+#endif
+        summary[13+offset]='\0';
         error(2,"%s: %s\n",summary, new->filename);
+        free(summary);
+        summary=NULL;
     } else {
         error(2,"changed: %s\n",new->filename);
     }

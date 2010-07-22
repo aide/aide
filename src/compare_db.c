@@ -67,6 +67,9 @@ const char* entry_format_justnew=" %-9s: %-33c  %s\n";
         EXT2_NOTAIL_FL, EXT2_TOPDIR_FL, EXT4_EXTENTS_FL, EXT4_HUGE_FILE_FL};
     char flag_char[] = "suSDiadAcBZXEjItTeh";
 #endif
+/* The initial length of summary string, the final length depends on
+ * compile options */
+int summary_len = 13;
 /*************/
 
 static DB_ATTR_TYPE get_ignorelist() {
@@ -693,20 +696,40 @@ char* get_file_type_string(mode_t mode) {
     }
 }
 
-void print_added_line(db_line* data) {
+void print_simple_line(db_line* data, char* s, char c) {
+    char* tmp=NULL;
+    int i=0;
+    int length = summary_len-1;
+    /* The length depends on compile options */
+#ifdef WITH_ACL
+    length++;
+#endif
+#ifdef WITH_XATTR
+    length++;
+#endif
+#ifdef WITH_SELINUX
+    length++;
+#endif
+#ifdef WITH_E2FSATTRS
+    length++;
+#endif
     if(conf->summarize_changes==1) {
-        error(2,"%c++++++++++++++++: %s\n",get_file_type_char(data->perm) , data->filename);
+        tmp=(char*)malloc(sizeof(char)*(length+1));
+        for(i=0;i<length;i++){ tmp[i]=c; }
+        tmp[length]='\0';
+        error(2,"%c%s: %s\n",get_file_type_char(data->perm) , tmp, data->filename);
+        free(tmp); tmp=NULL;
     } else {
-        error(2,"added: %s\n",data->filename);
+        error(2,"%s: %s\n", s, data->filename);
     }
 }
 
+void print_added_line(db_line* data) {
+    print_simple_line(data, "added", '+');
+}
+
 void print_removed_line(db_line* data) {
-    if(conf->summarize_changes==1) {
-        error(2,"%c----------------: %s\n",get_file_type_char(data->perm), data->filename);
-    } else {
-        error(2,"removed: %s\n",data->filename);
-    }
+    print_simple_line(data, "removed", '-');
 }
 
 int str_has_changed(char*old,char*new)
@@ -789,21 +812,21 @@ void print_changed_line(db_line* old,db_line* new, DB_ATTR_TYPE ignorelist) {
 
     if(conf->summarize_changes==1) {
         int offset = 0;
-        /* The length of the summary string depends on compiled groups */
-        int summary_len = 14;
+        int length = summary_len;
+        /* The length depends on compile options */
 #ifdef WITH_ACL
-        summary_len++;
+        length++;
 #endif
 #ifdef WITH_XATTR
-        summary_len++;
+        length++;
 #endif
 #ifdef WITH_SELINUX
-        summary_len++;
+        length++;
 #endif
 #ifdef WITH_E2FSATTRS
-        summary_len++;
+        length++;
 #endif
-        char* summary = malloc (summary_len * sizeof (char));
+        char* summary = malloc ((length+1) * sizeof (char));
         summary[0]= ((!(DB_FTYPE&ignorelist)) &&
                 (((DB_FTYPE&old->attr && DB_FTYPE&new->attr) &&
                   get_file_type_char(old->perm)!=get_file_type_char(new->perm)))) ? '!' : get_file_type_char(new->perm);
@@ -903,18 +926,18 @@ void print_changed_line(db_line* old,db_line* new, DB_ATTR_TYPE ignorelist) {
         }
 
 #ifdef WITH_ACL
-        easy_compare_char(DB_ACL,compare_acl(old->acl,new->acl)==RETFAIL,'A',13+offset++);
+        easy_compare_char(DB_ACL,compare_acl(old->acl,new->acl)==RETFAIL,'A',summary_len+offset++);
 #endif
 #ifdef WITH_XATTR
-        easy_compare_char(DB_XATTRS,compare_xattrs(old->xattrs,new->xattrs)==RETFAIL,'X',13+offset++);
+        easy_compare_char(DB_XATTRS,compare_xattrs(old->xattrs,new->xattrs)==RETFAIL,'X',summary_len+offset++);
 #endif
 #ifdef WITH_SELINUX
-        easy_compare_char(DB_SELINUX,str_has_changed(old->cntx,new->cntx),'S',13+offset++);
+        easy_compare_char(DB_SELINUX,str_has_changed(old->cntx,new->cntx),'S',summary_len+offset++);
 #endif
 #ifdef WITH_E2FSATTRS
-        easy_char(DB_E2FSATTRS,e2fsattrs,'E',13+offset++);
+        easy_char(DB_E2FSATTRS,e2fsattrs,'E',summary_len+offset++);
 #endif
-        summary[13+offset]='\0';
+        summary[summary_len+offset]='\0';
         error(2,"%s: %s\n",summary, new->filename);
         free(summary);
         summary=NULL;

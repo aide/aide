@@ -663,7 +663,7 @@ void print_long_changes(const char* name, AIDE_OFF_TYPE old, AIDE_OFF_TYPE new, 
   snprintf(nline,part_len,"%lu",new);
 #endif
   if (justnew) {
-    error(2,(char*)entry_format,name,nline);
+    error(2,(char*)entry_format_justnew,name,' ',nline);
   } else {
     error(2,(char*)entry_format,name,oline,nline);
   }
@@ -676,7 +676,7 @@ void print_string_changes(const char* name, const char* old, const char* new, in
   }
   snprintf(nline,part_len,"%s",new);
   if (justnew) {
-    error(2,(char*)entry_format,name,nline); 
+    error(2,(char*)entry_format_justnew,name,' ',nline);
   } else {
     error(2,(char*)entry_format,name,oline,nline); 
   }

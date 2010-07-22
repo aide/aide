@@ -1,4 +1,5 @@
 2010-07-22	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Replaced 'E2fsAttrs' by 'E2FSAttrs'
 	* Fixed report_attributes for string and long values
 	* summarize_changes: made summary string length also for
 	  added/removed files dynamic

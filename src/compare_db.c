@@ -1115,7 +1115,7 @@ void print_dbline_changes(db_line* old,db_line* new,
       if(old->e2fsattrs!=new->e2fsattrs || DB_E2FSATTRS&forced_attrs ) {
           tmp=e2fsattrs2char(old->e2fsattrs);
           tmp2=e2fsattrs2char(new->e2fsattrs);
-          print_string_changes("E2fsAttrs", tmp, tmp2, old->e2fsattrs==new->e2fsattrs);
+          print_string_changes("E2FSAttrs", tmp, tmp2, old->e2fsattrs==new->e2fsattrs);
           free(tmp); free(tmp2);
           tmp=NULL; tmp2=NULL;
       }

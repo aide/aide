@@ -559,37 +559,33 @@ char* e2fsattrs2char(unsigned long flags) {
 }
 #endif
 
-void print_md_changes(byte*old,byte*new,int len,char* name)
+void print_md_changes(byte*old,byte*new,int len,char* name, DB_ATTR_TYPE force)
 {
-  int ok = 0;
-  if(old!=NULL && new!=NULL){
-    if(bytecmp(old,new,len)!=0){
-      snprintf(oline,part_len,"%s",encode_base64(old,len));
-      snprintf(nline,part_len,"%s",encode_base64(new,len));
-      ok = 1;
+    int mode = 0;
+    if (old!=NULL && new!=NULL) {
+        if(bytecmp(old,new,len)!=0) {
+            snprintf(oline,part_len,"%s",encode_base64(old,len));
+            snprintf(nline,part_len,"%s",encode_base64(new,len));
+            mode = 1;
+        } else if (force) {
+            snprintf(nline,part_len,"%s",encode_base64(new,len));
+            mode = 2;
+        }
+    } else if (old==NULL && new!=NULL) {
+        snprintf(oline,part_len,"<NONE>");
+        snprintf(nline,part_len,"%s",encode_base64(new,len));
+        mode = 1;
+    } else if (old!=NULL && new==NULL) {
+        snprintf(oline,part_len,"%s",encode_base64(old,len));
+        snprintf(nline,part_len,"<NONE>");
+        mode = 1;
     }
-  } else {
-    if(old == NULL && new == NULL){
-      return;
+    if (mode == 1) {
+        error(2,(char*)entry_format,name,oline,nline);
+    } else if (mode == 2) {
+        error(2,(char*)entry_format_justnew,name,' ',nline);
     }
-    if(old==NULL){
-      snprintf(oline,part_len,"<NONE>");
-    } else {
-      snprintf(oline,part_len,"%s",encode_base64(old,len));
-      ok = 1;
-    }
-    /* OLD one */
-    if(new==NULL){
-      snprintf(nline,part_len,"<NONE>");
-    }else {
-      snprintf(nline,part_len,"%s",encode_base64(new,len));
-      ok = 1;
-    }
-  }
-  if(ok)
-    error(2,(char*)entry_format,name,oline,nline);
-  
-  return;
+    return;
 }
 
 int is_time_null(struct tm *ot)
@@ -1033,68 +1029,68 @@ void print_dbline_changes(db_line* old,db_line* new,
   if (!(DB_MD5&ignorelist)) {  
     print_md_changes(old->md5,new->md5,
 		     HASH_MD5_LEN,
-		     "MD5");
+		     "MD5", DB_MD5&forced_attrs);
   }
   
   if (!(DB_SHA1&ignorelist)) {
       print_md_changes(old->sha1,new->sha1,
 		       HASH_SHA1_LEN,
-		       "SHA1");
+		       "SHA1", DB_SHA1&forced_attrs);
   }
 
   if (!(DB_RMD160&ignorelist)) {
     print_md_changes(old->rmd160,new->rmd160,
 		     HASH_RMD160_LEN,
-		     "RMD160");
+		     "RMD160", DB_RMD160&forced_attrs);
   }
   
   if (!(DB_TIGER&ignorelist)) {
     print_md_changes(old->tiger,new->tiger,
 		     HASH_TIGER_LEN,
-		     "TIGER");
+		     "TIGER", DB_TIGER&forced_attrs);
   }
   
   if (!(DB_SHA256&ignorelist)) {
       print_md_changes(old->sha256,new->sha256,
 		       HASH_SHA256_LEN,
-		       "SHA256");
+		       "SHA256", DB_SHA256&forced_attrs);
   }
 
   if (!(DB_SHA512&ignorelist)) {
       print_md_changes(old->sha512,new->sha512,
 		       HASH_SHA512_LEN,
-		       "SHA512");
+		       "SHA512", DB_SHA512&forced_attrs);
   }
 
 #ifdef WITH_MHASH
   if (!(DB_CRC32&ignorelist)) {
     print_md_changes(old->crc32,new->crc32,
 		     HASH_CRC32_LEN,
-		     "CRC32");
+		     "CRC32", DB_CRC32&forced_attrs);
   }
   
   if (!(DB_HAVAL&ignorelist)) {
     print_md_changes(old->haval,new->haval,
 		     HASH_HAVAL256_LEN,
-		     "HAVAL");
+		     "HAVAL", DB_HAVAL&forced_attrs);
   }
   
   if (!(DB_GOST&ignorelist)) {
     print_md_changes(old->gost,new->gost,
 		     HASH_GOST_LEN,
-		     "GOST");
+		     "GOST", DB_GOST&forced_attrs);
   }
   
   if (!(DB_CRC32B&ignorelist)) {
     print_md_changes(old->crc32b,new->crc32b,
 		     HASH_CRC32B_LEN,
-		     "CRC32B");
+		     "CRC32B", DB_CRC32B&forced_attrs);
   }
 
   if (!(DB_WHIRLPOOL&ignorelist)) {
       print_md_changes(old->whirlpool,new->whirlpool,
 		       HASH_WHIRLPOOL_LEN,
-		       "WHIRLPOOL");
+		       "WHIRLPOOL", DB_WHIRLPOOL&forced_attrs);
   }
 #endif                   
 

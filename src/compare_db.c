@@ -471,13 +471,16 @@ void print_single_acl(acl_type* acl)
   }
 }
 
-void print_acl_changes(acl_type* old,acl_type* new) {
+void print_acl_changes(acl_type* old,acl_type* new, DB_ATTR_TYPE force) {
   
   if (compare_acl(old,new)==RETFAIL) {
     error(2,"ACL: old = ");
     print_single_acl(old);
     error(2,"     new = ");
     print_single_acl(new);
+  } else if (old!=NULL && new!=NULL && force) {
+      error(2,"ACL: ");
+      print_single_acl(new);
   }
 }
 #endif
@@ -1100,7 +1103,7 @@ void print_dbline_changes(db_line* old,db_line* new,
 
 #ifdef WITH_ACL
   if (!(DB_ACL&ignorelist)) {
-    print_acl_changes(old->acl,new->acl);
+    print_acl_changes(old->acl,new->acl, DB_ACL&forced_attrs);
   }
 #endif
   if (!(DB_XATTRS&ignorelist)) {

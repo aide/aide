@@ -524,13 +524,13 @@ void print_single_xattrs(xattrs_type* xattrs)
       
       if ((len ==  xattrs->ents[num - 1].vsz) ||
           ((len == (xattrs->ents[num - 1].vsz - 1)) && !val[len]))
-        error(2,"  [%.*zd] %s = %s\n", width, num,
+        error(2,"             [%.*zd] %s = %s\n", width, num,
               xattrs->ents[num - 1].key, val);
       else        
       {
         val = encode_base64(xattrs->ents[num - 1].val,
                             xattrs->ents[num - 1].vsz);
-        error(2,"  [%.*zd] %s <=> %s\n", width, num,
+        error(2,"             [%.*zd] %s <=> %s\n", width, num,
               xattrs->ents[num - 1].key, val);
         free(val);
       }
@@ -543,9 +543,9 @@ void print_xattrs_changes(xattrs_type* old,xattrs_type* new,
         DB_ATTR_TYPE force) {
   
   if (compare_xattrs(old,new)==RETFAIL) {
-    error(2,"XAttrs: old = ");
+    error(2," XAttrs   : old = ");
     print_single_xattrs(old);
-    error(2,"        new = ");
+    error(2,"            new = ");
     print_single_xattrs(new);
   } else if (force) {
       error(2," XAttrs   : ");

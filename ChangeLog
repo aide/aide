@@ -1,3 +1,6 @@
+2010-07-23	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Fixed report_attributes for Lname and SELinux
+
 2010-07-22	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fixed report_attributes for checksum values
 	* Replaced 'E2fsAttrs' by 'E2FSAttrs'

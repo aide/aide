@@ -414,28 +414,32 @@ DB_ATTR_TYPE compare_dbline(db_line* l1,db_line* l2,DB_ATTR_TYPE ignorelist)
   return ret;
 }
 
-void print_str_changes(char*old,char*new,const char *name)
+void print_str_changes(char*old,char*new,const char *name, DB_ATTR_TYPE force)
 {
-  int ok = 0;
-
+  int mode = 0;
   if(old==NULL){
     if(new!=NULL){
        snprintf(oline,long_part_len,"<NULL>");
        snprintf(nline,long_part_len,"%s",new);
-       ok = 1;
+       mode = 1;
     }
   } else if(new==NULL){
        snprintf(oline,long_part_len,"%s",old);
        snprintf(nline,long_part_len,"<NULL>");
-       ok = 1;
+       mode = 1;
    } else if(strcmp(old,new)!=0){
         snprintf(oline,long_part_len,"%s",old);
         snprintf(nline,long_part_len,"%s",new);
-        ok = 1;
+        mode = 1;
+  } else if (force) {
+      snprintf(nline,long_part_len,"%s",new);
+      mode = 2;
   }
-   if(ok)
+   if(mode == 1) {
      error(2,(char*)entry_format,name,oline,nline);
-
+   } else (mode == 2) {
+    error(2,(char*)entry_format_justnew,name,' ',nline);
+   }
    return;
 }
 
@@ -960,7 +964,7 @@ void print_dbline_changes(db_line* old,db_line* new,
   }
 
   if(!(DB_LINKNAME&ignorelist)){
-    print_str_changes(old->linkname,new->linkname, "Lname");
+    print_str_changes(old->linkname,new->linkname, "Lname", DB_LINKNAME&forced_attrs);
   }
 
   if (((!(DB_SIZEG&ignorelist)) && (((DB_SIZEG&old->attr && DB_SIZEG&new->attr)  && old->size>new->size) || DB_SIZEG&forced_attrs))
@@ -1103,7 +1107,7 @@ void print_dbline_changes(db_line* old,db_line* new,
     print_xattrs_changes(old->xattrs,new->xattrs);
   }
   if (!(DB_SELINUX&ignorelist)) {
-    print_str_changes(old->cntx,new->cntx, "SELinux");
+    print_str_changes(old->cntx,new->cntx, "SELinux", DB_SELINUX&forced_attrs);
   }
   
 #ifdef WITH_E2FSATTRS

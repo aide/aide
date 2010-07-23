@@ -539,13 +539,17 @@ void print_single_xattrs(xattrs_type* xattrs)
   }
 }
 
-void print_xattrs_changes(xattrs_type* old,xattrs_type* new) {
+void print_xattrs_changes(xattrs_type* old,xattrs_type* new,
+        DB_ATTR_TYPE force) {
   
   if (compare_xattrs(old,new)==RETFAIL) {
     error(2,"XAttrs: old = ");
     print_single_xattrs(old);
     error(2,"        new = ");
     print_single_xattrs(new);
+  } else if (force) {
+      error(2," XAttrs   : ");
+      print_single_xattrs(new);
   }
   
 }
@@ -1107,7 +1111,7 @@ void print_dbline_changes(db_line* old,db_line* new,
   }
 #endif
   if (!(DB_XATTRS&ignorelist)) {
-    print_xattrs_changes(old->xattrs,new->xattrs);
+    print_xattrs_changes(old->xattrs,new->xattrs, DB_XATTRS&forced_attrs);
   }
   if (!(DB_SELINUX&ignorelist)) {
     print_str_changes(old->cntx,new->cntx, "SELinux", DB_SELINUX&forced_attrs);

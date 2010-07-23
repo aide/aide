@@ -1,4 +1,5 @@
 2010-07-23	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Fixed report_attributes for XAttrs
 	* Fixed indent of ACL output
 	* Fixed report_attributes for ACL
 	* Fixed report_attributes for Lname and SELinux

@@ -437,7 +437,7 @@ void print_str_changes(char*old,char*new,const char *name, DB_ATTR_TYPE force)
   }
    if(mode == 1) {
      error(2,(char*)entry_format,name,oline,nline);
-   } else (mode == 2) {
+   } else if (mode == 2) {
     error(2,(char*)entry_format_justnew,name,' ',nline);
    }
    return;

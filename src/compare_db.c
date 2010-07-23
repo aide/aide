@@ -451,11 +451,11 @@ void print_single_acl(acl_type* acl)
   } else {
 #ifdef WITH_POSIX_ACL
     if (!acl->acl_a)
-      error(2,"A:<NONE>\n           ");
+      error(2,"A: <NONE>\n                  ");
     else
-      error(2,"A:\n----\n%s----\n           ",acl->acl_a);
+      error(2,"A:\n----\n%s----\n                  ",acl->acl_a);
     if (!acl->acl_d)
-      error(2,"D:<NONE>\n");
+      error(2,"D: <NONE>\n");
     else
       error(2,"D:\n----\n%s----\n",acl->acl_d);
 #endif
@@ -474,12 +474,12 @@ void print_single_acl(acl_type* acl)
 void print_acl_changes(acl_type* old,acl_type* new, DB_ATTR_TYPE force) {
   
   if (compare_acl(old,new)==RETFAIL) {
-    error(2,"ACL: old = ");
+    error(2," ACL      : old = ");
     print_single_acl(old);
-    error(2,"     new = ");
+    error(2,"            new = ");
     print_single_acl(new);
   } else if (old!=NULL && new!=NULL && force) {
-      error(2,"ACL: ");
+      error(2," ACL      :       ");
       print_single_acl(new);
   }
 }

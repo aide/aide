@@ -42,6 +42,7 @@ typedef struct list_header{
   
 }list_header;
 
+list* list_sorted_insert(list* listp, void* data, int (*compare) (const void*, const void*));
 
 list* list_append(list* listp,void*data);
 

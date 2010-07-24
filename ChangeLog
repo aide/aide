@@ -1,3 +1,6 @@
+2010-07-24	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Sort files in report by filename, see feature request 1337718
+
 2010-07-23	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fixed indent of XAttrs output
 	* Fixed report_attributes for XAttrs

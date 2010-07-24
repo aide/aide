@@ -37,6 +37,71 @@
  
  */
 
+
+/* list_sorted_insert()
+ * Adds an item in a sorted list:
+ *   - The first argument is the head of the list
+ *   - The second argument is the data to be added
+ *   - The third argument is the function pointer to the compare function to use
+ *   - Returns the head of the list
+ */
+list* list_sorted_insert(list* listp, void* data, int (*compare) (const void*, const void*)) {
+    list* newitem=NULL;
+    list* curitem=NULL;
+    newitem=(list*)malloc(sizeof(list));
+    if (newitem==NULL) {
+        error(0,"Not enough memory to add a new item to list.\n");
+        exit(EXIT_FAILURE);
+    }
+    if (listp==NULL){
+        list_header* header=(list_header*)malloc(sizeof(list_header));
+        if (header==NULL){
+            error(0,"Not enough memory for list header allocation\n");
+            exit(EXIT_FAILURE);
+        }
+        newitem->data=data;
+        newitem->header=header;
+        newitem->next=NULL;
+        newitem->prev=NULL;
+        header->head=newitem;
+        header->tail=newitem;
+        return newitem;
+    } else {
+        /* add element in sorted, non-empty list (use insertion sort) */
+        curitem = listp->header->head;
+        newitem->header=listp->header;
+        newitem->data=data;
+        if (compare(newitem->data,curitem->data) < 0) {
+            /* new element is the new head */
+            listp->header->head=newitem;
+            curitem->prev=newitem;
+            newitem->next=curitem;
+            newitem->prev=NULL;
+            return newitem;
+        } else {
+            /* find position for new element */
+            while(curitem->next != NULL) {
+               curitem=curitem->next;
+               if (compare(newitem->data, curitem->data) < 0) break;
+            }
+            if (curitem->next == NULL) {
+                /* new element is the new tail */
+                listp->header->tail=newitem;
+                curitem->next=newitem;
+                newitem->prev=curitem;
+                newitem->next=NULL;
+            } else {
+                /* new element is an inner element */
+                curitem->prev->next=newitem;
+                newitem->prev=curitem->prev;
+                curitem->prev=newitem;
+                newitem->next=curitem;
+            }
+        }
+        return listp;
+    }
+}
+
 /* list_append()
  * append an item to list
  * returns the head

@@ -4,6 +4,7 @@
 =========================================================
 
 Version UNRELEASED
+    * Sort files in report by filename
     * Added support for e2fsattrs attribute
     * Added support for ftype attribute
     * Bug fixes

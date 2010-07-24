@@ -58,6 +58,13 @@ void fs2db_line(struct AIDE_STAT_TYPE* fs,db_line* line);
 void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line);
 void no_hash(db_line* line);
 
+int compare_node_by_path(const void *n1, const void *n2)
+{
+    const seltree *x1 = n1;
+    const seltree *x2 = n2;
+    return strcmp(x1->path, x2->path);
+}
+
 char* strrxtok(char* rx)
 {
   char*p=NULL;
@@ -275,7 +282,7 @@ seltree* new_seltree_node(
       }
     }
     free(tmprxtok);
-    parent->childs=list_append(parent->childs,(void*)node);
+    parent->childs=list_sorted_insert(parent->childs,(void*)node, compare_node_by_path);
     node->parent=parent;
   }else {
     node->parent=NULL;

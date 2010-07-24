@@ -325,6 +325,8 @@ void setdefaults_before_config()
 
   conf->warn_dead_symlinks=0;
 
+  conf->grouped=1;
+
   conf->summarize_changes=0;
 
   conf->selrxlst=NULL;
@@ -583,12 +585,17 @@ int main(int argc,char**argv)
     totalchanges=report_tree(conf->tree,0,status);
     if(totalchanges>0){
       exitcode=(status[2]!=0)*1+(status[3]!=0)*2+(status[4]!=0)*4;
+      if (conf->grouped) {
       status[0]=1;
       report_tree(conf->tree,1,status);
       status[0]=1;
       report_tree(conf->tree,2,status);
       status[0]=1;
       report_tree(conf->tree,3,status);
+      } else {
+          status[0]=1;
+          report_tree(conf->tree,5,status);
+      }
       /* Then detailed list of changes */
       status[0]=1;
       report_tree(conf->tree,4,status);

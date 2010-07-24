@@ -59,6 +59,10 @@ is available only if acl support is compiled in.
 .IP "warn_dead_symlinks"
 Whether to warn about dead symlinks or not. Valid values are
 yes,true,no and false. The default is not to warn about dead symlinks.
+.IP "grouped"
+Whether to group the files in the report by added, removed and changed
+files or not. Valid values are yes, true, no and false.
+The default is to group the files in the report.
 .IP "summarize_changes"
 Whether to summarize changes in the added, removed and changed files
 sections of the report or not. Valid values are yes,true,no and false.

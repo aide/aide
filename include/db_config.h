@@ -346,6 +346,8 @@ typedef struct db_config {
 #endif
   int warn_dead_symlinks;
 
+  int grouped;
+
   int summarize_changes;
 
   struct seltree* tree;

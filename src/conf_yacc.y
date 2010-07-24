@@ -70,6 +70,7 @@ extern long conf_lineno;
 
 %token TACLNOSYMLINKFOLLOW
 %token TWARNDEADSYMLINKS
+%token TGROUPED
 %token TSUMMARIZECHANGES
 %token TNEWLINE
 %token TVERBOSE
@@ -148,7 +149,7 @@ lines : lines line | ;
 line : rule | equrule | negrule | definestmt | undefstmt
        | ifdefstmt | ifndefstmt | ifhoststmt | ifnhoststmt
        | groupdef | db_in | db_out | db_new | verbose | config_version 
-       | report | gzipdbout | recursion_stopper | warn_dead_symlinks
+       | report | gzipdbout | recursion_stopper | warn_dead_symlinks | grouped
        | summarize_changes | acl_no_symlink_follow | beginconfigstmt | endconfigstmt
        | TEOF {
             newlinelastinconfig=1;
@@ -296,6 +297,14 @@ warn_dead_symlinks : TWARNDEADSYMLINKS TTRUE {
 
 warn_dead_symlinks : TWARNDEADSYMLINKS TFALSE {
   conf->warn_dead_symlinks=0;
+} ;
+
+grouped : TGROUPED TTRUE {
+  conf->grouped=1;
+} ;
+
+grouped : TGROUPED TFALSE {
+  conf->grouped=0;
 } ;
 
 summarize_changes : TSUMMARIZECHANGES TTRUE {

@@ -1510,6 +1510,23 @@ long report_tree(seltree* node,int stage, long* status)
     }
   }
 
+  if((stage==5)&&(status[2]||status[3]||status[4])) {
+    if(top){
+      error(2,_("\n---------------------------------------------------\n"));
+      if (status[2]&&status[3]&&status[4]) { error(2,_("Added, removed and changed files:\n")); }
+      else if (status[2]&&status[3]) { error(2,_("Added and removed files:\n")); }
+      else if (status[2]&&status[4]) { error(2,_("Added and changed files:\n")); }
+      else if (status[3]&&status[4]) { error(2,_("Removed and changed files:\n")); }
+      else if (status[2]) { error(2,_("Added files:\n")); }
+      else if (status[3]) { error(2,_("Removed files:\n")); }
+      else if (status[4]) { error(2,_("Changed files:\n")); }
+      error(2,_("---------------------------------------------------\n\n"));
+    }
+    if(node->checked&NODE_ADDED){ print_added_line(node->new_data); }
+    if(node->checked&NODE_REMOVED){ print_removed_line(node->old_data); }
+    if(node->checked&NODE_CHANGED){ print_changed_line(node->old_data,node->new_data,ignorelist); }
+  }
+
   /* All stage dependent things done for this node. Let's check children */
   for(r=node->childs;r;r=r->next){
     report_tree((seltree*)r->data,stage,status);

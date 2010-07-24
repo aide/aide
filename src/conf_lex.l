@@ -312,6 +312,12 @@ int var_in_conflval=0;
   return (TWARNDEADSYMLINKS);
 }
 
+^[\t\ ]*"grouped"{E} {
+  error(230,"%li:grouped =\n",conf_lineno);
+  BEGIN CONFVALHUNT;
+  return (TGROUPED);
+}
+
 ^[\t\ ]*"summarize_changes"{E} {
   error(230,"%li:summarize_changes =\n",conf_lineno);
   BEGIN CONFVALHUNT;

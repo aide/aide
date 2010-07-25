@@ -33,6 +33,8 @@ typedef struct rx_rule {
   long  conf_lineno; /* line no. of rule definition*/
 } rx_rule;
 
+int compare_node_by_path(const void *n1, const void *n2);
+
 /*
  * gen_list()
  * Generates the file list

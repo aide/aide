@@ -164,7 +164,7 @@ void add_child (db_line * fil)
 		new_r->checked |= NODE_CHECKED;
 		new_r->checked |= NODE_TRAVERSE;
 	}
-	r->childs = list_append (r->childs, new_r);
+	r->childs = list_sorted_insert (r->childs, new_r, compare_node_by_path);
 }
 
 /*

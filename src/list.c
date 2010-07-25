@@ -71,7 +71,7 @@ list* list_sorted_insert(list* listp, void* data, int (*compare) (const void*, c
         curitem = listp->header->head;
         newitem->header=listp->header;
         newitem->data=data;
-        if (compare(newitem->data,curitem->data) < 0) {
+        if (compare(newitem->data,curitem->data) <= 0) {
             /* new element is the new head */
             listp->header->head=newitem;
             curitem->prev=newitem;
@@ -80,11 +80,10 @@ list* list_sorted_insert(list* listp, void* data, int (*compare) (const void*, c
             return newitem;
         } else {
             /* find position for new element */
-            while(curitem->next != NULL) {
+            while(compare(newitem->data, curitem->data) > 0 && curitem->next != NULL) {
                curitem=curitem->next;
-               if (compare(newitem->data, curitem->data) < 0) break;
             }
-            if (curitem->next == NULL) {
+            if (curitem->next == NULL && compare(newitem->data, curitem->data) > 0) {
                 /* new element is the new tail */
                 listp->header->tail=newitem;
                 curitem->next=newitem;

@@ -1,3 +1,6 @@
+2010-07-29	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Added ftype and e2fsattrs to the default groups L, R and >
+
 2010-07-25	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fixed sorting of files in report by filename
 

@@ -396,7 +396,10 @@ void setdefaults_before_config()
 #ifdef WITH_XATTR
   p|=DB_XATTRS;
 #endif
-  do_groupdef("R",DB_PERM|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID|DB_SIZE|
+#ifdef WITH_E2FSATTRS
+  p|=DB_E2FSATTRS;
+#endif
+  do_groupdef("R",DB_PERM|DB_FTYPE|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID|DB_SIZE|
                   DB_LINKNAME|DB_MTIME|DB_CTIME|p);
 
   p=0LLU;
@@ -409,7 +412,10 @@ void setdefaults_before_config()
 #ifdef WITH_XATTR
   p|=DB_XATTRS;
 #endif
-  do_groupdef("L",DB_PERM|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID|DB_LINKNAME|p);
+#ifdef WITH_E2FSATTRS
+  p|=DB_E2FSATTRS;
+#endif
+  do_groupdef("L",DB_PERM|DB_FTYPE|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID|DB_LINKNAME|p);
 
   p=0LLU;
 #ifdef WITH_ACL
@@ -421,7 +427,10 @@ void setdefaults_before_config()
 #ifdef WITH_XATTR
   p|=DB_XATTRS;
 #endif
-  do_groupdef(">",DB_PERM|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID|DB_SIZEG|
+#ifdef WITH_E2FSATTRS
+  p|=DB_E2FSATTRS;
+#endif
+  do_groupdef(">",DB_PERM|DB_FTYPE|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID|DB_SIZEG|
 		  DB_LINKNAME|p);
   do_groupdef("E",0);
 

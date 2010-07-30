@@ -197,14 +197,15 @@ Here is an example configuration.</p>
    #tiger:  tiger checksum
    #haval:  haval checksum
    #crc32:  crc32 checksum
-   #R:      p+i+l+n+u+g+s+m+c+acl+selinux+xattrs+md5
-   #L:      p+i+l+n+u+g+acl+selinux+xattrs
+   #R:      p+ftupe+i+l+n+u+g+s+m+c+md5
+   #L:      p+ftype+i+l+n+u+g
    #E:      Empty group
-   #>:      Growing logfile p+l+u+g+i+n+S+acl+selinux+xattrs
+   #>:      Growing logfile p+ftype+l+u+g+i+n+S
    #The following are available if you have mhash support enabled:
    #gost:   gost checksum
    #whirlpool: whirlpool checksum
-   #The following are available when explicitly enabled using configure:
+   #The following are available and added to the default groups R, L and >
+   #only when explicitly enabled using configure:
    #acl:    access control list
    #selinux SELinux security context
    #xattrs:  extended file attributes

@@ -1,3 +1,7 @@
+2010-07-30	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Removed obsolete compare_db function
+	* Updated documentation of the default groups
+
 2010-07-29	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Added ftype and e2fsattrs to the default groups L, R and >
 

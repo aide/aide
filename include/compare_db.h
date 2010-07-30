@@ -24,12 +24,6 @@
 #include "db_config.h"
 #include "seltree.h"
 
-/*
- * compare_db()
- * Generate report based on list of files and db from disk
- */
-
-void compare_db(list*,db_config*);
 
 /*
  * report_tree()

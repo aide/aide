@@ -1,1 +1,1 @@
-m4_define([AIDE_VERSION], [post-0.14.2])
+m4_define([AIDE_VERSION], [0.15-rc1])

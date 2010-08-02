@@ -1,3 +1,6 @@
+2010-08-02	Richard van den Berg  <richard@vdberg.org>
+	* Removed ], from version string when --with-curl was used, closes bug 3038382
+
 2010-08-01	Richard van den Berg  <richard@vdberg.org>
 	* Released version 0.15-rc1
 	* Changed version to post-0.15-rc1

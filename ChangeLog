@@ -1,3 +1,7 @@
+2010-08-04	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Updated copyright notices of commandconf.h, commandconf.c, conf_lex.h,
+	  conf_lex.l, db.h, db.c and db_list.h
+
 2010-08-03	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Updated copyright notices of aide.h, aide.c, be.c, compare_db.h,
 	  compare_db.c and db_disk.c

@@ -1,7 +1,8 @@
 /* aide, Advanced Intrusion Detection Environment
  * vi: ts=8 sw=8
  *
- * Copyright (C) 1999,2000,2001,2002,2005 Rami Lehti, Pablo Virolainen
+ * Copyright (C) 1999-2002,2004-2006,2009,2010 Rami Lehti, Pablo Virolainen,
+ * Mike Markley, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or

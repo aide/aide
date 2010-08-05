@@ -1,3 +1,7 @@
+2010-08-05	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Updated copyright notices of db_file.h, db_file.c, db_sql.h, db_sql.c,
+	  do_md.h, do_md.c, gen_list.h and gen_list.c
+
 2010-08-04	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Updated copyright notices of commandconf.h, commandconf.c, conf_lex.h,
 	  conf_lex.l, db.h, db.c and db_list.h

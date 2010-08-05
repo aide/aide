@@ -570,7 +570,7 @@
 	* added lots of parameters see man page and configure --help
 	* added ACL support for SunOS 5.x (and compatibles)
 	* Released 0.8 (This is an unstable release)
-	
+
 2000-04-27  Rami Lehti  <Rami.Lehti@Finland.Sun.COM>
 
 	* Added static link flag checking
@@ -584,13 +584,13 @@
 
 2000-02-08  Rami Lehti  <Rami.Lehti@Finland.Sun.COM>
 	* Changed version to 0.7
-	
+
 2000-02-08  Rami Lehti  <Rami.Lehti@Finland.Sun.COM>
 
-	* Fixed core dump bug in compare_db 
-	* Added warning when config has changed 
+	* Fixed core dump bug in compare_db
+	* Added warning when config has changed
 	* Released 0.6
-	
+
 2000-01-18  Virolainen Pablo  <pablo@kaspiankerttu.cs.tut.fi>
 
 	* Handles config filename '-' as stdin. Manpage update.
@@ -608,7 +608,7 @@
 1999-12-08  Pablo Virolainen <pablo@cs.tut.fi>
 	* Check for [acm]times beeing in future is done correctly now.
 	* blockcount will now be writen to database...
-	
+
 1999-12-02  Pablo Virolainen <pablo@cs.tut.fi>
 	* Added warning if file's [acm]time is in future (gen_list.c)
 
@@ -619,11 +619,11 @@
 1999-11-25  Pablo Virolainen <pablo@cs.tut.fi>
 	* Ignorelist for reports implemented.
 	* Block count added. It might be usefull with file with holes.
-	
+
 1999-11-24  Pablo Virolainen <pablo@cs.tut.fi>
 	* Added '^' to first charaster of every regexpr
 	* Minor changes do_md.c
-	
+
 1999-11-23  Rami Lehti  <Rami.Lehti@Finland.Sun.COM>
 
 	* Fixed MHASH_COMPATIBILITY problem. Mhash library version 0.6.1 is
@@ -634,7 +634,7 @@
 1999-11-05  Pablo Virolainen  <pablo@cs.tut.fi>
 
 	* Fixed bug in tree traverce. Now works without permission check.
-	
+
 1999-10-26  Rami Lehti  <rammer@cs.tut.fi>
 
 	* Added support for mhash library (done mostly by pablo)
@@ -651,7 +651,7 @@ Changed: ChangeLog,configure.in
 	Upped version to 0.4
 
 (Thu, 26 Aug 1999 16:36:14  (EET):rammer)
-Changed: configure aide.conf.5 compare_db.c,gen_list.c,util.c 
+Changed: configure aide.conf.5 compare_db.c,gen_list.c,util.c
 	util.h,conf_lex.l
 	Fixed a bug in gen_seltree
 	Changed default behaviour of verbositylevel 5.

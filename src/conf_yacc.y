@@ -1,7 +1,8 @@
 %{ 
 
 /*	
- * Copyright (C) 1999,2000,2001,2002 Rami Lehti, Pablo Virolainen
+ * Copyright (C) 1999-2006,2010 Rami Lehti, Pablo Virolainen,
+ * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as

@@ -1,3 +1,7 @@
+2010-08-06	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Updated copyright notices of list.h, list.c, md.h, md,c, symboltable.h,
+	  symboltable.c, util.h and util.c
+
 2010-08-05	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Updated copyright notices of db_file.h, db_file.c, db_sql.h, db_sql.c,
 	  do_md.h, do_md.c, gen_list.h and gen_list.c

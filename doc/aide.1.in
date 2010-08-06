@@ -17,7 +17,7 @@ database to do this. This is also the default command. Without any
 command \fBaide\fP does a check.
 .IP "--init, -i"
 Initialize the database. You must initialize a database and move it to
-the appropriate place before you can use the --check command.
+the appropriate place before you can use the \-\-check command.
 .IP "--update, -u"
 Checks the database and updates the database non-interactively. 
 The input and output databases must be different.

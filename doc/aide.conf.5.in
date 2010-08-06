@@ -149,7 +149,7 @@ See DEFAULT GROUPS for an explanation of default predefined groups.
 Note that this is different from the way Tripwire(tm) does it.
 .IP
 There is also a special group named "ignore_list". The predefined 
--groups listed in it are NOT displayed in the final report.
+\-groups listed in it are NOT displayed in the final report.
 .PP
 .SH "SELECTION LINES"
 .PP

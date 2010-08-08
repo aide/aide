@@ -1,6 +1,7 @@
 2010-08-02	Richard van den Berg  <richard@vdberg.org>
 	* Added mkgitsnapshot.sh to contrib/
 	* Released version 0.15
+	* Changed version to post-0.15
 
 2010-08-06	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Updated copyright notices of list.h, list.c, md.h, md,c, symboltable.h,

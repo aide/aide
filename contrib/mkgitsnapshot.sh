@@ -4,7 +4,8 @@
 #
 # 2010/08/08 Richard van den Berg <richard@vdberg.org>
 
-cd $HOME/tmp/aide/sf/cvs-snapshot
+TMP=/tmp/aide-git-snapshot.$$
+cd $TMP
 git clone -q git://aide.git.sourceforge.net/gitroot/aide/aide
 NOW=`date +%Y%m%d`
 AGIT="aide-git-$NOW"
@@ -28,10 +29,9 @@ fi
 rm -rf autom4te.cache
 cd ..
 # Create tar.gz
-rm -rf aide-git*.tar.gz
 tar czf $AGIT.tar.gz $AGIT
 chmod 664 $AGIT.tar.gz
 # Copy tar.gz to sf.net webserver
-scp -qp $AGIT.tar.gz rvdb,aide@web.sourceforge.net:htdocs/aide-CVS-snapshot.tar.gz
+scp -qp $AGIT.tar.gz user,aide@web.sourceforge.net:htdocs/aide-git-snapshot.tar.gz
 # Clean up
-rm -rf $AGIT
+rm -rf $TMP

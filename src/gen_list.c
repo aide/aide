@@ -1208,16 +1208,19 @@ void add_file_to_tree(seltree* tree,db_line* file,int db,int status,
       localignorelist=(oldData->attr^newData->attr)&(~(DB_NEWFILE|DB_RMFILE));
 
       if (localignorelist!=0) {
-        error(5,"Entry \"%s\" \"%s\" in databases has different attributes (here3): %llx %llx\n",
-  	    newData->filename,oldData->filename,oldData->attr,newData->attr);
-      }
-    
-      localignorelist|=ignorelist|DB_CTIME;
-
-      /* Free the data if same else leave as is for report_tree */
-      if(compare_dbline(oldData, newData, localignorelist)==RETOK){
-        node->checked |= db==DB_NEW ? NODE_MOVED_IN : NODE_MOVED_OUT;
-        moved_node->checked |= db==DB_NEW ? NODE_MOVED_OUT : NODE_MOVED_IN;
+         error(220,"Ignoring moved entry (\"%s\" [%llx] => \"%s\" [%llx]) due to different attributes: %llx\n",
+                 oldData->filename, oldData->attr, newData->filename, newData->attr, localignorelist);
+     } else {
+         /* Free the data if same else leave as is for report_tree */
+         if(compare_dbline(oldData, newData, ignorelist|DB_CTIME)==RETOK){
+             node->checked |= db==DB_NEW ? NODE_MOVED_IN : NODE_MOVED_OUT;
+             moved_node->checked |= db==DB_NEW ? NODE_MOVED_OUT : NODE_MOVED_IN;
+             error(220,_("Entry was moved: %s [%llx] => %s [%llx]\n"),
+                     oldData->filename , oldData->attr, newData->filename, newData->attr);
+         } else {
+             error(220,"Ignoring moved entry (\"%s\" => \"%s\") because the entries mismatch\n",
+                     oldData->filename, newData->filename);
+         }
       }
     }
   }

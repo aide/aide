@@ -1205,7 +1205,7 @@ void add_file_to_tree(seltree* tree,db_line* file,int db,int status,
         oldData = node->old_data;
       }
 
-      localignorelist=(oldData->attr^newData->attr)&(~(DB_NEWFILE|DB_RMFILE));
+      localignorelist=(oldData->attr^newData->attr)&(~(DB_NEWFILE|DB_RMFILE|DB_CHECKINODE));
 
       if (localignorelist!=0) {
          error(220,"Ignoring moved entry (\"%s\" [%llx] => \"%s\" [%llx]) due to different attributes: %llx\n",

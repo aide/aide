@@ -1,5 +1,6 @@
 2010-09-07	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Ignore changed file name if attributes does not match
+	* Allow absence of DB_CHECKINODE if file name has changed
 
 2010-08-08	Richard van den Berg  <richard@vdberg.org>
 	* Added mkgitsnapshot.sh to contrib/

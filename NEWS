@@ -3,21 +3,24 @@
 
 =========================================================
 
+Version 0.15.1
+	* Fixed bug with DB_CHECKINODE
+
 Version 0.15
-    * Added new grouped option
-    * Sort files in report by filename
-    * Added support for e2fsattrs attribute
-    * Added support for ftype attribute
-    * Bug fixes
+	* Added new grouped option
+	* Sort files in report by filename
+	* Added support for e2fsattrs attribute
+	* Added support for ftype attribute
+	* Bug fixes
 
 Version 0.14.2
-    * Report correct file type in "Detailed information
-      about changes" section
-    * Bug fixes
+	* Report correct file type in "Detailed information
+	  about changes" section
+	* Bug fixes
 
 Version 0.14.1
-    * Added aide-attributes.sh contrib script
-    * Bug fixes
+	* Added aide-attributes.sh contrib script
+	* Bug fixes
 
 Version 0.14
 	* Renewed autoconf mechanism

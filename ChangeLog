@@ -1,3 +1,6 @@
+2010-09-10	Richard van den Berg  <richard@vdberg.org>
+	* Released version 0.15.1
+
 2010-09-07	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Ignore changed file name if attributes does not match
 	* Allow absence of DB_CHECKINODE if file name has changed

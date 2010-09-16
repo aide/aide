@@ -21,7 +21,7 @@ the appropriate place before you can use the \-\-check command.
 .IP "--update, -u"
 Checks the database and updates the database non-interactively. 
 The input and output databases must be different.
-.IP "--compare"
+.IP "--compare, -E"
 Compares two databases. They must be defined in configfile with
 database=<url> and database_new=<url>.
 .IP "--config-check, -D"

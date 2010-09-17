@@ -1,3 +1,6 @@
+2010-09-17	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* src/compare_db.c: fixed compiler warning if WITH_AUDIT is not defined
+
 2010-09-11	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Documented '-E' in man page and '--help' text
 

@@ -1219,10 +1219,10 @@ void print_report_footer(struct tm* st)
 	  st->tm_hour, st->tm_min, st->tm_sec);
 }
 
+#ifdef WITH_AUDIT
   /* Something changed, send audit anomaly message */
 void send_audit_report(long nadd, long nrem, long nchg)
 {
-#ifdef WITH_AUDIT
   if(nadd!=0||nrem!=0||nchg!=0){
     int fd=audit_open();
     if (fd>=0){
@@ -1241,8 +1241,8 @@ void send_audit_report(long nadd, long nrem, long nchg)
        close(fd);
     }
   }
-#endif /* WITH_AUDIT */
 }
+#endif /* WITH_AUDIT */
 
 long report_tree(seltree* node,int stage, long* status)
 {
@@ -1372,7 +1372,9 @@ long report_tree(seltree* node,int stage, long* status)
   }
 
   if(top&&(stage==0)&&((status[2]+status[3]+status[4])>0)){
+#ifdef WITH_AUDIT
     send_audit_report(status[2],status[3],status[4]);
+#endif
     print_report_header(status[1],status[2],status[3],status[4]);
   }
   

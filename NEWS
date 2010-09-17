@@ -3,6 +3,9 @@
 
 =========================================================
 
+Version post-0.15.1
+	* Bug fixes
+
 Version 0.15.1
 	* Fixed bug with DB_CHECKINODE
 

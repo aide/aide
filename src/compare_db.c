@@ -295,7 +295,7 @@ DB_ATTR_TYPE compare_dbline(db_line* l1,db_line* l2,DB_ATTR_TYPE ignorelist)
   }
 
   if (!(DB_LINKNAME&ignorelist)) {
-    if(compare_str(l1->linkname, l2->linkname)){
+    if(str_has_changed(l1->linkname, l2->linkname)){
 	ret|=DB_LINKNAME;
     }
   }
@@ -371,7 +371,7 @@ DB_ATTR_TYPE compare_dbline(db_line* l1,db_line* l2,DB_ATTR_TYPE ignorelist)
   easy_compare(DB_E2FSATTRS,e2fsattrs);
 #endif
   if (!(DB_SELINUX&ignorelist)) {
-    if(compare_str(l1->cntx,l2->cntx)) {
+    if(str_has_changed(l1->cntx,l2->cntx)) {
       ret|=DB_SELINUX;
     }
   }

@@ -3,6 +3,7 @@
 	  - removed unused functions (find_line_match, init_rxlst, eat_files_indir)
 	  - compare ignorelist/forced_attrs with DB_ATTR_UNDEF instead of -1
 	  - renamed e2fsattrs2char function to e2fsattrs2string
+	  - use str_has_changed instead of compare_str
 
 2010-09-17	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c: fixed compiler warning if WITH_AUDIT is not defined

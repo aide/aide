@@ -95,31 +95,6 @@ static DB_ATTR_TYPE get_report_attributes() {
   return forced_attrs;
 }
 
-list* find_line_match(db_line* line,list* l)
-{
-  list*r=NULL;
-
-  /* Filename cannot be NULL. Or if it is NULL then we have done something 
-     completly wrong. So we don't check if filename if null. db_line:s
-     sould also be non null
-  */
-  
-  for(r=l;r;r=r->next){
-    if(strcmp(line->filename,((db_line*)r->data)->filename)==0){
-      return r;
-    }
-  }
-  if(l!=NULL){
-    for(r=l->prev;r;r=r->prev){
-      if(strcmp(line->filename,((db_line*)r->data)->filename)==0){
-	return r;
-      }
-    }
-  }
-
-  return NULL;
-}
-
 #ifdef WITH_POSIX_ACL
 int compare_acl(acl_type* a1,acl_type* a2)
 {
@@ -1131,66 +1106,6 @@ void print_dbline_changes(db_line* old,db_line* new,
 #endif
 
   return;
-}
-
-void init_rxlst(list* rxlst)
-{
-    list*    r         = NULL;
-    rx_rule* rxrultmp  = NULL;
-    regex_t* rxtmp     = NULL;
-
-
-  for(r=rxlst;r;r=r->next){
-    char* data=NULL;
-    /* We have to add '^' to the first charaster of string... 
-     *
-     */
-    
-    data=(char*)malloc(strlen(((rx_rule*)r->data)->rx)+1+1);
-    
-    if (data==NULL){
-      error(0,_("Not enough memory for regexpr compile... exiting..\n"));
-      exit(EXIT_FAILURE);
-    }
-    
-    strcpy(data+1,((rx_rule*)r->data)->rx);
-    
-    data[0]='^';
-    
-    rxrultmp=((rx_rule*)r->data);
-    rxrultmp->conf_lineno=-1;
-    rxtmp=(regex_t*)malloc(sizeof(regex_t));
-    if( regcomp(rxtmp,data,REG_EXTENDED|REG_NOSUB)){
-      error(0,_("Error in selective regexp: %s\n"),((rx_rule*)r->data)->rx);
-      free(data);
-    }else {
-      rxrultmp->conf_lineno=((rx_rule*)r)->conf_lineno;
-      free(rxrultmp->rx);
-      rxrultmp->rx=data;
-      rxrultmp->crx=rxtmp;
-    }
-    
-  }
-
-}
-
-void eat_files_indir(list* flist,char* dirname,long* filcount)
-{
-  size_t len;
-
-  *filcount=0;
-  len=strlen(dirname);
-
-  while (flist){
-    if((strncmp(dirname,((db_line*)flist->data)->filename,len)==0)
-       && ((((db_line*)flist->data)->filename)[len]=='/')){
-      free_db_line((db_line*)flist->data);
-      free(flist->data);
-      flist=list_delete_item(flist);
-      (*filcount)++;
-    }
-    flist=flist->next;
-  }
 }
 
 void print_report_header(int nfil,int nadd,int nrem,int nchg)

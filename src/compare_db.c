@@ -204,43 +204,6 @@ static int bytecmp(byte *b1, byte *b2, size_t len)
   return strncmp((char *)b1, (char *)b2, len);
 }
 
-int compare_md_entries(byte* e1,byte* e2,int len)
-{
-
-  error(255,"Debug, compare_md_entries %p %p\n",e1,e2);
-
-  if(e1!=NULL && e2!=NULL){
-    if(bytecmp(e1,e2,len)!=0){
-      return RETFAIL;
-    }else{
-      return RETOK;
-    }
-  } else {
-    /* At least the other is NULL */
-    if(e1==NULL && e2==NULL){
-      return RETOK;
-    }else{
-      return RETFAIL;
-    }
-  }
-  return RETFAIL;
-}
-
-static int compare_str(const char *s1, const char *s2)
-{
-  if(s1==NULL){
-    if(s2!=NULL){
-      return RETFAIL;
-    }
-  }else if(s2==NULL){
-    return RETFAIL;
-  }else if (strcmp(s1,s2)!=0){
-    return RETFAIL;
-  }
-
-  return RETOK;
-}
-
 char get_file_type_char(mode_t mode) {
     if (S_ISREG(mode)) return 'f';
     else if(S_ISDIR(mode)) return 'd';

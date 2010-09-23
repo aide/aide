@@ -6,6 +6,7 @@
 	  - use str_has_changed instead of compare_str
 	  - added debug output to md_has_changed
 	  - use md_has_changed instead of compare_md_entries
+	  - removed obsolete functions (compare_str, compare_md_entries)
 
 2010-09-17	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c: fixed compiler warning if WITH_AUDIT is not defined

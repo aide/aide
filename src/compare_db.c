@@ -280,7 +280,7 @@ DB_ATTR_TYPE compare_dbline(db_line* l1,db_line* l2,DB_ATTR_TYPE ignorelist)
 
 #define easy_md_compare(a,b,c) \
   if (!(a&ignorelist)) {  \
-    if(compare_md_entries(l1->b,l2->b,\
+    if(md_has_changed(l1->b,l2->b,\
 			  c)==RETFAIL){ \
       ret|=a; \
     } \

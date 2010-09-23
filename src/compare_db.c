@@ -519,7 +519,7 @@ void print_xattrs_changes(xattrs_type* old,xattrs_type* new,
 }
 
 #ifdef WITH_E2FSATTRS
-char* e2fsattrs2char(unsigned long flags) {
+char* e2fsattrs2string(unsigned long flags) {
     char* string = malloc (20 * sizeof (char));
     int i;
     for (i = 0 ; i < 19 ; i++) {
@@ -1084,8 +1084,8 @@ void print_dbline_changes(db_line* old,db_line* new,
 #ifdef WITH_E2FSATTRS
   if ( !(DB_E2FSATTRS&ignorelist) ) {
       if(old->e2fsattrs!=new->e2fsattrs || DB_E2FSATTRS&forced_attrs ) {
-          tmp=e2fsattrs2char(old->e2fsattrs);
-          tmp2=e2fsattrs2char(new->e2fsattrs);
+          tmp=e2fsattrs2string(old->e2fsattrs);
+          tmp2=e2fsattrs2string(new->e2fsattrs);
           print_string_changes("E2FSAttrs", tmp, tmp2, old->e2fsattrs==new->e2fsattrs);
           free(tmp); free(tmp2);
           tmp=NULL; tmp2=NULL;

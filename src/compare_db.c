@@ -74,25 +74,13 @@ int summary_len = 13;
 /*************/
 
 static DB_ATTR_TYPE get_ignorelist() {
-  DB_ATTR_TYPE ignorelist;
-  ignorelist=get_groupval("ignore_list");
-
-  if (ignorelist==-1) {
-    ignorelist=0;
-  }
-
-  return ignorelist;
+    DB_ATTR_TYPE ignorelist = get_groupval("ignore_list");
+    return ignorelist==DB_ATTR_UNDEF?0:ignorelist;
 }
 
 static DB_ATTR_TYPE get_report_attributes() {
-  DB_ATTR_TYPE forced_attrs;
-  
-  forced_attrs=get_groupval("report_attributes");
-  if (forced_attrs==-1) {
-    forced_attrs=0;
-  }
-
-  return forced_attrs;
+    DB_ATTR_TYPE forced_attrs = get_groupval("report_attributes");
+    return forced_attrs==DB_ATTR_UNDEF?0:forced_attrs;
 }
 
 #ifdef WITH_POSIX_ACL

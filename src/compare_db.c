@@ -712,6 +712,7 @@ int str_has_changed(char*old,char*new)
 
 int md_has_changed(byte*old,byte*new,int len)
 {
+    error(255,"Debug, md_has_changed %p %p\n",old,new);
     return (((old!=NULL && new!=NULL) &&
                 (bytecmp(old,new,len)!=0)) || 
             ((old!=NULL && new==NULL) || 

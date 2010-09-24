@@ -37,8 +37,6 @@
  */
 long report_tree(seltree* tree,int stage, long* status);
 
-void init_rxlst(list* rxlst);
-
 /* 
  * compare_dbline()
  * Return RETOK if same RETFAIL if not

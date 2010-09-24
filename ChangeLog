@@ -1,3 +1,6 @@
+2010-09-24	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* include/compare_db.h: removed init_rxlst function
+
 2010-09-23	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c:
 	  - removed unused functions (find_line_match, init_rxlst, eat_files_indir)

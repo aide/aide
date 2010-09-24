@@ -3,6 +3,7 @@
 	* include/db_config.h: include seltree.h after #define DB_ATTR_TYPE
 	* include/seltree.h:
 	  - use DB_ATTR_TYPE instead of int for attr
+	  - added DB_ATTR_TYPE changed_attrs to seltree struct
 
 2010-09-23	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c:

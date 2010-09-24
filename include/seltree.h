@@ -35,6 +35,7 @@ struct seltree;
  * new_data is this nodes new attributes (read from disk or db in --compare)
  * old_data is this nodes old attributes (read from db)
  * attr attributes to add for this node and possibly for its children
+ * changed_attrs changed attributes between new_data and old_data
  */
 
 typedef struct seltree {
@@ -54,6 +55,8 @@ typedef struct seltree {
 
   struct db_line* new_data;
   struct db_line* old_data;
+
+  DB_ATTR_TYPE changed_attrs;
 
 } seltree;
 

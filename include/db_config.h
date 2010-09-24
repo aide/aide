@@ -29,7 +29,6 @@
 #define E2O(n) (1<<n)
 
 #include "list.h"
-#include "seltree.h"
 
 #ifdef WITH_SUN_ACL /* First try to implement support for sun acl. */
 /*#define WITH_ACL    If we use sun acl then we have acl :) */
@@ -251,6 +250,7 @@ extern const int db_aliasvalue[db_alias_size];
 /*  }_db_config ; */
 
 
+#include "seltree.h"
 
 typedef struct db_config {
   

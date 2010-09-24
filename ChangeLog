@@ -1,5 +1,8 @@
 2010-09-24	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* include/compare_db.h: removed init_rxlst function
+	* include/db_config.h: include seltree.h after #define DB_ATTR_TYPE
+	* include/seltree.h:
+	  - use DB_ATTR_TYPE instead of int for attr
 
 2010-09-23	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c:

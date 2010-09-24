@@ -50,7 +50,7 @@ typedef struct seltree {
   long      conf_lineno;
   char*     rx;    
 
-  int attr;
+  DB_ATTR_TYPE attr;
 
   struct db_line* new_data;
   struct db_line* old_data;

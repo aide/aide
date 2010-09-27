@@ -1349,7 +1349,8 @@ void add_file_to_tree(seltree* tree,db_line* file,int db,int status,
     }
 
     /* Free the data if same else leave as is for report_tree */
-    if((~(ignorelist)&get_changed_attributes(node->old_data,node->new_data))==RETOK){
+    node->changed_attrs=get_changed_attributes(node->old_data,node->new_data);
+    if((~(ignorelist)&node->changed_attrs)==RETOK){
       /* FIXME this messes up the tree on SunOS. Don't know why. Fix
 	 needed badly otherwise we leak memory like hell. */
 
@@ -1360,6 +1361,7 @@ void add_file_to_tree(seltree* tree,db_line* file,int db,int status,
       
       node->old_data=NULL;
       node->new_data=NULL;      
+      node->changed_attrs=0;
       node->checked-=(DB_OLD + DB_NEW); /* mark old and new files as released */          
     }
   }

@@ -5,6 +5,7 @@
 	    renamed from src/compare_db.c)
 	  - added get_changed_attributes function
 	  - use get_changed_attributes instead of compare_dbline
+	  - save changed attributes in node->changed_attrs
 
 2010-09-24	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* include/compare_db.h: removed init_rxlst function

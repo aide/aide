@@ -177,6 +177,75 @@ static int have_xattrs_changed(xattrs_type* x1,xattrs_type* x2) {
 }
 #endif
 
+/*
+ * Returns the changed attributes for two database lines.
+ *
+ * Attributes are only compared if they exist in both database lines.
+*/
+static DB_ATTR_TYPE get_changed_attributes(db_line* l1,db_line* l2) {
+
+#define easy_compare(a,b) \
+    if((a&l1->attr && (a&l2->attr)) && l1->b!=l2->b){\
+        ret|=a;\
+    }
+
+#define easy_md_compare(a,b,c) \
+    if((a&l1->attr && (a&l2->attr)) && has_md_changed(l1->b,l2->b, c)){ \
+        ret|=a; \
+    }
+
+#define easy_function_compare(a,b,c) \
+    if((a&l1->attr && (a&l2->attr)) && c(l1->b,l2->b)){ \
+        ret|=a; \
+    }
+
+    DB_ATTR_TYPE ret=0;
+
+    if ((DB_FTYPE&l1->attr && DB_FTYPE&l2->attr) && (l1->perm&S_IFMT)!=(l2->perm&S_IFMT)) { ret|=DB_FTYPE; }
+    easy_function_compare(DB_LINKNAME,linkname,has_str_changed);
+    if ((DB_SIZEG&l1->attr && DB_SIZEG&l2->attr) && l1->size>l2->size){ ret|=DB_SIZEG; }
+    easy_compare(DB_SIZE,size);
+    easy_compare(DB_BCOUNT,bcount);
+    easy_compare(DB_PERM,perm);
+    easy_compare(DB_UID,uid);
+    easy_compare(DB_GID,gid);
+    easy_compare(DB_ATIME,atime);
+    easy_compare(DB_MTIME,mtime);
+    easy_compare(DB_CTIME,ctime);
+    easy_compare(DB_INODE,inode);
+    easy_compare(DB_LNKCOUNT,nlink);
+
+    easy_md_compare(DB_MD5,md5,HASH_MD5_LEN);
+    easy_md_compare(DB_SHA1,sha1,HASH_SHA1_LEN);
+    easy_md_compare(DB_RMD160,rmd160,HASH_RMD160_LEN);
+    easy_md_compare(DB_TIGER,tiger,HASH_TIGER_LEN);
+    easy_md_compare(DB_SHA256,sha256,HASH_SHA256_LEN);
+    easy_md_compare(DB_SHA512,sha512,HASH_SHA512_LEN);
+
+#ifdef WITH_MHASH
+    easy_md_compare(DB_CRC32,crc32,HASH_CRC32_LEN);
+    easy_md_compare(DB_HAVAL,haval,HASH_HAVAL256_LEN);
+    easy_md_compare(DB_GOST,gost,HASH_GOST_LEN);
+    easy_md_compare(DB_CRC32B,crc32b,HASH_CRC32B_LEN);
+    easy_md_compare(DB_WHIRLPOOL,whirlpool,HASH_WHIRLPOOL_LEN);
+#endif
+
+#ifdef WITH_ACL
+    easy_function_compare(DB_ACL,acl,has_acl_changed);
+#endif
+#ifdef WITH_XATTR
+    easy_function_compare(DB_XATTRS,xattrs,have_xattrs_changed);
+#endif
+#ifdef WITH_SELINUX
+    easy_function_compare(DB_SELINUX,cntx,has_str_changed);
+#endif
+#ifdef WITH_E2FSATTRS
+    easy_compare(DB_E2FSATTRS,e2fsattrs);
+#endif
+    error(255,"Debug, changed attributes for entry %s [%llx %llx]: %llx\n", l1->filename,l1->attr,l2->attr,ret);
+    return ret;
+}
+
 int compare_node_by_path(const void *n1, const void *n2)
 {
     const seltree *x1 = n1;

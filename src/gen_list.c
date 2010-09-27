@@ -39,7 +39,6 @@
 #include "seltree.h"
 #include "db.h"
 #include "db_config.h"
-#include "compare_db.h"
 #include "commandconf.h"
 #include "report.h"
 /*for locale support*/
@@ -1344,16 +1343,13 @@ void add_file_to_tree(seltree* tree,db_line* file,int db,int status,
   }
 
   if((node->checked&DB_OLD)&&(node->checked&DB_NEW)){
-    localignorelist=(node->new_data->attr^node->old_data->attr);
-    if (localignorelist!=0) {
+    if (node->new_data->attr^node->old_data->attr) {
       error(2,"Entry %s in databases has different attributes: %llx %llx\n",
             node->old_data->filename,node->old_data->attr,node->new_data->attr);
     }
-    
-    localignorelist|=ignorelist;
 
     /* Free the data if same else leave as is for report_tree */
-    if(compare_dbline(node->old_data,node->new_data,localignorelist)==RETOK){
+    if((~(ignorelist)&get_changed_attributes(node->old_data,node->new_data))==RETOK){
       /* FIXME this messes up the tree on SunOS. Don't know why. Fix
 	 needed badly otherwise we leak memory like hell. */
 
@@ -1399,7 +1395,7 @@ void add_file_to_tree(seltree* tree,db_line* file,int db,int status,
                  oldData->filename, oldData->attr, newData->filename, newData->attr, localignorelist);
      } else {
          /* Free the data if same else leave as is for report_tree */
-         if(compare_dbline(oldData, newData, ignorelist|DB_CTIME)==RETOK){
+         if ((get_changed_attributes(oldData, newData)&~(ignorelist|DB_CTIME)) == RETOK) {
              node->checked |= db==DB_NEW ? NODE_MOVED_IN : NODE_MOVED_OUT;
              moved_node->checked |= db==DB_NEW ? NODE_MOVED_OUT : NODE_MOVED_IN;
              error(220,_("Entry was moved: %s [%llx] => %s [%llx]\n"),

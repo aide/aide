@@ -37,10 +37,4 @@
  */
 long report_tree(seltree* tree,int stage, long* status);
 
-/* 
- * compare_dbline()
- * Return RETOK if same RETFAIL if not
- */
-DB_ATTR_TYPE compare_dbline(db_line* old,db_line* new,DB_ATTR_TYPE ignorelist);
-
 #endif

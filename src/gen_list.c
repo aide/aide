@@ -59,6 +59,124 @@ void fs2db_line(struct AIDE_STAT_TYPE* fs,db_line* line);
 void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line);
 void no_hash(db_line* line);
 
+static int bytecmp(byte *b1, byte *b2, size_t len) {
+  return strncmp((char *)b1, (char *)b2, len);
+}
+
+static int has_str_changed(char* old,char* new) {
+    return (((old!=NULL && new!=NULL) &&
+                strcmp(old,new)!=0 ) &&
+            (old!=NULL || new!=NULL));
+}
+
+static int has_md_changed(byte* old,byte* new,int len) {
+    error(255,"Debug, has_md_changed %p %p\n",old,new);
+    return (((old!=NULL && new!=NULL) &&
+                (bytecmp(old,new,len)!=0)) ||
+            ((old!=NULL && new==NULL) ||
+             (old==NULL && new!=NULL)));
+}
+
+#ifdef WITH_ACL
+#ifdef WITH_SUN_ACL
+static int compare_single_acl(aclent_t* a1,aclent_t* a2) {
+  if (a1->a_type!=a2->a_type ||
+      a1->a_id!=a2->a_id ||
+      a1->a_perm!=a2->a_perm) {
+    return RETFAIL;
+  }
+  return RETOK;
+}
+#endif
+static int has_acl_changed(acl_type* old, acl_type* new) {
+#ifdef WITH_SUN_ACL
+    int i;
+#endif
+    if (old==NULL && new==NULL) {
+        return RETOK;
+    }
+    if (old==NULL || new==NULL) {
+        return RETFAIL;
+    }
+#ifdef WITH_POSIX_ACL
+    if ((!old->acl_a != !new->acl_a)
+            || (!old->acl_d != !new->acl_d)
+            || (old->acl_a && strcmp(old->acl_a, new->acl_a))
+            || (old->acl_d && strcmp(old->acl_d, new->acl_d))){
+        return RETFAIL;
+    }
+#endif
+#ifdef WITH_SUN_ACL
+    if (old->entries!=new->entries) {
+        return RETFAIL;
+    }
+    /* Sort em up. */
+    aclsort(old->entries,0,old->acl);
+    aclsort(new->entries,0,new->acl);
+    for(i=0;i<old->entries;i++){
+        if (compare_single_acl(old->acl+i,new->acl+i)==RETFAIL) {
+            return RETFAIL;
+        }
+    }
+#endif
+    return RETOK;
+}
+#endif
+
+#ifdef WITH_XATTR
+static int cmp_xattr_node(const void *c1, const void *c2)
+{
+  const xattr_node *x1 = c1;
+  const xattr_node *x2 = c2;
+
+  return (strcmp(x1->key, x2->key));
+}
+static int have_xattrs_changed(xattrs_type* x1,xattrs_type* x2) {
+  size_t num = 0;
+
+  if (x1 && (x1->num == 0)) x1 = NULL;
+  if (x2 && (x2->num == 0)) x2 = NULL;
+
+  if (x1==NULL && x2==NULL) {
+    return RETOK;
+  }
+  if (x1==NULL || x2==NULL) {
+    return RETFAIL;
+  }
+
+  if (x1->num != x2->num) {
+    return RETFAIL;
+  }
+
+  qsort(x1->ents, x1->num, sizeof(xattr_node), cmp_xattr_node);
+  qsort(x2->ents, x2->num, sizeof(xattr_node), cmp_xattr_node);
+
+  while (num++ < x1->num) {
+    const char *x1key = NULL;
+    const byte *x1val = NULL;
+    size_t x1vsz = 0;
+    const char *x2key = NULL;
+    const byte *x2val = NULL;
+    size_t x2vsz = 0;
+
+    x1key = x1->ents[num - 1].key;
+    x1val = x1->ents[num - 1].val;
+    x1vsz = x1->ents[num - 1].vsz;
+
+    x2key = x2->ents[num - 1].key;
+    x2val = x2->ents[num - 1].val;
+    x2vsz = x2->ents[num - 1].vsz;
+
+    if (strcmp(x1key, x2key) ||
+        x1vsz != x2vsz ||
+        memcmp(x1val, x2val, x1vsz))
+      return RETFAIL;
+  }
+
+  return RETOK;
+}
+#endif
+
 int compare_node_by_path(const void *n1, const void *n2)
 {
     const seltree *x1 = n1;

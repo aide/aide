@@ -393,7 +393,7 @@ void print_xattrs_changes(xattrs_type* old,xattrs_type* new,
 }
 
 #ifdef WITH_E2FSATTRS
-char* e2fsattrs2string(unsigned long flags) {
+static char* e2fsattrs2string(unsigned long flags) {
     char* string = malloc (20 * sizeof (char));
     int i;
     for (i = 0 ; i < 19 ; i++) {

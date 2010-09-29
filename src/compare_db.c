@@ -61,6 +61,8 @@ char      nline[129];
 const char* entry_format=        " %-9s: %-33s, %s\n";
 const char* entry_format_justnew=" %-9s: %-33c  %s\n";
 
+const char* report_top_format = "\n---------------------------------------------------\n%s:\n---------------------------------------------------\n\n";
+
 const DB_ATTR_TYPE summary_attributes[] = { DB_FTYPE, DB_LINKNAME, DB_SIZE|DB_SIZEG, DB_BCOUNT, DB_PERM, DB_UID, DB_GID, DB_ATIME, DB_MTIME, DB_CTIME, DB_INODE, DB_LNKCOUNT, DB_HASHES
 #ifdef WITH_ACL
         , DB_ACL
@@ -804,8 +806,8 @@ void print_report_header(int nfil,int nadd,int nrem,int nchg)
   error(2,_("Start timestamp: %.4u-%.2u-%.2u %.2u:%.2u:%.2u\n"),
 	st->tm_year+1900, st->tm_mon+1, st->tm_mday,
 	st->tm_hour, st->tm_min, st->tm_sec);
-  error(0,_("\nSummary:\n  Total number of files:\t%i\n  Added files:\t\t\t%i\n"
-	    "  Removed files:\t\t%i\n  Changed files:\t\t%i\n\n"),nfil,nadd,nrem,nchg);
+  error(0,_("\nSummary:\n  Total number of entries:\t%i\n  Added entries:\t\t%i\n"
+	    "  Removed entries:\t\t%i\n  Changed entries:\t\t%i\n\n"),nfil,nadd,nrem,nchg);
   
 }
 
@@ -903,36 +905,28 @@ long report_tree(seltree* node,int stage, long* status)
 
   if((stage==1)&&status[2]){
     if(top){
-      error(2,_("\n---------------------------------------------------\n"));
-      error(2,_("Added files:\n"));
-      error(2,_("---------------------------------------------------\n\n"));
+        error(2,(char*)report_top_format,_("Added entries"));
     }
     if(node->checked&NODE_ADDED){ print_line(node, ignorelist); }
   }
 
   if((stage==2)&&status[3]){
     if(top){
-      error(2,_("\n---------------------------------------------------\n"));
-      error(2,_("Removed files:\n"));
-      error(2,_("---------------------------------------------------\n\n"));
+        error(2,(char*)report_top_format,_("Removed entries"));
     }
     if(node->checked&NODE_REMOVED){ print_line(node, ignorelist); }
   }
 
   if((stage==3)&&status[4]){
     if(top){
-      error(2,_("\n---------------------------------------------------\n"));
-      error(2,_("Changed files:\n"));
-      error(2,_("---------------------------------------------------\n\n"));
+            error(2,(char*)report_top_format,_("Changed entries"));
     }
     if(node->checked&NODE_CHANGED){ print_line(node, ignorelist); }
   }
 
   if((stage==4)&&(conf->verbose_level>=5)&&status[4]){
     if(top){
-      error(2,_("\n---------------------------------------------------\n"));
-      error(2,_("Detailed information about changes:\n"));
-      error(2,_("---------------------------------------------------\n\n"));
+            error(2,(char*)report_top_format,_("Detailed information about changes"));
     }
     if(node->checked&NODE_CHANGED){
       DB_ATTR_TYPE localignorelist=(node->old_data->attr ^ node->new_data->attr)|ignorelist;
@@ -942,15 +936,13 @@ long report_tree(seltree* node,int stage, long* status)
 
   if((stage==5)&&(status[2]||status[3]||status[4])) {
     if(top){
-      error(2,_("\n---------------------------------------------------\n"));
-      if (status[2]&&status[3]&&status[4]) { error(2,_("Added, removed and changed files:\n")); }
-      else if (status[2]&&status[3]) { error(2,_("Added and removed files:\n")); }
-      else if (status[2]&&status[4]) { error(2,_("Added and changed files:\n")); }
-      else if (status[3]&&status[4]) { error(2,_("Removed and changed files:\n")); }
-      else if (status[2]) { error(2,_("Added files:\n")); }
-      else if (status[3]) { error(2,_("Removed files:\n")); }
-      else if (status[4]) { error(2,_("Changed files:\n")); }
-      error(2,_("---------------------------------------------------\n\n"));
+        if (status[2]&&status[3]&&status[4]) { error(2,(char*)report_top_format,_("Added, removed and changed entries")); }
+        else if (status[2]&&status[3]) { error(2,(char*)report_top_format,_("Added and removed entries")); }
+        else if (status[2]&&status[4]) { error(2,(char*)report_top_format,_("Added and changed entries")); }
+        else if (status[3]&&status[4]) { error(2,(char*)report_top_format,_("Removed and changed entries")); }
+        else if (status[2]) { error(2,(char*)report_top_format,_("Added entries")); }
+        else if (status[3]) { error(2,(char*)report_top_format,_("Removed entries")); }
+        else if (status[4]) { error(2,(char*)report_top_format,_("Changed entries")); }
     }
     if(node->checked) { print_line(node, ignorelist); }
   }

@@ -1,6 +1,7 @@
 2010-09-29	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c:
 	  - rewrote summarize_changes feature to work with node->changed_attrs
+	  - replaced "files" by "entries"
 
 2010-09-27	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/gen_list.c:

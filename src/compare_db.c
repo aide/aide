@@ -60,6 +60,37 @@ char      oline[129];
 char      nline[129];
 const char* entry_format=        " %-9s: %-33s, %s\n";
 const char* entry_format_justnew=" %-9s: %-33c  %s\n";
+
+const DB_ATTR_TYPE summary_attributes[] = { DB_FTYPE, DB_LINKNAME, DB_SIZE|DB_SIZEG, DB_BCOUNT, DB_PERM, DB_UID, DB_GID, DB_ATIME, DB_MTIME, DB_CTIME, DB_INODE, DB_LNKCOUNT, DB_HASHES
+#ifdef WITH_ACL
+        , DB_ACL
+#endif
+#ifdef WITH_XATTR
+        , DB_XATTRS
+#endif
+#ifdef WITH_SELINUX
+        , DB_SELINUX
+#endif
+#ifdef WITH_E2FSATTRS
+        , DB_E2FSATTRS
+#endif
+};
+
+const DB_ATTR_TYPE summary_char[] = { '!' ,'l', '>', 'b', 'p', 'u', 'g', 'a', 'm', 'c', 'i', 'n', 'C'
+#ifdef WITH_ACL
+    , 'A'
+#endif
+#ifdef WITH_XATTR
+    , 'X'
+#endif
+#ifdef WITH_SELINUX
+    , 'S'
+#endif
+#ifdef WITH_E2FSATTRS
+    , 'E'
+#endif
+};
+
 #ifdef WITH_E2FSATTRS
     /* flag->character mappings defined in lib/e2p/pf.c (part of e2fsprogs-1.41.12 sources) */
     unsigned long flag_bits[] = { EXT2_SECRM_FL, EXT2_UNRM_FL, EXT2_SYNC_FL, EXT2_DIRSYNC_FL, EXT2_IMMUTABLE_FL,
@@ -68,9 +99,6 @@ const char* entry_format_justnew=" %-9s: %-33c  %s\n";
         EXT2_NOTAIL_FL, EXT2_TOPDIR_FL, EXT4_EXTENTS_FL, EXT4_HUGE_FILE_FL};
     char flag_char[] = "suSDiadAcBZXEjItTeh";
 #endif
-/* The initial length of summary string, the final length depends on
- * compile options */
-int summary_len = 13;
 /*************/
 
 static DB_ATTR_TYPE get_ignorelist() {
@@ -511,41 +539,6 @@ char* get_file_type_string(mode_t mode) {
     }
 }
 
-void print_simple_line(db_line* data, char* s, char c) {
-    char* tmp=NULL;
-    int i=0;
-    int length = summary_len-1;
-    /* The length depends on compile options */
-#ifdef WITH_ACL
-    length++;
-#endif
-#ifdef WITH_XATTR
-    length++;
-#endif
-#ifdef WITH_SELINUX
-    length++;
-#endif
-#ifdef WITH_E2FSATTRS
-    length++;
-#endif
-    if(conf->summarize_changes==1) {
-        tmp=(char*)malloc(sizeof(char)*(length+1));
-        for(i=0;i<length;i++){ tmp[i]=c; }
-        tmp[length]='\0';
-        error(2,"%c%s: %s\n",get_file_type_char(data->perm) , tmp, data->filename);
-        free(tmp); tmp=NULL;
-    } else {
-        error(2,"%s: %s\n", s, data->filename);
-    }
-}
-
-void print_added_line(db_line* data) {
-    print_simple_line(data, "added", '+');
-}
-
-void print_removed_line(db_line* data) {
-    print_simple_line(data, "removed", '-');
-}
 
 int str_has_changed(char*old,char*new)
 {
@@ -563,202 +556,58 @@ int md_has_changed(byte*old,byte*new,int len)
              (old==NULL && new!=NULL)));
 }
 
-char get_size_char(DB_ATTR_TYPE ignorelist, db_line* old, db_line* new) {
-    if (DB_SIZE&old->attr || DB_SIZEG&old->attr) {
-        if ((DB_SIZE&old->attr && DB_SIZE&new->attr) || (DB_SIZEG&old->attr && DB_SIZEG&new->attr)) {
-            if (((DB_SIZE&old->attr && DB_SIZE&new->attr) && DB_SIZE&ignorelist) || 
-                    ((DB_SIZEG&old->attr && DB_SIZEG&new->attr) && DB_SIZEG&ignorelist)) {
-                return ':';
-            } else if (old->size < new->size) {
-                return '>';
-            } else if (old->size > new->size) {
-                return '<';
-            } else {
-                return '=';
-            }
-        } else {
-            return '-';
-        }
-    } else if ((!(DB_SIZE&old->attr) && DB_SIZE&new->attr) || (!(DB_SIZEG&old->attr) && DB_SIZEG&new->attr) ) {
-        return '+';
-    } else {
-        return ' ';
-    }
-}
-
-void print_changed_line(db_line* old,db_line* new, DB_ATTR_TYPE ignorelist) {
-
-#define easy_compare_char(a,b,c,d) \
-    if (a&old->attr) { \
-        if (a&new->attr) { \
-            if (a&ignorelist) { \
-                summary[d]=':'; \
-            } else if (b) { \
-                summary[d]=c; \
-            } else { \
-                summary[d]='.'; \
-            } \
-        } else { \
-            summary[d]='-'; \
-        } \
-    } else if (a&new->attr) { \
-        summary[d]='+'; \
-    } else { \
-        summary[d]=' '; \
-    }
-
-#define easy_char(a,b,c,d) \
-    if (a&old->attr) { \
-        if (a&new->attr) { \
-            if (a&ignorelist) { \
-                summary[d]=':'; \
-            } else if (old->b!=new->b) { \
-                summary[d]=c; \
-            } else { \
-                summary[d]='.'; \
-            } \
-        } else { \
-            summary[d]='-'; \
-        } \
-    } else if (a&new->attr) { \
-        summary[d]='+'; \
-    } else { \
-        summary[d]=' '; \
-    }
-
+static void print_line(seltree* node, DB_ATTR_TYPE ignored_attrs) {
     if(conf->summarize_changes==1) {
-        int offset = 0;
-        int length = summary_len;
-        /* The length depends on compile options */
-#ifdef WITH_ACL
-        length++;
-#endif
-#ifdef WITH_XATTR
-        length++;
-#endif
-#ifdef WITH_SELINUX
-        length++;
-#endif
-#ifdef WITH_E2FSATTRS
-        length++;
-#endif
+        int i;
+        int length = sizeof(summary_attributes)/sizeof(DB_ATTR_TYPE);
         char* summary = malloc ((length+1) * sizeof (char));
-        summary[0]= ((!(DB_FTYPE&ignorelist)) &&
-                (((DB_FTYPE&old->attr && DB_FTYPE&new->attr) &&
-                  get_file_type_char(old->perm)!=get_file_type_char(new->perm)))) ? '!' : get_file_type_char(new->perm);
-        easy_compare_char(DB_LINKNAME,str_has_changed(old->linkname,new->linkname),'l',1);
-        summary[2]=get_size_char(ignorelist, old, new);
-        easy_char(DB_BCOUNT,bcount,'b',3);
-        easy_char(DB_PERM,perm,'p',4);
-        easy_char(DB_UID,uid,'u',5);
-        easy_char(DB_GID,gid,'g',6);
-        easy_char(DB_ATIME,atime,'a',7);
-        easy_char(DB_MTIME,mtime,'m',8);
-        easy_char(DB_CTIME,ctime,'c',9);
-        easy_char(DB_INODE,inode,'i',10);
-        easy_char(DB_LNKCOUNT,nlink,'n',11);
-        if (
-                ((DB_MD5&old->attr && DB_MD5&new->attr) && md_has_changed(old->md5,new->md5,HASH_MD5_LEN) && !(DB_MD5&ignorelist)) ||
-                ((DB_SHA1&old->attr &&  DB_SHA1&new->attr) && md_has_changed(old->sha1,new->sha1,HASH_SHA1_LEN) && !(DB_SHA1&ignorelist)) ||
-                ((DB_RMD160&old->attr && DB_RMD160&new->attr) && md_has_changed(old->rmd160,new->rmd160,HASH_RMD160_LEN) && !(DB_RMD160&ignorelist)) ||
-                ((DB_TIGER&old->attr && DB_TIGER&new->attr) && md_has_changed(old->tiger,new->tiger,HASH_TIGER_LEN) && !(DB_TIGER&ignorelist)) ||
-                ((DB_SHA256&old->attr && DB_SHA256&new->attr) && md_has_changed(old->sha256,new->sha256,HASH_SHA256_LEN) && !(DB_SHA256&ignorelist)) ||
-                ((DB_SHA512&old->attr && DB_SHA512&new->attr) && md_has_changed(old->sha512,new->sha512,HASH_SHA512_LEN) && !(DB_SHA512&ignorelist)) 
-#ifdef WITH_MHASH
-                || ((DB_CRC32&old->attr && DB_CRC32&new->attr) && md_has_changed(old->crc32,new->crc32,HASH_CRC32_LEN) && !(DB_CRC32&ignorelist)) ||
-                ((DB_HAVAL&old->attr && DB_HAVAL&new->attr) && md_has_changed(old->haval,new->haval,HASH_HAVAL256_LEN) && !(DB_HAVAL&ignorelist)) ||
-                ((DB_GOST&old->attr && DB_GOST&new->attr) && md_has_changed(old->gost,new->gost,HASH_GOST_LEN) && !(DB_GOST&ignorelist)) ||
-                ((DB_CRC32B&old->attr && DB_CRC32B&new->attr) && md_has_changed(old->crc32b,new->crc32b,HASH_CRC32B_LEN) && !(DB_CRC32B&ignorelist)) ||
-                ((DB_WHIRLPOOL&old->attr && DB_WHIRLPOOL&new->attr) && md_has_changed(old->whirlpool,new->whirlpool,HASH_WHIRLPOOL_LEN && !(DB_WHIRLPOOL&ignorelist)))
-#endif        
-           ) {
-            summary[12]='C';
-        } else if (
-                ((DB_MD5&old->attr) && !(DB_MD5&new->attr)) ||
-                ((DB_SHA1&old->attr) &&  !(DB_SHA1&new->attr)) ||
-                ((DB_RMD160&old->attr) && !(DB_RMD160&new->attr)) ||
-                ((DB_TIGER&old->attr) && !(DB_TIGER&new->attr)) ||
-                ((DB_SHA256&old->attr) && !(DB_SHA256&new->attr)) ||
-                ((DB_SHA512&old->attr) && !(DB_SHA512&new->attr))
-#ifdef WITH_MHASH
-                || ((DB_CRC32&old->attr) && !(DB_CRC32&new->attr)) ||
-                ((DB_HAVAL&old->attr) && !(DB_HAVAL&new->attr)) ||
-                ((DB_GOST&old->attr) && !(DB_GOST&new->attr)) ||
-                ((DB_CRC32B&old->attr) && !(DB_CRC32B&new->attr)) ||
-                ((DB_WHIRLPOOL&old->attr) && !(DB_WHIRLPOOL&new->attr))
-#endif        
-                ) {
-            summary[12]='-';
-        } else if (
-                (!(DB_MD5&old->attr) && (DB_MD5&new->attr)) ||
-                (!(DB_SHA1&old->attr) &&  (DB_SHA1&new->attr)) ||
-                (!(DB_RMD160&old->attr) && (DB_RMD160&new->attr)) ||
-                (!(DB_TIGER&old->attr) && (DB_TIGER&new->attr)) ||
-                (!(DB_SHA256&old->attr) && (DB_SHA256&new->attr)) ||
-                (!(DB_SHA512&old->attr) && (DB_SHA512&new->attr))
-#ifdef WITH_MHASH
-                || (!(DB_CRC32&old->attr) && (DB_CRC32&new->attr)) ||
-                (!(DB_HAVAL&old->attr) && (DB_HAVAL&new->attr)) ||
-                (!(DB_GOST&old->attr) && (DB_GOST&new->attr)) ||
-                (!(DB_CRC32B&old->attr) && (DB_CRC32B&new->attr)) ||
-                (!(DB_WHIRLPOOL&old->attr) && (DB_WHIRLPOOL&new->attr))
-#endif        
-                ) {
-            summary[12]='+';
-        } else if (
-                ((DB_MD5&old->attr && DB_MD5&new->attr) && DB_MD5&ignorelist) ||
-                ((DB_SHA1&old->attr &&  DB_SHA1&new->attr) && DB_SHA1&ignorelist) ||
-                ((DB_RMD160&old->attr && DB_RMD160&new->attr) && DB_RMD160&ignorelist) ||
-                ((DB_TIGER&old->attr && DB_TIGER&new->attr) && DB_TIGER&ignorelist) ||
-                ((DB_SHA256&old->attr && DB_SHA256&new->attr) && DB_SHA256&ignorelist) ||
-                ((DB_SHA512&old->attr && DB_SHA512&new->attr) && DB_SHA512&ignorelist)
-#ifdef WITH_MHASH
-                || ((DB_CRC32&old->attr && DB_CRC32&new->attr) && DB_CRC32&ignorelist) ||
-                ((DB_HAVAL&old->attr && DB_HAVAL&new->attr) && DB_HAVAL&ignorelist) ||
-                ((DB_GOST&old->attr && DB_GOST&new->attr) && DB_GOST&ignorelist) ||
-                ((DB_CRC32B&old->attr && DB_CRC32B&new->attr) && DB_CRC32B&ignorelist) ||
-                ((DB_WHIRLPOOL&old->attr && DB_WHIRLPOOL&new->attr) && DB_WHIRLPOOL&ignorelist)
-#endif        
-                ) {
-            summary[12]=':';
-        } else if (
-                (DB_MD5&old->attr && DB_MD5&new->attr) ||
-                (DB_SHA1&old->attr &&  DB_SHA1&new->attr) ||
-                (DB_RMD160&old->attr && DB_RMD160&new->attr) ||
-                (DB_TIGER&old->attr && DB_TIGER&new->attr) ||
-                (DB_SHA256&old->attr && DB_SHA256&new->attr) ||
-                (DB_SHA512&old->attr && DB_SHA512&new->attr)
-#ifdef WITH_MHASH
-                || (DB_CRC32&old->attr && DB_CRC32&new->attr) ||
-                (DB_HAVAL&old->attr && DB_HAVAL&new->attr) ||
-                (DB_GOST&old->attr && DB_GOST&new->attr) ||
-                (DB_CRC32B&old->attr && DB_CRC32B&new->attr) ||
-                (DB_WHIRLPOOL&old->attr && DB_WHIRLPOOL&new->attr)
-#endif        
-                ) {
-            summary[12]='.';
-        } else {
-            summary[12]=' ';
+        if (node->checked&(NODE_ADDED|NODE_REMOVED)) {
+            summary[0]=get_file_type_char((node->checked&NODE_REMOVED?node->old_data:node->new_data)->perm);
+            for(i=1;i<length;i++){
+                summary[i]=node->checked&NODE_ADDED?'+':'-';
+            }
+        } else if (node->checked&NODE_CHANGED) {
+            char c, u, a, r, g, s;
+            for(i=0;i<length;i++) {
+                c = summary_char[i];
+                r = '-'; a = '+'; g = ':'; u = '.'; s = ' ';
+                switch (i) {
+                    case 0:
+                        r = a = u = g = s = get_file_type_char((node->new_data)->perm);
+                        break;
+                    case 2:
+                        if (summary_attributes[i]&(node->changed_attrs&(~ignored_attrs)) && (node->old_data)->size > (node->new_data)->size) {
+                            c = '<';
+                        }
+                        u = '=';
+                        break;
+                }
+                if (summary_attributes[i]&node->changed_attrs&(~ignored_attrs)) {
+                    summary[i]=c;
+                } else if (summary_attributes[i]&((node->old_data)->attr&~((node->new_data)->attr))) {
+                    summary[i]=r;
+                } else if (summary_attributes[i]&~((node->old_data)->attr)&(node->new_data)->attr) {
+                    summary[i]=a;
+                } else if (summary_attributes[i]&(((node->old_data)->attr&(node->new_data)->attr)&ignored_attrs)) {
+                    summary[i]=g;
+                } else if (summary_attributes[i]&((node->old_data)->attr&(node->new_data)->attr)) {
+                    summary[i]=u;
+                } else {
+                    summary[i]=s;
+                }
+            }
         }
-
-#ifdef WITH_ACL
-        easy_compare_char(DB_ACL,compare_acl(old->acl,new->acl)==RETFAIL,'A',summary_len+offset++);
-#endif
-#ifdef WITH_XATTR
-        easy_compare_char(DB_XATTRS,compare_xattrs(old->xattrs,new->xattrs)==RETFAIL,'X',summary_len+offset++);
-#endif
-#ifdef WITH_SELINUX
-        easy_compare_char(DB_SELINUX,str_has_changed(old->cntx,new->cntx),'S',summary_len+offset++);
-#endif
-#ifdef WITH_E2FSATTRS
-        easy_char(DB_E2FSATTRS,e2fsattrs,'E',summary_len+offset++);
-#endif
-        summary[summary_len+offset]='\0';
-        error(2,"%s: %s\n",summary, new->filename);
-        free(summary);
-        summary=NULL;
+        summary[length]='\0';
+        error(2,"%s: %s\n", summary, (node->checked&NODE_REMOVED?node->old_data:node->new_data)->filename);
+        free(summary); summary=NULL;
     } else {
-        error(2,"changed: %s\n",new->filename);
+        if (node->checked&NODE_ADDED) {
+            error(2,"added: %s\n",(node->new_data)->filename);
+        } else if (node->checked&NODE_REMOVED) {
+            error(2,"removed: %s\n",(node->old_data)->filename);
+        } else if (node->checked&NODE_CHANGED) {
+            error(2,"changed: %s\n",(node->new_data)->filename);
+        }
     }
 }
 
@@ -1058,9 +907,7 @@ long report_tree(seltree* node,int stage, long* status)
       error(2,_("Added files:\n"));
       error(2,_("---------------------------------------------------\n\n"));
     }
-    if(node->checked&NODE_ADDED){
-      print_added_line(node->new_data);
-    }
+    if(node->checked&NODE_ADDED){ print_line(node, ignorelist); }
   }
 
   if((stage==2)&&status[3]){
@@ -1069,9 +916,7 @@ long report_tree(seltree* node,int stage, long* status)
       error(2,_("Removed files:\n"));
       error(2,_("---------------------------------------------------\n\n"));
     }
-    if(node->checked&NODE_REMOVED){
-      print_removed_line(node->old_data);
-    }
+    if(node->checked&NODE_REMOVED){ print_line(node, ignorelist); }
   }
 
   if((stage==3)&&status[4]){
@@ -1080,9 +925,7 @@ long report_tree(seltree* node,int stage, long* status)
       error(2,_("Changed files:\n"));
       error(2,_("---------------------------------------------------\n\n"));
     }
-    if(node->checked&NODE_CHANGED){
-      print_changed_line(node->old_data,node->new_data,ignorelist);
-    }
+    if(node->checked&NODE_CHANGED){ print_line(node, ignorelist); }
   }
 
   if((stage==4)&&(conf->verbose_level>=5)&&status[4]){
@@ -1109,9 +952,7 @@ long report_tree(seltree* node,int stage, long* status)
       else if (status[4]) { error(2,_("Changed files:\n")); }
       error(2,_("---------------------------------------------------\n\n"));
     }
-    if(node->checked&NODE_ADDED){ print_added_line(node->new_data); }
-    if(node->checked&NODE_REMOVED){ print_removed_line(node->old_data); }
-    if(node->checked&NODE_CHANGED){ print_changed_line(node->old_data,node->new_data,ignorelist); }
+    if(node->checked) { print_line(node, ignorelist); }
   }
 
   /* All stage dependent things done for this node. Let's check children */

@@ -234,22 +234,24 @@ static int bytecmp(byte *b1, byte *b2, size_t len)
   return strncmp((char *)b1, (char *)b2, len);
 }
 
-char get_file_type_char(mode_t mode) {
-    if (S_ISREG(mode)) return 'f';
-    else if(S_ISDIR(mode)) return 'd';
-#ifdef S_ISFIFO
-    else if (S_ISFIFO(mode)) return 'F';
+static char get_file_type_char(mode_t mode) {
+    switch (mode & S_IFMT) {
+        case S_IFREG: return 'f';
+        case S_IFDIR: return 'd';
+#ifdef S_IFIFO
+        case S_IFIFO: return 'F';
 #endif
-    else if (S_ISLNK(mode)) return 'L';
-    else if (S_ISBLK(mode)) return 'B';
-    else if (S_ISCHR(mode)) return 'D';
-#ifdef S_ISSOCK
-    else if (S_ISSOCK(mode)) return 's';
+        case S_IFLNK: return 'L';
+        case S_IFBLK: return 'B';
+        case S_IFCHR: return 'D';
+#ifdef S_IFSOCK
+        case S_IFSOCK: return 's';
 #endif
-#ifdef S_ISDOOR
-    else if (S_ISDOOR(mode)) return '|';
+#ifdef S_IFDOOR
+        case S_IFDOOR: return '|';
 #endif
-    else return '?';
+        default: return '?';
+    }
 }
 
 void print_str_changes(char*old,char*new,const char *name, DB_ATTR_TYPE force)
@@ -527,20 +529,25 @@ void print_string_changes(const char* name, const char* old, const char* new, in
   }
 }
 
-char* get_file_type_string(mode_t mode) {
-    switch (get_file_type_char(mode)) {
-        case 'f': return "File";
-        case 'd': return "Directory";
-        case 'F': return "FIFO";
-        case 'L': return "Link";
-        case 'B': return "Block device";
-        case 'D': return "Character device";
-        case 's': return "Socket";
-        case '|': return "Door";
-        default: return "Unknown file type";
+static char* get_file_type_string(mode_t mode) {
+    switch (mode & S_IFMT) {
+        case S_IFREG: return _("File");
+        case S_IFDIR: return _("Directory");
+#ifdef S_IFIFO
+        case S_IFIFO: return _("FIFO");
+#endif
+        case S_IFLNK: return _("Link");
+        case S_IFBLK: return _("Block device");
+        case S_IFCHR: return _("Character device");
+#ifdef S_IFSOCK
+        case S_IFSOCK: return _("Socket");
+#endif
+#ifdef S_IFDOOR
+        case S_IFDOOR: return _("Door");
+#endif
+        default: return _("Unknown file type");
     }
 }
-
 
 int str_has_changed(char*old,char*new)
 {

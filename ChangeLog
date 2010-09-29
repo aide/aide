@@ -3,6 +3,7 @@
 	  - rewrote summarize_changes feature to work with node->changed_attrs
 	  - replaced "files" by "entries"
 	  - made e2fsattrs2string static
+	  - use S_IFMT to extract the file type code
 
 2010-09-27	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/gen_list.c:

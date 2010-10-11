@@ -66,7 +66,7 @@ The default is to group the files in the report.
 .IP "summarize_changes"
 Whether to summarize changes in the added, removed and changed files
 sections of the report or not. Valid values are yes,true,no and false.
-The default is not to summarize the changes.
+The default is to summarize the changes.
 
 The general format is like the string YlZbpugamcinCAXSE, where Y is
 replaced by the file-type (\fBf\fP for a regular file, \fBd\fP for a 

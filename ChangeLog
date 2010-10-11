@@ -1,3 +1,7 @@
+2010-10-11	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* src/aide.c, doc/aide.conf.5.in:
+	  - enabled summarize_changes by default
+
 2010-09-29	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c:
 	  - rewrote summarize_changes feature to work with node->changed_attrs

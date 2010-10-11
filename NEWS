@@ -4,6 +4,7 @@
 =========================================================
 
 Version post-0.15.1
+	* Enabled summarize_changes by default
 	* Bug fixes
 
 Version 0.15.1

@@ -328,7 +328,7 @@ void setdefaults_before_config()
 
   conf->grouped=1;
 
-  conf->summarize_changes=0;
+  conf->summarize_changes=1;
 
   conf->selrxlst=NULL;
   conf->equrxlst=NULL;

@@ -155,7 +155,7 @@ pid_t open_prelinked(const char * path, int * fd) {
 #endif
 
 void md_init_fail(const char* s,db_line* db,byte** hash,DB_ATTR_TYPE i) {
-  error(0,"Message digest %s initialise failed\nDisabling %s for file %s\n",s,s,db->filename);
+  error(0,"Message digest %s initialise failed\nDisabling %s for entry %s\n",s,s,db->filename);
   db->attr=db->attr&(~i);
   (*hash)=0;
 }
@@ -379,7 +379,7 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
       Something just wasn't correct, so no hash calculated.
     */
     
-    error(5,"File %s was changed so that hash cannot be calculated for it\n"
+    error(5,"Entry %s was changed so that hash cannot be calculated for it\n"
 	  ,line->filename);
 
     for(i=0;i<db_unknown;i++) {

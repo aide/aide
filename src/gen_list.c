@@ -1078,7 +1078,7 @@ list* traverse_tree(seltree* tree,list* file_lst,DB_ATTR_TYPE attr)
 	  }
 	}
       } else {
-	error(230,_("File %s does not match\n"),fullname);
+	error(230,_("Entry %s does not match\n"),fullname);
       }
     } else{ /* This dir is not added by default */
       addfile=0;
@@ -1102,7 +1102,7 @@ list* traverse_tree(seltree* tree,list* file_lst,DB_ATTR_TYPE attr)
 	  }
 	}
       } else {
-	error(230,_("File %s does not match\n"),fullname);
+	error(230,_("Entry %s does not match\n"),fullname);
       }
       
     }

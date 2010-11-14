@@ -1,6 +1,8 @@
 2010-11-14	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/conf_yacc.y:
 	  - fixed declaration of conftext variable
+	* configure.in:
+	  - fixed compilation under Solaris
 
 2010-10-12	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/gen_list.c, src/do_md.c:

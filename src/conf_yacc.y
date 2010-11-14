@@ -37,7 +37,7 @@ DB_ATTR_TYPE retval=0;
 extern int conflex();
 void conferror(const char*);
 
-extern char conftext[];
+extern char *conftext;
 extern long conf_lineno;
 
 

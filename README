@@ -61,12 +61,12 @@
     in mhash_config.h which can be fixed by removing the line that reads
     #define malloc rpl_malloc
 
-    For Mac OS X Darwin/Leopard (10.4/10.5) you need to use --disable-static
-		when configuring AIDE. Please note that dynamic linking introduces a
-		security risk and is not recommended.
-		
-		For Mac OS Leopard (10.5) you also need to use --disable-lfs because it
-		handles 64 bit file support out of the box.
+    For Mac OS X Darwin/Leopard (10.4/10.5) and Solaris 10/OpenSolaris you need
+    to use --disable-static when configuring AIDE. Please note that dynamic
+    linking introduces a security risk and is not recommended.
+
+    For Mac OS Leopard (10.5) you also need to use --disable-lfs because it
+    handles 64 bit file support out of the box.
     
     Source Code Verification
     ------------------------

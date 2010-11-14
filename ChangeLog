@@ -3,6 +3,8 @@
 	  - fixed declaration of conftext variable
 	* configure.in:
 	  - fixed compilation under Solaris
+	* README:
+	  - added hint to use --disable-static under Solaris 10/OpenSolaris
 
 2010-10-12	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/gen_list.c, src/do_md.c:

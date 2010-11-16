@@ -300,6 +300,7 @@ void print_single_acl(acl_type* acl)
       error(2,"D:\n----\n%s----\n",acl->acl_d);
 #endif
 #ifdef WITH_SUN_ACL
+    char* aclt;
     aclt=acltotext(acl->acl,acl->entries);
     if (aclt==NULL) {
       error(2,"ERROR\n");

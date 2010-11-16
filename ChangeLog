@@ -1,3 +1,7 @@
+2010-11-16	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* src/compare_db.c:
+	  - added missing declaration of aclt variable
+
 2010-11-14	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/conf_yacc.y:
 	  - fixed declaration of conftext variable

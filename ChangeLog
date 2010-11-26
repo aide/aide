@@ -1,3 +1,7 @@
+2010-11-26	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* doc/manual.html:
+	 - applied changes by Jack Blankenship <Jack.Blankenship@bcbssc.com>
+
 2010-11-16	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c:
 	  - added missing declaration of aclt variable

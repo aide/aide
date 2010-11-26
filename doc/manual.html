@@ -10,7 +10,7 @@ $Id$
 <h1>The AIDE manual</h1>
 <a name="about"></a>
 <h2>About this document</h2>
-<strong>This manual is by no means complete, usable, readable, comprihensible,
+<strong>This manual is by no means complete, usable, readable, comprehensible,
 or error free.<br>
 <p>
 If you have any corrections, additions or constructive comments, please
@@ -41,11 +41,11 @@ and Richard van den Berg
 <a name="whatisAIDE"></a>
 <h2>What is AIDE?</h2>
 <p>
-AIDE (Advanced intrusion detection environment) is an intrusion
+AIDE (Advanced Intrusion Detection Environment) is an intrusion
 detection program. More specifically a file integrity checker.
 </p>
 <p>
-AIDE constructs a database of the files specified in AIDE.conf, AIDE's configuration file. 
+AIDE constructs a database of the files specified in aide.conf, AIDE's configuration file.
 The AIDE database  stores various file attributes including:
 permissions, inode number, user, group, file size, mtime and ctime,
 atime, growing size, number of links and link name.
@@ -89,7 +89,7 @@ of these findings.
 </p>
 <p>
 Unfortunately, AIDE can not provide absolute sureness about change in
-files.  Like any other system files, AIDE's binary and/or database can
+files.  Like any other system file, AIDE's binary and/or database can
 also be altered.
 </p>
 
@@ -129,7 +129,7 @@ aide-version.tar.gz</code> .
 <p>
 Next you must use the configure script found in AIDE's source code
 package to configure the compilation process.</p><p>
-There are several options you can give to configure. You can find out
+There are several options you can select to configure. You can find out
 what options are available with <code>./configure --help</code> 
 command. Most of the time you do not need to give any options.
 You can just use configure without any parameters.</p><p>
@@ -280,7 +280,7 @@ report_attributes where they conflict.
 <h3>Troubleshooting your config</h3>
 <p>Making a config file is a lot of hard work and must be done on a case
 by case  bases. Don't give up simply because you don't get it right
-the first time around. This section gives you a few hints howto debug
+the first time around. This section gives you a few hints on how to debug
 your config. 
 </p>
 <p>
@@ -293,7 +293,7 @@ AIDE's rule matching algorithm.
 <p>
 Before reading this you should have basic understanding of how regular
 expressions work. There are several good books about this. Several
-Perl-books have also decent explanations about this subject. Just
+Perl-books also have decent explanations about this subject. Just
 remember that Perl has some extensions to the standard regexps.
 There are also some differences in how different platforms handle
 regexps if you are using your platforms own regexp implementation.
@@ -410,7 +410,7 @@ following is a more correct way of doing it.
 !/var/log/messages\.[0-9]$
 </pre>
 </code>
-Now only messages files ending in number 0-9 and not included in the
+Now only messages files ending in number 0-9 are not included in the
 database. Note an intruder could disguise a rootkit by creating a
 directory called messages.9. If messages.9 does not already exist that
 is.
@@ -433,7 +433,7 @@ directory, /etc will match the rule for the root directory and ignore
 the specialized /etc rule.
 </p>
 <p>
-Rearranging the configuration like this
+Rearranging the configuration like this:
 <code>
 <pre>
 /etc/resolv.conf$ n+p+l+u+g
@@ -460,19 +460,19 @@ manual pages and this manual on that media also. Please remember to
 edit the configuration file so that the input database is read from
 that read-only media. The config file should not be kept on the 
 target machine. The attacker could read the config file and alter it
-or even if he does alter it he could place his rootkit to place that
+and if he does alter it he could place his rootkit in a place that
 AIDE does not check. So the read-only media should be accessible only 
 during the check.</p>
 <p>
 Now you are all set to go. You can now check the integrity of the
 files. This can be done by giving the command
 <code>aide --check</code>.
-AIDE now reads the database and compares it to the files found on
+AIDE now reads the database and compares it to the files found on the
 disk. AIDE may find changes in places that might not expect. For
 instance tty devices often change owners and permissions. You may want
 to read long reports and that is up to you to decide. But most of us
 do not have the time or the inclination read through tons of garbage
-every day. So you should trim the config file to include only the
+every day, so you should trim the config file to include only the
 files and attributes of certain files that should not change. But keep
 in mind that you should not ignore too much as that leaves you open
 for an attack. An intruder might place his/her/its/their root kit in a
@@ -485,10 +485,10 @@ regexps. This stops someone from creating a directory that is ignored
 along with its contents.</p>
 <p>
 Now that you have trimmed your config file you should update the
-database this can be done 
+database. This can be done by:
 <code>aide --update</code>
-command. The update command also does the same thing as check but it
-also creates a new database. This database should now be placed on
+The update command also does the same thing as check but it
+creates a new database. This database should now be placed on
 that read-only media along with the new config file. The check, trim,
 update cycle should be repeated as long as necessary. I recommend that
 the config file should be reviewed once in a while. The definition of 

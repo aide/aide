@@ -74,11 +74,11 @@ Please note that due to mmap issues, aide cannot be terminated with
 SIGTERM. Use SIGKILL to terminate.
 .PP
 .SH FILES
-.B @sysconfdir@/aide.conf
+.IP \fB@sysconfdir@/aide.conf\fR
 Default aide configuration file.
-.B @sysconfdir@/aide.db
+.IP \fB@sysconfdir@/aide.db\fR
 Default aide database.
-.B @sysconfdir@/aide.db.new
+.IP \fB@sysconfdir@/aide.db.new\fR
 Default aide output database.
 .SH SEE ALSO
 .BR aide.conf (5)

@@ -1,3 +1,7 @@
+2010-11-27	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* doc/aide.1.in:
+	  - fixed format in FILES section
+
 2010-11-26	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* doc/manual.html:
 	 - applied changes by Jack Blankenship <Jack.Blankenship@bcbssc.com>

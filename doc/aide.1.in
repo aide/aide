@@ -72,6 +72,12 @@ conditions:
 .SH NOTES
 Please note that due to mmap issues, aide cannot be terminated with
 SIGTERM. Use SIGKILL to terminate.
+
+The checksums in the database and in the output are base64 encoded.
+To decode them you can use the following shell command:
+
+echo <encoded_checksum> | base64 -d | hexdump -v -e '32/1 "%02x" "\\n"'
+
 .PP
 .SH FILES
 .IP \fB@sysconfdir@/aide.conf\fR

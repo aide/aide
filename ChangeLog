@@ -1,6 +1,7 @@
 2010-11-27	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* doc/aide.1.in:
 	  - fixed format in FILES section
+	  - added hint on how to decode base64 encoded checksums
 
 2010-11-26	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* doc/manual.html:

@@ -1,6 +1,7 @@
 2010-12-26	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c:
 	  - fixed type of summary_char[]
+	  - fixed typo in comment
 
 2010-11-27	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* doc/aide.1.in:

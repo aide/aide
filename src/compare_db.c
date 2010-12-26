@@ -50,7 +50,7 @@
 #include "md.h"
 
 /*************/
-/* contruction area for report lines */
+/* construction area for report lines */
 const int old_col  = 12;   
 const int new_col  = 40;   
 

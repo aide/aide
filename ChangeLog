@@ -9,6 +9,7 @@
 		  changed attributes
 		- print added or removed attributes of changed entries if forced
 		  via report_attributes
+	  - removed obsolete code
 
 2010-12-26	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c:

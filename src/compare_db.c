@@ -459,6 +459,13 @@ static void print_dbline_attributes(db_line* oline, db_line* nline, DB_ATTR_TYPE
     }
 }
 
+static void print_attributes_added_node(db_line* line, DB_ATTR_TYPE ignored_attrs) {
+    print_dbline_attributes(NULL, line, line->attr, ignored_attrs ,0);
+}
+
+static void print_attributes_removed_node(db_line* line, DB_ATTR_TYPE ignored_attrs) {
+    print_dbline_attributes(line, NULL, line->attr, ignored_attrs ,0);
+}
 
 void print_report_header(int nfil,int nadd,int nrem,int nchg)
 {
@@ -596,8 +603,11 @@ long report_tree(seltree* node,int stage, long* status)
     if(top){
             error(2,(char*)report_top_format,_("Detailed information about changes"));
     }
-    if(node->checked&NODE_CHANGED){
+    if (node->checked&NODE_CHANGED) {
         print_dbline_attributes(node->old_data, node->new_data, node->changed_attrs, ignorelist, forced_attrs);
+    } else if ((conf->verbose_level>=6)) {
+        if (node->checked&NODE_ADDED) { print_attributes_added_node(node->new_data, ignorelist); }
+        if (node->checked&NODE_REMOVED) { print_attributes_removed_node(node->old_data, ignorelist); }
     }
   }
 

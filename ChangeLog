@@ -10,6 +10,8 @@
 		- print added or removed attributes of changed entries if forced
 		  via report_attributes
 	  - removed obsolete code
+	  - print details about added and removed entries in verbose level 6
+		or higher, closes feature request 1460461
 
 2010-12-26	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c:

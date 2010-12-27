@@ -10,6 +10,8 @@ Version post-0.15.1
 	* Side-by-side output of acl and xattrs values
 	* Print added or removed attributes of changed entries if forced
 	  via report_attributes
+	* Print details about added and removed entries in verbose level 6
+	  or higher
 	* Use '|' to separate the old value from the new one
 	* Bug fixes
 

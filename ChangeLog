@@ -1,6 +1,14 @@
 2010-12-27	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c:
 	  - added xattrs2array, acl2array and get_attribute_values functions
+	  - added print_dbline_attributes function, changes included:
+		- wrap attribute values instead of cut them off
+		- side-by-side output of acl and xattrs values
+		- use '|' to separate the old value from the new one
+		- use node->changed_attributes instead of recalculate the
+		  changed attributes
+		- print added or removed attributes of changed entries if forced
+		  via report_attributes
 
 2010-12-26	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c:

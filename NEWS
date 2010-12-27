@@ -5,6 +5,12 @@
 
 Version post-0.15.1
 	* Enabled summarize_changes by default
+	* Compare database entries just once
+	* Wrap attribute values instead of cut them off
+	* Side-by-side output of acl and xattrs values
+	* Print added or removed attributes of changed entries if forced
+	  via report_attributes
+	* Use '|' to separate the old value from the new one
 	* Bug fixes
 
 Version 0.15.1

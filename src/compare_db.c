@@ -54,6 +54,8 @@
 const int old_col  = 12;   
 const int new_col  = 40;   
 
+int width_details = 80;
+
 const int part_len = 33; /* usable length of line[] for most purposes */
 const int long_part_len = 129; /* length of line[] for link names and selinux contexts */
 char      oline[129];
@@ -90,6 +92,42 @@ const char summary_char[] = { '!' ,'l', '>', 'b', 'p', 'u', 'g', 'a', 'm', 'c', 
 #endif
 #ifdef WITH_E2FSATTRS
     , 'E'
+#endif
+};
+
+const DB_ATTR_TYPE details_attributes[] = { DB_FTYPE, DB_LINKNAME, DB_SIZE, DB_SIZEG, DB_BCOUNT, DB_PERM, DB_UID, DB_GID, DB_ATIME, DB_MTIME, DB_CTIME, DB_INODE, DB_LNKCOUNT, DB_MD5, DB_SHA1, DB_RMD160, DB_TIGER, DB_SHA256, DB_SHA512
+#ifdef WITH_MHASH
+    , DB_CRC32, DB_HAVAL, DB_GOST, DB_CRC32B, DB_WHIRLPOOL
+#endif
+#ifdef WITH_ACL
+        , DB_ACL
+#endif
+#ifdef WITH_XATTR
+        , DB_XATTRS
+#endif
+#ifdef WITH_SELINUX
+        , DB_SELINUX
+#endif
+#ifdef WITH_E2FSATTRS
+        , DB_E2FSATTRS
+#endif
+};
+
+const char* details_string[] = { _("File type") , _("Lname"), _("Size"), _("Size (>)"), _("Bcount"), _("Perm"), _("Uid"), _("Gid"), _("Atime"), _("Mtime"), _("Ctime"), _("Inode"), _("Linkcount"), _("MD5"), _("SHA1"), _("RMD160"), _("TIGER"), _("SHA256"), _("SHA512")
+#ifdef WITH_MHASH
+    , _("CRC32"), _("HAVAL"), _("GOST"), _("CRC32B"), _("WHIRLPOOL")
+#endif
+#ifdef WITH_ACL
+    , _("ACL")
+#endif
+#ifdef WITH_XATTR
+    , _("XAttrs")
+#endif
+#ifdef WITH_SELINUX
+    , _("SELinux")
+#endif
+#ifdef WITH_E2FSATTRS
+    , _("E2FSAttrs")
 #endif
 };
 
@@ -772,6 +810,43 @@ static void print_line(seltree* node, DB_ATTR_TYPE ignored_attrs) {
     }
 }
 
+static void print_dbline_attributes(db_line* oline, db_line* nline, DB_ATTR_TYPE
+        changed_attrs, DB_ATTR_TYPE ignored_attrs, DB_ATTR_TYPE report_attrs) {
+    char **ovalue, **nvalue;
+    int onumber, nnumber, olen, nlen, i, j, k, c;
+    int length = sizeof(details_attributes)/sizeof(DB_ATTR_TYPE);
+    int p = (width_details-(width_details%2?13:14))/2;
+    DB_ATTR_TYPE attrs;
+    error(2,"\n%s: %s\n",get_file_type_string((nline==NULL?oline:nline)->perm),(nline==NULL?oline:nline)->filename);
+    attrs=(~(ignored_attrs))&(report_attrs|changed_attrs)&((oline==NULL?0:oline->attr)|(nline==NULL?0:nline->attr));
+    for (j=0; j < length; ++j) {
+        if (details_attributes[j]&attrs) {
+            onumber=get_attribute_values(details_attributes[j], oline, &ovalue);
+            nnumber=get_attribute_values(details_attributes[j], nline, &nvalue);
+            i = 0;
+            while (i<onumber || i<nnumber) {
+                olen = i<onumber?strlen(ovalue[i]):0;
+                nlen = i<nnumber?strlen(nvalue[i]):0;
+                k = 0;
+                while (olen-p*k >= 0 || nlen-p*k >= 0) {
+                    c = k*(p-1);
+                    if (oline==NULL || !(oline->attr&details_attributes[j]) ) {
+                        error(2," %s%-9s%c %-*c  %.*s\n", width_details%2?"":" ", i+k?"":details_string[j], i+k?' ':':', p, ' ', p-1, nlen-p*k>0?&nvalue[i][c]:"");
+                    } else if (nline==NULL || !(nline->attr&details_attributes[j])) {
+                        error(2," %s%-9s%c %.*s\n", width_details%2?"":" ", i+k?"":details_string[j], i+k?' ':':', p-1, olen-p*k>0?&ovalue[i][c]:"");
+                    } else {
+                        error(2," %s%-9s%c %-*.*s| %.*s\n", width_details%2?"":" ", i+k?"":details_string[j], i+k?' ':':', p, p-1, olen-p*k>0?&ovalue[i][c]:"", p-1, nlen-p*k>0?&nvalue[i][c]:"");
+                    }
+                    k++;
+                }
+                ++i;
+            }
+            for(i=0; i < onumber; ++i) { free(ovalue[i]); ovalue[i]=NULL; } free(ovalue); ovalue=NULL;
+            for(i=0; i < nnumber; ++i) { free(nvalue[i]); nvalue[i]=NULL; } free(nvalue); nvalue=NULL;
+        }
+    }
+}
+
 void print_dbline_changes(db_line* old,db_line* new,
                           DB_ATTR_TYPE ignorelist,DB_ATTR_TYPE forced_attrs)
 {
@@ -1088,8 +1163,7 @@ long report_tree(seltree* node,int stage, long* status)
             error(2,(char*)report_top_format,_("Detailed information about changes"));
     }
     if(node->checked&NODE_CHANGED){
-      DB_ATTR_TYPE localignorelist=(node->old_data->attr ^ node->new_data->attr)|ignorelist;
-      print_dbline_changes(node->old_data,node->new_data,localignorelist,forced_attrs);
+        print_dbline_attributes(node->old_data, node->new_data, node->changed_attrs, ignorelist, forced_attrs);
     }
   }
 

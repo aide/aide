@@ -326,6 +326,7 @@ void print_acl_changes(acl_type* old,acl_type* new, DB_ATTR_TYPE force) {
 }
 #endif
 
+#ifdef WITH_XATTR
 static size_t xstrnspn(const char *s1, size_t len, const char *srch)
 {
   const char *os1 = s1;
@@ -341,6 +342,38 @@ static size_t xstrnspn(const char *s1, size_t len, const char *srch)
     "abcdefghijklmnopqrstuvwxyz"                \
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"                \
     ".-_:;,[]{}<>()!@#$%^&*|\\/?~"
+
+static int xattrs2array(xattrs_type* xattrs, char* **values) {
+    int n = 0;
+    if (xattrs==NULL) { n=1; }
+    else { n=1+xattrs->num; }
+    *values = malloc(n * sizeof(char*));
+    (*values)[0]=malloc((6+floor(log10(n)))*sizeof(char));
+    snprintf((*values)[0], 6+floor(log10(n)), "num=%d", n-1);
+    if (n>1) {
+        size_t num = 0;
+        int width, length;
+        width = log10(xattrs->num); /* make them the same width */
+        while (num++ < xattrs->num) {
+            char *val = NULL;
+            size_t len = 0;
+            val = (char *)xattrs->ents[num - 1].val;
+            len = xstrnspn(val, xattrs->ents[num - 1].vsz, PRINTABLE_XATTR_VALS);
+            if ((len ==  xattrs->ents[num - 1].vsz) || ((len == (xattrs->ents[num - 1].vsz - 1)) && !val[len])) {
+                length = 8 + width + strlen(xattrs->ents[num - 1].key) + strlen(val);
+                (*values)[num]=malloc(length *sizeof(char));
+                snprintf((*values)[num], length , "[%.*zd] %s = %s", width, num, xattrs->ents[num - 1].key, val);
+            } else {
+                val = encode_base64(xattrs->ents[num - 1].val, xattrs->ents[num - 1].vsz);
+                length = 10 + width + strlen(xattrs->ents[num - 1].key) + strlen(val);
+                (*values)[num]=malloc( length  *sizeof(char));
+                snprintf((*values)[num], length , "[%.*zd] %s <=> %s", width, num, xattrs->ents[num - 1].key, val);
+                free(val);
+            }
+        }
+    }
+    return n;
+}
 
 void print_single_xattrs(xattrs_type* xattrs)
 {
@@ -394,6 +427,41 @@ void print_xattrs_changes(xattrs_type* old,xattrs_type* new,
   }
   
 }
+#endif
+
+#ifdef WITH_ACL
+static int acl2array(acl_type* acl, char* **values) {
+    int n = 0;
+#ifdef WITH_POSIX_ACL
+#define easy_posix_acl(x,y) \
+        if (acl->x) { \
+            i = k = 0; \
+            while (acl->x[i]) { \
+                if (acl->x[i]=='\n') { \
+                    (*values)[j]=malloc(4+(i-k)*sizeof(char)); \
+                    snprintf((*values)[j], 4+(i-k), "%c: %s", y, &acl->x[k]); \
+                    j++; \
+                    k=i+1; \
+                } \
+                i++; \
+            } \
+        }
+    if (acl->acl_a || acl->acl_d) {
+        int j, k, i;
+        if (acl->acl_a) { i = 0; while (acl->acl_a[i]) { if (acl->acl_a[i++]=='\n') { n++; } } }
+        if (acl->acl_d) { i = 0; while (acl->acl_d[i]) { if (acl->acl_d[i++]=='\n') { n++; } } }
+        *values = malloc(n * sizeof(char*));
+        j = 0;
+        easy_posix_acl(acl_a, 'A')
+        easy_posix_acl(acl_d, 'D')
+    }
+#endif
+#ifdef WITH_SUN_ACL
+/* FIXME: readd sun acl support */
+#endif
+    return n;
+}
+#endif
 
 #ifdef WITH_E2FSATTRS
 static char* e2fsattrs2string(unsigned long flags) {
@@ -564,6 +632,89 @@ int md_has_changed(byte*old,byte*new,int len)
                 (bytecmp(old,new,len)!=0)) || 
             ((old!=NULL && new==NULL) || 
              (old==NULL && new!=NULL)));
+}
+
+static int get_attribute_values(DB_ATTR_TYPE attr, db_line* line,
+        char* **values) {
+
+#define easy_string(s) \
+l = strlen(s)+1; \
+*values[0] = malloc(l * sizeof (char)); \
+snprintf(*values[0], l, "%s",s);
+
+#define easy_md(a,b,c) \
+} else if (a&attr) { \
+    *values[0] = encode_base64(line->b, c);
+
+#define easy_number(a,b,c) \
+} else if (a&attr) { \
+    l = 2+floor(line->b?log10(line->b):0); \
+    *values[0] = malloc(l * sizeof (char)); \
+    snprintf(*values[0], l, c,line->b);
+
+#define easy_time(a,b) \
+} else if (a&attr) { \
+    time = localtime(&(line->b)); \
+    *values[0] = malloc(20 * sizeof (char));  \
+    snprintf(*values[0], 20, "%.4u-%.2u-%.2u %.2u:%.2u:%.2u", time->tm_year+1900, time->tm_mon+1, time->tm_mday, time->tm_hour, time->tm_min, time->tm_sec);
+
+    struct tm *time;
+    int l;
+    if (line==NULL || !(line->attr&attr)) {
+        *values = malloc(1 * sizeof (char*));
+        easy_string("")
+        return 1;
+#ifdef WITH_ACL
+    } else if (DB_ACL&attr) {
+        return acl2array(line->acl, &*values);
+#endif
+#ifdef WITH_XATTR
+    } else if (DB_XATTRS&attr) {
+        return xattrs2array(line->xattrs, &*values);
+#endif
+    } else {
+        *values = malloc(1 * sizeof (char*));
+        if (DB_FTYPE&attr) {
+            easy_string(get_file_type_string(line->perm))
+        } else if (DB_LINKNAME&attr) {
+            easy_string(line->linkname)
+        easy_number((DB_SIZE|DB_SIZEG),size,"%llu")
+        } else if (DB_PERM&attr) {
+            *values[0] = perm_to_char(line->perm);
+        easy_time(DB_ATIME,atime)
+        easy_time(DB_MTIME,mtime)
+        easy_time(DB_CTIME,ctime)
+        easy_number(DB_BCOUNT,bcount,"%i")
+        easy_number(DB_UID,uid,"%i")
+        easy_number(DB_GID,gid,"%i")
+        easy_number(DB_INODE,inode,"%i")
+        easy_number(DB_LNKCOUNT,nlink,"%i")
+        easy_md(DB_MD5,md5,HASH_MD5_LEN)
+        easy_md(DB_SHA1,sha1,HASH_SHA1_LEN)
+        easy_md(DB_RMD160,rmd160,HASH_RMD160_LEN)
+        easy_md(DB_TIGER,tiger,HASH_TIGER_LEN)
+        easy_md(DB_SHA256,sha256,HASH_SHA256_LEN)
+        easy_md(DB_SHA512,sha512,HASH_SHA512_LEN)
+#ifdef WITH_MHASH
+        easy_md(DB_CRC32,crc32,HASH_CRC32_LEN)
+        easy_md(DB_HAVAL,haval,HASH_HAVAL256_LEN)
+        easy_md(DB_GOST,gost,HASH_GOST_LEN)
+        easy_md(DB_CRC32B,crc32b,HASH_CRC32B_LEN)
+        easy_md(DB_WHIRLPOOL,whirlpool,HASH_WHIRLPOOL_LEN)
+#endif
+#ifdef WITH_SELINUX
+        } else if (DB_SELINUX&attr) {
+            easy_string(line->cntx)
+#endif
+#ifdef WITH_E2FSATTRS
+        } else if (DB_E2FSATTRS&attr) {
+            *values[0]=e2fsattrs2string(line->e2fsattrs);
+#endif
+        } else {
+            easy_string("unknown attribute")
+        }
+        return 1;
+    }
 }
 
 static void print_line(seltree* node, DB_ATTR_TYPE ignored_attrs) {

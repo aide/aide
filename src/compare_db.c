@@ -604,7 +604,7 @@ long report_tree(seltree* node,int stage, long* status)
             error(2,(char*)report_top_format,_("Detailed information about changes"));
     }
     if (node->checked&NODE_CHANGED) {
-        print_dbline_attributes(node->old_data, node->new_data, node->changed_attrs, ignorelist, forced_attrs);
+        print_dbline_attributes(node->old_data, node->new_data, node->changed_attrs, ignorelist, (conf->verbose_level>=6?(((node->old_data)->attr)^((node->new_data)->attr)):0)|forced_attrs);
     } else if ((conf->verbose_level>=6)) {
         if (node->checked&NODE_ADDED) { print_attributes_added_node(node->new_data, ignorelist); }
         if (node->checked&NODE_REMOVED) { print_attributes_removed_node(node->old_data, ignorelist); }

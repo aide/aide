@@ -13,6 +13,8 @@ Version post-0.15.1
 	* Print details about added and removed entries in verbose level 6
 	  or higher
 	* Use '|' to separate the old value from the new one
+	* Print added and removed attribute values of changed entries in
+	  verbose level 6 or higher
 	* Bug fixes
 
 Version 0.15.1

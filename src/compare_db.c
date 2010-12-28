@@ -54,6 +54,9 @@
 
 int width_details = 80;
 
+char time_format[] = "%Y-%m-%d %H:%M:%S";
+int time_string_len = 20;
+
 const char* report_top_format = "\n---------------------------------------------------\n%s:\n---------------------------------------------------\n\n";
 
 const DB_ATTR_TYPE summary_attributes[] = { DB_FTYPE, DB_LINKNAME, DB_SIZE|DB_SIZEG, DB_BCOUNT, DB_PERM, DB_UID, DB_GID, DB_ATIME, DB_MTIME, DB_CTIME, DB_INODE, DB_LNKCOUNT, DB_HASHES
@@ -304,11 +307,9 @@ snprintf(*values[0], l, "%s",s);
 
 #define easy_time(a,b) \
 } else if (a&attr) { \
-    time = localtime(&(line->b)); \
-    *values[0] = malloc(20 * sizeof (char));  \
-    snprintf(*values[0], 20, "%.4u-%.2u-%.2u %.2u:%.2u:%.2u", time->tm_year+1900, time->tm_mon+1, time->tm_mday, time->tm_hour, time->tm_min, time->tm_sec);
+    *values[0] = malloc(time_string_len * sizeof (char));  \
+    strftime(*values[0], time_string_len, time_format, localtime(&(line->b)));
 
-    struct tm *time;
     int l;
     if (line==NULL || !(line->attr&attr)) {
         *values = malloc(1 * sizeof (char*));
@@ -469,7 +470,7 @@ static void print_attributes_removed_node(db_line* line, DB_ATTR_TYPE ignored_at
 
 void print_report_header(int nfil,int nadd,int nrem,int nchg)
 {
-  struct tm* st=localtime(&(conf->start_time));
+  char *time;
   if(conf->action&DO_COMPARE)
     error(0,_("AIDE " AIDEVERSION " found differences between database and filesystem!!\n"));
 
@@ -478,9 +479,10 @@ void print_report_header(int nfil,int nadd,int nrem,int nchg)
   if(conf->config_version)
     error(2,_("Config version used: %s\n"),conf->config_version);
 
-  error(2,_("Start timestamp: %.4u-%.2u-%.2u %.2u:%.2u:%.2u\n"),
-	st->tm_year+1900, st->tm_mon+1, st->tm_mday,
-	st->tm_hour, st->tm_min, st->tm_sec);
+  time = malloc(time_string_len * sizeof (char));
+  strftime(time, time_string_len, time_format, localtime(&(conf->start_time)));
+  error(2,_("Start timestamp: %s\n"), time);
+  free(time); time=NULL;
   error(0,_("\nSummary:\n  Total number of entries:\t%i\n  Added entries:\t\t%i\n"
 	    "  Removed entries:\t\t%i\n  Changed entries:\t\t%i\n\n"),nfil,nadd,nrem,nchg);
   
@@ -488,9 +490,10 @@ void print_report_header(int nfil,int nadd,int nrem,int nchg)
 
 void print_report_footer(struct tm* st)
 {
-    error(2,_("\nEnd timestamp: %.4u-%.2u-%.2u %.2u:%.2u:%.2u\n"),
-	  st->tm_year+1900, st->tm_mon+1, st->tm_mday,
-	  st->tm_hour, st->tm_min, st->tm_sec);
+  char *time = malloc(time_string_len * sizeof (char));
+  strftime(time, time_string_len, time_format, st);
+  error(2,_("\nEnd timestamp: %s\n"), time);
+  free(time); time=NULL;
 }
 
 #ifdef WITH_AUDIT

@@ -1,6 +1,7 @@
 2010-12-28	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c:
 	  - use strftime to format timestamps
+	  - made width_details, time_format[] and time_string_len constant
 
 2010-12-27	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c:

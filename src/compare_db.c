@@ -54,8 +54,8 @@
 
 const int width_details = 80;
 
-const char time_format[] = "%Y-%m-%d %H:%M:%S";
-const int time_string_len = 20;
+const char time_format[] = "%Y-%m-%d %H:%M:%S %z";
+const int time_string_len = 26;
 
 const char* report_top_format = "\n---------------------------------------------------\n%s:\n---------------------------------------------------\n\n";
 

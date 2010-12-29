@@ -25,18 +25,6 @@
 #include "db_config.h"
 #include "seltree.h"
 
-
-/*
- * report_tree()
- * Generate report based on the tree left by populate_tree()
- * stage= which stage to do check=0 added=1, removed=2
- * changed=3 , detailed=4, non-grouped=5
- * stat contains 5 ints, 0: are we the first to be called
- * 1: total number of files 2: # added files, 
- * 3: # removed, 4: # changed
- */
-long report_tree(seltree* tree,int stage, long* status);
-
 /*
  * gen_report()
  * Generate report based on the given node

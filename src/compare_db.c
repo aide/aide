@@ -642,6 +642,46 @@ long report_tree(seltree* node,int stage, long* status)
   return (status[2]+status[3]+status[4]);
 }
 
+int gen_report(seltree* node) {
+    int exitcode=0;
+    long totalchanges=0;
+    long status[5]={1,0,0,0,0};
+
+    /* First terse report */
+    totalchanges=report_tree(node,0,status);
+    if(totalchanges>0){
+        exitcode=(status[2]!=0)*1+(status[3]!=0)*2+(status[4]!=0)*4;
+        if (conf->grouped) {
+            status[0]=1;
+            report_tree(node,1,status);
+            status[0]=1;
+            report_tree(node,2,status);
+            status[0]=1;
+            report_tree(node,3,status);
+        } else {
+            status[0]=1;
+            report_tree(node,5,status);
+        }
+        /* Then detailed list of changes */
+        status[0]=1;
+        report_tree(node,4,status);
+    } else {
+        if (conf->verbose_level >= 5) {
+            printf("\nAIDE, version " AIDEVERSION "\n\n");
+            if(conf->action&DO_COMPARE) {
+                printf("### All files match AIDE database. Looks okay!\n\n");
+            }
+            if(conf->action&DO_INIT) {
+                if(conf->action&DO_COMPARE)
+                    printf("### New AIDE database written to %s\n\n",conf->db_out_url->value);
+                else
+                    printf("### AIDE database at %s initialized.\n\n",conf->db_out_url->value);
+            }
+        }
+    }
+    return exitcode;
+}
+
 const char* aide_key_9=CONFHMACKEY_09;
 const char* db_key_9=DBHMACKEY_09;
 

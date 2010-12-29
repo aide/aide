@@ -37,4 +37,10 @@
  */
 long report_tree(seltree* tree,int stage, long* status);
 
+/*
+ * gen_report()
+ * Generate report based on the given node
+ */
+int gen_report(seltree* node);
+
 #endif

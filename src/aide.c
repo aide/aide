@@ -560,9 +560,6 @@ int main(int argc,char**argv)
 #endif
   conf->use_initial_errorsto=0;
   if (!conf->config_check) {
-    int exitcode=0;
-    long totalchanges=0;
-    long status[5]={1,0,0,0,0};
     if(conf->action&DO_INIT){
       if(db_init(DB_WRITE)==RETFAIL) {
 	exit(IO_ERROR);
@@ -590,41 +587,8 @@ int main(int argc,char**argv)
       
     populate_tree(conf->tree);
     db_close(conf);
-
-    /* First terse report */
-    totalchanges=report_tree(conf->tree,0,status);
-    if(totalchanges>0){
-      exitcode=(status[2]!=0)*1+(status[3]!=0)*2+(status[4]!=0)*4;
-      if (conf->grouped) {
-      status[0]=1;
-      report_tree(conf->tree,1,status);
-      status[0]=1;
-      report_tree(conf->tree,2,status);
-      status[0]=1;
-      report_tree(conf->tree,3,status);
-      } else {
-          status[0]=1;
-          report_tree(conf->tree,5,status);
-      }
-      /* Then detailed list of changes */
-      status[0]=1;
-      report_tree(conf->tree,4,status);
-    } else {
-      if (conf->verbose_level >= 5) {
-        printf("\nAIDE, version " AIDEVERSION "\n\n");
-        if(conf->action&DO_COMPARE) {
-          printf("### All files match AIDE database. Looks okay!\n\n");
-        }
-        if(conf->action&DO_INIT) {
-	  if(conf->action&DO_COMPARE)
-            printf("### New AIDE database written to %s\n\n",conf->db_out_url->value);
-	  else
-            printf("### AIDE database at %s initialized.\n\n",conf->db_out_url->value);
-        }
-      }
-    }
     
-    exit(exitcode);
+    exit(gen_report(conf->tree));
     
   }else {
 #ifdef WITH_MHASH

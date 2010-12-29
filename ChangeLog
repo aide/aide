@@ -1,6 +1,8 @@
 2010-12-29	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* include/compare_db.h, src/compare_db.c:
 	  - added gen_report function (code copied from src/aide.c)
+    * src/aide.c:
+	  - removed code copied to src/compare_db.c
 
 2010-12-28	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c:

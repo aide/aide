@@ -670,6 +670,8 @@ int gen_report(seltree* node) {
             printf("\nAIDE, version " AIDEVERSION "\n\n");
             if(conf->action&DO_COMPARE) {
                 printf("### All files match AIDE database. Looks okay!\n\n");
+            } else if(conf->action&DO_DIFF) {
+                printf("### The databases match each other. Looks okay!\n\n");
             }
             if(conf->action&DO_INIT) {
                 if(conf->action&DO_COMPARE)

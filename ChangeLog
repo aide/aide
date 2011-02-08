@@ -1,3 +1,7 @@
+2011-02-08	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* depcomp, install-sh, missing, ylwrap:
+	  - removed auto-generated files from repository
+
 2010-12-30	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c:
 	  - print "Looks okay" message also in DO_DIFF mode

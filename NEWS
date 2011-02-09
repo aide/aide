@@ -1,20 +1,16 @@
-
-	AIDE Version History
-
-=========================================================
-
-Version post-0.15.1
+Version 0.16 (NOT_YET_RELEASED)
 	* Enabled summarize_changes by default
 	* Compare database entries just once
 	* Wrap attribute values instead of cut them off
 	* Side-by-side output of acl and xattrs values
+	* Use '|' to separate the old value from the new one
 	* Print added or removed attributes of changed entries if forced
 	  via report_attributes
 	* Print details about added and removed entries in verbose level 6
 	  or higher
-	* Use '|' to separate the old value from the new one
 	* Print added and removed attribute values of changed entries in
 	  verbose level 6 or higher
+	* Added numeric timezone to time format
 	* Bug fixes
 
 Version 0.15.1

@@ -72,42 +72,33 @@
     ------------------------
 
     We highly recommend checking that the version of AIDE downloaded and
-    install is an original and unmodified one. You have two options to
-    verify the source code; PGP and md5 has. PGP verification is the
-    preferred method.
+    installed is an original and unmodified one. You can either verify the
+    source tarball or the git tag.
 
-    a) To check the supplied signature with GnuPG:
+    To check the supplied signature with GnuPG:
 
-        $ gpg --verify aide-0.11.tar.gz.asc
+      $ gpg --verify aide-<VERSION_NUMBER>.tar.gz.asc
 
-       This checks that the detached signature file is indeed a signature
-       of aide-0.11.tar.gz. The key used to create this signature is:
-    
-           pub 1024D/5930D198 2005-10-04 [expires: 2007-01-01]
-               Aide Developers <aide-devel@lists.sourceforge.net>
+    This checks that the detached signature file is indeed a signature
+    of aide-<VERSION_NUMBER>.tar.gz.
 
-       If you do not have this key, you can get it from the SourceForge
-       web site or from one of the well known PGP key servers. You have
-       to make sure that the key you install is not a faked one. You can
-       do this with reasonable assurance by comparing the output of:
+    To validate the gpg signature of the git tag:
 
-           gpg --fingerprint 0x5930D198
+      $ git verify-tag v<VERSION_NUMBER>
 
-       with the fingerprint published elsewhere.
+    The key used to create this signature is:
 
-    b) To check the supplied MD5 hash signature, you can use the md5sum
-       program that is supplied with many *NIX systems.
+      pub   4096R/F4474E5A 2011-01-30 [expires: 2012-01-31]
+      uid                  Aide Developers <aide-devel@lists.sourceforge.net>
 
-           $ md5sum aide-0.10.tar.gz
+    If you do not have this key, you can get it from the SourceForge
+    web site or from one of the well known PGP key servers. You have
+    to make sure that the key you install is not a faked one. You can
+    do this with reasonable assurance by comparing the output of:
 
-       This should yield output that matches the published MD5 hash:
+      $ gpg --fingerprint 0xF4474E5A
 
-           39eb7d21064cac7b409c45d038b86cd8   aide-0.10.tar.gz
-
-       Or use the openssl package to verify the MD5 hash:
-
-           $ openssl md5 aide-0.10.tar.gz
-           MD5(aide-0.10.tar.gz)= 39eb7d21064cac7b409c45d038b86cd8
+    with the fingerprint published elsewhere.
 
     Requirements
     ------------

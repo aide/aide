@@ -1,3 +1,7 @@
+2011-02-09	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* README:
+	  - adjusted "Source Code Verification" section
+
 2011-02-08	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* depcomp, install-sh, missing, ylwrap:
 	  - removed auto-generated files from repository

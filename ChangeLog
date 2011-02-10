@@ -2,10 +2,6 @@
 	* README:
 	  - adjusted "Source Code Verification" section
 
-2011-02-08	Hannes von Haugwitz <hannes@vonhaugwitz.com>
-	* depcomp, install-sh, missing, ylwrap:
-	  - removed auto-generated files from repository
-
 2010-12-30	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c:
 	  - print "Looks okay" message also in DO_DIFF mode
@@ -53,7 +49,7 @@
 
 2010-11-26	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* doc/manual.html:
-	 - applied changes by Jack Blankenship <Jack.Blankenship@bcbssc.com>
+	  - applied changes by Jack Blankenship <Jack.Blankenship@bcbssc.com>
 
 2010-11-16	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c:

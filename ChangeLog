@@ -1,3 +1,6 @@
+2011-03-01	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Removed contrib/mkgitsnapshot.sh
+
 2011-02-16	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Released version 0.16a1
 

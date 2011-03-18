@@ -1,3 +1,7 @@
+2011-03-18	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* src/db_disk.c:
+	  - fixed handling of "/" directory inode
+
 2011-03-01	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Removed contrib/mkgitsnapshot.sh
 

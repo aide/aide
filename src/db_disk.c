@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  * vi: ts=2 sw=2
  *
- * Copyright (C) 1999-2006,2010 Rami Lehti, Pablo Virolainen, Richard
+ * Copyright (C) 1999-2006,2010,2011 Rami Lehti, Pablo Virolainen, Richard
  * van den Berg, Mike Markley, Hannes von Haugwitz
  * $Header$
  *
@@ -181,6 +181,7 @@ db_line *db_readline_disk (int db)
 
 	/* root needs special handling */
 	if (!root_handled) {
+		root_handled = 1;
 		fullname = malloc (1 + 1);
 		strcpy (fullname, "/");
 		add = check_rxtree (fullname, conf->tree, &attr);
@@ -204,10 +205,10 @@ db_line *db_readline_disk (int db)
 				free (fil);
 				fil = NULL;
 			}
-		}
-		if (!add)
+            return fil;
+		} else {
 			free (fullname);
-		root_handled = 1;
+        }
 	}
 recursion:
 	next_in_dir ();

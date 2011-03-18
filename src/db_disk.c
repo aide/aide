@@ -62,14 +62,10 @@ static struct AIDE_DIRENT_TYPE **resp = NULL;
 static struct seltree *r = NULL;
 
 
-static const char *dot = ".";
-static const char *dotdot = "..";
-
 #if defined HAVE_READDIR && !defined HAVE_READDIR_R
 static long td = -1;
 #endif
 static int rdres = 0;
-static DB_ATTR_TYPE attr;
 static char *start_path = "/";
 
 static int root_handled = 0;
@@ -176,6 +172,7 @@ void add_child (db_line * fil)
 db_line *db_readline_disk (int db)
 {
 	db_line *fil = NULL;
+	DB_ATTR_TYPE attr;
 	char *fullname;
 	int add = 0;
 
@@ -220,7 +217,7 @@ recursion:
 		   If have, just skipit.
 		   If don't do the 'normal' thing.
 		 */
-		if (strcmp (entp->d_name, dot) == 0 || strcmp (entp->d_name, dotdot) == 0) {
+		if (strcmp (entp->d_name, ".") == 0 || strcmp (entp->d_name, "..") == 0) {
 			goto recursion;						// return db_readline_disk(db);
 		}
 

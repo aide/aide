@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2007,2010 Rami Lehti, Pablo Virolainen, Richard van
- * den Berg, Mike Markley, Hannes von Haugwitz
+ * Copyright (C) 1999-2007,2010,2011 Rami Lehti, Pablo Virolainen,
+ * Richard van den Berg, Mike Markley, Hannes von Haugwitz
  * $Id$
  *
  * This program is free software; you can redistribute it and/or
@@ -488,10 +488,10 @@ void print_report_header(int nfil,int nadd,int nrem,int nchg)
   
 }
 
-void print_report_footer(struct tm* st)
+static void print_report_footer()
 {
   char *time = malloc(time_string_len * sizeof (char));
-  strftime(time, time_string_len, time_format, st);
+  strftime(time, time_string_len, time_format, localtime(&(conf->end_time)));
   error(2,_("\nEnd timestamp: %s\n"), time);
   free(time); time=NULL;
 }
@@ -681,6 +681,10 @@ int gen_report(seltree* node) {
             }
         }
     }
+
+    conf->end_time=time(&(conf->end_time));
+    print_report_footer();
+
     return exitcode;
 }
 

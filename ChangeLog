@@ -1,3 +1,7 @@
+2011-03-22	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* src/compare_db.c:
+	  - print "End timestamp" message in report
+
 2011-03-18	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/db_disk.c:
 	  - fixed handling of "/" directory inode

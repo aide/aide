@@ -11,6 +11,7 @@ Version 0.16 (NOT_YET_RELEASED)
 	* Print added and removed attribute values of changed entries in
 	  verbose level 6 or higher
 	* Added numeric timezone to time format
+	* Print "End timestamp" message in report
 	* Bug fixes
 
 Version 0.15.1

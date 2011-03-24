@@ -59,6 +59,8 @@ const int time_string_len = 26;
 
 const char* report_top_format = "\n---------------------------------------------------\n%s:\n---------------------------------------------------\n\n";
 
+DB_ATTR_TYPE ignored_attrs, forced_attrs;
+
 const DB_ATTR_TYPE summary_attributes[] = { DB_FTYPE, DB_LINKNAME, DB_SIZE|DB_SIZEG, DB_BCOUNT, DB_PERM, DB_UID, DB_GID, DB_ATIME, DB_MTIME, DB_CTIME, DB_INODE, DB_LNKCOUNT, DB_HASHES
 #ifdef WITH_ACL
         , DB_ACL
@@ -368,7 +370,7 @@ snprintf(*values[0], l, "%s",s);
     }
 }
 
-static void print_line(seltree* node, DB_ATTR_TYPE ignored_attrs) {
+static void print_line(seltree* node) {
     if(conf->summarize_changes==1) {
         int i;
         int length = sizeof(summary_attributes)/sizeof(DB_ATTR_TYPE);
@@ -424,7 +426,7 @@ static void print_line(seltree* node, DB_ATTR_TYPE ignored_attrs) {
 }
 
 static void print_dbline_attributes(db_line* oline, db_line* nline, DB_ATTR_TYPE
-        changed_attrs, DB_ATTR_TYPE ignored_attrs, DB_ATTR_TYPE report_attrs) {
+        changed_attrs, DB_ATTR_TYPE report_attrs) {
     char **ovalue, **nvalue;
     int onumber, nnumber, olen, nlen, i, j, k, c;
     int length = sizeof(details_attributes)/sizeof(DB_ATTR_TYPE);
@@ -460,12 +462,12 @@ static void print_dbline_attributes(db_line* oline, db_line* nline, DB_ATTR_TYPE
     }
 }
 
-static void print_attributes_added_node(db_line* line, DB_ATTR_TYPE ignored_attrs) {
-    print_dbline_attributes(NULL, line, line->attr, ignored_attrs ,0);
+static void print_attributes_added_node(db_line* line) {
+    print_dbline_attributes(NULL, line, line->attr ,0);
 }
 
-static void print_attributes_removed_node(db_line* line, DB_ATTR_TYPE ignored_attrs) {
-    print_dbline_attributes(line, NULL, line->attr, ignored_attrs ,0);
+static void print_attributes_removed_node(db_line* line) {
+    print_dbline_attributes(line, NULL, line->attr, 0);
 }
 
 void print_report_header(int nfil,int nadd,int nrem,int nchg)
@@ -524,11 +526,9 @@ void send_audit_report(long nadd, long nrem, long nchg)
 long report_tree(seltree* node,int stage, long* status)
 {
   list* r=NULL;
-  DB_ATTR_TYPE ignorelist=0;
-  DB_ATTR_TYPE forced_attrs=0;
   int top=0;
 
-  ignorelist=get_ignorelist();
+  ignored_attrs=get_ignorelist();
   forced_attrs=get_report_attributes();
   
   if(status[0]){
@@ -585,21 +585,21 @@ long report_tree(seltree* node,int stage, long* status)
     if(top){
         error(2,(char*)report_top_format,_("Added entries"));
     }
-    if(node->checked&NODE_ADDED){ print_line(node, ignorelist); }
+    if(node->checked&NODE_ADDED){ print_line(node); }
   }
 
   if((stage==2)&&status[3]){
     if(top){
         error(2,(char*)report_top_format,_("Removed entries"));
     }
-    if(node->checked&NODE_REMOVED){ print_line(node, ignorelist); }
+    if(node->checked&NODE_REMOVED){ print_line(node); }
   }
 
   if((stage==3)&&status[4]){
     if(top){
             error(2,(char*)report_top_format,_("Changed entries"));
     }
-    if(node->checked&NODE_CHANGED){ print_line(node, ignorelist); }
+    if(node->checked&NODE_CHANGED){ print_line(node); }
   }
 
   if((stage==4)&&(conf->verbose_level>=5)&&status[4]){
@@ -607,10 +607,10 @@ long report_tree(seltree* node,int stage, long* status)
             error(2,(char*)report_top_format,_("Detailed information about changes"));
     }
     if (node->checked&NODE_CHANGED) {
-        print_dbline_attributes(node->old_data, node->new_data, node->changed_attrs, ignorelist, (conf->verbose_level>=6?(((node->old_data)->attr)^((node->new_data)->attr)):0)|forced_attrs);
+        print_dbline_attributes(node->old_data, node->new_data, node->changed_attrs, (conf->verbose_level>=6?(((node->old_data)->attr)^((node->new_data)->attr)):0)|forced_attrs);
     } else if ((conf->verbose_level>=6)) {
-        if (node->checked&NODE_ADDED) { print_attributes_added_node(node->new_data, ignorelist); }
-        if (node->checked&NODE_REMOVED) { print_attributes_removed_node(node->old_data, ignorelist); }
+        if (node->checked&NODE_ADDED) { print_attributes_added_node(node->new_data); }
+        if (node->checked&NODE_REMOVED) { print_attributes_removed_node(node->old_data); }
     }
   }
 
@@ -624,7 +624,7 @@ long report_tree(seltree* node,int stage, long* status)
         else if (status[3]) { error(2,(char*)report_top_format,_("Removed entries")); }
         else if (status[4]) { error(2,(char*)report_top_format,_("Changed entries")); }
     }
-    if(node->checked) { print_line(node, ignorelist); }
+    if(node->checked) { print_line(node); }
   }
 
   /* All stage dependent things done for this node. Let's check children */

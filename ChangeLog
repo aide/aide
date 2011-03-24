@@ -1,3 +1,7 @@
+2011-03-24	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* src/compare_db.c:
+	  - made ignored_attrs and forced_attrs global
+
 2011-03-22	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c:
 	  - print "End timestamp" message in report

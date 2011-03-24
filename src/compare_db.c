@@ -493,8 +493,10 @@ void print_report_header(int nfil,int nadd,int nrem,int nchg)
 static void print_report_footer()
 {
   char *time = malloc(time_string_len * sizeof (char));
+  int run_time = (int) difftime(conf->end_time, conf->start_time);
+
   strftime(time, time_string_len, time_format, localtime(&(conf->end_time)));
-  error(2,_("\nEnd timestamp: %s\n"), time);
+  error(2,_("\nEnd timestamp: %s (run time: %dm %ds)\n"), time, run_time/60, run_time%60);
   free(time); time=NULL;
 }
 

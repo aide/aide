@@ -57,6 +57,8 @@ const int width_details = 80;
 const char time_format[] = "%Y-%m-%d %H:%M:%S %z";
 const int time_string_len = 26;
 
+long ntotal, nadd, nrem, nchg = 0;
+
 const char* report_top_format = "\n---------------------------------------------------\n%s:\n---------------------------------------------------\n\n";
 
 DB_ATTR_TYPE ignored_attrs, forced_attrs;
@@ -463,31 +465,125 @@ static void print_dbline_attributes(db_line* oline, db_line* nline, DB_ATTR_TYPE
 }
 
 static void print_attributes_added_node(db_line* line) {
-    print_dbline_attributes(NULL, line, line->attr ,0);
+    print_dbline_attributes(NULL, line, line->attr, 0);
 }
 
 static void print_attributes_removed_node(db_line* line) {
     print_dbline_attributes(line, NULL, line->attr, 0);
 }
 
-void print_report_header(int nfil,int nadd,int nrem,int nchg)
-{
-  char *time;
-  if(conf->action&DO_COMPARE)
-    error(0,_("AIDE " AIDEVERSION " found differences between database and filesystem!!\n"));
+static void terse_report(seltree* node) {
+    list* r=NULL;
+    /* If this node has been touched checked !=0
+       If checked == 0 there is nothing to report
+       */
+    if (node->checked!=0){
+        ntotal++;
+        if ((node->checked&DB_OLD)&&(node->checked&DB_NEW) && (node->old_data==NULL)&&(node->new_data==NULL)){
+            /* Node was added to twice and discovered to be not changed*/
+        } else if (!(node->checked&DB_OLD)&&(node->checked&DB_NEW)){
+            /* File is in new db but not old. (ADDED) */
+            /* unless it was moved in */
+            if (!((node->checked&NODE_ALLOW_NEW)||(node->checked&NODE_MOVED_IN))) {
+                nadd++;
+                node->checked|=NODE_ADDED;
+            }
+        } else if ((node->checked&DB_OLD)&&!(node->checked&DB_NEW)){
+            /* File is in old db but not new. (REMOVED) */
+            /* unless it was moved out */
+            if (!((node->checked&NODE_ALLOW_RM)||(node->checked&NODE_MOVED_OUT))) {
+                nrem++;
+                node->checked|=NODE_REMOVED;
+            }
+        } else if ((node->checked&DB_OLD)&&(node->checked&DB_NEW)&&
+                (node->old_data!=NULL)&&(node->new_data!=NULL)){
+            /* File is in both db's and the data is still there. (CHANGED) */
+            if (!(node->checked&(NODE_MOVED_IN|NODE_MOVED_OUT))){
+                nchg++;
+                node->checked|=NODE_CHANGED;
+            }else if (!((node->checked&NODE_ALLOW_NEW)||(node->checked&NODE_MOVED_IN))) {
+                nadd++;
+                node->checked|=NODE_ADDED;
+            }else if (!((node->checked&NODE_ALLOW_RM)||(node->checked&NODE_MOVED_OUT))) {
+                nrem++;
+                node->checked|=NODE_REMOVED;
+            }
+        }
+    }
+    for (r=node->childs;r;r=r->next) {
+        terse_report((seltree*)r->data);
+    }
+}
 
-  if(conf->action&DO_DIFF)
-    error(0,_("AIDE " AIDEVERSION " found differences between the two databases!!\n"));
-  if(conf->config_version)
-    error(2,_("Config version used: %s\n"),conf->config_version);
+static void print_report_list(seltree* node, const int node_status) {
+    list* r=NULL;
+    if (node->checked&node_status) {
+        print_line(node);
+    }
+    for(r=node->childs;r;r=r->next){
+        print_report_list((seltree*)r->data, node_status);
+    }
+}
 
-  time = malloc(time_string_len * sizeof (char));
-  strftime(time, time_string_len, time_format, localtime(&(conf->start_time)));
-  error(2,_("Start timestamp: %s\n"), time);
-  free(time); time=NULL;
-  error(0,_("\nSummary:\n  Total number of entries:\t%i\n  Added entries:\t\t%i\n"
-	    "  Removed entries:\t\t%i\n  Changed entries:\t\t%i\n\n"),nfil,nadd,nrem,nchg);
-  
+static void print_report_details(seltree* node) {
+    list* r=NULL;
+    if (conf->verbose_level>=5) {
+        if (node->checked&NODE_CHANGED) {
+            print_dbline_attributes(node->old_data, node->new_data, node->changed_attrs, (conf->verbose_level>=6?(((node->old_data)->attr)^((node->new_data)->attr)):0)|forced_attrs);
+        } else if ((conf->verbose_level>=6)) {
+            if (node->checked&NODE_ADDED) { print_attributes_added_node(node->new_data); }
+            if (node->checked&NODE_REMOVED) { print_attributes_removed_node(node->old_data); }
+        }
+    }
+    for(r=node->childs;r;r=r->next){
+        print_report_details((seltree*)r->data);
+    }
+}
+
+static void print_report_header() {
+    char *time;
+    int first = 1;
+
+    error(0,_("AIDE " AIDEVERSION));
+    if(conf->action&(DO_COMPARE|DO_DIFF)) {
+        error(0,_(" found %sdifferences between %s%s!!\n"), (nadd||nrem||nchg)?"":"NO ", conf->action&DO_COMPARE?_("database and filesystem"):_("the two databases"), (nadd||nrem||nchg)?"":_(". Looks okay"));
+        if(conf->action&(DO_INIT)) {
+            error(0,_("New AIDE database written to %s\n"),conf->db_out_url->value);
+        }
+    } else {
+        error(0,_(" initialized AIDE database at %s\n"),conf->db_out_url->value);
+    }
+
+    if(conf->config_version)
+        error(2,_("Config version used: %s\n"),conf->config_version);
+
+    time = malloc(time_string_len * sizeof (char));
+    strftime(time, time_string_len, time_format, localtime(&(conf->start_time)));
+    error(2,_("Start timestamp: %s\n"), time);
+    free(time); time=NULL;
+
+    if (conf->verbose_level != 5) {
+        error (2,_("Verbose level: %d"), conf->verbose_level);
+        first = 0;
+    }
+    if (ignored_attrs) {
+        if (first) { first=0; }
+        else { error (2," | "); }
+        error (2,_("Ignored attributes: %llx"),ignored_attrs);
+    }
+    if (forced_attrs) {
+        if (first) { first=0; }
+        else { error (2," | "); }
+        error (2,_("Forced attributes: %llx"),forced_attrs);
+    }
+    if (!first) { error (2,"\n"); }
+
+    if(conf->action&(DO_COMPARE|DO_DIFF) && (nadd||nrem||nchg)) {
+        error(0,_("\nSummary:\n  Total number of entries:\t%i\n  Added entries:\t\t%i\n"
+                    "  Removed entries:\t\t%i\n  Changed entries:\t\t%i\n\n"), ntotal, nadd, nrem, nchg);
+    } else {
+        error(0,_("\nNumber of entries:\t%i\n"), ntotal);
+    }
 }
 
 static void print_report_footer()
@@ -502,7 +598,7 @@ static void print_report_footer()
 
 #ifdef WITH_AUDIT
   /* Something changed, send audit anomaly message */
-void send_audit_report(long nadd, long nrem, long nchg)
+void send_audit_report()
 {
   if(nadd!=0||nrem!=0||nchg!=0){
     int fd=audit_open();
@@ -525,169 +621,46 @@ void send_audit_report(long nadd, long nrem, long nchg)
 }
 #endif /* WITH_AUDIT */
 
-long report_tree(seltree* node,int stage, long* status)
-{
-  list* r=NULL;
-  int top=0;
-
-  ignored_attrs=get_ignorelist();
-  forced_attrs=get_report_attributes();
-  
-  if(status[0]){
-    status[0]=0;
-    top=1;
-  }
-
-
-  /* First check the tree for changes and do a bit of painting, 
-     then we print the terse report one changetype at a time
-     and then we do the detailed listing for changed nodes
-  */
-  if(stage==0){
-    /* If this node has been touched checked !=0 
-       If checked == 0 there is nothing to report
-    */
-    if(node->checked!=0){
-      status[1]++;
-      if((node->checked&DB_OLD)&&(node->checked&DB_NEW)&&
-	 (node->old_data==NULL)&&(node->new_data==NULL)){
-	/* Node was added to twice and discovered to be not changed*/
-      }else if(!(node->checked&DB_OLD)&&(node->checked&DB_NEW)){
-	/* File is in new db but not old. (ADDED) */
-	/* unless it was moved in */
-	if (!((node->checked&NODE_ALLOW_NEW)||(node->checked&NODE_MOVED_IN))) {
-	  status[2]++;
-	  node->checked|=NODE_ADDED;
-	}
-      }else if((node->checked&DB_OLD)&&!(node->checked&DB_NEW)){
-	/* File is in old db but not new. (REMOVED) */
-	/* unless it was moved out */
-	if (!((node->checked&NODE_ALLOW_RM)||(node->checked&NODE_MOVED_OUT))) {
-	  status[3]++;
-	  node->checked|=NODE_REMOVED;
-	}
-      }else if((node->checked&DB_OLD)&&(node->checked&DB_NEW)&&
-	       (node->old_data!=NULL)&&(node->new_data!=NULL)){
-	/* File is in both db's and the data is still there. (CHANGED) */
-	if(!(node->checked&(NODE_MOVED_IN|NODE_MOVED_OUT))){
-	  status[4]++;
-	  node->checked|=NODE_CHANGED;
-	}else if (!((node->checked&NODE_ALLOW_NEW)||(node->checked&NODE_MOVED_IN))) {
-	  status[2]++;
-	  node->checked|=NODE_ADDED;
-	}else if (!((node->checked&NODE_ALLOW_RM)||(node->checked&NODE_MOVED_OUT))) {
-	  status[3]++;
-	  node->checked|=NODE_REMOVED;
-	}
-      }
-    }
-  }
-
-  if((stage==1)&&status[2]){
-    if(top){
-        error(2,(char*)report_top_format,_("Added entries"));
-    }
-    if(node->checked&NODE_ADDED){ print_line(node); }
-  }
-
-  if((stage==2)&&status[3]){
-    if(top){
-        error(2,(char*)report_top_format,_("Removed entries"));
-    }
-    if(node->checked&NODE_REMOVED){ print_line(node); }
-  }
-
-  if((stage==3)&&status[4]){
-    if(top){
-            error(2,(char*)report_top_format,_("Changed entries"));
-    }
-    if(node->checked&NODE_CHANGED){ print_line(node); }
-  }
-
-  if((stage==4)&&(conf->verbose_level>=5)&&status[4]){
-    if(top){
-            error(2,(char*)report_top_format,_("Detailed information about changes"));
-    }
-    if (node->checked&NODE_CHANGED) {
-        print_dbline_attributes(node->old_data, node->new_data, node->changed_attrs, (conf->verbose_level>=6?(((node->old_data)->attr)^((node->new_data)->attr)):0)|forced_attrs);
-    } else if ((conf->verbose_level>=6)) {
-        if (node->checked&NODE_ADDED) { print_attributes_added_node(node->new_data); }
-        if (node->checked&NODE_REMOVED) { print_attributes_removed_node(node->old_data); }
-    }
-  }
-
-  if((stage==5)&&(status[2]||status[3]||status[4])) {
-    if(top){
-        if (status[2]&&status[3]&&status[4]) { error(2,(char*)report_top_format,_("Added, removed and changed entries")); }
-        else if (status[2]&&status[3]) { error(2,(char*)report_top_format,_("Added and removed entries")); }
-        else if (status[2]&&status[4]) { error(2,(char*)report_top_format,_("Added and changed entries")); }
-        else if (status[3]&&status[4]) { error(2,(char*)report_top_format,_("Removed and changed entries")); }
-        else if (status[2]) { error(2,(char*)report_top_format,_("Added entries")); }
-        else if (status[3]) { error(2,(char*)report_top_format,_("Removed entries")); }
-        else if (status[4]) { error(2,(char*)report_top_format,_("Changed entries")); }
-    }
-    if(node->checked) { print_line(node); }
-  }
-
-  /* All stage dependent things done for this node. Let's check children */
-  for(r=node->childs;r;r=r->next){
-    report_tree((seltree*)r->data,stage,status);
-  }
-
-  if(top&&(stage==0)&&((status[2]+status[3]+status[4])>0)){
-#ifdef WITH_AUDIT
-    send_audit_report(status[2],status[3],status[4]);
-#endif
-    print_report_header(status[1],status[2],status[3],status[4]);
-  }
-  
-  return (status[2]+status[3]+status[4]);
-}
-
 int gen_report(seltree* node) {
-    int exitcode=0;
-    long totalchanges=0;
-    long status[5]={1,0,0,0,0};
+    forced_attrs = get_report_attributes();
+    ignored_attrs = get_ignorelist();
 
-    /* First terse report */
-    totalchanges=report_tree(node,0,status);
-    if(totalchanges>0){
-        exitcode=(status[2]!=0)*1+(status[3]!=0)*2+(status[4]!=0)*4;
-        if (conf->grouped) {
-            status[0]=1;
-            report_tree(node,1,status);
-            status[0]=1;
-            report_tree(node,2,status);
-            status[0]=1;
-            report_tree(node,3,status);
-        } else {
-            status[0]=1;
-            report_tree(node,5,status);
+    terse_report(node);
+#ifdef WITH_AUDIT
+    send_audit_report();
+#endif
+    print_report_header();
+    if (conf->grouped) {
+        if (nadd) {
+            error(2,(char*)report_top_format,_("Added entries"));
+            print_report_list(node, NODE_ADDED);
         }
-        /* Then detailed list of changes */
-        status[0]=1;
-        report_tree(node,4,status);
-    } else {
-        if (conf->verbose_level >= 5) {
-            printf("\nAIDE, version " AIDEVERSION "\n\n");
-            if(conf->action&DO_COMPARE) {
-                printf("### All files match AIDE database. Looks okay!\n\n");
-            } else if(conf->action&DO_DIFF) {
-                printf("### The databases match each other. Looks okay!\n\n");
-            }
-            if(conf->action&DO_INIT) {
-                if(conf->action&DO_COMPARE)
-                    printf("### New AIDE database written to %s\n\n",conf->db_out_url->value);
-                else
-                    printf("### AIDE database at %s initialized.\n\n",conf->db_out_url->value);
-            }
+        if (nrem) {
+            error(2,(char*)report_top_format,_("Removed entries"));
+            print_report_list(node, NODE_REMOVED);
         }
+        if (nchg) {
+            error(2,(char*)report_top_format,_("Changed entries"));
+            print_report_list(node, NODE_CHANGED);
+        }
+    } else if (nadd || nrem || nchg) {
+        if (nadd && nrem && nchg) { error(2,(char*)report_top_format,_("Added, removed and changed entries")); }
+        else if (nadd && nrem) { error(2,(char*)report_top_format,_("Added and removed entries")); }
+        else if (nadd && nchg) { error(2,(char*)report_top_format,_("Added and changed entries")); }
+        else if (nrem && nchg) { error(2,(char*)report_top_format,_("Removed and changed entries")); }
+        else if (nadd) { error(2,(char*)report_top_format,_("Added entries")); }
+        else if (nrem) { error(2,(char*)report_top_format,_("Removed entries")); }
+        else if (nchg) { error(2,(char*)report_top_format,_("Changed entries")); }
+        print_report_list(node, NODE_ADDED|NODE_REMOVED|NODE_CHANGED);
     }
-
+    if (nadd || nrem || nchg) {
+        error(nchg?5:6,(char*)report_top_format,_("Detailed information about changes"));
+        print_report_details(node);
+    }
     conf->end_time=time(&(conf->end_time));
     print_report_footer();
 
-    return exitcode;
+    return (nadd!=0)*1+(nrem!=0)*2+(nchg!=0)*4;
 }
 
 const char* aide_key_9=CONFHMACKEY_09;

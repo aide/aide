@@ -1,3 +1,15 @@
+2011-03-29	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* src/compare_db.c:
+	  - rewrote gen_report function, changes included:
+		- merged gen_report() and report_tree()
+		- added info about verbose level, ignorelist and report_attributes to
+		  report if they differ from standard value
+		- changed report if aide found no changes
+		- added info about number of entries if aide found no changes or
+		  the database has been initialized
+		- fixed report of added or removed entries if verbose level is 6 or
+		  higher and there are only added or removed entries
+
 2011-03-24	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c:
 	  - made ignored_attrs and forced_attrs global

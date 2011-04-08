@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2006,2009,2010 Rami Lehti,Pablo Virolainen, Mike
+ * Copyright (C) 1999-2006,2009-2011 Rami Lehti,Pablo Virolainen, Mike
  * Markley, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -1362,7 +1362,6 @@ void add_file_to_tree(seltree* tree,db_line* file,int db,int status,
       node->old_data=NULL;
       node->new_data=NULL;      
       node->changed_attrs=0;
-      node->checked-=(DB_OLD + DB_NEW); /* mark old and new files as released */          
     }
   }
 

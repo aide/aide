@@ -1,3 +1,7 @@
+2011-04-08	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* src/gen_list.c:
+	  - fixed wrong total number of entries if comparing two databases
+
 2011-03-29	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c:
 	  - rewrote gen_report function, changes included:

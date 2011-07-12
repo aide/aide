@@ -64,8 +64,9 @@ static int bytecmp(byte *b1, byte *b2, size_t len) {
 
 static int has_str_changed(char* old,char* new) {
     return (((old!=NULL && new!=NULL) &&
-                strcmp(old,new)!=0 ) &&
-            (old!=NULL || new!=NULL));
+                strcmp(old,new)!=0 ) ||
+            ((old!=NULL && new==NULL) ||
+             (old==NULL && new!=NULL)));
 }
 
 static int has_md_changed(byte* old,byte* new,int len) {

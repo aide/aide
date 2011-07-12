@@ -3,6 +3,8 @@
 	  - fixed has_str_changed function
 	* src/util.c:
 	  - fixed bad free of hostname variable
+	* src/db_file.c:
+	  - removed dead code
 
 2011-04-08	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/gen_list.c:

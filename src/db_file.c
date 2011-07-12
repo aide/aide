@@ -354,18 +354,16 @@ char** db_readline_file(int db){
     db_buff(db,*db_filep);
     
     token=db_scan();
-    while((token!=TDBSPEC)){
+    while((token!=TDBSPEC && token!=TEOF)){
 
       switch(token){
       case TUNKNOWN: {
 	continue;
-	break;
       }
       case TBEGIN_DB: {
 	token=db_scan();
 	gotbegin_db=1;
 	continue;
-	break;
       }
       case TNEWLINE: {
 	if(gotbegin_db){
@@ -380,7 +378,6 @@ char** db_readline_file(int db){
       case TGZIPHEADER: {
 	error(0,"Gzipheader found inside uncompressed db!\n");
 	return NULL;
-	break;
       }
       default: {
 	/* If it is anything else we quit */
@@ -389,11 +386,6 @@ char** db_readline_file(int db){
 	break;
       }
       }
-      if(token==TEOF){
-	break;
-      }
-
-      token=db_scan();
     }
 
     if(FORCEDBMD&&!gotbegin_db){

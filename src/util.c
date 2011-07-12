@@ -110,8 +110,7 @@ url_t* parse_url(char* val)
       u->value=strdup(r);
       r[0]='\0';
       if(gethostname(hostname,MAXHOSTNAMELEN)==-1){
-	free(hostname);
-	hostname="localhost";
+    strncpy(hostname,"localhost", 10);
       }
       if( (strcmp(t,"localhost")==0)||(strcmp(t,hostname)==0)){
 	free(hostname);

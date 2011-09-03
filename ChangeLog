@@ -1,3 +1,8 @@
+2011-09-03	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* src/gen_list.c:
+	  - print list of added files (verbose level >= 2) and their details
+	    (verbose level >= 6) if database has been initialized
+
 2011-07-12	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/gen_list.c:
 	  - fixed has_str_changed function

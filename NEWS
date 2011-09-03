@@ -10,6 +10,8 @@ Version 0.16 (NOT_YET_RELEASED)
 	  or higher
 	* Print added and removed attribute values of changed entries in
 	  verbose level 6 or higher
+	* Print list of added files (verbose level >= 2) and their details (verbose
+	  level >= 6) if database has been initialized
 	* Added numeric timezone to time format
 	* Print "End timestamp" message in report
 	* Added run time to report

@@ -1650,18 +1650,10 @@ void populate_tree(seltree* tree)
 	if(conf->action&DO_INIT){
 	  db_writeline(new,conf);
 	}
-	/* Populate tree only if it is needed later */
-	if(conf->action&DO_COMPARE){
 	  if((add=check_rxtree(new->filename,tree,&attr))>0){
 	    add_file_to_tree(tree,new,DB_NEW,0,attr);
 	    i++;
 	  }
-	}
-	if((conf->action&DO_INIT)&&!(conf->action&DO_COMPARE)){
-	  free_db_line(new);
-          free(new);
-          new=NULL;
-	}
 	if(i<100){
 	  new=db_readline(DB_DISK);
 	}

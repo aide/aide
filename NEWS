@@ -12,6 +12,7 @@ Version 0.16 (NOT_YET_RELEASED)
 	  verbose level 6 or higher
 	* Added numeric timezone to time format
 	* Print "End timestamp" message in report
+	* Added run time to report
 	* Added info about verbose level, ignorelist and report_attributes to
 	  report if they differ from standard value
 	* Changed report if aide found no changes

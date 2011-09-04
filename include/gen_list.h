@@ -36,14 +36,6 @@ typedef struct rx_rule {
 
 int compare_node_by_path(const void *n1, const void *n2);
 
-/*
- * gen_list()
- * Generates the file list
- * from the lists of rx_rule's
- */
-
-list* gen_list(list* prxlist,list* nrxlist,list* erxlist);
-
 /* 
  * gen_tree()
  * Generates the file tree

@@ -1,3 +1,7 @@
+2011-09-04	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* include/gen_list.h, src/gen_list.c:
+	  - removed unused functions (add_file_to_list, traverse_tree, gen_list)
+
 2011-09-03	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/gen_list.c:
 	  - print list of added files (verbose level >= 2) and their details

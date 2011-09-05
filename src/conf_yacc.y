@@ -1,7 +1,7 @@
 %{ 
 
 /*	
- * Copyright (C) 1999-2006,2010 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2006,2010,2011 Rami Lehti, Pablo Virolainen,
  * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  * This program is free software; you can redistribute it and/or
@@ -81,6 +81,7 @@ extern long conf_lineno;
 %token TDATABASE_NEW
 %token TREPORT_URL
 %token TGZIPDBOUT
+%token TROOT_PREFIX
 %token TUMASK
 %token TTRUE
 %token TFALSE
@@ -150,7 +151,7 @@ lines : lines line | ;
 line : rule | equrule | negrule | definestmt | undefstmt
        | ifdefstmt | ifndefstmt | ifhoststmt | ifnhoststmt
        | groupdef | db_in | db_out | db_new | verbose | config_version 
-       | report | gzipdbout | recursion_stopper | warn_dead_symlinks | grouped
+       | report | gzipdbout | root_prefix | recursion_stopper | warn_dead_symlinks | grouped
        | summarize_changes | acl_no_symlink_follow | beginconfigstmt | endconfigstmt
        | TEOF {
             newlinelastinconfig=1;
@@ -303,6 +304,8 @@ warn_dead_symlinks : TWARNDEADSYMLINKS TFALSE {
 grouped : TGROUPED TTRUE {
   conf->grouped=1;
 } ;
+
+root_prefix : TROOT_PREFIX TSTRING { do_rootprefix($2); };
 
 grouped : TGROUPED TFALSE {
   conf->grouped=0;

@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2004-2006,2010 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002,2004-2006,2010,2011 Rami Lehti, Pablo Virolainen,
  * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -351,6 +351,9 @@ typedef struct db_config {
 
   int summarize_changes;
 
+  char* root_prefix;
+  int root_prefix_length;
+
   struct seltree* tree;
 
 } db_config;
@@ -387,6 +390,7 @@ typedef struct db_line {
   AIDE_OFF_TYPE size_o; /* ... */
   AIDE_BLKCNT_TYPE bcount;
   char* filename;
+  char* fullpath;
   char* linkname;
 
   char *cntx;

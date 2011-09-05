@@ -566,6 +566,11 @@ static void print_report_header() {
         error (2,_("Verbose level: %d"), conf->verbose_level);
         first = 0;
     }
+    if (conf->action&(DO_INIT|DO_COMPARE) && conf->root_prefix_length > 0) {
+        if (first) { first=0; }
+        else { error (2," | "); }
+        error (2,_("Root prefix: %s"),conf->root_prefix);
+    }
     if (ignored_attrs) {
         if (first) { first=0; }
         else { error (2," | "); }

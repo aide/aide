@@ -606,7 +606,7 @@ static void xattrs2line(db_line *line)
   /* assume memory allocs work, like rest of AIDE code... */
   if (!xatrs) xatrs = malloc(xsz);
   
-  while (((xret = llistxattr(line->filename, xatrs, xsz)) == -1) &&
+  while (((xret = llistxattr(line->fullpath, xatrs, xsz)) == -1) &&
          (errno == ERANGE))
   {
     xsz <<= 1;
@@ -616,7 +616,7 @@ static void xattrs2line(db_line *line)
   if ((xret == -1) && ((errno == ENOSYS) || (errno == ENOTSUP)))
   {   line->attr&=(~DB_XATTRS); }
   else if (xret == -1)
-    error(0, "listxattrs failed for %s:%m\n", line->filename);
+    error(0, "listxattrs failed for %s:%m\n", line->fullpath);
   else if (xret)
   {
     const char *attr = xatrs;
@@ -636,7 +636,7 @@ static void xattrs2line(db_line *line)
           strncmp(attr, "root.", strlen("root.")))
         goto next_attr; /* only store normal xattrs, and SELinux */
       
-      while (((aret = getxattr(line->filename, attr, val, asz)) == -1) &&
+      while (((aret = getxattr(line->fullpath, attr, val, asz)) == -1) &&
              (errno == ERANGE))
       {
         asz <<= 1;
@@ -646,7 +646,7 @@ static void xattrs2line(db_line *line)
       if (aret != -1)
         xattr_add(xattrs, attr, val, aret);
       else if (errno != ENOATTR)
-        error(0, "getxattr failed for %s:%m\n", line->filename);
+        error(0, "getxattr failed for %s:%m\n", line->fullpath);
       
      next_attr:
       attr += len + 1;
@@ -667,11 +667,11 @@ static void selinux2line(db_line *line)
   if (!(DB_SELINUX&line->attr))
     return;
 
-  if (lgetfilecon_raw(line->filename, &cntx) == -1)
+  if (lgetfilecon_raw(line->fullpath, &cntx) == -1)
   {
       line->attr&=(~DB_SELINUX);
       if ((errno != ENOATTR) && (errno != EOPNOTSUPP))
-          error(0, "lgetfilecon_raw failed for %s:%m\n", line->filename);
+          error(0, "lgetfilecon_raw failed for %s:%m\n", line->fullpath);
       return;
   }
 
@@ -1127,7 +1127,8 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr)
     Just copy some needed fields.
   */
   
-  line->filename=filename;
+  line->fullpath=filename;
+  line->filename=&filename[conf->root_prefix_length];
   line->perm_o=fs.st_mode;
   line->size_o=fs.st_size;
   line->linkname=NULL;
@@ -1287,9 +1288,9 @@ void hsymlnk(db_line* line) {
     if(conf->warn_dead_symlinks==1) {
       struct AIDE_STAT_TYPE fs;
       int sres;
-      sres=AIDE_STAT_FUNC(line->filename,&fs);
+      sres=AIDE_STAT_FUNC(line->fullpath,&fs);
       if (sres!=0 && sres!=EACCES) {
-	error(4,"Dead symlink detected at %s\n",line->filename);
+	error(4,"Dead symlink detected at %s\n",line->fullpath);
       }
       if(!(line->attr&DB_RDEV))
 	fs.st_rdev=0;
@@ -1316,7 +1317,7 @@ void hsymlnk(db_line* line) {
     */
     memset(line->linkname,0,_POSIX_PATH_MAX+1);
     
-    len=readlink(line->filename,line->linkname,_POSIX_PATH_MAX+1);
+    len=readlink(line->fullpath,line->linkname,_POSIX_PATH_MAX+1);
     
     /*
      * We use realloc :)

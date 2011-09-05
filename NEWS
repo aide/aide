@@ -1,6 +1,7 @@
 Version 0.16 (NOT_YET_RELEASED)
 	* Enabled summarize_changes by default
 	* Compare database entries just once
+	* Added new root_prefix option
 	* Wrap attribute values instead of cut them off
 	* Side-by-side output of acl and xattrs values
 	* Use '|' to separate the old value from the new one

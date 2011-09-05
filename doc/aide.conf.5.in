@@ -52,6 +52,11 @@ stdout.
 Whether the output to the database is gzipped or not. Valid values are
 yes,true,no and false. The default is no. This option is available only
 if zlib support is compiled in.
+.IP "root_prefix"
+The prefix to strip from each file name in the file system before applying the
+rules and writing to database. Aide removes a trailing slash from the prefix.
+The default is no (an empty) prefix. This option has no effect in
+compare mode.
 .IP "acl_no_symlink_follow"
 Whether to check ACLs for symlinks or not. Valid values are
 yes,true,no and false. The default is to follow symlinks. This option

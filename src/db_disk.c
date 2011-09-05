@@ -66,11 +66,17 @@ static struct seltree *r = NULL;
 static long td = -1;
 #endif
 static int rdres = 0;
-static char *start_path = "/";
 
 static int root_handled = 0;
 
-static int open_dir (void);
+static DIR *open_dir(char* path) {
+   if (dirh != NULL) {
+       if (closedir(dirh) != 0) {
+           /* Closedir did not success? */
+       }
+   }
+   return opendir(path);
+}
 
 static void next_in_dir (void)
 {
@@ -106,7 +112,7 @@ static char *name_construct (const char *s)
 {
 	char *ret;
 	int len2 = strlen (r->path);
-	int len = len2 + strlen (s) + 2;
+	int len = len2 + strlen (s) + 2 + conf->root_prefix_length;
 
 	if (r->path[len2 - 1] != '/') {
 		len++;
@@ -114,9 +120,10 @@ static char *name_construct (const char *s)
 
 	ret = (char *) malloc (len);
 	ret[0] = (char) 0;
-	strcpy (ret, r->path);
+	strncpy(ret, conf->root_prefix, conf->root_prefix_length+1);
+	strncat (ret, r->path, len2);
 	if (r->path[len2 - 1] != '/') {
-		strcat (ret, "/");
+		strncat (ret, "/", 1);
 	}
 	strcat (ret, s);
 	return ret;
@@ -146,7 +153,7 @@ void add_child (db_line * fil)
 	i = strlen (fil->filename);
 
 	new_r->path = malloc (i + 1);
-	strcpy (new_r->path, fil->filename);
+	strncpy(new_r->path, fil->filename, i+1);
 	new_r->childs = NULL;
 	new_r->sel_rx_lst = NULL;
 	new_r->neg_rx_lst = NULL;
@@ -179,16 +186,18 @@ db_line *db_readline_disk (int db)
 	/* root needs special handling */
 	if (!root_handled) {
 		root_handled = 1;
-		fullname = malloc (1 + 1);
-		strcpy (fullname, "/");
-		add = check_rxtree (fullname, conf->tree, &attr);
-		error (240, "%s match=%d, tree=%p, attr=%llu\n", fullname, add,
+		fullname=malloc((conf->root_prefix_length+2)*sizeof(char));
+		strncpy(fullname, conf->root_prefix, conf->root_prefix_length+1);
+		strncat (fullname, "/", 1);
+		add = check_rxtree (&fullname[conf->root_prefix_length], conf->tree, &attr);
+		error (240, "%s match=%d, tree=%p, attr=%llu\n", &fullname[conf->root_prefix_length], add,
 					 conf->tree, attr);
 
 		if (add) {
 			fil = get_file_attrs (fullname, attr);
 
-			error (240, "%s attr=%llu\n", fullname, attr);
+			error (240, "%s attr=%llu\n", &fullname[conf->root_prefix_length], attr);
+
 			if (fil != NULL) {
 				error (240, "%s attr=%llu\n", fil->filename, fil->attr);
 			}
@@ -235,14 +244,15 @@ recursion:
 		   If not call, db_readline_disk again...
 		 */
 
-		add = check_rxtree (fullname, conf->tree, &attr);
-		error (240, "%s match=%d, tree=%p, attr=%llu\n", fullname, add,
+		add = check_rxtree (&fullname[conf->root_prefix_length], conf->tree, &attr);
+		error (240, "%s match=%d, tree=%p, attr=%llu\n", &fullname[conf->root_prefix_length], add,
 					 conf->tree, attr);
 
 		if (add) {
 			fil = get_file_attrs (fullname, attr);
 
-			error (240, "%s attr=%llu\n", fullname, attr);
+			error (240, "%s attr=%llu\n", &fullname[conf->root_prefix_length], attr);
+
 			if (fil != NULL) {
 				error (240, "%s attr=%llu\n", fil->filename, fil->attr);
 			}
@@ -326,14 +336,12 @@ recursion:
 
 				error (255, "r->childs %p, r->parent %p,r->checked %i\n",
 							 r->childs, r->parent, r->checked);
-				/*
-				   Hack.
-				 */
-				start_path = r->path;
+				fullname=malloc((conf->root_prefix_length+strlen(r->path)+1)*sizeof(char));
+				strncpy(fullname, conf->root_prefix, conf->root_prefix_length+1);
+				strncat(fullname, r->path, strlen(r->path));
+				dirh=open_dir(fullname);
+				if (! dirh) {
 
-				error (255, "New start_path=%s\n", start_path);
-
-				if (open_dir () == RETFAIL) {
 					/* open_dir failed so we need to know why and print 
 					   an errormessage if needed.
 					   errno should still be the one from opendir() since it's global
@@ -356,20 +364,21 @@ recursion:
 						   having rules referring to them.
 						 */
 						error (10,
-									 "There are rules referring to non-existent directory %s\n", start_path);
+									 "There are rules referring to non-existent directory %s\n", fullname);
 					} else if (errno != ENOTDIR) {
 						/* We print the message unless it is "Not a directory". */
 						char *er = strerror (errno);
 						if (er != NULL) {
-							error (3, "open_dir():%s: %s\n", er, start_path);
+							error (3, "open_dir(): %s: %s\n", er, fullname);
 						} else {
-							error (3, "open_dir():%i: %s\n", errno, start_path);
+							error (3, "open_dir(): %i: %s\n", errno, fullname);
 						}
 					}
 					r->checked |= NODE_TRAVERSE | NODE_CHECKED;
 					r = r->parent;
 					error (255, "dropping back to parent\n");
 				}
+				free(fullname);
 			} else {
 				r->checked |= NODE_TRAVERSE | NODE_CHECKED;
 				r = r->parent;
@@ -400,31 +409,6 @@ recursion:
 	return fil;
 }
 
-static int open_dir (void)
-{
-	if (dirh != NULL) {
-		if (closedir (dirh) != 0) {
-			/*
-			   Closedir did not success?
-			 */
-		}
-
-	}
-
-	dirh = opendir (start_path);
-	if (dirh == NULL) {
-		/* Errors should not be printed here because then we get too many
-		   error messages. */
-		return RETFAIL;
-	}
-
-	/*
-	   Init the first time.
-	 */
-	return RETOK;
-
-}
-
 int db_disk_init ()
 {
 
@@ -446,7 +430,12 @@ int db_disk_init ()
 #   endif
 #  endif
 
-	open_dir ();
+
+	char* fullname=malloc((conf->root_prefix_length+2)*sizeof(char));
+	strncpy(fullname, conf->root_prefix, conf->root_prefix_length+1);
+	strncat (fullname, "/", 1);
+	dirh=open_dir(fullname);
+	free(fullname);
 
 	return RETOK;
 }

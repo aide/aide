@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2006,2010 Rami Lehti, Pablo Virolainen, Mike
+ * Copyright (C) 1999-2006,2010,2011 Rami Lehti, Pablo Virolainen, Mike
  * Markley, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -330,6 +330,9 @@ void setdefaults_before_config()
 
   conf->summarize_changes=1;
 
+  conf->root_prefix="";
+  conf->root_prefix_length=0;
+
   conf->selrxlst=NULL;
   conf->equrxlst=NULL;
   conf->negrxlst=NULL;
@@ -527,6 +530,20 @@ int main(int argc,char**argv)
     error(0,_("Must have both input databases defined for "
 	      "database compare.\n"));
     exit(INVALID_ARGUMENT_ERROR);
+  }
+  if (conf->action&(DO_INIT|DO_COMPARE) && conf->root_prefix_length > 0) {
+      DIR *dir;
+      if((dir = opendir(conf->root_prefix)) != NULL) {
+          closedir(dir);
+      } else {
+          char* er=strerror(errno);
+          if (er!=NULL) {
+              error(0,"opendir() for root prefix %s failed: %s\n", conf->root_prefix,er);
+          } else {
+              error(0,"opendir() for root prefix %s failed: %i\n", conf->root_prefix,errno);
+          }
+          exit(INVALID_ARGUMENT_ERROR);
+      }
   }
 #ifdef WITH_MHASH
   if(conf->config_check&&FORCECONFIGMD){

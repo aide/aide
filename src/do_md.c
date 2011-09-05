@@ -1,8 +1,8 @@
 /* aide, Advanced Intrusion Detection Environment
  * vi: ts=8 sw=8
  *
- * Copyright (C) 1999-2002,2004-2006,2009,2010 Rami Lehti, Pablo Virolainen,
- * Mike Markley, Richard van den Berg, Hannes von Haugwitz
+ * Copyright (C) 1999-2002,2004-2006,2009-2011 Rami Lehti, Pablo
+ * Virolainen, Mike Markley, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -222,19 +222,19 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
 #endif  
 
 #ifdef HAVE_O_NOATIME
-  filedes=open(line->filename,O_RDONLY|O_NOATIME);
+  filedes=open(line->fullpath,O_RDONLY|O_NOATIME);
   if(filedes<0)
 #endif
-    filedes=open(line->filename,O_RDONLY);
+    filedes=open(line->fullpath,O_RDONLY);
 
   if (filedes==-1) {
     char* er=strerror(errno);
     if (er!=NULL) {
       error(3,"do_md(): open() for %s failed: %s\n",
-	    line->filename,er);
+	    line->fullpath,er);
     } else {
       error(3,"do_md(): open() for %s failed: %i\n",
-	    line->filename,errno);
+	    line->fullpath,errno);
     }
     /*
       Nop. Cannot cal hashes. Mark it.
@@ -266,7 +266,7 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
     pid=0;
     if ( is_prelinked(filedes) ) {
       close(filedes);
-      pid = open_prelinked(line->filename, &filedes);
+      pid = open_prelinked(line->fullpath, &filedes);
       if (pid == 0) {
         error(0, "Error on starting prelink undo\n");
 	return;
@@ -312,7 +312,7 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
 	   r_size-=MMAP_BLOCK_SIZE;
 	 }
 	 if ( buf == MAP_FAILED ) {
-	   error(0,"error mmap'ing %s: %s\n", line->filename,strerror(errno));
+	   error(0,"error mmap'ing %s: %s\n", line->fullpath,strerror(errno));
 	   close(filedes);
 	   close_md(&mdc);
 	   return;
@@ -380,7 +380,7 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
     */
     
     error(5,"Entry %s was changed so that hash cannot be calculated for it\n"
-	  ,line->filename);
+	  ,line->fullpath);
 
     for(i=0;i<db_unknown;i++) {
       if (((1<<i)&stat_diff)!=0) {
@@ -461,20 +461,20 @@ void acl2line(db_line* line) {
     acl_t acl_d;
     char *tmp = NULL;
 
-    acl_a = acl_get_file(line->filename, ACL_TYPE_ACCESS);
-    acl_d = acl_get_file(line->filename, ACL_TYPE_DEFAULT);
+    acl_a = acl_get_file(line->fullpath, ACL_TYPE_ACCESS);
+    acl_d = acl_get_file(line->fullpath, ACL_TYPE_DEFAULT);
     if ((acl_a == NULL) && (errno == ENOTSUP)) {
       line->attr&=(~DB_ACL);
       return;
     }
     if (acl_a == NULL)
       error(0, "Tried to read access ACL on %s but failed with: %m\n",
-            line->filename);
+            line->fullpath);
     if ((acl_d == NULL) && (errno != EACCES)) /* ignore DEFAULT on files */
     {
       acl_free(acl_a);
       error(0, "Tried to read default ACL on %s but failed with: %m\n",
-            line->filename);
+            line->fullpath);
     }
 
     /* assume memory allocs work, like rest of AIDE code... */
@@ -509,18 +509,18 @@ void acl2line(db_line* line) {
   if(DB_ACL&line->attr) { /* There might be a bug here. */
     int res;
     line->acl=malloc(sizeof(acl_type));
-    line->acl->entries=acl(line->filename,GETACLCNT,0,NULL);
+    line->acl->entries=acl(line->fullpath,GETACLCNT,0,NULL);
     if (line->acl->entries==-1) {
       char* er=strerror(errno);
       line->acl->entries=0;
       if (er==NULL) {
-	error(0,"ACL query failed for %s. strerror failed for %i\n",line->filename,errno);
+	error(0,"ACL query failed for %s. strerror failed for %i\n",line->fullpath,errno);
       } else {
-	error(0,"ACL query failed for %s:%s\n",line->filename,er);
+	error(0,"ACL query failed for %s:%s\n",line->fullpath,er);
       }
     } else {
       line->acl->acl=malloc(sizeof(aclent_t)*line->acl->entries);
-      res=acl(line->filename,GETACL,line->acl->entries,line->acl->acl);
+      res=acl(line->fullpath,GETACL,line->acl->entries,line->acl->acl);
       if (res==-1) {
 	error(0,"ACL error %s\n",strerror(errno));
       } else {
@@ -539,7 +539,7 @@ void acl2line(db_line* line) {
 void e2fsattrs2line(db_line* line) {
     unsigned long flags;
     if (DB_E2FSATTRS&line->attr) {
-        if (fgetflags(line->filename, &flags) == 0) {
+        if (fgetflags(line->fullpath, &flags) == 0) {
             line->e2fsattrs=flags;
         } else {
             line->attr&=(~DB_E2FSATTRS);

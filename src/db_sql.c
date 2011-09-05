@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 2000-2002,2004-2006 Rami Lehti, Pablo Virolainen,
- * Richard van den Berg
+ * Copyright (C) 2000-2002,2004-2006,2011 Rami Lehti, Pablo Virolainen,
+ * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -281,7 +281,8 @@ db_line* db_readline_sql(int db, db_config* conf) {
   db_readline_sql_byte((void*)&(rline->haval),db,db_haval, conf);
   db_readline_sql_byte((void*)&(rline->gost),db,db_gost, conf);
 #endif
-  db_readline_sql_char((void*)&(rline->filename),db,db_filename, conf);
+  db_readline_sql_char((void*)&(rline->fullpath),db,db_filename, conf);
+  rline->filename=rline->fullpath;
   db_readline_sql_char((void*)&(rline->linkname),db,db_linkname, conf);
   
   db_readline_sql_int((void*)&(rline->perm),db,db_perm, conf);

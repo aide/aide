@@ -15,8 +15,8 @@ EX      [" "\t]*
 #define YYDEBUG
 
 /*
- * Copyright (C) 1999-2002,2004-2006,2010 Rami Lehti, Pablo Virolainen, Richard
- * van den Berg, Hannes von Haugwitz
+ * Copyright (C) 1999-2002,2004-2006,2010,2011 Rami Lehti, Pablo
+ * Virolainen, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -347,6 +347,12 @@ int var_in_conflval=0;
   error(230,"%li:gzip_dbout =\n",conf_lineno);
   BEGIN CONFVALHUNT;
   return (TGZIPDBOUT);
+}
+
+^[\t\ ]*"root_prefix"{E}  {
+  error(230,"%li:root_prefix =\n",conf_lineno);
+  BEGIN CONFVALHUNT;
+  return (TROOT_PREFIX);
 }
 
 ^[\t\ ]*"recstop"{E} {

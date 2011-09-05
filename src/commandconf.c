@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2006,2010 Rami Lehti, Pablo Virolainen, Richard
- * van den Berg, Hannes von Haugwitz
+ * Copyright (C) 1999-2006,2010,2011 Rami Lehti, Pablo Virolainen,
+ * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -896,6 +896,19 @@ void do_verbdef(char* val)
   }
 }
 
+void do_rootprefix(char* val) {
+    if (conf->root_prefix_length == 0) {
+        conf->root_prefix=val;
+        conf->root_prefix_length=strlen(conf->root_prefix);
+        if (conf->root_prefix_length && conf->root_prefix[conf->root_prefix_length-1] == '/') {
+            conf->root_prefix[--conf->root_prefix_length] = '\0';
+            error(200,_("Removed trailing '/' from root prefix \n"));
+        }
+        error(200,_("Root prefix set to '%s'\n"), conf->root_prefix);
+    } else {
+        error(200,_("Root prefix already set to '%s'\n"), conf->root_prefix);
+    }
+}
 
 const char* aide_key_7=CONFHMACKEY_07;
 const char* db_key_7=DBHMACKEY_07;

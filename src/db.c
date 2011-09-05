@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2006,2010 Rami Lehti, Pablo Virolainen, Richard
+ * Copyright (C) 1999-2006,2010,2011 Rami Lehti, Pablo Virolainen, Richard
  * van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -370,6 +370,7 @@ db_line* db_char2line(char** ss,int db){
   line->bcount=0;
   line->size=0;
   line->filename=NULL;
+  line->fullpath=NULL;
   line->linkname=NULL;
   line->acl=NULL;
   line->xattrs=NULL;
@@ -383,7 +384,8 @@ db_line* db_char2line(char** ss,int db){
     case db_filename : {
       if(ss[(*db_order)[i]]!=NULL){
 	decode_string(ss[(*db_order)[i]]);
-	line->filename=strdup(ss[(*db_order)[i]]);
+	line->fullpath=strdup(ss[(*db_order)[i]]);
+	line->filename=line->fullpath;
       } else {
 	error(0,"db_char2line():Error while reading database\n");
 	exit(EXIT_FAILURE);
@@ -827,7 +829,8 @@ void free_db_line(db_line* dl)
   checked_free(dl->sha1);
   checked_free(dl->rmd160);
   checked_free(dl->tiger);
-  checked_free(dl->filename);
+  dl->filename=NULL;
+  checked_free(dl->fullpath);
   checked_free(dl->linkname);
   
 #ifdef WITH_MHASH

@@ -154,12 +154,6 @@ pid_t open_prelinked(const char * path, int * fd) {
 
 #endif
 
-void md_init_fail(const char* s,db_line* db,byte** hash,DB_ATTR_TYPE i) {
-  error(0,"Message digest %s initialise failed\nDisabling %s for entry %s\n",s,s,db->filename);
-  db->attr=db->attr&(~i);
-  (*hash)=0;
-}
-
 void free_hashes(db_line* dl){
 
 #define free_hash(a) dl->a=NULL

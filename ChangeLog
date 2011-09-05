@@ -1,5 +1,7 @@
 2011-09-05	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Added new root_prefix option
+	* src/do_md.c:
+	  - removed unused function (md_init_fail)
 
 2011-09-04	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* include/gen_list.h, src/gen_list.c:

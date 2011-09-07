@@ -124,7 +124,7 @@ int commandconf(const char mode,const char* line)
       
       rv=access(config,R_OK);
       if(rv==-1){
-	error(0,_("Cannot access config file:%s:%s\n"),config,strerror(errno));
+	error(0,_("Cannot access config file: %s: %s\n"),config,strerror(errno));
       }
     }
     

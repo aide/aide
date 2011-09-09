@@ -764,20 +764,20 @@ void print_tree(seltree* tree) {
   
   list* r;
   rx_rule* rxc;
-  error(245,"tree: \"%s\"\n",tree->path);
+  error(220,"tree: \"%s\"\n",tree->path);
 
   for(r=tree->sel_rx_lst;r!=NULL;r=r->next) {
 	rxc=r->data;
-	error(246,"%li\t%s\n",rxc->conf_lineno,rxc->rx);
+	error(220,"%li\t%s\n",rxc->conf_lineno,rxc->rx);
   }
   for(r=tree->equ_rx_lst;r!=NULL;r=r->next) {
         rxc=r->data;
-        error(246,"%li=\t%s\n",rxc->conf_lineno,rxc->rx);
+        error(220,"%li=\t%s\n",rxc->conf_lineno,rxc->rx);
   }
   
   for(r=tree->neg_rx_lst;r!=NULL;r=r->next) {
 	  rxc=r->data;
-	  error(246,"%li!\t%s\n",rxc->conf_lineno,rxc->rx);
+	  error(220,"%li!\t%s\n",rxc->conf_lineno,rxc->rx);
   }
   
   for(r=tree->childs;r!=NULL;r=r->next) {

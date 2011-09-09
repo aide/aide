@@ -98,7 +98,7 @@ char* encode_base64(byte* src,size_t ssize)
   error(210, "encode base64");
   /* Exit on empty input */
   if (!ssize||src==NULL){
-    error(210,"\n");
+    error(240,"\n");
     return NULL;
   }
   outbuf = (char *)malloc(sizeof(char)*B64_BUF);

@@ -28,6 +28,7 @@
 #include <errno.h>
 #include <signal.h>
 #include <sys/types.h>
+#include <dirent.h>
 #include <time.h>
 
 #if HAVE_UNISTD_H

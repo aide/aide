@@ -4,11 +4,11 @@
 
 2011-09-17	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/aide.c:
-	 - added missing #include <dirent.h>
+	  - added missing #include <dirent.h>
 
 2011-09-09	Rami Lehti <rami.lehti@bitwise.fi>
 	* src/base64.c, src/gen_list.c:
-	 - Changed verbosity levels to ease debugging
+	  - changed verbosity levels to ease debugging
 
 2011-09-07	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/commandconf.c:

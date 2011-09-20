@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2004-2006,2010 Rami Lehti, Pablo Virolainen, Richard
- * van den Berg
+ * Copyright (C) 1999-2002,2004-2006,2010,2011 Rami Lehti, Pablo
+ * Virolainen, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -68,7 +68,7 @@ int snprintf(char *str,size_t count,const char *fmt,...);
 # define HAVE_STRTOIMAX
 #endif
 
-#if SIZEOF_OFF64_T == SIZEOF_LONG_LONG
+#if AIDE_OFF_TYPE == off64_t && SIZEOF_OFF64_T == SIZEOF_LONG_LONG || AIDE_OFF_TYPE == off_t && SIZEOF_OFF_T == SIZEOF_LONG_LONG
 # ifdef HAVE_STRTOLL
 #  define AIDE_STRTOLL_FUNC strtoll
 # else

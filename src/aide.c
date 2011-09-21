@@ -56,7 +56,7 @@ db_config* conf;
 #define MAXHOSTNAMELEN 256
 #endif
 
-void usage(int exitvalue)
+static void usage(int exitvalue)
 {
   fprintf(stderr, 
 	  _("Aide " AIDEVERSION" \n\n"
@@ -82,7 +82,7 @@ void usage(int exitvalue)
   exit(exitvalue);
 }
 
-void print_version(void)
+static void print_version(void)
 {
   fprintf(stderr,
 	  "Aide " AIDEVERSION "\n\n"
@@ -90,7 +90,7 @@ void print_version(void)
   exit(0);
 }
 
-int read_param(int argc,char**argv)
+static int read_param(int argc,char**argv)
 {
   int option = -1;
   char* err=NULL;
@@ -243,7 +243,7 @@ int read_param(int argc,char**argv)
   return RETOK;
 }
 
-void setdefaults_before_config()
+static void setdefaults_before_config()
 {
   char* urlstr=INITIALERRORSTO;
   url_t* u=NULL;
@@ -441,7 +441,7 @@ void setdefaults_before_config()
 
 }
 
-void setdefaults_after_config()
+static void setdefaults_after_config()
 {
   if(conf->db_in_url==NULL){
     url_t* u=NULL;

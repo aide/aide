@@ -95,13 +95,5 @@ int snprintf(char *str,size_t count,const char *fmt,...);
 /* This is a structure that has all configuration info */
 extern db_config* conf;
 
-void print_version(void);
-
-void usage(int);
-
-int read_param(int argc,char**argv);
-
-
-
 #endif
 

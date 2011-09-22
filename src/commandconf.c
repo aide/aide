@@ -243,7 +243,9 @@ int db_input_wrapper(char* buf, int max_size, int db)
   int c=0;
   int err=0;
   int* domd=NULL;
+#ifdef WITH_CURL
   url_t* db_url=NULL;
+#endif
 #ifdef WITH_MHASH
   char* tmp=NULL;
   MHASH* md=NULL;
@@ -256,7 +258,9 @@ int db_input_wrapper(char* buf, int max_size, int db)
 #endif
   switch(db) {
   case DB_OLD: {
+#ifdef WITH_CURL
     db_url=conf->db_in_url;
+#endif
     
     domd=&(conf->do_dboldmd);
 #ifdef WITH_MHASH
@@ -271,7 +275,9 @@ int db_input_wrapper(char* buf, int max_size, int db)
     break;
   }
   case DB_NEW: {
+#ifdef WITH_CURL
     db_url=conf->db_new_url;
+#endif
     
     domd=&(conf->do_dbnewmd);
 #ifdef WITH_MHASH

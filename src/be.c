@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2003,2005,2006,2010 Rami Lehti, Pablo Virolainen,
- * Richard van den Berg
+ * Copyright (C) 1999-2003,2005,2006,2010,2011 Rami Lehti, Pablo
+ * Virolainen, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -40,7 +40,7 @@
 /*for locale support*/
 
 #ifdef WITH_PSQL
-int be_sql_readinit(psql_data* ret) {
+static int be_sql_readinit(psql_data* ret) {
   /* Yes.. we don't want to know about two first result.. 
      and we want no memoryleaking.
   */
@@ -99,7 +99,7 @@ int be_sql_readinit(psql_data* ret) {
   
 }
 
-char* get_first_value(char** in){
+static char* get_first_value(char** in){
   int i=0;
   char* ret = (*in);
   while((*in)[i]!=':' && (*in)[i]!='\0') {

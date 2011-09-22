@@ -1,3 +1,7 @@
+2011-09-22	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* src/be.c:
+	  - declared static functions static
+
 2011-09-21	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* include/aide.h, src/aide.c:
 	  - declared static functions static

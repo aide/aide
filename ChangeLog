@@ -5,6 +5,8 @@
 	  - fixed 'unused-but-set-variable' compiler warning
 	* src/compare_db.c:
 	  - fixed some 'format' compiler warnings
+	* src/db.c:
+	  - fixed 'unused-but-set-variable' compiler warnings
 
 2011-09-21	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* include/aide.h, src/aide.c:

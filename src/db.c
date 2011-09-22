@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2006,2010,2011 Rami Lehti, Pablo Virolainen, Richard
- * van den Berg, Hannes von Haugwitz
+ * Copyright (C) 1999-2006,2010,2011 Rami Lehti, Pablo Virolainen,
+ * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -323,22 +323,16 @@ db_line* db_char2line(char** ss,int db){
 
   int i;
   db_line* line=(db_line*)malloc(sizeof(db_line)*1);
-  url_t* db_url=NULL;
-  FILE** db_filep=NULL;
   int* db_osize=0;
   DB_FIELD** db_order=NULL;
 
   switch (db) {
   case DB_OLD: {
-    db_url=conf->db_in_url;
-    db_filep=&(conf->db_in);
     db_osize=&(conf->db_in_size);
     db_order=&(conf->db_in_order);
     break;
   }
   case DB_NEW: {
-    db_url=conf->db_new_url;
-    db_filep=&(conf->db_new);
     db_osize=&(conf->db_new_size);
     db_order=&(conf->db_new_order);
     break;

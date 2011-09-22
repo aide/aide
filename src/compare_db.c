@@ -584,10 +584,10 @@ static void print_report_header() {
     if (!first) { error (2,"\n"); }
 
     if(conf->action&(DO_COMPARE|DO_DIFF) && (nadd||nrem||nchg)) {
-        error(0,_("\nSummary:\n  Total number of entries:\t%i\n  Added entries:\t\t%i\n"
-                    "  Removed entries:\t\t%i\n  Changed entries:\t\t%i\n\n"), ntotal, nadd, nrem, nchg);
+        error(0,_("\nSummary:\n  Total number of entries:\t%li\n  Added entries:\t\t%li\n"
+                    "  Removed entries:\t\t%li\n  Changed entries:\t\t%li\n\n"), ntotal, nadd, nrem, nchg);
     } else {
-        error(0,_("\nNumber of entries:\t%i\n"), ntotal);
+        error(0,_("\nNumber of entries:\t%li\n"), ntotal);
     }
 }
 

@@ -1,6 +1,9 @@
 2011-09-23	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* include/db_disk.h, src/db_disk.c, src/db.c:
 	  - fixed 'unused-parameter' compiler warning
+	* include/db_disk.h, src/db_disk.c:
+	  - removed unused functions (db_disk_read_spec, db_writespec_disk,
+	    db_writeline_disk, db_close_disk)
 
 2011-09-22	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/be.c:

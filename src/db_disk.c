@@ -440,29 +440,11 @@ int db_disk_init ()
 	return RETOK;
 }
 
-int db_disk_read_spec (int db)
-{
-	return RETOK;
-}
-
 /*
-  We don't support writing to disk, since we are'n a backup/restore software
+  We don't support writing to the pseudo-database disk, since we are'n a
+  backup/restore software. Hence the functions db_writespec_disk,
+  db_writeline_disk and db_close_disk aren't declared.
  */
-
-int db_writespec_disk (db_config * dbconf)
-{
-	return RETFAIL;
-}
-
-int db_writeline_disk (db_line * line, db_config * dbconf)
-{
-	return RETFAIL;
-}
-
-int db_close_disk (db_config * dbconf)
-{
-	return RETOK;
-}
 
 const char *aide_key_6 = CONFHMACKEY_06;
 const char *db_key_6 = DBHMACKEY_06;

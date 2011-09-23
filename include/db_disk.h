@@ -25,9 +25,6 @@
 #include "db.h"
 
 db_line* db_readline_disk();
-int db_writespec_disk(db_config*);
-int db_writeline_disk(db_line* line,db_config* conf);
-int db_close_disk(db_config* conf);
 int db_disk_init(void);
 
 #endif

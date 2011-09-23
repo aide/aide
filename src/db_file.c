@@ -169,33 +169,18 @@ int db_file_read_spec(int db){
   int i=0;
   int* db_osize=0;
   DB_FIELD** db_order=NULL;
-  FILE** db_filep=NULL;
-  url_t* db_url=NULL;
-#ifdef WITH_ZLIB
-  gzFile* db_gzp=NULL;
-#endif
 
   switch (db) {
   case DB_OLD: {
     db_osize=&(conf->db_in_size);
     db_order=&(conf->db_in_order);
-    db_filep=&(conf->db_in);
-    db_url=conf->db_in_url;
     db_lineno=&db_in_lineno;
-#ifdef WITH_ZLIB
-    db_gzp=&(conf->db_gzin);
-#endif
     break;
   }
   case DB_NEW: {
     db_osize=&(conf->db_new_size);
     db_order=&(conf->db_new_order);
-    db_filep=&(conf->db_new);
-    db_url=conf->db_new_url;
     db_lineno=&db_new_lineno;
-#ifdef WITH_ZLIB
-    db_gzp=&(conf->db_gznew);
-#endif
     break;
   }
   }
@@ -308,9 +293,6 @@ char** db_readline_file(int db){
   DB_FIELD** db_order=NULL;
   FILE** db_filep=NULL;
   url_t* db_url=NULL;
-#ifdef WITH_ZLIB
-  gzFile* db_gzp=NULL;
-#endif
 
   switch (db) {
   case DB_OLD: {
@@ -325,10 +307,6 @@ char** db_readline_file(int db){
     db_filep=&(conf->db_in);
     db_url=conf->db_in_url;
     db_lineno=&db_in_lineno;
-    
-#ifdef WITH_ZLIB
-    db_gzp=&(conf->db_gzin);
-#endif
     break;
   }
   case DB_NEW: {
@@ -343,9 +321,6 @@ char** db_readline_file(int db){
     db_filep=&(conf->db_new);
     db_url=conf->db_new_url;
     db_lineno=&db_new_lineno;
-#ifdef WITH_ZLIB
-    db_gzp=&(conf->db_gznew);
-#endif
     break;
   }
   }

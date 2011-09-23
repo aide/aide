@@ -4,6 +4,8 @@
 	* include/db_disk.h, src/db_disk.c:
 	  - removed unused functions (db_disk_read_spec, db_writespec_disk,
 	    db_writeline_disk, db_close_disk)
+	* src/db_file.c:
+	  - fixed 'unused-but-set-variable' compiler warnings
 
 2011-09-22	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/be.c:

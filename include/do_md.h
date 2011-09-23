@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2006,2010 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002,2006,2010,2011 Rami Lehti, Pablo Virolainen,
  * Richard van den Berg, Hannes von Haugwitz
  * 
  * $Header$
@@ -32,7 +32,9 @@
 
 list* do_md(list* file_lst,db_config* conf);
 
+#ifdef WITH_ACL
 void acl2line(db_line* line);
+#endif
 
 #ifdef WITH_E2FSATTRS
 void e2fsattrs2line(db_line* line);

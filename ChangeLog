@@ -6,6 +6,8 @@
 	    db_writeline_disk, db_close_disk)
 	* src/db_file.c:
 	  - fixed 'unused-but-set-variable' compiler warnings
+	* src/gen_list.c, include/do_md.h, src/do_md.c:
+	  - call acl2line only if WITH_ACL is defined
 
 2011-09-22	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/be.c:

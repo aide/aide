@@ -446,6 +446,7 @@ void fs2db_line(struct AIDE_STAT_TYPE* fs,db_line* line) {
   
 }
 
+#ifdef WITH_ACL
 void acl2line(db_line* line) {
   acl_type *ret = NULL;
   
@@ -528,6 +529,7 @@ void acl2line(db_line* line) {
   }
 #endif
 }
+#endif
 
 #ifdef WITH_E2FSATTRS
 void e2fsattrs2line(db_line* line) {

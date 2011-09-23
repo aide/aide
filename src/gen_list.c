@@ -1148,7 +1148,10 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr)
   /*
     ACL stuff
   */
+
+#ifdef WITH_ACL
   acl2line(line);
+#endif
 
   xattrs2line(line);
 

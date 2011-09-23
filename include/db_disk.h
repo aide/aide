@@ -1,6 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999,2000,2001,2002 Rami Lehti, Pablo Virolainen
+ * Copyright (C) 1999-2002,2011 Rami Lehti, Pablo Virolainen, Hannes von
+ * Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -23,7 +24,7 @@
 
 #include "db.h"
 
-db_line* db_readline_disk(int);
+db_line* db_readline_disk();
 int db_writespec_disk(db_config*);
 int db_writeline_disk(db_line* line,db_config* conf);
 int db_close_disk(db_config* conf);

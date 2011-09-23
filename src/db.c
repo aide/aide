@@ -206,7 +206,7 @@ db_line* db_readline(int db){
     /*
       Nothing else to be done?
      */
-    s=db_readline_disk(db);
+    s=db_readline_disk();
     return s;
   }
   

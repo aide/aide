@@ -1,8 +1,8 @@
 /* aide, Advanced Intrusion Detection Environment
  * vi: ts=2 sw=2
  *
- * Copyright (C) 1999-2006,2010,2011 Rami Lehti, Pablo Virolainen, Richard
- * van den Berg, Mike Markley, Hannes von Haugwitz
+ * Copyright (C) 1999-2006,2010,2011 Rami Lehti, Pablo Virolainen,
+ * Richard van den Berg, Mike Markley, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -176,7 +176,7 @@ void add_child (db_line * fil)
   Now implemented with goto-statement. Yeah, it's ugly and easy.
 */
 
-db_line *db_readline_disk (int db)
+db_line *db_readline_disk ()
 {
 	db_line *fil = NULL;
 	DB_ATTR_TYPE attr;

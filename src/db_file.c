@@ -803,6 +803,7 @@ int db_writespec_file(db_config* dbconf)
   return RETOK;
 }
 
+#ifdef WITH_ACL
 int db_writeacl(acl_type* acl,FILE* file,int a)
 {
 #ifdef WITH_SUN_ACL
@@ -856,6 +857,7 @@ int db_writeacl(acl_type* acl,FILE* file,int a)
   
   return RETOK;
 }
+#endif
 
 int db_writeline_file(db_line* line,db_config* dbconf, url_t* url){
   int i;

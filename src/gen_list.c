@@ -552,112 +552,6 @@ void gen_seltree(list* rxlist,seltree* tree,char type)
   }
 }
 
-static xattrs_type *xattr_new(void)
-{
-  xattrs_type *ret = NULL;
-
-  ret = malloc(sizeof(xattrs_type));
-  ret->num = 0;
-  ret->sz  = 2;
-  ret->ents = malloc(sizeof(xattr_node) * ret->sz);
-
-  return (ret);
-}
-
-static void *xzmemdup(const void *ptr, size_t len)
-{ /* always keeps a 0 at the end... */
-  void *ret = NULL;
-
-  ret = malloc(len+1);
-  memcpy(ret, ptr, len);
-  ((char*)ret)[len] = 0;
-  
-  return (ret);
-}
-
-static void xattr_add(xattrs_type *xattrs,
-                      const char *key, const char *val, size_t vsz)
-{
-  if (xattrs->num >= xattrs->sz)
-  {
-    xattrs->sz <<= 1;
-    xattrs->ents = realloc(xattrs->ents, sizeof(xattr_node) * xattrs->sz);
-  }
-
-  xattrs->ents[xattrs->num].key = strdup(key);
-  xattrs->ents[xattrs->num].val = xzmemdup(val, vsz);
-  xattrs->ents[xattrs->num].vsz = vsz;
-
-  xattrs->num += 1;
-}
-
-/* should be in do_md ? */
-static void xattrs2line(db_line *line)
-{ /* get all generic user xattrs. */
-#ifdef WITH_XATTR
-  xattrs_type *xattrs = NULL;
-  static ssize_t xsz = 1024;
-  static char *xatrs = NULL;
-  ssize_t xret = -1;
-
-  if (!(DB_XATTRS&line->attr))
-    return;
-  
-  /* assume memory allocs work, like rest of AIDE code... */
-  if (!xatrs) xatrs = malloc(xsz);
-  
-  while (((xret = llistxattr(line->fullpath, xatrs, xsz)) == -1) &&
-         (errno == ERANGE))
-  {
-    xsz <<= 1;
-    xatrs = realloc(xatrs, xsz);
-  }
-
-  if ((xret == -1) && ((errno == ENOSYS) || (errno == ENOTSUP)))
-  {   line->attr&=(~DB_XATTRS); }
-  else if (xret == -1)
-    error(0, "listxattrs failed for %s:%m\n", line->fullpath);
-  else if (xret)
-  {
-    const char *attr = xatrs;
-    static ssize_t asz = 1024;
-    static char *val = NULL;
-
-    if (!val) val = malloc(asz);
-    
-    xattrs = xattr_new();
-  
-    while (xret > 0)
-    {
-      size_t len = strlen(attr);
-      ssize_t aret = 0;
-      
-      if (strncmp(attr, "user.", strlen("user.")) &&
-          strncmp(attr, "root.", strlen("root.")))
-        goto next_attr; /* only store normal xattrs, and SELinux */
-      
-      while (((aret = getxattr(line->fullpath, attr, val, asz)) == -1) &&
-             (errno == ERANGE))
-      {
-        asz <<= 1;
-        val = realloc (val, asz);
-      }
-      
-      if (aret != -1)
-        xattr_add(xattrs, attr, val, aret);
-      else if (errno != ENOATTR)
-        error(0, "getxattr failed for %s:%m\n", line->fullpath);
-      
-     next_attr:
-      attr += len + 1;
-      xret -= len + 1;
-    }
-  }
-
-  line->xattrs = xattrs;
-#endif
-}
-
 int check_list_for_match(list* rxrlist,char* text,DB_ATTR_TYPE* attr)
 {
   list* r=NULL;
@@ -1130,7 +1024,9 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr)
   acl2line(line);
 #endif
 
+#ifdef WITH_XATTR
   xattrs2line(line);
+#endif
 
 #ifdef WITH_SELINUX
   selinux2line(line);

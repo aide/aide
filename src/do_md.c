@@ -531,6 +531,26 @@ void acl2line(db_line* line) {
 }
 #endif
 
+#ifdef WITH_SELINUX
+void selinux2line(db_line *line) {
+    char *cntx = NULL;
+
+    if (!(DB_SELINUX&line->attr))
+        return;
+
+    if (lgetfilecon_raw(line->fullpath, &cntx) == -1) {
+        line->attr&=(~DB_SELINUX);
+        if ((errno != ENOATTR) && (errno != EOPNOTSUPP))
+            error(0, "lgetfilecon_raw failed for %s:%m\n", line->fullpath);
+        return;
+    }
+
+    line->cntx = strdup(cntx);
+
+    freecon(cntx);
+}
+#endif
+
 #ifdef WITH_E2FSATTRS
 void e2fsattrs2line(db_line* line) {
     unsigned long flags;

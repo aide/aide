@@ -36,6 +36,10 @@ list* do_md(list* file_lst,db_config* conf);
 void acl2line(db_line* line);
 #endif
 
+#ifdef WITH_SELINUX
+void selinux2line(db_line *line);
+#endif
+
 #ifdef WITH_E2FSATTRS
 void e2fsattrs2line(db_line* line);
 #endif

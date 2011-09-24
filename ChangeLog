@@ -1,3 +1,7 @@
+2011-09-24	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* src/gen_list.c, include/do_md.h, src/do_md.c:
+	  - moved selinux2line function to src/do_md.c
+
 2011-09-23	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* include/db_disk.h, src/db_disk.c, src/db.c:
 	  - fixed 'unused-parameter' compiler warning

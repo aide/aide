@@ -658,29 +658,6 @@ static void xattrs2line(db_line *line)
 #endif
 }
 
-/* should be in do_md ? */
-static void selinux2line(db_line *line)
-{
-#ifdef WITH_SELINUX
-  char *cntx = NULL;
-
-  if (!(DB_SELINUX&line->attr))
-    return;
-
-  if (lgetfilecon_raw(line->fullpath, &cntx) == -1)
-  {
-      line->attr&=(~DB_SELINUX);
-      if ((errno != ENOATTR) && (errno != EOPNOTSUPP))
-          error(0, "lgetfilecon_raw failed for %s:%m\n", line->fullpath);
-      return;
-  }
-
-  line->cntx = strdup(cntx);
-  
-  freecon(cntx);
-#endif
-}
-
 int check_list_for_match(list* rxrlist,char* text,DB_ATTR_TYPE* attr)
 {
   list* r=NULL;
@@ -1155,7 +1132,9 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr)
 
   xattrs2line(line);
 
+#ifdef WITH_SELINUX
   selinux2line(line);
+#endif
 
 #ifdef WITH_E2FSATTRS
     e2fsattrs2line(line);

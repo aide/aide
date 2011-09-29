@@ -1,3 +1,7 @@
+2011-09-29	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* configure.in, include/aide.h, src/db_file.c:
+	 - fixed 'undef' compiler warnings
+
 2011-09-24	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/gen_list.c, include/do_md.h, src/do_md.c:
 	  - moved selinux2line function to src/do_md.c

@@ -641,7 +641,7 @@ int db_writelong(AIDE_OFF_TYPE i,FILE* file,int a)
     dofprintf(" ");
   }
   
-#if AIDE_OFF_TYPE == off64_t && SIZEOF_OFF64_T == SIZEOF_LONG_LONG || AIDE_OFF_TYPE == off_t && SIZEOF_OFF_T == SIZEOF_LONG_LONG
+#if defined HAVE_OFF64_TYPE && SIZEOF_OFF64_T == SIZEOF_LONG_LONG || !defined HAVE_OFF64_TYPE && SIZEOF_OFF_T == SIZEOF_LONG_LONG
   return dofprintf("%lli",(long long)i);
 #else
   return dofprintf("%li",i);

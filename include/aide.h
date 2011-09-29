@@ -68,7 +68,7 @@ int snprintf(char *str,size_t count,const char *fmt,...);
 # define HAVE_STRTOIMAX
 #endif
 
-#if AIDE_OFF_TYPE == off64_t && SIZEOF_OFF64_T == SIZEOF_LONG_LONG || AIDE_OFF_TYPE == off_t && SIZEOF_OFF_T == SIZEOF_LONG_LONG
+#if defined HAVE_OFF64_TYPE && SIZEOF_OFF64_T == SIZEOF_LONG_LONG || !defined HAVE_OFF64_TYPE && SIZEOF_OFF_T == SIZEOF_LONG_LONG
 # ifdef HAVE_STRTOLL
 #  define AIDE_STRTOLL_FUNC strtoll
 # else

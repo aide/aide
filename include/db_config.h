@@ -309,6 +309,7 @@ typedef struct db_config {
   list* negrxlst;
 
   int verbose_level;
+  int detailed_init_report;
   int use_initial_errorsto;
 
   url_t* initial_report_url;

@@ -48,6 +48,10 @@ output is written when doing \-\-check, \-\-update or \-\-compare.
 The url that the output is written to. There can be multiple instances
 of this parameter. Output is written to all of them. The default is
 stdout. 
+.IP "detailed_init_report"
+Whether to report added files (verbose level >= 2) and their details (verbose
+level >=6) in initialization mode or not. Valid values are yes, true, no and
+false. The default is to not report added files or their details in init mode.
 .IP "gzip_dbout"
 Whether the output to the database is gzipped or not. Valid values are
 yes,true,no and false. The default is no. This option is available only

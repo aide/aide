@@ -1,3 +1,6 @@
+2011-10-02	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Added new detailed_init_report option
+
 2011-09-29	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* configure.in, include/aide.h, src/db_file.c:
 	 - fixed 'undef' compiler warnings

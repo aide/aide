@@ -75,6 +75,7 @@ extern long conf_lineno;
 %token TSUMMARIZECHANGES
 %token TNEWLINE
 %token TVERBOSE
+%token TDETAILEDINITREPORT
 %token TCONFIG_FILE
 %token TDATABASE
 %token TDATABASE_OUT
@@ -150,7 +151,7 @@ lines : lines line | ;
 
 line : rule | equrule | negrule | definestmt | undefstmt
        | ifdefstmt | ifndefstmt | ifhoststmt | ifnhoststmt
-       | groupdef | db_in | db_out | db_new | verbose | config_version 
+       | groupdef | db_in | db_out | db_new | verbose | detailed_init_report | config_version
        | report | gzipdbout | root_prefix | recursion_stopper | warn_dead_symlinks | grouped
        | summarize_changes | acl_no_symlink_follow | beginconfigstmt | endconfigstmt
        | TEOF {
@@ -299,6 +300,14 @@ warn_dead_symlinks : TWARNDEADSYMLINKS TTRUE {
 
 warn_dead_symlinks : TWARNDEADSYMLINKS TFALSE {
   conf->warn_dead_symlinks=0;
+} ;
+
+detailed_init_report : TDETAILEDINITREPORT TTRUE {
+  conf->detailed_init_report=1;
+} ;
+
+detailed_init_report : TDETAILEDINITREPORT TFALSE {
+  conf->detailed_init_report=0;
 } ;
 
 grouped : TGROUPED TTRUE {

@@ -343,6 +343,12 @@ int var_in_conflval=0;
   return (TREPORT_URL);  
 }
 
+^[\t\ ]*"detailed_init_report"{E} {
+  error(230,"%li:detailed_init_report =\n",conf_lineno);
+  BEGIN CONFVALHUNT;
+  return (TDETAILEDINITREPORT);
+}
+
 ^[\t\ ]*"gzip_dbout"{E} {
   error(230,"%li:gzip_dbout =\n",conf_lineno);
   BEGIN CONFVALHUNT;

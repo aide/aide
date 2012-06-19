@@ -1,3 +1,6 @@
+2012-06-19	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* src/db_file.c: added missing format string to dofprintf calls
+
 2011-10-02	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Added new detailed_init_report option
 

@@ -669,7 +669,7 @@ int db_write_byte_base64(byte*data,size_t len,FILE* file,int i,
   }
 
   if(tmpstr){
-    retval=dofprintf(tmpstr);
+    retval=dofprintf("%s", tmpstr);
     free(tmpstr);
     return retval;
   }else {
@@ -708,7 +708,7 @@ int db_write_time_base64(time_t i,FILE* file,int a)
 
 
   tmpstr=encode_base64((byte *)ptr,strlen(ptr));
-  retval=dofprintf(tmpstr);
+  retval=dofprintf("%s", tmpstr);
   free(tmpstr);
   free(ptr);
 

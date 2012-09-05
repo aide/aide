@@ -134,8 +134,22 @@ const char* details_string[] = { _("File type") , _("Lname"), _("Size"), _("Size
     unsigned long flag_bits[] = { EXT2_SECRM_FL, EXT2_UNRM_FL, EXT2_SYNC_FL, EXT2_DIRSYNC_FL, EXT2_IMMUTABLE_FL,
         EXT2_APPEND_FL, EXT2_NODUMP_FL, EXT2_NOATIME_FL, EXT2_COMPR_FL, EXT2_COMPRBLK_FL,
         EXT2_DIRTY_FL, EXT2_NOCOMPR_FL, EXT2_ECOMPR_FL, EXT3_JOURNAL_DATA_FL, EXT2_INDEX_FL,
-        EXT2_NOTAIL_FL, EXT2_TOPDIR_FL, EXT4_EXTENTS_FL, EXT4_HUGE_FILE_FL};
-    char flag_char[] = "suSDiadAcBZXEjItTeh";
+        EXT2_NOTAIL_FL, EXT2_TOPDIR_FL
+#ifdef EXT4_EXTENTS_FL
+        , EXT4_EXTENTS_FL
+#endif
+#ifdef EXT4_HUGE_FILE_FL
+        , EXT4_HUGE_FILE_FL
+#endif
+    };
+    char flag_char[] = { 's', 'u', 'S', 'D', 'i', 'a', 'd', 'A', 'c', 'B', 'Z', 'X', 'E', 'j', 'I', 't', 'T'
+#ifdef EXT4_EXTENTS_FL
+    , 'e'
+#endif
+#ifdef EXT4_HUGE_FILE_FL
+    , 'h'
+#endif
+    };
 #endif
 /*************/
 
@@ -257,16 +271,17 @@ static int acl2array(acl_type* acl, char* **values) {
 
 #ifdef WITH_E2FSATTRS
 static char* e2fsattrs2string(unsigned long flags) {
-    char* string = malloc (20 * sizeof (char));
+    int length = sizeof(flag_bits)/sizeof(long);
+    char* string = malloc ((length+1) * sizeof (char));
     int i;
-    for (i = 0 ; i < 19 ; i++) {
+    for (i = 0 ; i < length ; i++) {
         if (flag_bits[i] & flags) {
             string[i]=flag_char[i];
         } else {
             string[i]='-';
         }
     }
-    string[19] = '\0';
+    string[length] = '\0';
     return string;
 }
 #endif

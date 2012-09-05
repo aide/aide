@@ -1,3 +1,6 @@
+2012-09-05	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* src/compare_db.c: support older versions of e2fsprogs
+
 2012-06-19	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/db_file.c: added missing format string to dofprintf calls
 

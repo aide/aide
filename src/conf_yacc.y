@@ -1,7 +1,7 @@
 %{ 
 
 /*	
- * Copyright (C) 1999-2006,2010,2011 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2006,2010-2012 Rami Lehti, Pablo Virolainen,
  * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  * This program is free software; you can redistribute it and/or
@@ -76,6 +76,7 @@ extern long conf_lineno;
 %token TNEWLINE
 %token TVERBOSE
 %token TDETAILEDINITREPORT
+%token TREPORTBASE16
 %token TCONFIG_FILE
 %token TDATABASE
 %token TDATABASE_OUT
@@ -152,7 +153,7 @@ lines : lines line | ;
 line : rule | equrule | negrule | definestmt | undefstmt
        | ifdefstmt | ifndefstmt | ifhoststmt | ifnhoststmt
        | groupdef | db_in | db_out | db_new | verbose | detailed_init_report | config_version
-       | report | gzipdbout | root_prefix | recursion_stopper | warn_dead_symlinks | grouped
+       | report | gzipdbout | root_prefix | report_base16 | recursion_stopper | warn_dead_symlinks | grouped
        | summarize_changes | acl_no_symlink_follow | beginconfigstmt | endconfigstmt
        | TEOF {
             newlinelastinconfig=1;
@@ -308,6 +309,14 @@ detailed_init_report : TDETAILEDINITREPORT TTRUE {
 
 detailed_init_report : TDETAILEDINITREPORT TFALSE {
   conf->detailed_init_report=0;
+} ;
+
+report_base16 : TREPORTBASE16 TTRUE {
+  conf->report_base16=1;
+} ;
+
+report_base16 : TREPORTBASE16 TFALSE {
+  conf->report_base16=0;
 } ;
 
 grouped : TGROUPED TTRUE {

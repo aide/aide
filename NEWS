@@ -3,6 +3,7 @@ Version 0.16 (NOT_YET_RELEASED)
 	* Compare database entries just once
 	* Added new root_prefix option
 	* Added new detailed_init_report option
+	* Added new report_base16 option
 	* Wrap attribute values instead of cut them off
 	* Side-by-side output of acl and xattrs values
 	* Use '|' to separate the old value from the new one

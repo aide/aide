@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2004-2006,2010,2011 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002,2004-2006,2010-2012 Rami Lehti, Pablo Virolainen,
  * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -310,6 +310,7 @@ typedef struct db_config {
 
   int verbose_level;
   int detailed_init_report;
+  int report_base16;
   int use_initial_errorsto;
 
   url_t* initial_report_url;

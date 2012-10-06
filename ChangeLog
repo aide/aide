@@ -1,3 +1,6 @@
+2012-10-06	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Added new report_base16 option
+
 2012-09-05	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c: support older versions of e2fsprogs
 

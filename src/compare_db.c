@@ -306,6 +306,15 @@ static char* get_file_type_string(mode_t mode) {
     }
 }
 
+static char* byte_to_base16(byte* src, size_t ssize) {
+    char* str = malloc((2*ssize+1) * sizeof (char));
+    int i;
+    for(i=0; i<ssize; ++i) {
+        snprintf(&str[2*i], 3, "%02x", src[i]);
+    }
+    return str;
+}
+
 static int get_attribute_values(DB_ATTR_TYPE attr, db_line* line,
         char* **values) {
 
@@ -316,7 +325,11 @@ snprintf(*values[0], l, "%s",s);
 
 #define easy_md(a,b,c) \
 } else if (a&attr) { \
-    *values[0] = encode_base64(line->b, c);
+    if (conf->report_base16) { \
+        *values[0] = byte_to_base16(line->b, c); \
+    } else { \
+        *values[0] = encode_base64(line->b, c); \
+    }
 
 #define easy_number(a,b,c) \
 } else if (a&attr) { \

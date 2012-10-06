@@ -15,7 +15,7 @@ EX      [" "\t]*
 #define YYDEBUG
 
 /*
- * Copyright (C) 1999-2002,2004-2006,2010,2011 Rami Lehti, Pablo
+ * Copyright (C) 1999-2002,2004-2006,2010-2012 Rami Lehti, Pablo
  * Virolainen, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  * This program is free software; you can redistribute it and/or
@@ -347,6 +347,12 @@ int var_in_conflval=0;
   error(230,"%li:detailed_init_report =\n",conf_lineno);
   BEGIN CONFVALHUNT;
   return (TDETAILEDINITREPORT);
+}
+
+^[\t\ ]*"report_base16"{E} {
+  error(230,"%li:report_base16 =\n",conf_lineno);
+  BEGIN CONFVALHUNT;
+  return (TREPORTBASE16);
 }
 
 ^[\t\ ]*"gzip_dbout"{E} {

@@ -1,3 +1,8 @@
+2012-10-08	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* src/gen_list.c: fixed handling of renamed files
+	  - read in databases in one go
+	  - read in old database at the end
+
 2012-10-06	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Added new report_base16 option
 

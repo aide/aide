@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2006,2009-2011 Rami Lehti,Pablo Virolainen, Mike
+ * Copyright (C) 1999-2006,2009-2012 Rami Lehti,Pablo Virolainen, Mike
  * Markley, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -1052,7 +1052,6 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr)
 void populate_tree(seltree* tree)
 {
   /* FIXME this function could really use threads */
-  int i=0;
   int add=0;
   db_line* old=NULL;
   db_line* new=NULL;
@@ -1074,39 +1073,9 @@ void populate_tree(seltree* tree)
     ignorelist=0;
   }
   
-  do{
-    /* We add 100 files every turn from both inputs 
-       if the other input is disk it is added one dir at a time until
-       100 files have been added  
-    */
-    if((conf->action&DO_COMPARE)||(conf->action&DO_DIFF)){
-      i=0;
-      for(old=db_readline(DB_OLD);i<100&&old;){
-	/* This is needed because check_rxtree assumes there is a parent
-	   for the node for old->filename */
-	if((node=get_seltree_node(tree,old->filename))==NULL){
-	  node=new_seltree_node(tree,old->filename,0,NULL);
-	}
-	if((add=check_rxtree(old->filename,tree,&attr))>0){
-	  add_file_to_tree(tree,old,DB_OLD,0,attr);
-	  i++;
-	}else{
-          free_db_line(old);
-          free(old);
-          old=NULL;
-          if(!initdbwarningprinted){
-	    error(3,_("WARNING: Old db contains a entry that shouldn\'t be there, run --init or --update\n"));
-	    initdbwarningprinted=1;
-	  }
-	}
-	if(i<100){
-	  old=db_readline(DB_OLD);
-	}
-      }
-    }
     if(conf->action&DO_DIFF){
-      i=0;
-      for(new=db_readline(DB_NEW);i<100&&new;){
+        do {
+      if((new=db_readline(DB_NEW)) != NULL){
 	/* FIXME add support config checking at this stage 
 	   config check = add only those files that match config rxs
 	   make this configurable
@@ -1119,38 +1088,52 @@ void populate_tree(seltree* tree)
 	}
 	if((add=check_rxtree(new->filename,tree,&attr))>0){
 	  add_file_to_tree(tree,new,DB_NEW,0,attr);
-	  i++;
 	} else {
           free_db_line(new);
           free(new);
           new=NULL;
 	}
-	if(i<100){
-	  new=db_readline(DB_NEW);
-	}
       }
+    } while (new);
     }
     
     if((conf->action&DO_INIT)||(conf->action&DO_COMPARE)){
       /* FIXME  */
       new=NULL;
-      i=0;
-      for(new=db_readline(DB_DISK);i<100&&new;){
+      do {
+      if((new=db_readline(DB_DISK)) != NULL) {
 	/* Write to db only if needed */
 	if(conf->action&DO_INIT){
 	  db_writeline(new,conf);
 	}
 	  if((add=check_rxtree(new->filename,tree,&attr))>0){
 	    add_file_to_tree(tree,new,DB_NEW,0,attr);
-	    i++;
 	  }
-	if(i<100){
-	  new=db_readline(DB_DISK);
-	}
       }
-
+    } while (new);
     }
-  }while(old || new);
+    if((conf->action&DO_COMPARE)||(conf->action&DO_DIFF)){
+        do{
+            if((old=db_readline(DB_OLD)) != NULL) {
+                /* This is needed because check_rxtree assumes there is a parent
+                   for the node for old->filename */
+                if((node=get_seltree_node(tree,old->filename))==NULL){
+                    node=new_seltree_node(tree,old->filename,0,NULL);
+                }
+                if((add=check_rxtree(old->filename,tree,&attr))>0){
+                    add_file_to_tree(tree,old,DB_OLD,0,attr);
+                }else{
+                    free_db_line(old);
+                    free(old);
+                    old=NULL;
+                    if(!initdbwarningprinted){
+                        error(3,_("WARNING: Old db contains a entry that shouldn\'t be there, run --init or --update\n"));
+                        initdbwarningprinted=1;
+                    }
+                }
+            }
+        }while(old);
+    }
 }
 
 void hsymlnk(db_line* line) {

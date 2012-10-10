@@ -675,9 +675,11 @@ seltree* gen_tree(list* prxlist,list* nrxlist,list* erxlist)
  * strip_dbline()
  * strips given dbline
  */
-void strip_dbline(db_line* line,DB_ATTR_TYPE attr)
+void strip_dbline(db_line* line)
 {
 #define checked_free(x) do { free(x); x=NULL; } while (0)
+
+    DB_ATTR_TYPE attr = line->attr;
 
   /* filename is always needed, hence it is never stripped */
   if(!(attr&DB_LINKNAME)){
@@ -805,7 +807,7 @@ void add_file_to_tree(seltree* tree,db_line* file,int db,int status,
 
   node->attr=attr;
 
-  strip_dbline(file,attr);
+  strip_dbline(file);
 
   switch (db) {
   case DB_OLD: {

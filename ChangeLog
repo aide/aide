@@ -1,5 +1,6 @@
 2012-10-10	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Added new default group X
+	* src/gen_list.c: fixed stripping of removed attributes
 
 2012-10-08	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/gen_list.c: fixed handling of renamed files

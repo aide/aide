@@ -253,15 +253,17 @@ Input is read from filedescriptor \fBnumber\fR or output is written to
 .IP "tiger: tiger checksum"
 .IP "haval: haval checksum"
 .IP "crc32:	crc32 checksum"
-.IP "R:	p+ftype+i+l+n+u+g+s+m+c+md5"
-.IP "L:	p+ftype+i+l+n+u+g"
+.IP "R:	p+ftype+i+l+n+u+g+s+m+c+md5+X"
+.IP "L:	p+ftype+i+l+n+u+g+X"
 .IP "E:	Empty group"
-.IP ">:	Growing logfile p+ftype+l+u+g+i+n+S"
-.IP "And also the following if you have mhash support enabled"
+.IP "X:	acl+selinux+xattrs+e2fsattrs (if groups are explicitly enabled)"
+.IP ">:	Growing logfile p+ftype+l+u+g+i+n+S+X"
+.LP
+And also the following if you have mhash support enabled
 .IP "gost: gost checksum"
 .IP "whirlpool: whirlpool checksum"
-.IP "The following are available and added to the default groups R, L and >
-.IP "only when explicitly enabled using configure"
+.LP
+The following are available only when explicitly enabled using configure
 .IP "acl: access control list"
 .IP "selinux: selinux attributes"
 .IP "xattrs: extended attributes"

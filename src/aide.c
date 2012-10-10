@@ -248,7 +248,7 @@ static void setdefaults_before_config()
   char* urlstr=INITIALERRORSTO;
   url_t* u=NULL;
   char* s=(char*)malloc(sizeof(char)*MAXHOSTNAMELEN+1);
-  unsigned long long p;
+  DB_ATTR_TYPE X;
 
   /*
     Set up the hostname
@@ -390,55 +390,33 @@ static void setdefaults_before_config()
   do_groupdef("e2fsattrs",DB_E2FSATTRS);
 #endif
 
-  p=0LLU;
-#if defined(WITH_MHASH) || defined(WITH_GCRYPT)
-  p|=DB_MD5;
-#endif
+  X=0LLU;
 #ifdef WITH_ACL
-  p|=DB_ACL;
+  X|=DB_ACL;
 #endif
 #ifdef WITH_SELINUX
-  p|=DB_SELINUX;
+  X|=DB_SELINUX;
 #endif
 #ifdef WITH_XATTR
-  p|=DB_XATTRS;
+  X|=DB_XATTRS;
 #endif
 #ifdef WITH_E2FSATTRS
-  p|=DB_E2FSATTRS;
+  X|=DB_E2FSATTRS;
 #endif
+
+
   do_groupdef("R",DB_PERM|DB_FTYPE|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID|DB_SIZE|
-                  DB_LINKNAME|DB_MTIME|DB_CTIME|p);
+          DB_LINKNAME|DB_MTIME|DB_CTIME
+#if defined(WITH_MHASH) || defined(WITH_GCRYPT)
+          |DB_MD5
+#endif
+          |X);
 
-  p=0LLU;
-#ifdef WITH_ACL
-  p|=DB_ACL;
-#endif
-#ifdef WITH_SELINUX
-  p|=DB_SELINUX;
-#endif
-#ifdef WITH_XATTR
-  p|=DB_XATTRS;
-#endif
-#ifdef WITH_E2FSATTRS
-  p|=DB_E2FSATTRS;
-#endif
-  do_groupdef("L",DB_PERM|DB_FTYPE|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID|DB_LINKNAME|p);
+  do_groupdef("L",DB_PERM|DB_FTYPE|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID|DB_LINKNAME|X);
 
-  p=0LLU;
-#ifdef WITH_ACL
-  p|=DB_ACL;
-#endif
-#ifdef WITH_SELINUX
-  p|=DB_SELINUX;
-#endif
-#ifdef WITH_XATTR
-  p|=DB_XATTRS;
-#endif
-#ifdef WITH_E2FSATTRS
-  p|=DB_E2FSATTRS;
-#endif
   do_groupdef(">",DB_PERM|DB_FTYPE|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID|DB_SIZEG|
-		  DB_LINKNAME|p);
+		  DB_LINKNAME|X);
+  do_groupdef("X",X);
   do_groupdef("E",0);
 
 }

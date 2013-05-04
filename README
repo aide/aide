@@ -86,17 +86,16 @@
 
       $ git verify-tag v<VERSION_NUMBER>
 
-    The key used to create this signature is:
+    The current public key needed for signature verification is:
 
-      pub   4096R/F4474E5A 2011-01-30 [expires: 2012-01-31]
-      uid                  Aide Developers <aide-devel@lists.sourceforge.net>
+        pub   4096R/68E7B931 2011-06-28 [expires: 2017-06-26]
+        uid                  Hannes von Haugwitz <hannes@vonhaugwitz.com>
 
-    If you do not have this key, you can get it from the SourceForge
-    web site or from one of the well known PGP key servers. You have
-    to make sure that the key you install is not a faked one. You can
-    do this with reasonable assurance by comparing the output of:
+    If you do not have this key, you can get it from one of the well known PGP
+    key servers. You have to make sure that the key you install is not a faked
+    one. You can do this with reasonable assurance by comparing the output of:
 
-      $ gpg --fingerprint 0xF4474E5A
+      $ gpg --fingerprint 0x68E7B931
 
     with the fingerprint published elsewhere.
 

@@ -2,6 +2,8 @@
 	* src/compare_db.c:
 	  - changed minimum verbose level for printing the details
 	    about added and removed entries to 7
+	* README:
+	  - updated "Source Code Verification" section
 
 2012-10-10	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Added new default group X

@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2007,2010,2011 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2007,2010,2011,2013 Rami Lehti, Pablo Virolainen,
  * Richard van den Berg, Mike Markley, Hannes von Haugwitz
  * $Id$
  *
@@ -558,7 +558,7 @@ static void print_report_details(seltree* node) {
     if (conf->verbose_level>=5) {
         if (node->checked&NODE_CHANGED) {
             print_dbline_attributes(node->old_data, node->new_data, node->changed_attrs, (conf->verbose_level>=6?(((node->old_data)->attr)^((node->new_data)->attr)):0)|forced_attrs);
-        } else if ((conf->verbose_level>=6)) {
+        } else if ((conf->verbose_level>=7)) {
             if (node->checked&NODE_ADDED) { print_attributes_added_node(node->new_data); }
             if (node->checked&NODE_REMOVED) { print_attributes_removed_node(node->old_data); }
         }
@@ -688,7 +688,7 @@ int gen_report(seltree* node) {
         print_report_list(node, NODE_ADDED|NODE_REMOVED|NODE_CHANGED);
     }
     if (nadd || nrem || nchg) {
-        error(nchg?5:6,(char*)report_top_format,_("Detailed information about changes"));
+        error(nchg?5:7,(char*)report_top_format,_("Detailed information about changes"));
         print_report_details(node);
     }
     }

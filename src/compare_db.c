@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2007,2010,2011,2013 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2007,2010-2013 Rami Lehti, Pablo Virolainen,
  * Richard van den Berg, Mike Markley, Hannes von Haugwitz
  * $Id$
  *

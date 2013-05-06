@@ -4,6 +4,8 @@
 	  - minor code cleanup
 	* src/db_file.c, src/do_md.c:
 	  - fixed use of unportable %m format
+	* doc/aide.1.in:
+	  - fixed format in NOTES section
 
 2013-05-04	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c:

@@ -77,7 +77,7 @@ The checksums in the database and in the output are by default base64
 encoded (see also report_base16 option).
 To decode them you can use the following shell command:
 
-echo <encoded_checksum> | base64 -d | hexdump -v -e '32/1 "%02x" "\\n"'
+echo <encoded_checksum> | base64 \-d | hexdump \-v \-e '32/1 "%02x" "\\n"'
 
 .PP
 .SH FILES

@@ -54,7 +54,9 @@ Prints out the standard help message.
 .PP
 .SH DIAGNOSTICS
 Normally, the exit status is 0 if no errors occurred. Except when the
-.B --check
+.BR --check,
+.BR --compare " or"
+.B --update
 command was requested, in which case the exit status is defined as:
 .IP "1 * (new files detected?)     +"
 .IP "2 * (removed files detected?) +"

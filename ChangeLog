@@ -6,6 +6,7 @@
 	  - fixed use of unportable %m format
 	* doc/aide.1.in:
 	  - fixed format in NOTES section
+	  - documented return value of '--compare' and '--update' command
 
 2013-05-04	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c:

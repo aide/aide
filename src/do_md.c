@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  * vi: ts=8 sw=8
  *
- * Copyright (C) 1999-2002,2004-2006,2009-2011 Rami Lehti, Pablo
+ * Copyright (C) 1999-2002,2004-2006,2009-2011,2013 Rami Lehti, Pablo
  * Virolainen, Mike Markley, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -463,13 +463,13 @@ void acl2line(db_line* line) {
       return;
     }
     if (acl_a == NULL)
-      error(0, "Tried to read access ACL on %s but failed with: %m\n",
-            line->fullpath);
+      error(0, "Tried to read access ACL on %s but failed with: %s\n",
+            line->fullpath, strerror(errno));
     if ((acl_d == NULL) && (errno != EACCES)) /* ignore DEFAULT on files */
     {
       acl_free(acl_a);
-      error(0, "Tried to read default ACL on %s but failed with: %m\n",
-            line->fullpath);
+      error(0, "Tried to read default ACL on %s but failed with: %s\n",
+            line->fullpath, strerror(errno));
     }
 
     /* assume memory allocs work, like rest of AIDE code... */
@@ -589,7 +589,7 @@ void xattrs2line(db_line *line) {
     if ((xret == -1) && ((errno == ENOSYS) || (errno == ENOTSUP))) {
         line->attr&=(~DB_XATTRS);
     } else if (xret == -1) {
-        error(0, "listxattrs failed for %s:%m\n", line->fullpath);
+        error(0, "listxattrs failed for %s:%s\n", line->fullpath, strerror(errno));
     } else if (xret) {
         const char *attr = xatrs;
         static ssize_t asz = 1024;
@@ -616,7 +616,7 @@ void xattrs2line(db_line *line) {
             if (aret != -1)
                 xattr_add(xattrs, attr, val, aret);
             else if (errno != ENOATTR)
-                error(0, "getxattr failed for %s:%m\n", line->fullpath);
+                error(0, "getxattr failed for %s:%s\n", line->fullpath, strerror(errno));
 
 next_attr:
             attr += len + 1;
@@ -638,7 +638,7 @@ void selinux2line(db_line *line) {
     if (lgetfilecon_raw(line->fullpath, &cntx) == -1) {
         line->attr&=(~DB_SELINUX);
         if ((errno != ENOATTR) && (errno != EOPNOTSUPP))
-            error(0, "lgetfilecon_raw failed for %s:%m\n", line->fullpath);
+            error(0, "lgetfilecon_raw failed for %s:%s\n", line->fullpath, strerror(errno));
         return;
     }
 

@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2007,2010,2011 Rami Lehti, Pablo Virolainen, Mike
+ * Copyright (C) 1999-2007,2010-2013 Rami Lehti, Pablo Virolainen, Mike
  * Markley, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -85,7 +85,7 @@ void handle_gzipped_input(int out,gzFile* gzp){
       }
       if (write(out, buf,nread) != tmp)
       {
-        error(0,_("write() failed: %m\n"));
+        error(0,_("write() failed: %s\n"), strerror(errno));
         exit(1);
       }
       

@@ -344,9 +344,8 @@ snprintf(*values[0], l, "%s",s);
 
     int l;
     if (line==NULL || !(line->attr&attr)) {
-        *values = malloc(1 * sizeof (char*));
-        easy_string("")
-        return 1;
+        *values = NULL;
+        return 0;
 #ifdef WITH_ACL
     } else if (DB_ACL&attr) {
         return acl2array(line->acl, &*values);
@@ -475,9 +474,9 @@ static void print_dbline_attributes(db_line* oline, db_line* nline, DB_ATTR_TYPE
                 k = 0;
                 while (olen-p*k >= 0 || nlen-p*k >= 0) {
                     c = k*(p-1);
-                    if (oline==NULL || !(oline->attr&details_attributes[j]) ) {
+                    if (!onumber) {
                         error(2," %s%-9s%c %-*c  %.*s\n", width_details%2?"":" ", i+k?"":details_string[j], i+k?' ':':', p, ' ', p-1, nlen-p*k>0?&nvalue[i][c]:"");
-                    } else if (nline==NULL || !(nline->attr&details_attributes[j])) {
+                    } else if (!nnumber) {
                         error(2," %s%-9s%c %.*s\n", width_details%2?"":" ", i+k?"":details_string[j], i+k?' ':':', p-1, olen-p*k>0?&ovalue[i][c]:"");
                     } else {
                         error(2," %s%-9s%c %-*.*s| %.*s\n", width_details%2?"":" ", i+k?"":details_string[j], i+k?' ':':', p, p-1, olen-p*k>0?&ovalue[i][c]:"", p-1, nlen-p*k>0?&nvalue[i][c]:"");

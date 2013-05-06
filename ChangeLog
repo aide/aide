@@ -1,6 +1,7 @@
 2013-05-06	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c:
 	  - fixed return value of database initialization
+	  - minor code cleanup
 
 2013-05-04	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c:

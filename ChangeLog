@@ -1,3 +1,7 @@
+2013-05-06	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* src/compare_db.c:
+	  - fixed return value of database initialization
+
 2013-05-04	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c:
 	  - changed minimum verbose level for printing the details

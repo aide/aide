@@ -695,7 +695,7 @@ int gen_report(seltree* node) {
     conf->end_time=time(&(conf->end_time));
     print_report_footer();
 
-    return (nadd!=0)*1+(nrem!=0)*2+(nchg!=0)*4;
+    return conf->action&(DO_COMPARE|DO_DIFF) ? (nadd!=0)*1+(nrem!=0)*2+(nchg!=0)*4 : 0;
 }
 
 const char* aide_key_9=CONFHMACKEY_09;

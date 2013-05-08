@@ -308,8 +308,8 @@ static char* get_file_type_string(mode_t mode) {
 
 static char* byte_to_base16(byte* src, size_t ssize) {
     char* str = malloc((2*ssize+1) * sizeof (char));
-    int i;
-    for(i=0; i<ssize; ++i) {
+    size_t i;
+    for(i=0; i < ssize; ++i) {
         snprintf(&str[2*i], 3, "%02x", src[i]);
     }
     return str;

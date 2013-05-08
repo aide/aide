@@ -475,11 +475,11 @@ static void print_dbline_attributes(db_line* oline, db_line* nline, DB_ATTR_TYPE
                 while (olen-p*k >= 0 || nlen-p*k >= 0) {
                     c = k*(p-1);
                     if (!onumber) {
-                        error(2," %s%-9s%c %-*c  %.*s\n", width_details%2?"":" ", i+k?"":details_string[j], i+k?' ':':', p, ' ', p-1, nlen-p*k>0?&nvalue[i][c]:"");
+                        error(2," %s%-9s%c %-*c  %.*s\n", width_details%2?"":" ", i+k?"":details_string[j], i+k?' ':':', p, ' ', p-1, nlen-c>0?&nvalue[i][c]:"");
                     } else if (!nnumber) {
-                        error(2," %s%-9s%c %.*s\n", width_details%2?"":" ", i+k?"":details_string[j], i+k?' ':':', p-1, olen-p*k>0?&ovalue[i][c]:"");
+                        error(2," %s%-9s%c %.*s\n", width_details%2?"":" ", i+k?"":details_string[j], i+k?' ':':', p-1, olen-c>0?&ovalue[i][c]:"");
                     } else {
-                        error(2," %s%-9s%c %-*.*s| %.*s\n", width_details%2?"":" ", i+k?"":details_string[j], i+k?' ':':', p, p-1, olen-p*k>0?&ovalue[i][c]:"", p-1, nlen-p*k>0?&nvalue[i][c]:"");
+                        error(2," %s%-9s%c %-*.*s| %.*s\n", width_details%2?"":" ", i+k?"":details_string[j], i+k?' ':':', p, p-1, olen-c>0?&ovalue[i][c]:"", p-1, nlen-c>0?&nvalue[i][c]:"");
                     }
                     k++;
                 }

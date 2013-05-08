@@ -1,3 +1,7 @@
+2013-05-08	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* src/compare_db.c:
+	  - fixed output of checksums
+
 2013-05-06	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c:
 	  - fixed return value of database initialization

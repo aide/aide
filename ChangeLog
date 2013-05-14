@@ -1,5 +1,6 @@
 2013-05-14	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/db.c: fixed segfault when dbconf->db_out is NULL
+	* Replaced fopen.c with the version from curl-7.30.0
 
 2013-05-08	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c:

@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2006,2010,2011 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2006,2010,2011,2013 Rami Lehti, Pablo Virolainen,
  * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -39,7 +39,9 @@
 /*for locale support*/
 #include "locale-aide.h"
 /*for locale support*/
+#ifdef WITH_CURL
 #include "fopen.h"
+#endif
 
 #define BUFSIZE 4096
 #define ZBUFSIZE 16384

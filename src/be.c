@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2003,2005,2006,2010,2011 Rami Lehti, Pablo
+ * Copyright (C) 1999-2003,2005,2006,2010,2011,2013 Rami Lehti, Pablo
  * Virolainen, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -29,7 +29,9 @@
 #include "db_config.h"
 #include "db_file.h"
 #include "report.h"
+#ifdef WITH_CURL
 #include "fopen.h"
+#endif
 #include "be.h"
 
 #ifdef WITH_PSQL

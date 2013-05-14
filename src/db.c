@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2006,2010,2011 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2006,2010,2011,2013 Rami Lehti, Pablo Virolainen,
  * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -786,7 +786,9 @@ int db_close(db_config* dbconf)
   case url_https:
   case url_ftp:
     {
-      url_fclose(dbconf->db_out);
+        if (dbconf->db_out!=NULL) {
+            url_fclose(dbconf->db_out);
+        }
       break;
     }
 #endif /* WITH CURL */

@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2006 Rami Lehti, Pablo Virolainen, Richard
- * van den Berg
+ * Copyright (C) 1999-2002,2006,2013 Rami Lehti, Pablo Virolainen, Richard
+ * van den Berg, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -53,6 +53,8 @@ char* perm_to_char(mode_t perm);
 void sig_handler(int signal);
 
 void init_sighandler(void);
+
+char *expand_tilde(char * path);
 
 #ifndef HAVE_STRNSTR
 char* strnstr(char* haystack,char* needle,int n);

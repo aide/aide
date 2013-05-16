@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2004-2006,2010,2011 Rami Lehti, Pablo
+ * Copyright (C) 1999-2002,2004-2006,2010,2011,2013 Rami Lehti, Pablo
  * Virolainen, Mike Markley, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -361,6 +361,32 @@ void sig_handler(int signum)
   return;
 }
 
+char *expand_tilde(char *path) {
+    char *homedir, *full;
+    size_t path_len, homedir_len, full_len;
+
+    if (path != NULL) {
+        if (path[0] == '~') {
+            if((homedir=getenv("HOME")) != NULL) {
+                path_len = strlen(path+sizeof(char));
+                homedir_len = strlen(homedir);
+                full_len = homedir_len+path_len;
+                full = malloc(sizeof(char) * (full_len+1));
+                strncpy(full, homedir, homedir_len);
+                strncpy(full+homedir_len, path+sizeof(char), path_len);
+                full[full_len] = '\0';
+                free(path);
+                /* Don't free(homedir); because it is not safe on some platforms */
+                path = full;
+            } else {
+                error(3, _("Variable name 'HOME' not found in environment. '~' cannot be expanded\n"));
+            }
+        } else if (path[0] == '\\' && path[1] == '~') {
+            path += sizeof(char);
+        }
+    }
+    return path;
+}
 
 /* Like strstr but only do search for maximum of n chars.
    haystack does not have to be NULL terminated

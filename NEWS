@@ -22,6 +22,7 @@ Version 0.16 (NOT_YET_RELEASED)
 	* Added info about number of entries if aide found no changes or
 	  the database has been initialized
 	* Added new default group X
+	* Handle tilde (~) in database paths and report urls
 	* Bug fixes
 
 Version 0.15.1

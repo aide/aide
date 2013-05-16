@@ -59,7 +59,7 @@ const int time_string_len = 26;
 
 long ntotal, nadd, nrem, nchg = 0;
 
-const char* report_top_format = "\n---------------------------------------------------\n%s:\n---------------------------------------------------\n\n";
+const char* report_top_format = "\n\n---------------------------------------------------\n%s:\n---------------------------------------------------\n";
 
 DB_ATTR_TYPE ignored_attrs, forced_attrs;
 
@@ -441,7 +441,7 @@ static void print_line(seltree* node) {
             }
         }
         summary[length]='\0';
-        error(2,"%s: %s\n", summary, (node->checked&NODE_REMOVED?node->old_data:node->new_data)->filename);
+        error(2,"\n%s: %s", summary, (node->checked&NODE_REMOVED?node->old_data:node->new_data)->filename);
         free(summary); summary=NULL;
     } else {
         if (node->checked&NODE_ADDED) {
@@ -612,9 +612,9 @@ static void print_report_header() {
 
     if(conf->action&(DO_COMPARE|DO_DIFF) && (nadd||nrem||nchg)) {
         error(0,_("\nSummary:\n  Total number of entries:\t%li\n  Added entries:\t\t%li\n"
-                    "  Removed entries:\t\t%li\n  Changed entries:\t\t%li\n\n"), ntotal, nadd, nrem, nchg);
+                    "  Removed entries:\t\t%li\n  Changed entries:\t\t%li"), ntotal, nadd, nrem, nchg);
     } else {
-        error(0,_("\nNumber of entries:\t%li\n"), ntotal);
+        error(0,_("\nNumber of entries:\t%li"), ntotal);
     }
 }
 

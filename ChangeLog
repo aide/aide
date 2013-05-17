@@ -1,3 +1,7 @@
+2013-05-17	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* configure.in:
+	  - fixed "suspicious cache-id" warnings
+
 2013-05-16	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Handle tilde (~) in database paths and report urls
 	* src/compare_db.c: adjusted report layout

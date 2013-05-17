@@ -591,22 +591,24 @@ AC_CHECK_FUNC(lstat64,
 
 saved_CFLAGS="$CFLAGS"
 CFLAGS="$CFLAGS $AIDE_DEFS"
-AC_CACHE_CHECK([for LFS ino_t],AIDE_INO_TYPE,[
+AC_CACHE_CHECK([for LFS ino_t],ac_cv_ino_type,[
 AC_TRY_RUN([
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 main() { struct stat64 st; ino64_t s; if (sizeof(ino_t) == sizeof(ino64_t)) exit(1); exit((lstat64("/dev/null", &st)==0)?0:1); }],
-AIDE_INO_TYPE=ino64_t,AIDE_INO_TYPE=ino_t,AIDE_INO_TYPE=cross)])
+ac_cv_ino_type=ino64_t,ac_cv_ino_type=ino_t,ac_cv_ino_type=cross)])
+AIDE_INO_TYPE=$ac_cv_ino_type
 
-AC_CACHE_CHECK([for LFS dirent],AIDE_DIRENT_TYPE,[
+AC_CACHE_CHECK([for LFS dirent],ac_cv_dirent_type,[
 AC_TRY_COMPILE([
 #include <unistd.h>
 #include <sys/types.h>
 #include <dirent.h>],
 [struct dirent64 de;],
-AIDE_DIRENT_TYPE=dirent64,AIDE_DIRENT_TYPE=dirent)])
+ac_cv_dirent_type=dirent64,ac_cv_dirent_type=dirent)])
+AIDE_DIRENT_TYPE=$ac_cv_dirent_type
 else
 	AIDE_LSTAT_FUNC="lstat"
 	AIDE_STAT_FUNC="stat"

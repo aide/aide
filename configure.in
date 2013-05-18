@@ -927,9 +927,6 @@ AC_ARG_WITH(initial_errors_to,
 	AC_DEFINE_UNQUOTED(INITIALERRORSTO,"stderr",[send errors to stderr])
 )
 
-
-AC_CHECK_LIB(c, crypt, [true], AC_CHECK_LIB(crypt, crypt))
-
 AC_MSG_CHECKING(for PostgresSQL support)
 AC_ARG_WITH([psql],
 	[AC_HELP_STRING([--with-psql],

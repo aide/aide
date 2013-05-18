@@ -343,10 +343,10 @@ int var_in_conflval=0;
   return (TREPORT_URL);  
 }
 
-^[\t\ ]*"detailed_init_report"{E} {
-  error(230,"%li:detailed_init_report =\n",conf_lineno);
+^[\t\ ]*"report_detailed_init"{E} {
+  error(230,"%li:report_detailed_init =\n",conf_lineno);
   BEGIN CONFVALHUNT;
-  return (TDETAILEDINITREPORT);
+  return (TREPORTDETAILEDINIT);
 }
 
 ^[\t\ ]*"report_base16"{E} {

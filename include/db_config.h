@@ -309,7 +309,7 @@ typedef struct db_config {
   list* negrxlst;
 
   int verbose_level;
-  int detailed_init_report;
+  int report_detailed_init;
   int report_base16;
   int use_initial_errorsto;
 

@@ -52,7 +52,7 @@ stdout.
 Whether to base16 encode the checksums in the report or not. Valid values are
 yes, true, no and false. The default is to report checksums not in base16 but
 in base64 encoding.
-.IP "detailed_init_report"
+.IP "report_detailed_init"
 Whether to report added files (verbose level >= 2) and their details (verbose
 level >=6) in initialization mode or not. Valid values are yes, true, no and
 false. The default is to not report added files or their details in init mode.

@@ -1,5 +1,6 @@
 2013-05-18	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* configure.in: removed check for 'libcrypt'
+	* Renamed 'detailed_init_report' option to 'report_detailed_init'
 
 2013-05-17	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* configure.in:

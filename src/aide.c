@@ -269,7 +269,7 @@ static void setdefaults_before_config()
   conf->tree=NULL;
   conf->config_check=0;
   conf->verbose_level=-1;
-  conf->detailed_init_report=0;
+  conf->report_detailed_init=0;
   conf->report_base16=0;
   conf->use_initial_errorsto=1;
   conf->report_url=NULL;

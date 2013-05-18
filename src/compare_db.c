@@ -662,7 +662,7 @@ int gen_report(seltree* node) {
     send_audit_report();
 #endif
     print_report_header();
-    if(conf->action&(DO_COMPARE|DO_DIFF) || (conf->action&DO_INIT && conf->detailed_init_report) ) {
+    if(conf->action&(DO_COMPARE|DO_DIFF) || (conf->action&DO_INIT && conf->report_detailed_init) ) {
     if (conf->grouped) {
         if (nadd) {
             error(2,(char*)report_top_format,_("Added entries"));

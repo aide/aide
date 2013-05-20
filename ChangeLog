@@ -2,6 +2,7 @@
 	* Print checksums of databases in verbose level 2 or higher (closes
 	  feature request 1502032)
 	* Added new 'database_attrs' option
+	* configure.in: fixed compilation with selinux
 
 2013-05-18	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* configure.in: removed check for 'libcrypt'

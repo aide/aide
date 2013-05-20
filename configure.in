@@ -464,15 +464,26 @@ AC_ARG_WITH([selinux],
 )
 
 AS_IF([test "x$with_selinux_support" != xno],
-	[AC_DEFINE(WITH_SELINUX,1,[use SELinux])
-	if test -n "$PKG_CONFIG" && $PKG_CONFIG --exists libselinux; then
-		SELINUXLIB=$(${PKG_CONFIG} --libs libselinux --static)
-	else
-		SELINUXLIB="-lselinux"
-	fi
+    AC_DEFINE(WITH_SELINUX,1,[use SELinux])
+    [AC_MSG_RESULT(yes)
+    if test -n "$PKG_CONFIG" && $PKG_CONFIG --exists libselinux; then
+        if test "$aide_static_choice" == "yes"; then
+            SELINUXLIB=$(${PKG_CONFIG} --libs libselinux --static)
+        else
+            SELINUXLIB=$(${PKG_CONFIG} --libs libselinux)
+        fi
+    else
+    SELINUXLIB="-lselinux"
+    if test "$aide_static_choice" == "yes"; then
+        saveLIBS=$LIBS
+        LIBS="-static $SELINUXLIB"
+        AC_SEARCH_LIBS([lgetfilecon_raw], [], [], [SELINUXLIB="$SELINUXLIB -lpthread"])
+        LIBS=$saveLIBS
+    fi
+    fi
 	compoptionstring="${compoptionstring}WITH_SELINUX\\n"
 	aideextragroups="${aideextragroups}+selinux"
-	AC_MSG_RESULT(yes)],
+    ],
 	[AC_MSG_RESULT(no)]
 )
 

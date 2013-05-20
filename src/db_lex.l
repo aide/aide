@@ -22,8 +22,8 @@ extern YYSTYPE yylval;
 
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2005,2010 Rami Lehti,Pablo Virolainen,
- * Richard van den Berg
+ * Copyright (C) 1999-2002,2005,2010,2013 Rami Lehti,Pablo Virolainen,
+ * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -45,7 +45,7 @@ extern YYSTYPE yylval;
 #define YY_DECL int db_scan(void)
 
 
-#define YYDEBUG
+#define YYDEBUG 1
 
 #include "aide.h"
 #include "conf_yacc.h"

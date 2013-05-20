@@ -3,6 +3,7 @@
 	  feature request 1502032)
 	* Added new 'database_attrs' option
 	* configure.in: fixed compilation with selinux
+	* src/conf_lex.l, src/db_lex.l: fixed definition of YYDEBUG
 
 2013-05-18	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* configure.in: removed check for 'libcrypt'

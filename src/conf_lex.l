@@ -12,7 +12,7 @@ EX      [" "\t]*
 
 %{
 
-#define YYDEBUG
+#define YYDEBUG 1
 
 /*
  * Copyright (C) 1999-2002,2004-2006,2010-2013 Rami Lehti, Pablo

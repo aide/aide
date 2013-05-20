@@ -38,6 +38,14 @@ first is used. The default value is "@prefix@/etc/aide.db.new".
 .IP "database_new"
 The url from which the other database for \-\-compare is read.
 There is no default for this one.
+.IP "database_attrs"
+The attributes of the (uncompressed) database files which are to be added to
+the final report in verbose level 2 or higher. Only checksum attributes are
+supported. To disable set
+.I database_attrs
+to
+.RB ' E '.
+By default all compiled in checksums are added to the report.
 .IP "verbose"
 The level of messages that is output. This value can be 0-255
 inclusive. This parameter can only be given once. Value from the first

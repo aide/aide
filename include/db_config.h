@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2004-2006,2010-2012 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002,2004-2006,2010-2013 Rami Lehti, Pablo Virolainen,
  * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -252,6 +252,52 @@ extern const int db_aliasvalue[db_alias_size];
 
 #include "seltree.h"
 
+typedef struct db_line {
+  byte* md5;
+  byte* sha1;
+  byte* rmd160;
+  byte* tiger;
+
+  byte* sha256;
+  byte* sha512;
+
+  byte* crc32; /* MHASH only */
+  byte* haval;
+  byte* gost;
+  byte* crc32b;
+  byte* whirlpool;
+
+  acl_type* acl;
+  /* Something here.. */
+
+  mode_t perm;
+  mode_t perm_o; /* Permission for tree traverse */
+  uid_t uid;
+  gid_t gid;
+  time_t atime;
+  time_t ctime;
+  time_t mtime;
+  AIDE_INO_TYPE inode;
+  nlink_t nlink;
+
+  AIDE_OFF_TYPE size;
+  AIDE_OFF_TYPE size_o; /* ... */
+  AIDE_BLKCNT_TYPE bcount;
+  char* filename;
+  char* fullpath;
+  char* linkname;
+
+  char *cntx;
+
+  xattrs_type* xattrs;
+
+  unsigned long e2fsattrs;
+
+  /* Attributes .... */
+  DB_ATTR_TYPE attr;
+
+} db_line;
+
 typedef struct db_config {
   
   url_t* db_in_url;
@@ -264,6 +310,14 @@ typedef struct db_config {
   FILE* db_out;
   
   int config_check;
+
+  struct md_container *mdc_in;
+  struct md_container *mdc_out;
+
+  struct db_line *line_db_in;
+  struct db_line *line_db_out;
+
+  DB_ATTR_TYPE db_attrs;
 
 #ifdef WITH_ZLIB
   gzFile db_gzin;
@@ -359,52 +413,6 @@ typedef struct db_config {
   struct seltree* tree;
 
 } db_config;
-
-typedef struct db_line {
-  byte* md5;
-  byte* sha1;
-  byte* rmd160;
-  byte* tiger;
-
-  byte* sha256;
-  byte* sha512;
- 
-  byte* crc32; /* MHASH only */
-  byte* haval;
-  byte* gost;
-  byte* crc32b;
-  byte* whirlpool; 
-
-  acl_type* acl;
-  /* Something here.. */
-
-  mode_t perm;
-  mode_t perm_o; /* Permission for tree traverse */
-  uid_t uid;
-  gid_t gid;
-  time_t atime;
-  time_t ctime;
-  time_t mtime;
-  AIDE_INO_TYPE inode;
-  nlink_t nlink;
-  
-  AIDE_OFF_TYPE size;
-  AIDE_OFF_TYPE size_o; /* ... */
-  AIDE_BLKCNT_TYPE bcount;
-  char* filename;
-  char* fullpath;
-  char* linkname;
-
-  char *cntx;
- 
-  xattrs_type* xattrs;
-
-  unsigned long e2fsattrs;
-
-  /* Attributes .... */
-  DB_ATTR_TYPE attr;
-  
-} db_line;
 
 #ifdef WITH_PSQL
 #include "libpq-fe.h"

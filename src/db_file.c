@@ -142,6 +142,10 @@ int dofprintf( const char* s,...)
   retval=vsnprintf(temp,retval+1,s,ap);
   va_end(ap);
   
+  if (conf->mdc_out) {
+      update_md(conf->mdc_out,temp ,retval);
+  }
+
 #ifdef WITH_MHASH
   if(conf->do_dbnewmd)
     mhash(conf->dbnewmd,(void*)temp,retval);

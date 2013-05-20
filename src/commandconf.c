@@ -34,6 +34,7 @@
 #include "db_config.h"
 #include "gen_list.h"
 #include "symboltable.h"
+#include "md.h"
 #include "util.h"
 #include "base64.h"
 /*for locale support*/
@@ -239,6 +240,7 @@ int db_input_wrapper(char* buf, int max_size, int db)
 #ifdef WITH_ZLIB
   gzFile* db_gzp=NULL;
 #endif
+  struct md_container *mdc;
   switch(db) {
   case DB_OLD: {
 #ifdef WITH_CURL
@@ -282,6 +284,9 @@ int db_input_wrapper(char* buf, int max_size, int db)
   case url_https:
   case url_ftp: {
     retval=url_fread(buf,1,max_size,(URL_FILE *)*db_filep);
+    if ((mdc = (db == DB_OLD ? conf->mdc_in : conf->mdc_out))) {
+        update_md(mdc, buf, retval);
+    }
     break;
   } 
   default:
@@ -353,6 +358,10 @@ int db_input_wrapper(char* buf, int max_size, int db)
   retval=fread(buf,1,max_size,*db_filep);
 #endif /* WITH_MHASH */ 
 #endif /* WITH_ZLIB */
+
+  if ((mdc = (db == DB_OLD ? conf->mdc_in : conf->mdc_out))) {
+      update_md(mdc, buf, retval);
+  }
 
 #ifdef WITH_MHASH    
   if(*domd){

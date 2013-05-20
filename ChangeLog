@@ -1,3 +1,8 @@
+2013-05-20 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Print checksums of databases in verbose level 2 or higher (closes
+	  feature request 1502032)
+	* Added new 'database_attrs' option
+
 2013-05-18	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* configure.in: removed check for 'libcrypt'
 	* Renamed 'detailed_init_report' option to 'report_detailed_init'

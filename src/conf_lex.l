@@ -15,7 +15,7 @@ EX      [" "\t]*
 #define YYDEBUG
 
 /*
- * Copyright (C) 1999-2002,2004-2006,2010-2012 Rami Lehti, Pablo
+ * Copyright (C) 1999-2002,2004-2006,2010-2013 Rami Lehti, Pablo
  * Virolainen, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  * This program is free software; you can redistribute it and/or
@@ -305,6 +305,12 @@ int var_in_conflval=0;
   error(230,"%li:database_new =\n",conf_lineno);
   BEGIN CONFVALHUNT;
   return (TDATABASE_NEW);
+}
+
+^[\t\ ]*"database_attrs"{E} {
+  error(230,"%li:database_attrs =\n",conf_lineno);
+  BEGIN EXPR;
+  return (TDATABASE_ATTRS);
 }
 
 ^[\t\ ]*"warn_dead_symlinks"{E} {

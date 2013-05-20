@@ -26,6 +26,7 @@
 #include "db.h"
 #include "db_file.h"
 #include "db_disk.h"
+#include "md.h"
 
 #ifdef WITH_PSQL
 #include "db_sql.h"
@@ -131,6 +132,47 @@ const char* db_namealias[db_alias_size] = {
 const int db_aliasvalue[db_alias_size] = {
   db_lnkcount } ;       /* "count",  */
 
+static struct md_container *init_db_attrs(URL_TYPE type) {
+    struct md_container *mdc = NULL;
+    if (conf->db_attrs) {
+        switch (type) {
+            case url_stdout:
+            case url_stderr:
+            case url_fd:
+            case url_file:
+            #ifdef WITH_CURL
+            case url_http:
+            case url_https:
+            case url_ftp:
+            #endif /* WITH CURL */
+                mdc = malloc(sizeof(struct md_container)); /* freed in close_db_attrs */
+                mdc->todo_attr = conf->db_attrs;
+                init_md(mdc);
+                break;
+            #ifdef WITH_PSQL
+            case url_sql:
+                break;
+            #endif /* WITH_PSQL */
+            default :
+                error(200,_("init_db_attrs(): Unknown url type.\n"));
+        }
+    }
+    return mdc;
+}
+
+static db_line *close_db_attrs (struct md_container *mdc, char *url_value) {
+    db_line *line = NULL;
+    if (mdc != NULL) {
+        close_md(mdc);
+        line = malloc(sizeof(struct db_line));
+        line->filename = url_value;
+        line->perm = 0;
+        line->attr = conf->db_attrs;
+        md2line(mdc, line);
+        free(mdc);
+    }
+    return line;
+}
 
 int db_init(int db)
 {
@@ -149,6 +191,7 @@ int db_init(int db)
 
 
   case DB_OLD: {
+    conf->mdc_in = init_db_attrs((conf->db_in_url)->type);
     rv=be_init(1,conf->db_in_url,0);
     if(rv==NULL) {
       error(200,_("db_in is null\n"));      
@@ -160,6 +203,7 @@ int db_init(int db)
   }
   case DB_WRITE: {    
 #ifdef WITH_ZLIB
+    conf->mdc_out = init_db_attrs((conf->db_out_url)->type);
     if(conf->gzip_dbout){
        rv=be_init(0,conf->db_out_url,conf->gzip_dbout);
        conf->db_gzout=rv;
@@ -180,6 +224,7 @@ int db_init(int db)
     return RETOK;
   }
   case DB_NEW: {
+    conf->mdc_out = init_db_attrs((conf->db_new_url)->type);
     rv=be_init(1,conf->db_new_url,0);
     if(rv==NULL) {
       error(200,_("db_new is null\n"));      
@@ -760,25 +805,19 @@ int db_writeline(db_line* line,db_config* dbconf){
   return RETFAIL;
 }
 
-int db_close(db_config* dbconf)
-{
-  if (dbconf==NULL) return RETOK;
-  
-  switch (dbconf->db_out_url->type) {
+void db_close() {
+  switch (conf->db_out_url->type) {
   case url_stdout:
   case url_stderr:
   case url_fd:
   case url_file: {
     if (
 #ifdef WITH_ZLIB
-       (dbconf->gzip_dbout && dbconf->db_gzout) ||
+       (conf->gzip_dbout && conf->db_gzout) ||
 #endif
-       (dbconf->db_out!=NULL)) {
-      if (db_close_file(dbconf)==RETOK) {
-	return RETOK;
-      }
+       (conf->db_out!=NULL)) {
+        db_close_file(conf);
     }
-    return RETFAIL;
     break;
   }
 #ifdef WITH_CURL
@@ -786,31 +825,27 @@ int db_close(db_config* dbconf)
   case url_https:
   case url_ftp:
     {
-        if (dbconf->db_out!=NULL) {
-            url_fclose(dbconf->db_out);
+        if (conf->db_out!=NULL) {
+            url_fclose(conf->db_out);
         }
       break;
     }
 #endif /* WITH CURL */
 #ifdef WITH_PSQL
   case url_sql: {
-    if (dbconf->db_out!=NULL) {
-      if (db_close_sql(dbconf->db_out)==RETOK) {
-	return RETOK;
-      } else {
-	return RETFAIL;
-      }
+    if (conf->db_out!=NULL) {
+      db_close_sql(conf->db_out);
     }
-    return RETOK;
     break;
   }
 #endif
   default : {
     error(0,_("db_close():Unknown output in db out.\n"));    
-    return RETFAIL;
   } 
   }
-  return RETFAIL;
+  conf->line_db_in = close_db_attrs(conf->mdc_in, (conf->db_in_url)->value);
+  conf->line_db_out = close_db_attrs(conf->mdc_out, (conf->action&DO_DIFF
+          ? conf->db_new_url : conf->db_out_url)->value);
 }
 
 void free_db_line(db_line* dl)

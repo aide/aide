@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2004,2005 Rami Lehti, Pablo Virolainen,
- * Richard van den Berg
+ * Copyright (C) 1999-2002,2004,2005,2013 Rami Lehti, Pablo Virolainen,
+ * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -33,7 +33,7 @@ int db_writespec(db_config*);
 
 int db_writeline(db_line*,db_config*);
 
-int db_close(db_config*);
+void db_close();
 
 void free_db_line(db_line* dl);
 

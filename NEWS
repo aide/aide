@@ -2,11 +2,13 @@ Version 0.16 (NOT_YET_RELEASED)
 	* Enabled summarize_changes by default
 	* Compare database entries just once
 	* Added new root_prefix option
+	* Added new database_attrs option
 	* Added new report_detailed_init option
 	* Added new report_base16 option
 	* Wrap attribute values instead of cut them off
 	* Side-by-side output of acl and xattrs values
 	* Use '|' to separate the old value from the new one
+	* Print checksums of databases in verbose level 2 or higher
 	* Print added or removed attributes of changed entries if forced
 	  via report_attributes
 	* Print details about added and removed entries in verbose level 7

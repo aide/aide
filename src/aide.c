@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2006,2010-2012 Rami Lehti, Pablo Virolainen, Mike
+ * Copyright (C) 1999-2006,2010-2013 Rami Lehti, Pablo Virolainen, Mike
  * Markley, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -316,6 +316,23 @@ static void setdefaults_before_config()
   conf->db_new=NULL;
   conf->db_out_url=NULL;
   conf->db_out=NULL;
+
+  conf->mdc_in=NULL;
+  conf->mdc_out=NULL;
+
+  conf->line_db_in=NULL;
+  conf->line_db_out=NULL;
+
+  conf->db_attrs = 0;
+#if defined(WITH_MHASH) || defined(WITH_GCRYPT)
+  conf->db_attrs |= DB_MD5|DB_TIGER|DB_HAVAL|DB_CRC32|DB_SHA1|DB_RMD160|DB_SHA256|DB_SHA512;
+#ifdef WITH_MHASH
+  conf->db_attrs |= DB_GOST;
+#ifdef HAVE_MHASH_WHIRLPOOL
+  conf->db_attrs |= DB_WHIRLPOOL;
+#endif
+#endif
+#endif
   
 #ifdef WITH_ZLIB
   conf->db_gzin=0;
@@ -584,7 +601,7 @@ int main(int argc,char**argv)
     }
       
     populate_tree(conf->tree);
-    db_close(conf);
+    db_close();
     
     exit(gen_report(conf->tree));
     

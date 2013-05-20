@@ -302,6 +302,7 @@ static char* get_file_type_string(mode_t mode) {
 #ifdef S_IFDOOR
         case S_IFDOOR: return _("Door");
 #endif
+        case 0: return NULL;
         default: return _("Unknown file type");
     }
 }
@@ -461,7 +462,12 @@ static void print_dbline_attributes(db_line* oline, db_line* nline, DB_ATTR_TYPE
     int length = sizeof(details_attributes)/sizeof(DB_ATTR_TYPE);
     int p = (width_details-(width_details%2?13:14))/2;
     DB_ATTR_TYPE attrs;
-    error(2,"\n%s: %s\n",get_file_type_string((nline==NULL?oline:nline)->perm),(nline==NULL?oline:nline)->filename);
+    error(2,"\n");
+    char *file_type = get_file_type_string((nline==NULL?oline:nline)->perm);
+    if (file_type) {
+        error(2,"%s: ", file_type);
+    }
+    error(2,"%s\n", (nline==NULL?oline:nline)->filename);
     attrs=(~(ignored_attrs))&(report_attrs|changed_attrs)&((oline==NULL?0:oline->attr)|(nline==NULL?0:nline->attr));
     for (j=0; j < length; ++j) {
         if (details_attributes[j]&attrs) {
@@ -618,13 +624,25 @@ static void print_report_header() {
     }
 }
 
+static void print_report_databases() {
+    if (conf->verbose_level>=2 && (conf->line_db_in || conf->line_db_out)) {
+        error(2,(char*)report_top_format,_("The attributes of the (uncompressed) database(s)"));
+        if (conf->line_db_in) {
+            print_attributes_removed_node(conf->line_db_in);
+        }
+        if (conf->line_db_out) {
+            print_attributes_removed_node(conf->line_db_out);
+        }
+    }
+}
+
 static void print_report_footer()
 {
   char *time = malloc(time_string_len * sizeof (char));
   int run_time = (int) difftime(conf->end_time, conf->start_time);
 
   strftime(time, time_string_len, time_format, localtime(&(conf->end_time)));
-  error(2,_("\nEnd timestamp: %s (run time: %dm %ds)\n"), time, run_time/60, run_time%60);
+  error(2,_("\n\nEnd timestamp: %s (run time: %dm %ds)\n"), time, run_time/60, run_time%60);
   free(time); time=NULL;
 }
 
@@ -691,6 +709,7 @@ int gen_report(seltree* node) {
         print_report_details(node);
     }
     }
+    print_report_databases();
     conf->end_time=time(&(conf->end_time));
     print_report_footer();
 

@@ -1,7 +1,7 @@
 %{ 
 
 /*	
- * Copyright (C) 1999-2006,2010-2012 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2006,2010-2013 Rami Lehti, Pablo Virolainen,
  * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  * This program is free software; you can redistribute it and/or
@@ -81,6 +81,7 @@ extern long conf_lineno;
 %token TDATABASE
 %token TDATABASE_OUT
 %token TDATABASE_NEW
+%token TDATABASE_ATTRS
 %token TREPORT_URL
 %token TGZIPDBOUT
 %token TROOT_PREFIX
@@ -152,7 +153,7 @@ lines : lines line | ;
 
 line : rule | equrule | negrule | definestmt | undefstmt
        | ifdefstmt | ifndefstmt | ifhoststmt | ifnhoststmt
-       | groupdef | db_in | db_out | db_new | verbose | report_detailed_init | config_version
+       | groupdef | db_in | db_out | db_new | db_attrs | verbose | report_detailed_init | config_version
        | report | gzipdbout | root_prefix | report_base16 | recursion_stopper | warn_dead_symlinks | grouped
        | summarize_changes | acl_no_symlink_follow | beginconfigstmt | endconfigstmt
        | TEOF {
@@ -267,6 +268,15 @@ db_new : TDATABASE_NEW TSTRING { do_dbdef(DB_NEW,$2); };
 verbose : TVERBOSE TSTRING { do_verbdef($2); };
 
 report : TREPORT_URL TSTRING { do_repurldef($2); } ;
+
+db_attrs : TDATABASE_ATTRS expr {
+  DB_ATTR_TYPE attr;
+  if((attr = $2&(~DB_HASHES))){
+    error(0, "%li: invalid attribute(s) in database_attrs: %llx\n", conf_lineno-1, attr);
+    YYABORT;
+  }
+  conf->db_attrs=$2;
+} ;
 
 beginconfigstmt : TBEGIN_CONFIG TSTRING {
 #ifdef WITH_MHASH

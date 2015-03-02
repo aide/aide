@@ -1,3 +1,6 @@
+2015-03-02 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Renamed 'configure.in' to 'configure.ac'
+
 2013-05-20 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Print checksums of databases in verbose level 2 or higher (closes
 	  feature request 1502032)

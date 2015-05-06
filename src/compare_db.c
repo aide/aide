@@ -577,23 +577,23 @@ static void print_report_header() {
     char *time;
     int first = 1;
 
-    error(0,_("AIDE " AIDEVERSION));
+    time = malloc(time_string_len * sizeof (char));
+    strftime(time, time_string_len, time_format, localtime(&(conf->start_time)));
+    error(2,_("Start timestamp: %s (AIDE " AIDEVERSION ")\n"), time);
+    free(time); time=NULL;
+
+    error(0,_("AIDE"));
     if(conf->action&(DO_COMPARE|DO_DIFF)) {
         error(0,_(" found %sdifferences between %s%s!!\n"), (nadd||nrem||nchg)?"":"NO ", conf->action&DO_COMPARE?_("database and filesystem"):_("the two databases"), (nadd||nrem||nchg)?"":_(". Looks okay"));
         if(conf->action&(DO_INIT)) {
             error(0,_("New AIDE database written to %s\n"),conf->db_out_url->value);
         }
     } else {
-        error(0,_(" initialized AIDE database at %s\n"),conf->db_out_url->value);
+        error(0,_(" initialized database at %s\n"),conf->db_out_url->value);
     }
 
     if(conf->config_version)
         error(2,_("Config version used: %s\n"),conf->config_version);
-
-    time = malloc(time_string_len * sizeof (char));
-    strftime(time, time_string_len, time_format, localtime(&(conf->start_time)));
-    error(2,_("Start timestamp: %s\n"), time);
-    free(time); time=NULL;
 
     if (conf->verbose_level != 5) {
         error (2,_("Verbose level: %d"), conf->verbose_level);

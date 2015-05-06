@@ -1,3 +1,6 @@
+2015-05-06 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* src/compare_db.c: adjusted report layout
+
 2015-03-02 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Renamed 'configure.in' to 'configure.ac'
 

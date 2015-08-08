@@ -1,3 +1,6 @@
+2015-08-08 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* src/compare_db.c: added support for new e2fsattrs flags
+
 2015-05-06 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c: adjusted report layout
 

@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2007,2010-2013 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2007,2010-2013,2015 Rami Lehti, Pablo Virolainen,
  * Richard van den Berg, Mike Markley, Hannes von Haugwitz
  * $Id$
  *
@@ -130,7 +130,10 @@ const char* details_string[] = { _("File type") , _("Lname"), _("Size"), _("Size
 };
 
 #ifdef WITH_E2FSATTRS
-    /* flag->character mappings defined in lib/e2p/pf.c (part of e2fsprogs-1.41.12 sources) */
+    /* flag->character mappings taken from lib/e2p/pf.c (git commit c46b57b)
+     * date: 2015-05-10
+     * sources: git://git.kernel.org/pub/scm/fs/ext2/e2fsprogs.git
+     */
     unsigned long flag_bits[] = { EXT2_SECRM_FL, EXT2_UNRM_FL, EXT2_SYNC_FL, EXT2_DIRSYNC_FL, EXT2_IMMUTABLE_FL,
         EXT2_APPEND_FL, EXT2_NODUMP_FL, EXT2_NOATIME_FL, EXT2_COMPR_FL, EXT2_COMPRBLK_FL,
         EXT2_DIRTY_FL, EXT2_NOCOMPR_FL, EXT2_ECOMPR_FL, EXT3_JOURNAL_DATA_FL, EXT2_INDEX_FL,
@@ -141,6 +144,13 @@ const char* details_string[] = { _("File type") , _("Lname"), _("Size"), _("Size
 #ifdef EXT4_HUGE_FILE_FL
         , EXT4_HUGE_FILE_FL
 #endif
+#ifdef FS_NOCOW_FL
+    , FS_NOCOW_FL
+#endif
+#ifdef EXT4_INLINE_DATA_FL
+    , EXT4_INLINE_DATA_FL
+#endif
+
     };
     char flag_char[] = { 's', 'u', 'S', 'D', 'i', 'a', 'd', 'A', 'c', 'B', 'Z', 'X', 'E', 'j', 'I', 't', 'T'
 #ifdef EXT4_EXTENTS_FL
@@ -148,6 +158,12 @@ const char* details_string[] = { _("File type") , _("Lname"), _("Size"), _("Size
 #endif
 #ifdef EXT4_HUGE_FILE_FL
     , 'h'
+#endif
+#ifdef FS_NOCOW_FL
+    , 'C'
+#endif
+#ifdef EXT4_INLINE_DATA_FL
+    , 'N'
 #endif
     };
 #endif

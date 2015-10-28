@@ -523,29 +523,23 @@ static void print_attributes_removed_node(db_line* line) {
 
 static void terse_report(seltree* node) {
     list* r=NULL;
-    /* If this node has been touched checked !=0
-       If checked == 0 there is nothing to report
-       */
-    if (node->checked!=0){
-        ntotal++;
-        if ((node->checked&DB_OLD)&&(node->checked&DB_NEW) && (node->old_data==NULL)&&(node->new_data==NULL)){
-            /* Node was added to twice and discovered to be not changed*/
-        } else if (!(node->checked&DB_OLD)&&(node->checked&DB_NEW)){
+    if ((node->checked&(DB_OLD|DB_NEW)) != 0) {
+        ntotal += ((node->checked&DB_NEW) != 0);
+        if (!(node->checked&DB_OLD)){
             /* File is in new db but not old. (ADDED) */
             /* unless it was moved in */
             if (!((node->checked&NODE_ALLOW_NEW)||(node->checked&NODE_MOVED_IN))) {
                 nadd++;
                 node->checked|=NODE_ADDED;
             }
-        } else if ((node->checked&DB_OLD)&&!(node->checked&DB_NEW)){
+        } else if (!(node->checked&DB_NEW)){
             /* File is in old db but not new. (REMOVED) */
             /* unless it was moved out */
             if (!((node->checked&NODE_ALLOW_RM)||(node->checked&NODE_MOVED_OUT))) {
                 nrem++;
                 node->checked|=NODE_REMOVED;
             }
-        } else if ((node->checked&DB_OLD)&&(node->checked&DB_NEW)&&
-                (node->old_data!=NULL)&&(node->new_data!=NULL)){
+        } else if ((node->old_data!=NULL)&&(node->new_data!=NULL)){
             /* File is in both db's and the data is still there. (CHANGED) */
             if (!(node->checked&(NODE_MOVED_IN|NODE_MOVED_OUT))){
                 nchg++;

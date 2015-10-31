@@ -1,3 +1,6 @@
+2015-10-31 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* src/gen_list.c: fixed bug if rules are removed
+
 2015-10-28 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/compare_db.c: fixed total number of entries
 

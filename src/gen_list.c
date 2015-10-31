@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2006,2009-2012 Rami Lehti,Pablo Virolainen, Mike
+ * Copyright (C) 1999-2006,2009-2012,2015 Rami Lehti,Pablo Virolainen, Mike
  * Markley, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -1076,8 +1076,7 @@ void populate_tree(seltree* tree)
   }
   
     if(conf->action&DO_DIFF){
-        do {
-      if((new=db_readline(DB_NEW)) != NULL){
+      while((new=db_readline(DB_NEW)) != NULL){
 	/* FIXME add support config checking at this stage 
 	   config check = add only those files that match config rxs
 	   make this configurable
@@ -1096,14 +1095,12 @@ void populate_tree(seltree* tree)
           new=NULL;
 	}
       }
-    } while (new);
     }
     
     if((conf->action&DO_INIT)||(conf->action&DO_COMPARE)){
       /* FIXME  */
       new=NULL;
-      do {
-      if((new=db_readline(DB_DISK)) != NULL) {
+      while((new=db_readline(DB_DISK)) != NULL) {
 	/* Write to db only if needed */
 	if(conf->action&DO_INIT){
 	  db_writeline(new,conf);
@@ -1112,11 +1109,9 @@ void populate_tree(seltree* tree)
 	    add_file_to_tree(tree,new,DB_NEW,0,attr);
 	  }
       }
-    } while (new);
     }
     if((conf->action&DO_COMPARE)||(conf->action&DO_DIFF)){
-        do{
-            if((old=db_readline(DB_OLD)) != NULL) {
+            while((old=db_readline(DB_OLD)) != NULL) {
                 /* This is needed because check_rxtree assumes there is a parent
                    for the node for old->filename */
                 if((node=get_seltree_node(tree,old->filename))==NULL){
@@ -1134,7 +1129,6 @@ void populate_tree(seltree* tree)
                     }
                 }
             }
-        }while(old);
     }
 }
 

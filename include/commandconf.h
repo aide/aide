@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2006,2011 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002,2006,2011,2015 Rami Lehti, Pablo Virolainen,
  * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -59,6 +59,8 @@ void do_replevdef(char*);
 void do_repurldef(char*);
 
 void do_rootprefix(char*);
+
+void do_report_ignore_e2fsattrs(char*);
 
 int check_db_order(DB_FIELD*,int, DB_FIELD);
 

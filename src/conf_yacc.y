@@ -1,7 +1,7 @@
 %{ 
 
 /*	
- * Copyright (C) 1999-2006,2010-2013 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2006,2010-2013,2015 Rami Lehti, Pablo Virolainen,
  * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  * This program is free software; you can redistribute it and/or
@@ -77,6 +77,7 @@ extern long conf_lineno;
 %token TVERBOSE
 %token TREPORTDETAILEDINIT
 %token TREPORTBASE16
+%token TREPORTIGNOREE2FSATTRS
 %token TCONFIG_FILE
 %token TDATABASE
 %token TDATABASE_OUT
@@ -154,7 +155,7 @@ lines : lines line | ;
 line : rule | equrule | negrule | definestmt | undefstmt
        | ifdefstmt | ifndefstmt | ifhoststmt | ifnhoststmt
        | groupdef | db_in | db_out | db_new | db_attrs | verbose | report_detailed_init | config_version
-       | report | gzipdbout | root_prefix | report_base16 | recursion_stopper | warn_dead_symlinks | grouped
+       | report | gzipdbout | root_prefix | report_base16 | report_ignore_e2fsattrs | recursion_stopper | warn_dead_symlinks | grouped
        | summarize_changes | acl_no_symlink_follow | beginconfigstmt | endconfigstmt
        | TEOF {
             newlinelastinconfig=1;
@@ -319,6 +320,14 @@ report_detailed_init : TREPORTDETAILEDINIT TTRUE {
 
 report_detailed_init : TREPORTDETAILEDINIT TFALSE {
   conf->report_detailed_init=0;
+} ;
+
+report_ignore_e2fsattrs : TREPORTIGNOREE2FSATTRS TSTRING {
+#ifdef WITH_E2FSATTRS
+  do_report_ignore_e2fsattrs($2);
+#else
+  error(0,"e2fsattrs-support not compiled in.\n");
+#endif
 } ;
 
 report_base16 : TREPORTBASE16 TTRUE {

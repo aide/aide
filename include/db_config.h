@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2004-2006,2010-2013 Rami Lehti, Pablo Virolainen,
- * Richard van den Berg, Hannes von Haugwitz
+ * Copyright (C) 1999-2002,2004-2006,2010-2013,2015 Rami Lehti, Pablo
+ * Virolainen, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -366,6 +366,10 @@ typedef struct db_config {
   int report_detailed_init;
   int report_base16;
   int use_initial_errorsto;
+
+#ifdef WITH_E2FSATTRS
+  unsigned long report_ignore_e2fsattrs;
+#endif
 
   url_t* initial_report_url;
   FILE* initial_report_fd;

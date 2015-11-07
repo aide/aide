@@ -177,6 +177,12 @@ static int have_xattrs_changed(xattrs_type* x1,xattrs_type* x2) {
 }
 #endif
 
+#ifdef WITH_E2FSATTRS
+static int has_e2fsattrs_changed(unsigned long old, unsigned long new) {
+    return (~(conf->report_ignore_e2fsattrs)&(old^new));
+}
+#endif
+
 /*
  * Returns the changed attributes for two database lines.
  *
@@ -240,7 +246,7 @@ static DB_ATTR_TYPE get_changed_attributes(db_line* l1,db_line* l2) {
     easy_function_compare(DB_SELINUX,cntx,has_str_changed);
 #endif
 #ifdef WITH_E2FSATTRS
-    easy_compare(DB_E2FSATTRS,e2fsattrs);
+    easy_function_compare(DB_E2FSATTRS,e2fsattrs,has_e2fsattrs_changed);
 #endif
     error(255,"Debug, changed attributes for entry %s [%llx %llx]: %llx\n", l1->filename,l1->attr,l2->attr,ret);
     return ret;

@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2006,2010,2011,2013 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2006,2010,2011,2013,2015 Rami Lehti, Pablo Virolainen,
  * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -907,6 +907,60 @@ void do_rootprefix(char* val) {
         error(200,_("Root prefix already set to '%s'\n"), conf->root_prefix);
     }
 }
+
+#ifdef WITH_E2FSATTRS
+#define easy_e2fsattrs_case(c,f) \
+case c: { \
+    conf->report_ignore_e2fsattrs|=f; \
+    break; \
+}
+
+void do_report_ignore_e2fsattrs(char* val) {
+    conf->report_ignore_e2fsattrs = 0UL;
+    while (*val) {
+        switch(*val){
+            /* source for mappings see compare_db.c */
+            easy_e2fsattrs_case('s',EXT2_SECRM_FL)
+            easy_e2fsattrs_case('u',EXT2_UNRM_FL)
+            easy_e2fsattrs_case('S',EXT2_SYNC_FL)
+            easy_e2fsattrs_case('D',EXT2_DIRSYNC_FL)
+            easy_e2fsattrs_case('i',EXT2_IMMUTABLE_FL)
+            easy_e2fsattrs_case('a',EXT2_APPEND_FL)
+            easy_e2fsattrs_case('d',EXT2_NODUMP_FL)
+            easy_e2fsattrs_case('A',EXT2_NOATIME_FL)
+            easy_e2fsattrs_case('c',EXT2_COMPR_FL)
+            easy_e2fsattrs_case('B',EXT2_COMPRBLK_FL)
+            easy_e2fsattrs_case('Z',EXT2_DIRTY_FL)
+            easy_e2fsattrs_case('X',EXT2_NOCOMPR_FL)
+            easy_e2fsattrs_case('E',EXT2_ECOMPR_FL)
+            easy_e2fsattrs_case('j',EXT3_JOURNAL_DATA_FL)
+            easy_e2fsattrs_case('I',EXT2_INDEX_FL)
+            easy_e2fsattrs_case('t',EXT2_NOTAIL_FL)
+            easy_e2fsattrs_case('T',EXT2_TOPDIR_FL)
+#ifdef EXT4_EXTENTS_FL
+            easy_e2fsattrs_case('e',EXT4_EXTENTS_FL)
+#endif
+#ifdef EXT4_HUGE_FILE_FL
+            easy_e2fsattrs_case('h',EXT4_HUGE_FILE_FL)
+#endif
+#ifdef FS_NOCOW_FL
+            easy_e2fsattrs_case('C',FS_NOCOW_FL)
+#endif
+#ifdef EXT4_INLINE_DATA_FL
+            easy_e2fsattrs_case('N',EXT4_INLINE_DATA_FL)
+#endif
+            case '0': {
+                 break;
+            }
+            default: {
+                 error(0,_("Ignore invalid ext2 file attribute: '%c'\n"),*val);
+                 break;
+            }
+        }
+        *val++;
+    }
+}
+#endif
 
 const char* aide_key_7=CONFHMACKEY_07;
 const char* db_key_7=DBHMACKEY_07;

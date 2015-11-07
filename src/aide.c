@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2006,2010-2013 Rami Lehti, Pablo Virolainen, Mike
+ * Copyright (C) 1999-2006,2010-2013,2015 Rami Lehti, Pablo Virolainen, Mike
  * Markley, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -276,6 +276,9 @@ static void setdefaults_before_config()
   conf->report_fd=NULL;
   conf->report_syslog=0;
   conf->report_db=0;
+#ifdef WITH_E2FSATTRS
+  conf->report_ignore_e2fsattrs = 0UL;
+#endif
 
   u=parse_url(urlstr);
   error_init(u,1);

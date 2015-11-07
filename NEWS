@@ -5,6 +5,7 @@ Version 0.16 (NOT_YET_RELEASED)
 	* Added new database_attrs option
 	* Added new report_detailed_init option
 	* Added new report_base16 option
+	* Added new report_ignore_e2fsattrs option
 	* Wrap attribute values instead of cut them off
 	* Side-by-side output of acl and xattrs values
 	* Use '|' to separate the old value from the new one

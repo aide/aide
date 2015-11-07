@@ -152,6 +152,27 @@ in the final report for changed files.
 .IP "ignore_list"
 Special group definition that lists parameters which are to be ignored
 from the final report.
+.IP "report_ignore_e2fsattrs"
+List (no delimiter) of ext2 file attributes which are to be ignored from the final report.
+See
+.BR chattr (1)
+for the available attributes. Use '0' to not ignore any
+attribute. Ignored attributes are represented by a ':' in the output. The
+default is to not ignore any ext2 file attribute.
+
+.RS
+.B Example
+.RS 3
+Ignore changes of the ext2 file attributes compression error (E), huge file
+(h), indexed directory (I):
+
+.RS 3
+.nf
+report_ignore_e2fsattrs=EhI
+.fi
+.RE
+.RE
+.RE
 .IP "config_version"
 The value of config_version is printed in the report and also printed 
 to the database. This is for informational purposes only. It has no

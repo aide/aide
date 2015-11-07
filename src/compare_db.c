@@ -133,6 +133,8 @@ const char* details_string[] = { _("File type") , _("Lname"), _("Size"), _("Size
     /* flag->character mappings taken from lib/e2p/pf.c (git commit c46b57b)
      * date: 2015-05-10
      * sources: git://git.kernel.org/pub/scm/fs/ext2/e2fsprogs.git
+     *
+     * on update see also do_e2fsattrs in commandconf.c
      */
     unsigned long flag_bits[] = { EXT2_SECRM_FL, EXT2_UNRM_FL, EXT2_SYNC_FL, EXT2_DIRSYNC_FL, EXT2_IMMUTABLE_FL,
         EXT2_APPEND_FL, EXT2_NODUMP_FL, EXT2_NOATIME_FL, EXT2_COMPR_FL, EXT2_COMPRBLK_FL,
@@ -166,8 +168,8 @@ const char* details_string[] = { _("File type") , _("Lname"), _("Size"), _("Size
     , 'N'
 #endif
     };
-#endif
 /*************/
+#endif
 
 static DB_ATTR_TYPE get_ignorelist() {
     DB_ATTR_TYPE ignorelist = get_groupval("ignore_list");
@@ -286,18 +288,20 @@ static int acl2array(acl_type* acl, char* **values) {
 #endif
 
 #ifdef WITH_E2FSATTRS
-static char* e2fsattrs2string(unsigned long flags) {
+static char* e2fsattrs2string(unsigned long flags, int flags_only) {
     int length = sizeof(flag_bits)/sizeof(long);
     char* string = malloc ((length+1) * sizeof (char));
-    int i;
-    for (i = 0 ; i < length ; i++) {
-        if (flag_bits[i] & flags) {
-            string[i]=flag_char[i];
-        } else {
-            string[i]='-';
+    int j = 0;
+    for (int i = 0 ; i < length ; i++) {
+        if (!flags_only && flag_bits[i]&(conf->report_ignore_e2fsattrs)) {
+            string[j++]=':';
+        } else if (flag_bits[i] & flags) {
+            string[j++]=flag_char[i];
+        } else if (!flags_only) {
+            string[j++]='-';
         }
     }
-    string[length] = '\0';
+    string[j] = '\0';
     return string;
 }
 #endif
@@ -407,7 +411,7 @@ snprintf(*values[0], l, "%s",s);
 #endif
 #ifdef WITH_E2FSATTRS
         } else if (DB_E2FSATTRS&attr) {
-            *values[0]=e2fsattrs2string(line->e2fsattrs);
+            *values[0]=e2fsattrs2string(line->e2fsattrs, 0);
 #endif
         } else {
             easy_string("unknown attribute")
@@ -614,16 +618,26 @@ static void print_report_header() {
         else { error (2," | "); }
         error (2,_("Root prefix: %s"),conf->root_prefix);
     }
+    if (!first) {
+        error (2,"\n");
+        first = 1;
+    }
     if (ignored_attrs) {
-        if (first) { first=0; }
-        else { error (2," | "); }
         error (2,_("Ignored attributes: %llx"),ignored_attrs);
+        first = 0;
     }
     if (forced_attrs) {
         if (first) { first=0; }
         else { error (2," | "); }
         error (2,_("Forced attributes: %llx"),forced_attrs);
     }
+#ifdef WITH_E2FSATTRS
+    if (conf->report_ignore_e2fsattrs) {
+        if (first) { first=0; }
+        else { error (2," | "); }
+        error (2,_("Ignored e2fs attributes: %s"), e2fsattrs2string(conf->report_ignore_e2fsattrs, 1) );
+    }
+#endif
     if (!first) { error (2,"\n"); }
 
     if(conf->action&(DO_COMPARE|DO_DIFF) && (nadd||nrem||nchg)) {

@@ -101,7 +101,7 @@ a \fB<\fP reports a shrinked size and a \fB>\fP reports a grown size.
 The other letters in the string are the actual letters that will be output 
 if the associated attribute for the item has been changed or a "." for no
 change, a "+" if the attribute has been added, a "-" if it has been removed,
-a ":" if the attribute is listed in ignore_list or a " " if the attribute has
+a ":" if the attribute is ignored (but not forced) or a " " if the attribute has
 not been checked. The exceptions to this are: (1) a newly created file replaces 
 each letter with a "+", and (2) a removed file replaces each letter with a "-".
 
@@ -146,12 +146,20 @@ A \fBS\fP means that the SELinux attributes have changed.
 .IP o
 A \fBE\fP means that the file attributes on a second extended file system have changed.
 .RE
-.IP "report_attributes"
-Special group definition that lists parameters which are always printed
-in the final report for changed files.
+.IP "report_ignore_added_attrs"
+Special group definition that lists attributes whose addition is to be ignored
+in the final report.
+.IP "report_ignore_removed_attrs"
+Special group definition that lists attributes whose removal is to be ignored
+in the final report.
 .IP "ignore_list"
-Special group definition that lists parameters which are to be ignored
-from the final report.
+Special group definition that lists attributes whose change is to be ignored
+in the final report.
+.IP "report_attributes"
+Special group definition that lists attributes which are always printed in the
+final report for changed files. If an attribute is both ignored and forced the
+attribute is not considered for file change but printed in the final report if
+the file has been otherwise changed.
 .IP "report_ignore_e2fsattrs"
 List (no delimiter) of ext2 file attributes which are to be ignored from the final report.
 See
@@ -189,9 +197,6 @@ expression. Expression is of the following form.
 .IP
 See DEFAULT GROUPS for an explanation of default predefined groups.
 Note that this is different from the way Tripwire(tm) does it.
-.IP
-There is also a special group named "ignore_list". The predefined 
-\-groups listed in it are NOT displayed in the final report.
 .PP
 .SH "SELECTION LINES"
 .PP

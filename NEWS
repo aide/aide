@@ -5,6 +5,8 @@ Version 0.16 (NOT_YET_RELEASED)
 	* Added new database_attrs option
 	* Added new report_detailed_init option
 	* Added new report_base16 option
+	* Added new report_ignore_added_attrs option
+	* Added new report_ignore_removed_attrs option
 	* Added new report_ignore_e2fsattrs option
 	* Wrap attribute values instead of cut them off
 	* Side-by-side output of acl and xattrs values
@@ -19,8 +21,9 @@ Version 0.16 (NOT_YET_RELEASED)
 	* Added numeric timezone to time format
 	* Print "End timestamp" message in report
 	* Added run time to report
-	* Added info about verbose level, ignorelist and report_attributes to
-	  report if they differ from standard value
+	* Print human-readable info about ignored and forced attributes in report
+	* Added info about verbose level to report if it differs from standard
+	  value
 	* Changed report if aide found no changes
 	* Added info about number of entries if aide found no changes or
 	  the database has been initialized

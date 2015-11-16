@@ -61,7 +61,7 @@ long ntotal, nadd, nrem, nchg = 0;
 
 const char* report_top_format = "\n\n---------------------------------------------------\n%s:\n---------------------------------------------------\n";
 
-DB_ATTR_TYPE ignored_attrs, forced_attrs;
+DB_ATTR_TYPE ignored_added_attrs, ignored_removed_attrs, ignored_changed_attrs, forced_attrs;
 
 const DB_ATTR_TYPE summary_attributes[] = { DB_FTYPE, DB_LINKNAME, DB_SIZE|DB_SIZEG, DB_BCOUNT, DB_PERM, DB_UID, DB_GID, DB_ATIME, DB_MTIME, DB_CTIME, DB_INODE, DB_LNKCOUNT, DB_HASHES
 #ifdef WITH_ACL
@@ -129,6 +129,12 @@ const char* details_string[] = { _("File type") , _("Lname"), _("Size"), _("Size
 #endif
 };
 
+const char* attrs_string[] = { "filename", "l", "p", "u", "g", "s", "a", "c", "m", "i", "b", "n",
+                               "md5", "sha1", "rmd160", "tiger", "crc32", "haval", "gost", "crc32b",
+                               "attr", "acl", "bsize", "rdev", "dev", "checkmask", "S", "I", "ANF",
+                               "ARF", "sha256", "sha512", "selinux", "xattrs", "whirlpool", "ftype",
+                               "e2fsattrs" };
+
 #ifdef WITH_E2FSATTRS
     /* flag->character mappings taken from lib/e2p/pf.c (git commit c46b57b)
      * date: 2015-05-10
@@ -171,14 +177,30 @@ const char* details_string[] = { _("File type") , _("Lname"), _("Size"), _("Size
 /*************/
 #endif
 
-static DB_ATTR_TYPE get_ignorelist() {
-    DB_ATTR_TYPE ignorelist = get_groupval("ignore_list");
-    return ignorelist==DB_ATTR_UNDEF?0:ignorelist;
+static DB_ATTR_TYPE get_special_report_group(char* group) {
+    DB_ATTR_TYPE attr = get_groupval(group);
+    return attr==DB_ATTR_UNDEF?0:attr;
 }
 
-static DB_ATTR_TYPE get_report_attributes() {
-    DB_ATTR_TYPE forced_attrs = get_groupval("report_attributes");
-    return forced_attrs==DB_ATTR_UNDEF?0:forced_attrs;
+static char* report_attrs(DB_ATTR_TYPE attrs) {
+    char* str;
+    int j = 1;
+    int num_attrs = sizeof(attrs_string)/sizeof(char*);
+    for (int i = 0; i < num_attrs; ++i) {
+        if ((1LLU<<i)&attrs) {
+            j += strlen(attrs_string[i])+1;
+        }
+    }
+    str = malloc(j * sizeof (char));
+    j=0;
+    for (int i = 0; i < num_attrs; ++i) {
+        if ((1LLU<<i)&attrs) {
+            if (j) { str[j++] = '+'; }
+            j += snprintf(&str[j], "%s", attrs_string[i]);
+        }
+    }
+    str[j] = '\0';
+    return str;
 }
 
 static char get_file_type_char(mode_t mode) {
@@ -437,22 +459,26 @@ static void print_line(seltree* node) {
                 r = '-'; a = '+'; g = ':'; u = '.'; s = ' ';
                 switch (i) {
                     case 0:
-                        r = a = u = g = s = get_file_type_char((node->new_data)->perm);
-                        break;
+                        summary[i]=get_file_type_char((node->new_data)->perm);
+                        continue;
                     case 2:
-                        if (summary_attributes[i]&(node->changed_attrs&(~ignored_attrs)) && (node->old_data)->size > (node->new_data)->size) {
+                        if (summary_attributes[i]&(node->changed_attrs&(~ignored_changed_attrs)) && (node->old_data)->size > (node->new_data)->size) {
                             c = '<';
                         }
                         u = '=';
                         break;
                 }
-                if (summary_attributes[i]&node->changed_attrs&(~ignored_attrs)) {
+                if (summary_attributes[i]&node->changed_attrs&(forced_attrs|(~ignored_changed_attrs))) {
                     summary[i]=c;
-                } else if (summary_attributes[i]&((node->old_data)->attr&~((node->new_data)->attr))) {
+                } else if (summary_attributes[i]&((node->old_data)->attr&~((node->new_data)->attr)&(forced_attrs|~(ignored_removed_attrs)))) {
                     summary[i]=r;
-                } else if (summary_attributes[i]&~((node->old_data)->attr)&(node->new_data)->attr) {
+                } else if (summary_attributes[i]&~((node->old_data)->attr)&(node->new_data)->attr&(forced_attrs|~(ignored_added_attrs))) {
                     summary[i]=a;
-                } else if (summary_attributes[i]&(((node->old_data)->attr&(node->new_data)->attr)&ignored_attrs)) {
+                } else if (summary_attributes[i]& (
+                             (((node->old_data)->attr&~((node->new_data)->attr)&ignored_removed_attrs))|
+                            (~((node->old_data)->attr)&(node->new_data)->attr&ignored_added_attrs)|
+                             ((node->old_data)->attr&(node->new_data)->attr)&ignored_changed_attrs
+                            ) ) {
                     summary[i]=g;
                 } else if (summary_attributes[i]&((node->old_data)->attr&(node->new_data)->attr)) {
                     summary[i]=u;
@@ -476,7 +502,7 @@ static void print_line(seltree* node) {
 }
 
 static void print_dbline_attributes(db_line* oline, db_line* nline, DB_ATTR_TYPE
-        changed_attrs, DB_ATTR_TYPE report_attrs) {
+        changed_attrs, DB_ATTR_TYPE force_attrs) {
     char **ovalue, **nvalue;
     int onumber, nnumber, olen, nlen, i, j, k, c;
     int length = sizeof(details_attributes)/sizeof(DB_ATTR_TYPE);
@@ -488,7 +514,7 @@ static void print_dbline_attributes(db_line* oline, db_line* nline, DB_ATTR_TYPE
         error(2,"%s: ", file_type);
     }
     error(2,"%s\n", (nline==NULL?oline:nline)->filename);
-    attrs=(~(ignored_attrs))&(report_attrs|changed_attrs)&((oline==NULL?0:oline->attr)|(nline==NULL?0:nline->attr));
+    attrs=force_attrs|(~(ignored_changed_attrs)&changed_attrs);
     for (j=0; j < length; ++j) {
         if (details_attributes[j]&attrs) {
             onumber=get_attribute_values(details_attributes[j], oline, &ovalue);
@@ -518,11 +544,11 @@ static void print_dbline_attributes(db_line* oline, db_line* nline, DB_ATTR_TYPE
 }
 
 static void print_attributes_added_node(db_line* line) {
-    print_dbline_attributes(NULL, line, line->attr, 0);
+    print_dbline_attributes(NULL, line, 0, line->attr);
 }
 
 static void print_attributes_removed_node(db_line* line) {
-    print_dbline_attributes(line, NULL, line->attr, 0);
+    print_dbline_attributes(line, NULL, 0, line->attr);
 }
 
 static void terse_report(seltree* node) {
@@ -576,7 +602,9 @@ static void print_report_details(seltree* node) {
     list* r=NULL;
     if (conf->verbose_level>=5) {
         if (node->checked&NODE_CHANGED) {
-            print_dbline_attributes(node->old_data, node->new_data, node->changed_attrs, (conf->verbose_level>=6?(((node->old_data)->attr)^((node->new_data)->attr)):0)|forced_attrs);
+            print_dbline_attributes(node->old_data, node->new_data, node->changed_attrs, (conf->verbose_level>=6?(
+                ((node->old_data)->attr&~((node->new_data)->attr)&~(ignored_removed_attrs))|~((node->old_data)->attr)&(node->new_data)->attr&~(ignored_added_attrs)
+                            ):0)|forced_attrs);
         } else if ((conf->verbose_level>=7)) {
             if (node->checked&NODE_ADDED) { print_attributes_added_node(node->new_data); }
             if (node->checked&NODE_REMOVED) { print_attributes_removed_node(node->old_data); }
@@ -618,27 +646,26 @@ static void print_report_header() {
         else { error (2," | "); }
         error (2,_("Root prefix: %s"),conf->root_prefix);
     }
-    if (!first) {
-        error (2,"\n");
-        first = 1;
+    if (!first) { error (2,"\n"); }
+    if (ignored_added_attrs) {
+        error (2,_("Ignored added attributes: %s\n"),report_attrs(ignored_added_attrs));
     }
-    if (ignored_attrs) {
-        error (2,_("Ignored attributes: %llx"),ignored_attrs);
-        first = 0;
+    if (ignored_removed_attrs) {
+        error (2,_("Ignored removed attributes: %s\n"),report_attrs(ignored_removed_attrs));
+    }
+    if (ignored_changed_attrs) {
+        error (2,_("Ignored changed attributes: %s\n"),report_attrs(ignored_changed_attrs));
     }
     if (forced_attrs) {
-        if (first) { first=0; }
-        else { error (2," | "); }
-        error (2,_("Forced attributes: %llx"),forced_attrs);
+        error (2,_("Forced attributes: %s\n"),report_attrs(forced_attrs));
     }
 #ifdef WITH_E2FSATTRS
     if (conf->report_ignore_e2fsattrs) {
         if (first) { first=0; }
         else { error (2," | "); }
-        error (2,_("Ignored e2fs attributes: %s"), e2fsattrs2string(conf->report_ignore_e2fsattrs, 1) );
+        error (2,_("Ignored e2fs attributes: %s\n"), e2fsattrs2string(conf->report_ignore_e2fsattrs, 1) );
     }
 #endif
-    if (!first) { error (2,"\n"); }
 
     if(conf->action&(DO_COMPARE|DO_DIFF) && (nadd||nrem||nchg)) {
         error(0,_("\nSummary:\n  Total number of entries:\t%li\n  Added entries:\t\t%li\n"
@@ -696,8 +723,10 @@ void send_audit_report()
 #endif /* WITH_AUDIT */
 
 int gen_report(seltree* node) {
-    forced_attrs = get_report_attributes();
-    ignored_attrs = get_ignorelist();
+    forced_attrs = get_special_report_group("report_attributes");
+    ignored_added_attrs = get_special_report_group("report_ignore_added_attrs");
+    ignored_removed_attrs = get_special_report_group("report_ignore_removed_attrs");
+    ignored_changed_attrs = get_special_report_group("ignore_list");
 
     terse_report(node);
 #ifdef WITH_AUDIT

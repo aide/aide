@@ -58,6 +58,11 @@ void fs2db_line(struct AIDE_STAT_TYPE* fs,db_line* line);
 void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line);
 void no_hash(db_line* line);
 
+static DB_ATTR_TYPE get_special_report_group(char* group) {
+    DB_ATTR_TYPE attr = get_groupval(group);
+    return attr==DB_ATTR_UNDEF?0:attr;
+}
+
 static int bytecmp(byte *b1, byte *b2, size_t len) {
   return strncmp((char *)b1, (char *)b2, len);
 }
@@ -791,7 +796,7 @@ void add_file_to_tree(seltree* tree,db_line* file,int db,int status,
 {
   seltree* node=NULL;
   DB_ATTR_TYPE localignorelist=0;
-  DB_ATTR_TYPE ignorelist=0;
+  DB_ATTR_TYPE ignored_added_attrs, ignored_removed_attrs, ignored_changed_attrs;
 
   node=get_seltree_node(tree,file->filename);
 
@@ -826,22 +831,19 @@ void add_file_to_tree(seltree* tree,db_line* file,int db,int status,
   }
   }
   /* We have a way to ignore some changes... */
-
-  ignorelist=get_groupval("ignore_list");
-
-  if (ignorelist==DB_ATTR_UNDEF) {
-    ignorelist=0;
-  }
+  ignored_added_attrs = get_special_report_group("report_ignore_added_attrs");
+  ignored_removed_attrs = get_special_report_group("report_ignore_removed_attrs");
+  ignored_changed_attrs = get_special_report_group("ignore_list");
 
   if((node->checked&DB_OLD)&&(node->checked&DB_NEW)){
-    if (node->new_data->attr^node->old_data->attr) {
+      if (((node->old_data)->attr&~((node->new_data)->attr)&~(ignored_removed_attrs))|~((node->old_data)->attr)&(node->new_data)->attr&~(ignored_added_attrs)) {
       error(2,"Entry %s in databases has different attributes: %llx %llx\n",
             node->old_data->filename,node->old_data->attr,node->new_data->attr);
     }
 
     /* Free the data if same else leave as is for report_tree */
     node->changed_attrs=get_changed_attributes(node->old_data,node->new_data);
-    if((~(ignorelist)&node->changed_attrs)==RETOK){
+    if((~(ignored_changed_attrs)&node->changed_attrs)==RETOK){
       /* FIXME this messes up the tree on SunOS. Don't know why. Fix
 	 needed badly otherwise we leak memory like hell. */
 
@@ -887,7 +889,7 @@ void add_file_to_tree(seltree* tree,db_line* file,int db,int status,
                  oldData->filename, oldData->attr, newData->filename, newData->attr, localignorelist);
      } else {
          /* Free the data if same else leave as is for report_tree */
-         if ((get_changed_attributes(oldData, newData)&~(ignorelist|DB_CTIME)) == RETOK) {
+         if ((get_changed_attributes(oldData, newData)&~(ignored_changed_attrs|DB_CTIME)) == RETOK) {
              node->checked |= db==DB_NEW ? NODE_MOVED_IN : NODE_MOVED_OUT;
              moved_node->checked |= db==DB_NEW ? NODE_MOVED_OUT : NODE_MOVED_IN;
              error(220,_("Entry was moved: %s [%llx] => %s [%llx]\n"),
@@ -1064,21 +1066,12 @@ void populate_tree(seltree* tree)
   db_line* old=NULL;
   db_line* new=NULL;
   int initdbwarningprinted=0;
-  DB_ATTR_TYPE ignorelist=0;
   DB_ATTR_TYPE attr=0;
   seltree* node=NULL;
   
   /* With this we avoid unnecessary checking of removed files. */
   if(conf->action&DO_INIT){
     initdbwarningprinted=1;
-  }
-  
-  /* We have a way to ignore some changes... */ 
-  
-  ignorelist=get_groupval("ignore_list");
-
-  if (ignorelist==DB_ATTR_UNDEF) {
-    ignorelist=0;
   }
   
     if(conf->action&DO_DIFF){

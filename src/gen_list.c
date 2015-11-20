@@ -788,10 +788,9 @@ void strip_dbline(db_line* line)
 /*
  * add_file_to_tree
  * db = which db this file belongs to
- * status = what to do with this node
- * attr attributes to add 
+ * attr attributes to add
  */
-void add_file_to_tree(seltree* tree,db_line* file,int db,int status,
+static void add_file_to_tree(seltree* tree,db_line* file,int db,
                       DB_ATTR_TYPE attr)
 {
   seltree* node=NULL;
@@ -810,11 +809,6 @@ void add_file_to_tree(seltree* tree,db_line* file,int db,int status,
 
   /* add note to this node which db has modified it */
   node->checked|=db;
-
-  /* add note whether to add this node's children */
-  if(S_ISDIR(file->perm)&&status==NODE_ADD_CHILDREN){
-    node->checked|=NODE_ADD_CHILDREN;
-  }
 
   node->attr=attr;
 
@@ -933,13 +927,8 @@ int check_rxtree(char* filename,seltree* tree,DB_ATTR_TYPE* attr)
   }
   pnode=get_seltree_node(tree,parentname);
 
-  if(pnode&&(pnode->checked&NODE_ADD_CHILDREN)){
-    *attr=pnode->attr;
-    retval=check_node_for_match(pnode,filename,1,attr);
-  }else{
-    *attr=0;
-    retval=check_node_for_match(pnode,filename,0,attr);
-  }
+  *attr=0;
+  retval=check_node_for_match(pnode,filename,0,attr);
     
   free(parentname);
 
@@ -1087,7 +1076,7 @@ void populate_tree(seltree* tree)
 	  node=new_seltree_node(tree,new->filename,0,NULL);
 	}
 	if((add=check_rxtree(new->filename,tree,&attr))>0){
-	  add_file_to_tree(tree,new,DB_NEW,0,attr);
+	  add_file_to_tree(tree,new,DB_NEW,attr);
 	} else {
           free_db_line(new);
           free(new);
@@ -1105,7 +1094,7 @@ void populate_tree(seltree* tree)
 	  db_writeline(new,conf);
 	}
 	  if((add=check_rxtree(new->filename,tree,&attr))>0){
-	    add_file_to_tree(tree,new,DB_NEW,0,attr);
+	    add_file_to_tree(tree,new,DB_NEW,attr);
 	  }
       }
     }
@@ -1117,7 +1106,7 @@ void populate_tree(seltree* tree)
                     node=new_seltree_node(tree,old->filename,0,NULL);
                 }
                 if((add=check_rxtree(old->filename,tree,&attr))>0){
-                    add_file_to_tree(tree,old,DB_OLD,0,attr);
+                    add_file_to_tree(tree,old,DB_OLD,attr);
                 }else{
                     free_db_line(old);
                     free(old);

@@ -3,7 +3,7 @@ m4_include([version.m4])
 dnl Initialize autoconf/automake
 AC_INIT(aide, AIDE_VERSION)
 AC_CANONICAL_TARGET
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([1.10 -Wall -Werror silent-rules subdir-objects])
 
 AC_DEFINE_UNQUOTED(AIDEVERSION, "AIDE_VERSION")
 AH_TEMPLATE([AIDEVERSION], [package version])
@@ -996,5 +996,5 @@ LDFLAGS="$LDFLAGS $EXTRA_LDFLAGS"
 CFLAGS="$CFLAGS $EXTRA_CFLAGS"
 
 AC_SUBST(AIDE_DEFS)
-AC_OUTPUT(Makefile src/Makefile include/Makefile doc/Makefile doc/aide.conf doc/aide.1 doc/aide.conf.5 aide.spec)
+AC_OUTPUT(Makefile doc/aide.conf doc/aide.1 doc/aide.conf.5 aide.spec)
 

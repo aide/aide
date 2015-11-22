@@ -1,3 +1,6 @@
+2015-11-22 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Use single Makefile.am
+
 2015-11-20 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/gen_list.c: minor code cleanup
 

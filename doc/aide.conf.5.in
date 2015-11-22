@@ -62,7 +62,7 @@ yes, true, no and false. The default is to report checksums not in base16 but
 in base64 encoding.
 .IP "report_detailed_init"
 Whether to report added files (verbose level >= 2) and their details (verbose
-level >=6) in initialization mode or not. Valid values are yes, true, no and
+level >=7) in initialization mode or not. Valid values are yes, true, no and
 false. The default is to not report added files or their details in init mode.
 .IP "gzip_dbout"
 Whether the output to the database is gzipped or not. Valid values are
@@ -161,7 +161,7 @@ final report for changed files. If an attribute is both ignored and forced the
 attribute is not considered for file change but printed in the final report if
 the file has been otherwise changed.
 .IP "report_ignore_e2fsattrs"
-List (no delimiter) of ext2 file attributes which are to be ignored from the final report.
+List (no delimiter) of ext2 file attributes which are to be ignored in the final report.
 See
 .BR chattr (1)
 for the available attributes. Use '0' to not ignore any

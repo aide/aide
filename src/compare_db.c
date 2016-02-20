@@ -732,6 +732,7 @@ int gen_report(seltree* node) {
 #ifdef WITH_AUDIT
     send_audit_report();
 #endif
+    if ((nadd|nrem|nchg) > 0 || conf->report_quiet == 0) {
     print_report_header();
     if(conf->action&(DO_COMPARE|DO_DIFF) || (conf->action&DO_INIT && conf->report_detailed_init) ) {
     if (conf->grouped) {
@@ -765,6 +766,7 @@ int gen_report(seltree* node) {
     print_report_databases();
     conf->end_time=time(&(conf->end_time));
     print_report_footer();
+    }
 
     return conf->action&(DO_COMPARE|DO_DIFF) ? (nadd!=0)*1+(nrem!=0)*2+(nchg!=0)*4 : 0;
 }

@@ -1,7 +1,7 @@
 %{ 
 
 /*	
- * Copyright (C) 1999-2006,2010-2013,2015 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2006,2010-2013,2015,2016 Rami Lehti, Pablo Virolainen,
  * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  * This program is free software; you can redistribute it and/or
@@ -77,6 +77,7 @@ extern long conf_lineno;
 %token TVERBOSE
 %token TREPORTDETAILEDINIT
 %token TREPORTBASE16
+%token TREPORTQUIET
 %token TREPORTIGNOREE2FSATTRS
 %token TCONFIG_FILE
 %token TDATABASE
@@ -155,7 +156,8 @@ lines : lines line | ;
 line : rule | equrule | negrule | definestmt | undefstmt
        | ifdefstmt | ifndefstmt | ifhoststmt | ifnhoststmt
        | groupdef | db_in | db_out | db_new | db_attrs | verbose | report_detailed_init | config_version
-       | report | gzipdbout | root_prefix | report_base16 | report_ignore_e2fsattrs | recursion_stopper | warn_dead_symlinks | grouped
+       | report | gzipdbout | root_prefix | report_base16 | report_quiet
+       | report_ignore_e2fsattrs | recursion_stopper | warn_dead_symlinks | grouped
        | summarize_changes | acl_no_symlink_follow | beginconfigstmt | endconfigstmt
        | TEOF {
             newlinelastinconfig=1;
@@ -336,6 +338,14 @@ report_base16 : TREPORTBASE16 TTRUE {
 
 report_base16 : TREPORTBASE16 TFALSE {
   conf->report_base16=0;
+} ;
+
+report_quiet : TREPORTQUIET TTRUE {
+  conf->report_quiet=1;
+} ;
+
+report_quiet : TREPORTQUIET TFALSE {
+  conf->report_quiet=0;
 } ;
 
 grouped : TGROUPED TTRUE {

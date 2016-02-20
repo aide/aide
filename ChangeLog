@@ -1,3 +1,6 @@
+2016-02-20 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Add new 'report_quiet' option
+
 2015-11-22 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Use single Makefile.am
 	* doc/aide.conf.5.in: minor fixes

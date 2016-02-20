@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2006,2010-2013,2015 Rami Lehti, Pablo Virolainen, Mike
- * Markley, Richard van den Berg, Hannes von Haugwitz
+ * Copyright (C) 1999-2006,2010-2013,2015,2016 Rami Lehti, Pablo Virolainen,
+ * Mike Markley, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -271,6 +271,7 @@ static void setdefaults_before_config()
   conf->verbose_level=-1;
   conf->report_detailed_init=0;
   conf->report_base16=0;
+  conf->report_quiet=0;
   conf->use_initial_errorsto=1;
   conf->report_url=NULL;
   conf->report_fd=NULL;

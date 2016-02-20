@@ -64,6 +64,10 @@ in base64 encoding.
 Whether to report added files (verbose level >= 2) and their details (verbose
 level >=7) in initialization mode or not. Valid values are yes, true, no and
 false. The default is to not report added files or their details in init mode.
+.IP "report_quiet"
+Whether to suppress report output if no differences to the database have been
+found or not. Valid values are yes, true, no and false. The default is to not
+suppress output in the report.
 .IP "gzip_dbout"
 Whether the output to the database is gzipped or not. Valid values are
 yes,true,no and false. The default is no. This option is available only

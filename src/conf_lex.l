@@ -343,6 +343,12 @@ int var_in_conflval=0;
   return (TVERBOSE);  
 }
 
+^[\t\ ]*"database_add_metadata"{E} {
+  error(230,"%li:database_add_metadata =\n",conf_lineno);
+  BEGIN CONFVALHUNT;
+  return (TDATABASEADDMETADATA);
+}
+
 ^[\t\ ]*"report_url"{E} {
   error(230,"%li:report_url =\n",conf_lineno);
   BEGIN CONFVALHUNT;

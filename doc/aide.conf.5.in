@@ -46,6 +46,11 @@ supported. To disable set
 to
 .RB ' E '.
 By default all compiled in checksums are added to the report.
+.IP "database_add_metadata"
+Whether to add the Aide version and the time of database generation as comments
+to the database file or not. Valid values are yes, true, no and false. The
+default is to add the Aide version and the time of database generation. This
+option may be set to no by default in a future release.
 .IP "verbose"
 The level of messages that is output. This value can be 0-255
 inclusive. This parameter can only be given once. Value from the first

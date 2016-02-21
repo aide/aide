@@ -363,6 +363,7 @@ typedef struct db_config {
   list* negrxlst;
 
   int verbose_level;
+  int database_add_metadata;
   int report_detailed_init;
   int report_base16;
   int report_quiet;

@@ -75,6 +75,7 @@ extern long conf_lineno;
 %token TSUMMARIZECHANGES
 %token TNEWLINE
 %token TVERBOSE
+%token TDATABASEADDMETADATA
 %token TREPORTDETAILEDINIT
 %token TREPORTBASE16
 %token TREPORTQUIET
@@ -156,7 +157,7 @@ lines : lines line | ;
 line : rule | equrule | negrule | definestmt | undefstmt
        | ifdefstmt | ifndefstmt | ifhoststmt | ifnhoststmt
        | groupdef | db_in | db_out | db_new | db_attrs | verbose | report_detailed_init | config_version
-       | report | gzipdbout | root_prefix | report_base16 | report_quiet
+       | database_add_metadata | report | gzipdbout | root_prefix | report_base16 | report_quiet
        | report_ignore_e2fsattrs | recursion_stopper | warn_dead_symlinks | grouped
        | summarize_changes | acl_no_symlink_follow | beginconfigstmt | endconfigstmt
        | TEOF {
@@ -314,6 +315,14 @@ warn_dead_symlinks : TWARNDEADSYMLINKS TTRUE {
 
 warn_dead_symlinks : TWARNDEADSYMLINKS TFALSE {
   conf->warn_dead_symlinks=0;
+} ;
+
+database_add_metadata : TDATABASEADDMETADATA TTRUE {
+  conf->database_add_metadata=1;
+} ;
+
+database_add_metadata : TDATABASEADDMETADATA TFALSE {
+  conf->database_add_metadata=0;
 } ;
 
 report_detailed_init : TREPORTDETAILEDINIT TTRUE {

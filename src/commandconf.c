@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2006,2010,2011,2013,2015 Rami Lehti, Pablo Virolainen,
- * Richard van den Berg, Hannes von Haugwitz
+ * Copyright (C) 1999-2006,2010,2011,2013,2015,2016 Rami Lehti, Pablo
+ * Virolainen, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -737,6 +737,7 @@ void do_groupdef(char* group,DB_ATTR_TYPE value)
   symba* s=NULL;
 
   if((r=list_find(group,conf->groupsyms))){
+      error(2, "Warning: group '%s' is redefined\n", group);
       ((symba*)r->data)->ival=value;
       return;
   }

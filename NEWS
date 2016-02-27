@@ -32,6 +32,7 @@ Version 0.16 (NOT_YET_RELEASED)
 	  the database has been initialized
 	* Added new default group X
 	* Handle tilde (~) in database paths and report urls
+	* Add warning if a group is redefined
 	* Bug fixes
 
 Version 0.15.1

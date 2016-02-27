@@ -1,3 +1,8 @@
+2016-02-27 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Switch to Perl 5 Compatible Regular Expressions, changes include:
+	  - require PCRE library
+	  - drop bundled GNU regexp library
+
 2016-02-21 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Add new 'database_add_metadata' option
 

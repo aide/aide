@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2006,2009-2012,2015 Rami Lehti,Pablo Virolainen, Mike
- * Markley, Richard van den Berg, Hannes von Haugwitz
+ * Copyright (C) 1999-2006,2009-2012,2015,2016 Rami Lehti,Pablo Virolainen,
+ * Mike Markley, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -31,9 +31,9 @@
 #include <sys/types.h>
 #include <errno.h>
 #include <time.h>
+#include <pcre.h>
 
 #include "report.h"
-#include "gnu_regex.h"
 #include "list.h"
 #include "gen_list.h"
 #include "seltree.h"
@@ -491,14 +491,16 @@ seltree* new_seltree_node(
 
 void gen_seltree(list* rxlist,seltree* tree,char type)
 {
-  regex_t*     rxtmp   = NULL;
+  pcre*        rxtmp = NULL;
+  char*        pcre_error;
+  int          pcre_erroffset;
+
   seltree*     curnode = NULL;
   list*        r       = NULL;
   char*        rxtok   = NULL;
   rx_rule*     rxc     = NULL;
 
   for(r=rxlist;r;r=r->next){
-    char* data;
     rx_rule* curr_rule = (rx_rule*)r->data;
     
     
@@ -510,33 +512,14 @@ void gen_seltree(list* rxlist,seltree* tree,char type)
     }
 
     error(240,"Handling %s with %c \"%s\" with node \"%s\"\n",rxtok,type,curr_rule->rx,curnode->path);
-	
-    
-    /* We have to add '^' to the first character of string... 
-     */
 
-    data=(char*)malloc(strlen(curr_rule->rx)+1+1);
-
-    if (data==NULL){
-      error(0,_("Not enough memory for regexpr compile... exiting..\n"));
-      abort();
-    }
-    
-    /* FIX ME! (returnvalue) */
-    
-    strcpy(data+1,curr_rule->rx);
-    
-    data[0]='^';
-    
-    rxtmp=(regex_t*)malloc(sizeof(regex_t));
-    if( regcomp(rxtmp,data,REG_EXTENDED|REG_NOSUB)){
-      error(0,_("Error in selective regexp: %s\n"),curr_rule->rx);
-      free(data);
+    if((rxtmp=pcre_compile(curr_rule->rx, PCRE_ANCHORED, &pcre_error, &pcre_erroffset, NULL)) == NULL) {
+      error(0,_("Error in regexp '%s' at %i: %s\n"),curr_rule->rx, pcre_erroffset, pcre_error);
     }else{
       /* replace regexp text with regexp compiled */
       rxc=(rx_rule*)malloc(sizeof(rx_rule));
-      rxc->rx=data;
       /* and copy the rest */
+      rxc->rx=curr_rule->rx;
       rxc->crx=rxtmp;
       rxc->attr=curr_rule->attr;
       rxc->conf_lineno=curr_rule->conf_lineno;
@@ -567,14 +550,16 @@ int check_list_for_match(list* rxrlist,char* text,DB_ATTR_TYPE* attr)
 {
   list* r=NULL;
   int retval=1;
+  pcre_extra *pcre_extra = NULL;
   for(r=rxrlist;r;r=r->next){
-    if((retval=regexec((regex_t*)((rx_rule*)r->data)->crx,text,0,0,0))==0){
-      *attr=((rx_rule*)r->data)->attr;
-        error(231,"\"%s\" matches rule from line #%ld: %s\n",text,((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
-      break;
-    } else {
-	error(232,"\"%s\" doesn't match rule from line #%ld: %s\n",text,((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
-    }
+      retval=pcre_exec((pcre*)((rx_rule*)r->data)->crx, pcre_extra, text, strlen(text), 0, 0, NULL, 0);
+      if (retval >= 0) {
+          *attr=((rx_rule*)r->data)->attr;
+          error(231,"\"%s\" matches rule from line #%ld: %s\n",text,((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
+          break;
+      } else {
+          error(232,"\"%s\" doesn't match (return value: %i) rule from line #%ld: %s\n",text, retval,((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
+      }
   }
   return retval;
 }

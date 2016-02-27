@@ -42,7 +42,6 @@ aide_SOURCES = src/aide.c include/aide.h \
 	include/gen_list.h src/gen_list.c \
 	src/getopt1.c \
 	include/getopt.h src/getopt.c \
-	include/gnu_regex.h src/gnu_regex.c \
 	include/list.h src/list.c \
 	include/locale-aide.h \
 	include/md.h src/md.c \
@@ -56,7 +55,7 @@ if USE_CURL
 aide_SOURCES += include/fopen.h src/fopen.c
 endif
 
-aide_LDADD = -lm @CRYPTLIB@ @ACLLIB@ @SELINUXLIB@ @AUDITLIB@ @ATTRLIB@ @E2FSATTRSLIB@ @ELFLIB@
+aide_LDADD = -lm @PCRELIB@ @CRYPTLIB@ @ACLLIB@ @SELINUXLIB@ @AUDITLIB@ @ATTRLIB@ @E2FSATTRSLIB@ @ELFLIB@
 AM_CFLAGS = @AIDE_DEFS@ -W -Wall -g
 AM_CPPFLAGS = -I$(top_srcdir) \
 			  -I$(top_srcdir)/include \

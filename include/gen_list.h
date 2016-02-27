@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2006,2010 Rami Lehti,Pablo Virolainen,
+ * Copyright (C) 1999-2002,2006,2010,2016 Rami Lehti,Pablo Virolainen,
  * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -21,15 +21,15 @@
 
 #ifndef _GEN_LIST_H_INCLUDED
 #define _GEN_LIST_H_INCLUDED
+#include <pcre.h>
 #include "seltree.h"
 #include "list.h"
-#include "gnu_regex.h"
 
 /* DB_FOO are anded together to form rx_rule's attr */
 
 typedef struct rx_rule {
   char* rx; /* Regular expression in text form */
-  regex_t* crx; /* Compiled regexp */
+  pcre* crx; /* Compiled regexp */
   DB_ATTR_TYPE attr; /* Which attributes to save */
   long  conf_lineno; /* line no. of rule definition*/
 } rx_rule;

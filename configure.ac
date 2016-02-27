@@ -353,6 +353,16 @@ fi
 
 AC_CHECK_HEADERS(syslog.h inttypes.h fcntl.h ctype.h)
 
+PCRELIB="-lpcre"
+if test "$aide_static_choice" == "yes"; then
+    PCRELIB="$PCRELIB -pthread"
+fi
+AC_CHECK_LIB(pcre, pcre_exec, [
+    compoptionstring="${compoptionstring}WITH_PCRE\\n"
+    ], [AC_MSG_ERROR([You don't have pcre library properly installed.])]
+    )
+AC_SUBST(PCRELIB)
+
 AC_ARG_WITH([locale],
 	[AC_HELP_STRING([--with-locale],
 		[use locale stuff])],
@@ -710,26 +720,6 @@ if test x$with_curl = xyes; then
 	compoptionstring="${compoptionstring}WITH_CURL\\n"
 fi
 AM_CONDITIONAL(USE_CURL, test x$havecurl = xyes)
-
-AC_ARG_WITH([gnu-regexp],
-	[AC_HELP_STRING([--with-gnu-regexp],
-		[use the bundled GNU regexp library. use only if necessary])],
-	[],
-	[with_gnu_regexp=check]
-)
-
-AS_IF([test "x$with_gnu_regexp" = xyes],
-	[AC_DEFINE(REGEX, 1, [use bundled GNU regex])
-	compoptionstring="${compoptionstring}WITH_GNU_REGEXP\\n"],
-	[test "x$with_gnu_regexp" = xcheck],
-	[AC_CHECK_FUNCS(regexec regcomp,[],
-		[AC_DEFINE(REGEX,1,[use bundled GNU regex])
-		compoptionstring="${compoptionstring}WITH_GNU_REGEXP\\n"]
-	)],
-	[AC_CHECK_FUNCS(regexec regcomp,,
-		[AC_MSG_FAILURE([--without-gnu-regexp was given, but system regex functions were not found])]
-	)]
-)
 
 AC_ARG_WITH(mhash,
 	AC_HELP_STRING([--with-mhash],

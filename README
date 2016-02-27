@@ -53,9 +53,6 @@
     ------------
     For generic instructions please see the INSTALL file.
 
-    For AIX 5.1 or 5.2 it is reported you need to use --with-gnu-regexp
-    when configuring AIDE.
-
     For AIX 5.3 it has been reported there is a problem with using mhash
     which causes an "Undefined symbol: .rpl_malloc" error. This is a problem
     in mhash_config.h which can be fixed by removing the line that reads
@@ -67,7 +64,7 @@
 
     For Mac OS Leopard (10.5) you also need to use --disable-lfs because it
     handles 64 bit file support out of the box.
-    
+
     Source Code Verification
     ------------------------
 
@@ -108,12 +105,12 @@
        o  GNU flex.
        o  GNU yacc (bison).
        o  GNU make.
+       o  PCRE library
        o  Mhash (optional, but highly recommended). Mhash is currently
           available from http://mhash.sourceforge.net/. A static version of
           libmhash needs to be build using the --enable-static=yes
           configure option.
           Aide requires at least mhash version 0.9.2
-          
 
     Note:
       flex version 2.5.31 is broken, you might see the following error
@@ -129,7 +126,6 @@
       http://sourceforge.net/tracker/index.php?func=detail&aid=866477&group_id=72099&atid=533377
       http://sourceforge.net/mailarchive/message.php?msg_id=5415848
       http://sourceforge.net/mailarchive/message.php?msg_id=5561246
-
 
     Large File Support
     -----------------

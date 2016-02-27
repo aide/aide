@@ -1,5 +1,6 @@
 Version 0.16 (NOT_YET_RELEASED)
 	* Enabled summarize_changes by default
+	* Switch to PCRE library
 	* Compare database entries just once
 	* Added new root_prefix option
 	* Added new database_attrs option

@@ -35,7 +35,6 @@
 #include "base64.h"
 #include "report.h"
 #include "db_config.h"
-#include "gnu_regex.h"
 #include "gen_list.h"
 #include "list.h"
 #include "db.h"

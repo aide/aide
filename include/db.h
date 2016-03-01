@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2004,2005,2013 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002,2004,2005,2013,2016 Rami Lehti, Pablo Virolainen,
  * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -46,7 +46,7 @@ extern const int db_value[];
 #define NODE_ADDED        (1<<4)
 #define NODE_REMOVED      (1<<5)
 #define NODE_CHANGED      (1<<6)
-#define NODE_ADD_CHILDREN (1<<7)
+#define NODE_FREE         (1<<7)
 #define DB_DISK           (1<<8)
 
 #define NODE_TRAVERSE     (1<<9)

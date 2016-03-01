@@ -1,3 +1,6 @@
+2016-03-01 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Sort entries of database file
+
 2016-02-27 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Switch to Perl 5 Compatible Regular Expressions, changes include:
 	  - require PCRE library

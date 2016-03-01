@@ -820,20 +820,26 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db,
             node->old_data->filename,node->old_data->attr,node->new_data->attr);
     }
 
-    /* Free the data if same else leave as is for report_tree */
     node->changed_attrs=get_changed_attributes(node->old_data,node->new_data);
+    /* Free the data if same else leave as is for report_tree */
     if((~(ignored_changed_attrs)&node->changed_attrs)==RETOK){
       /* FIXME this messes up the tree on SunOS. Don't know why. Fix
 	 needed badly otherwise we leak memory like hell. */
 
+      node->changed_attrs=0;
+
       free_db_line(node->old_data);
       free(node->old_data);
-      free_db_line(node->new_data);
-      free(node->new_data);
-      
       node->old_data=NULL;
-      node->new_data=NULL;      
-      node->changed_attrs=0;
+
+      /* Free new data if not needed for write_tree */
+      if(conf->action&DO_INIT) {
+          node->checked|=NODE_FREE;
+      } else {
+          free_db_line(node->new_data);
+          free(node->new_data);
+          node->new_data=NULL;
+      }
     }
   }
 
@@ -1033,6 +1039,21 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr)
   return line;
 }
 
+static void write_tree(seltree* node) {
+    list* r=NULL;
+    if (node->checked&DB_NEW) {
+        db_writeline(node->new_data,conf);
+        if (node->checked&NODE_FREE) {
+            free_db_line(node->new_data);
+            free(node->new_data);
+            node->new_data=NULL;
+        }
+    }
+    for (r=node->childs;r;r=r->next) {
+        write_tree((seltree*)r->data);
+    }
+}
+
 void populate_tree(seltree* tree)
 {
   /* FIXME this function could really use threads */
@@ -1074,13 +1095,7 @@ void populate_tree(seltree* tree)
       /* FIXME  */
       new=NULL;
       while((new=db_readline(DB_DISK)) != NULL) {
-	/* Write to db only if needed */
-	if(conf->action&DO_INIT){
-	  db_writeline(new,conf);
-	}
-	  if((add=check_rxtree(new->filename,tree,&attr))>0){
 	    add_file_to_tree(tree,new,DB_NEW,attr);
-	  }
       }
     }
     if((conf->action&DO_COMPARE)||(conf->action&DO_DIFF)){
@@ -1102,6 +1117,9 @@ void populate_tree(seltree* tree)
                     }
                 }
             }
+    }
+    if(conf->action&DO_INIT) {
+        write_tree(tree);
     }
 }
 

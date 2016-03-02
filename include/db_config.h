@@ -25,6 +25,7 @@
 #include "types.h"
 #include <unistd.h>
 #include <stdio.h>
+#include <pcre.h>
 
 #define E2O(n) (1<<n)
 
@@ -415,6 +416,9 @@ typedef struct db_config {
 
   char* root_prefix;
   int root_prefix_length;
+
+  char* limit;
+  pcre* limit_crx;
 
   struct seltree* tree;
 

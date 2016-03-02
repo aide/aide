@@ -636,14 +636,19 @@ static void print_report_header() {
     if(conf->config_version)
         error(2,_("Config version used: %s\n"),conf->config_version);
 
-    if (conf->verbose_level != 5) {
-        error (2,_("Verbose level: %d"), conf->verbose_level);
+    if (conf->limit != NULL) {
+        error (2,_("Limit: %s"), conf->limit);
         first = 0;
     }
     if (conf->action&(DO_INIT|DO_COMPARE) && conf->root_prefix_length > 0) {
         if (first) { first=0; }
         else { error (2," | "); }
         error (2,_("Root prefix: %s"),conf->root_prefix);
+    }
+    if (conf->verbose_level != 5) {
+        if (first) { first=0; }
+        else { error (2," | "); }
+        error (2,_("Verbose level: %d"), conf->verbose_level);
     }
     if (!first) { error (2,"\n"); }
     if (ignored_added_attrs) {

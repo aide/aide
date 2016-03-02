@@ -808,6 +808,11 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db,
     node->new_data=file;
     break;
   }
+  case DB_OLD|DB_NEW: {
+    node->new_data=file;
+    node->checked|=NODE_FREE;
+    return;
+  }
   }
   /* We have a way to ignore some changes... */
   ignored_added_attrs = get_special_report_group("report_ignore_added_attrs");
@@ -916,6 +921,24 @@ int check_rxtree(char* filename,seltree* tree,DB_ATTR_TYPE* attr)
       parentname[1]='\0';
     }
   }
+
+  if(conf->limit!=NULL) {
+      retval=pcre_exec(conf->limit_crx, NULL, filename, strlen(filename), 0, PCRE_PARTIAL_SOFT, NULL, 0);
+      if (retval >= 0) {
+          error(220, "check_rxtree: %s does match limit: %s\n", filename, conf->limit);
+      } else if (retval == PCRE_ERROR_PARTIAL) {
+          error(220, "check_rxtree: %s does PARTIAL match limit: %s\n", filename, conf->limit);
+          if(get_seltree_node(tree,filename)==NULL){
+              error(220, "check_rxtree: creating new seltree node for '%s'\n", filename);
+              new_seltree_node(tree,filename,0,NULL);
+          }
+          return -1;
+      } else {
+          error(220, "check_rxtree: %s does NOT match limit: %s\n", filename, conf->limit);
+          return -2;
+      }
+  }
+
   pnode=get_seltree_node(tree,parentname);
 
   *attr=0;
@@ -1105,8 +1128,11 @@ void populate_tree(seltree* tree)
                 if((node=get_seltree_node(tree,old->filename))==NULL){
                     node=new_seltree_node(tree,old->filename,0,NULL);
                 }
-                if((add=check_rxtree(old->filename,tree,&attr))>0){
+                add=check_rxtree(old->filename,tree,&attr);
+                if(add > 0) {
                     add_file_to_tree(tree,old,DB_OLD,attr);
+                } else if (conf->action&DO_INIT && conf->limit!=NULL && add < 0) {
+                    add_file_to_tree(tree,old,DB_OLD|DB_NEW,attr);
                 }else{
                     free_db_line(old);
                     free(old);

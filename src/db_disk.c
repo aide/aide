@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  * vi: ts=2 sw=2
  *
- * Copyright (C) 1999-2006,2010,2011 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2006,2010,2011,2016 Rami Lehti, Pablo Virolainen,
  * Richard van den Berg, Mike Markley, Hannes von Haugwitz
  * $Header$
  *
@@ -193,7 +193,7 @@ db_line *db_readline_disk ()
 		error (240, "%s match=%d, tree=%p, attr=%llu\n", &fullname[conf->root_prefix_length], add,
 					 conf->tree, attr);
 
-		if (add) {
+		if (add > 0) {
 			fil = get_file_attrs (fullname, attr);
 
 			error (240, "%s attr=%llu\n", &fullname[conf->root_prefix_length], attr);
@@ -248,7 +248,7 @@ recursion:
 		error (240, "%s match=%d, tree=%p, attr=%llu\n", &fullname[conf->root_prefix_length], add,
 					 conf->tree, attr);
 
-		if (add) {
+		if (add > 0) {
 			fil = get_file_attrs (fullname, attr);
 
 			error (240, "%s attr=%llu\n", &fullname[conf->root_prefix_length], attr);

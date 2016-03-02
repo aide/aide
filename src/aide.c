@@ -72,6 +72,7 @@ static void usage(int exitvalue)
 	    "  -h, --help\t\tShow this help message\n\n"
 	    "Options:\n"
 	    "  -c [cfgfile]\t--config=[cfgfile]\tGet config options from [cfgfile]\n"
+	    "  -l [REGEX]\t--limit=[REGEX]\t\tLimit command to entries matching [REGEX]\n"
 	    "  -B \"OPTION\"\t--before=\"OPTION\"\tBefore configuration file is read define OPTION\n"
 	    "  -A \"OPTION\"\t--after=\"OPTION\"\tAfter configuration file is read define OPTION\n"
 	    "  -r [reporter]\t--report=[reporter]\tWrite report output to [reporter] url\n"
@@ -110,6 +111,7 @@ static int read_param(int argc,char**argv)
     { "check", no_argument, NULL, 'C'},
     { "update", no_argument, NULL, 'u'},
     { "config-check", no_argument, NULL, 'D'},
+    { "limit", required_argument, NULL, 'l'},
     { "compare", no_argument, NULL, 'E'},
     { NULL,0,NULL,0 }
   };
@@ -177,7 +179,23 @@ static int read_param(int argc,char**argv)
 	}
 	break;
       }
-
+      case 'l': {
+            if (optarg!=NULL) {
+                char* pcre_error;
+                int pcre_erroffset;
+                conf->limit=malloc(strlen(optarg)+1);
+                strcpy(conf->limit,optarg);
+                if((conf->limit_crx=pcre_compile(conf->limit, PCRE_ANCHORED, &pcre_error, &pcre_erroffset, NULL)) == NULL) {
+                    error(0,_("Error in limit regexp '%s' at %i: %s\n"), conf->limit, pcre_erroffset, pcre_error);
+                    exit(INVALID_ARGUMENT_ERROR);
+                }
+                error(200,_("Limit set to '%s'\n"), conf->limit);
+            } else {
+                error(0,_("-l must have an argument\n"));
+                exit(INVALID_ARGUMENT_ERROR);
+            }
+            break;
+      }
       case 'r': {
 	if(optarg!=NULL) {
 	  do_repurldef(optarg);
@@ -357,6 +375,9 @@ static void setdefaults_before_config()
 
   conf->root_prefix="";
   conf->root_prefix_length=0;
+
+  conf->limit=NULL;
+  conf->limit_crx=NULL;
 
   conf->selrxlst=NULL;
   conf->equrxlst=NULL;

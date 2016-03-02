@@ -32,6 +32,9 @@ information.
 .SH PARAMETERS
 .IP "--config=\fBconfigfile\fR , -c \fBconfigfile\fR"
 Configuration is read from file \fBconfigfile\fR instead of "./aide.conf". Use '-' for stdin.
+.IP "--limit=\fBREGEX\fR , -l \fBREGEX\fR"
+Limit command to entries matching REGEX. Note that the REGEX only matches
+at the first position.
 .IP "--before=\(dq\fBconfigparameters\fR\(dq , -B \(dq\fBconfigparameters\fR\(dq"
 These \fBconfigparameters\fR are handled before the reading of the
 configuration file. See aide.conf (5) for more details on what to put

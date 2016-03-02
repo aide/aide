@@ -1,3 +1,6 @@
+2016-03-02 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Add new '--limit' parameter
+
 2016-03-01 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Sort entries of database file
 

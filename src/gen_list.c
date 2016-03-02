@@ -810,7 +810,13 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db,
   }
   case DB_OLD|DB_NEW: {
     node->new_data=file;
-    node->checked|=NODE_FREE;
+    if(conf->action&DO_INIT) {
+        node->checked|=NODE_FREE;
+    } else {
+        free_db_line(node->new_data);
+        free(node->new_data);
+        node->new_data=NULL;
+    }
     return;
   }
   }
@@ -1131,7 +1137,7 @@ void populate_tree(seltree* tree)
                 add=check_rxtree(old->filename,tree,&attr);
                 if(add > 0) {
                     add_file_to_tree(tree,old,DB_OLD,attr);
-                } else if (conf->action&DO_INIT && conf->limit!=NULL && add < 0) {
+                } else if (conf->limit!=NULL && add < 0) {
                     add_file_to_tree(tree,old,DB_OLD|DB_NEW,attr);
                 }else{
                     free_db_line(old);

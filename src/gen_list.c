@@ -851,6 +851,7 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db,
           free(node->new_data);
           node->new_data=NULL;
       }
+      return;
     }
   }
 

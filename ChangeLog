@@ -1,3 +1,6 @@
+2016-03-06 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Fix report layout
+
 2016-03-05 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix segfault when DB_CHECKINODE is used
 

@@ -665,8 +665,6 @@ static void print_report_header() {
     }
 #ifdef WITH_E2FSATTRS
     if (conf->report_ignore_e2fsattrs) {
-        if (first) { first=0; }
-        else { error (2," | "); }
         error (2,_("Ignored e2fs attributes: %s\n"), e2fsattrs2string(conf->report_ignore_e2fsattrs, 1) );
     }
 #endif

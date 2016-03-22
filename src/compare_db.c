@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2007,2010-2013,2015 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2007,2010-2013,2015,2016 Rami Lehti, Pablo Virolainen,
  * Richard van den Berg, Mike Markley, Hannes von Haugwitz
  * $Id$
  *
@@ -143,7 +143,13 @@ const char* attrs_string[] = { "filename", "l", "p", "u", "g", "s", "a", "c", "m
      */
     unsigned long flag_bits[] = { EXT2_SECRM_FL, EXT2_UNRM_FL, EXT2_SYNC_FL, EXT2_DIRSYNC_FL, EXT2_IMMUTABLE_FL,
         EXT2_APPEND_FL, EXT2_NODUMP_FL, EXT2_NOATIME_FL, EXT2_COMPR_FL, EXT2_COMPRBLK_FL,
-        EXT2_DIRTY_FL, EXT2_NOCOMPR_FL, EXT2_ECOMPR_FL, EXT3_JOURNAL_DATA_FL, EXT2_INDEX_FL,
+        EXT2_DIRTY_FL, EXT2_NOCOMPR_FL,
+#ifdef EXT2_ECOMPR_FL
+        EXT2_ECOMPR_FL,
+#else
+        EXT4_ENCRYPT_FL,
+#endif
+        EXT3_JOURNAL_DATA_FL, EXT2_INDEX_FL,
         EXT2_NOTAIL_FL, EXT2_TOPDIR_FL
 #ifdef EXT4_EXTENTS_FL
         , EXT4_EXTENTS_FL

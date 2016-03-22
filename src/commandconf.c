@@ -933,7 +933,11 @@ void do_report_ignore_e2fsattrs(char* val) {
             easy_e2fsattrs_case('B',EXT2_COMPRBLK_FL)
             easy_e2fsattrs_case('Z',EXT2_DIRTY_FL)
             easy_e2fsattrs_case('X',EXT2_NOCOMPR_FL)
+#ifdef EXT2_ECOMPR_FL
             easy_e2fsattrs_case('E',EXT2_ECOMPR_FL)
+#else
+            easy_e2fsattrs_case('E',EXT4_ENCRYPT_FL)
+#endif
             easy_e2fsattrs_case('j',EXT3_JOURNAL_DATA_FL)
             easy_e2fsattrs_case('I',EXT2_INDEX_FL)
             easy_e2fsattrs_case('t',EXT2_NOTAIL_FL)

@@ -57,11 +57,9 @@ void populate_tree(seltree* tree);
 
 char* strrxtok(char*);
 
-int check_list_for_match(list*,char*,DB_ATTR_TYPE*);
+int check_rxtree(char* filename,seltree* tree, DB_ATTR_TYPE* attr, mode_t perm);
 
-int check_rxtree(char* filename,seltree* tree, DB_ATTR_TYPE* attr);
-
-db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr);
+db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct AIDE_STAT_TYPE *fs);
 
 seltree* get_seltree_node(seltree* tree,char* path);
 

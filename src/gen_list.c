@@ -546,19 +546,23 @@ void gen_seltree(list* rxlist,seltree* tree,char type)
   }
 }
 
-int check_list_for_match(list* rxrlist,char* text,DB_ATTR_TYPE* attr)
+static int check_list_for_match(list* rxrlist,char* text,DB_ATTR_TYPE* attr)
 {
   list* r=NULL;
   int retval=1;
+  int pcre_retval;
   pcre_extra *pcre_extra = NULL;
   for(r=rxrlist;r;r=r->next){
-      retval=pcre_exec((pcre*)((rx_rule*)r->data)->crx, pcre_extra, text, strlen(text), 0, 0, NULL, 0);
-      if (retval >= 0) {
+      pcre_retval=pcre_exec((pcre*)((rx_rule*)r->data)->crx, pcre_extra, text, strlen(text), 0, PCRE_PARTIAL_SOFT, NULL, 0);
+      if (pcre_retval >= 0) {
           *attr=((rx_rule*)r->data)->attr;
-          error(231,"\"%s\" matches rule from line #%ld: %s\n",text,((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
-          break;
+          error(231,"\"%s\" matches (pcre_exec return value: %i) rule from line #%ld: %s\n",text, pcre_retval, ((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
+          return 0;
+      } else if (pcre_retval == PCRE_ERROR_PARTIAL) {
+          error(232,"\"%s\" PARTIAL matches (pcre_exec return value: %i) rule from line #%ld: %s\n",text, pcre_retval, ((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
+          retval=-1;
       } else {
-          error(232,"\"%s\" doesn't match (return value: %i) rule from line #%ld: %s\n",text, retval,((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
+          error(232,"\"%s\" doesn't match (pcre_exec return value: %i) rule from line #%ld: %s\n",text, pcre_retval,((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
       }
   }
   return retval;
@@ -580,7 +584,7 @@ int check_list_for_match(list* rxrlist,char* text,DB_ATTR_TYPE* attr)
  *16,  this is a recursed call
  */    
 
-int check_node_for_match(seltree*node,char*text,int retval,DB_ATTR_TYPE* attr)
+static int check_node_for_match(seltree*node,char*text, mode_t perm, int retval,DB_ATTR_TYPE* attr)
 {
   int top=0;
   
@@ -594,8 +598,17 @@ int check_node_for_match(seltree*node,char*text,int retval,DB_ATTR_TYPE* attr)
     top=1;
     retval|=16;
 
-    if(!check_list_for_match(node->equ_rx_lst,text,attr)){
-      retval|=2|4;
+      switch (check_list_for_match(node->equ_rx_lst,text,attr)) {
+          case 0: {
+              error(220, "check_node_for_match: equal match for '%s'\n", text);
+              retval|=2|4;
+          }
+          case -1: {
+           if(S_ISDIR(perm) && get_seltree_node(node,text)==NULL) {
+               error(220, "check_node_for_match: creating new seltree node for '%s'\n", text);
+               new_seltree_node(node,text,0,NULL);
+           }
+          }
     }
   }
   /* We'll use retval to pass information on whether to recurse 
@@ -604,18 +617,29 @@ int check_node_for_match(seltree*node,char*text,int retval,DB_ATTR_TYPE* attr)
 
   /* If 4 and 8 are not set, we will check for matches */
   if(!(retval&(4|8))){
-    if(!check_list_for_match(node->sel_rx_lst,text,attr))
-      retval|=1|8;
+      switch (check_list_for_match(node->sel_rx_lst,text,attr)) {
+          case 0: {
+              error(220, "check_node_for_match: selective match for '%s'\n", text);
+              retval|=1|8;
+          }
+          case -1: {
+           if(S_ISDIR(perm) && get_seltree_node(node,text)==NULL) {
+               error(220, "check_node_for_match: creating new seltree node for '%s'\n", text);
+               new_seltree_node(node,text,0,NULL);
+           }
+          }
+      }
   }
 
   /* Now let's check the ancestors */
-  retval=check_node_for_match(node->parent,text,retval,attr);
+  retval=check_node_for_match(node->parent,text, perm, retval,attr);
 
 
   /* Negative regexps are the strongest so they are checked last */
   /* If this file is to be added */
   if(retval){
     if(!check_list_for_match(node->neg_rx_lst,text,attr)){
+      error(220, "check_node_for_match: negative match for '%s'\n", text);
       retval=0;
     }
   }
@@ -910,7 +934,7 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db,
   }
 }
 
-int check_rxtree(char* filename,seltree* tree,DB_ATTR_TYPE* attr)
+int check_rxtree(char* filename,seltree* tree,DB_ATTR_TYPE* attr, mode_t perm)
 {
   int retval=0;
   char * tmp=NULL;
@@ -935,7 +959,7 @@ int check_rxtree(char* filename,seltree* tree,DB_ATTR_TYPE* attr)
           error(220, "check_rxtree: %s does match limit: %s\n", filename, conf->limit);
       } else if (retval == PCRE_ERROR_PARTIAL) {
           error(220, "check_rxtree: %s does PARTIAL match limit: %s\n", filename, conf->limit);
-          if(get_seltree_node(tree,filename)==NULL){
+          if(S_ISDIR(perm) && get_seltree_node(tree,filename)==NULL){
               error(220, "check_rxtree: creating new seltree node for '%s'\n", filename);
               new_seltree_node(tree,filename,0,NULL);
           }
@@ -949,32 +973,21 @@ int check_rxtree(char* filename,seltree* tree,DB_ATTR_TYPE* attr)
   pnode=get_seltree_node(tree,parentname);
 
   *attr=0;
-  retval=check_node_for_match(pnode,filename,0,attr);
+  retval=check_node_for_match(pnode,filename, perm, 0,attr);
     
   free(parentname);
 
   return retval;
 }
 
-db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr)
+db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct AIDE_STAT_TYPE *fs)
 {
-  struct AIDE_STAT_TYPE fs;
   int sres=0;
   db_line* line=NULL;
   time_t cur_time;
-  
-  sres=AIDE_LSTAT_FUNC(filename,&fs);  
-  if(sres==-1){
-    char* er=strerror(errno);
-    if (er==NULL) {
-      error(0,"lstat() failed for %s. strerror failed for %i\n",filename,errno);
-    } else {
-      error(0,"lstat() failed for %s:%s\n",filename,strerror(errno));
-    }
-    return NULL;
-  } 
+
   if(!(attr&DB_RDEV))
-    fs.st_rdev=0;
+    fs->st_rdev=0;
   /*
     Get current time for future time notification.
    */
@@ -989,13 +1002,13 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr)
     }
   } else {
     
-    if(fs.st_atime>cur_time){
+    if(fs->st_atime>cur_time){
       error(CLOCK_SKEW,_("%s atime in future\n"),filename);
     }
-    if(fs.st_mtime>cur_time){
+    if(fs->st_mtime>cur_time){
       error(CLOCK_SKEW,_("%s mtime in future\n"),filename);
     }
-    if(fs.st_ctime>cur_time){
+    if(fs->st_ctime>cur_time){
       error(CLOCK_SKEW,_("%s ctime in future\n"),filename);
     }
   }
@@ -1020,8 +1033,8 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr)
   
   line->fullpath=filename;
   line->filename=&filename[conf->root_prefix_length];
-  line->perm_o=fs.st_mode;
-  line->size_o=fs.st_size;
+  line->perm_o=fs->st_mode;
+  line->size_o=fs->st_size;
   line->linkname=NULL;
 
   /*
@@ -1034,7 +1047,7 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr)
     Set normal part
   */
   
-  fs2db_line(&fs,line);
+  fs2db_line(fs,line);
   
   /*
     ACL stuff
@@ -1056,8 +1069,8 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr)
     e2fsattrs2line(line);
 #endif
 
-  if (attr&DB_HASHES && S_ISREG(fs.st_mode)) {
-    calc_md(&fs,line);
+  if (attr&DB_HASHES && S_ISREG(fs->st_mode)) {
+    calc_md(fs,line);
   } else {
     /*
       We cannot calculate hash for nonfile.
@@ -1111,7 +1124,7 @@ void populate_tree(seltree* tree)
 	if((node=get_seltree_node(tree,new->filename))==NULL){
 	  node=new_seltree_node(tree,new->filename,0,NULL);
 	}
-	if((add=check_rxtree(new->filename,tree,&attr))>0){
+	if((add=check_rxtree(new->filename,tree,&attr, new->perm))>0){
 	  add_file_to_tree(tree,new,DB_NEW,attr);
 	} else {
           free_db_line(new);
@@ -1135,7 +1148,7 @@ void populate_tree(seltree* tree)
                 if((node=get_seltree_node(tree,old->filename))==NULL){
                     node=new_seltree_node(tree,old->filename,0,NULL);
                 }
-                add=check_rxtree(old->filename,tree,&attr);
+                add=check_rxtree(old->filename,tree,&attr, old->perm);
                 if(add > 0) {
                     add_file_to_tree(tree,old,DB_OLD,attr);
                 } else if (conf->limit!=NULL && add < 0) {

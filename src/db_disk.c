@@ -171,6 +171,20 @@ void add_child (db_line * fil)
 	r->childs = list_sorted_insert (r->childs, new_r, compare_node_by_path);
 }
 
+static int get_file_status(char *filename, struct AIDE_STAT_TYPE *fs) {
+    int sres = 0;
+    sres = AIDE_LSTAT_FUNC(filename,fs);
+    if(sres == -1){
+        char* er = strerror(errno);
+        if (er == NULL) {
+            error(0,"get_file_status: lstat() failed for %s. strerror() failed for %i\n", filename, errno);
+        } else {
+            error(0,"get_file_status: lstat() failed for %s: %s\n", filename, er);
+        }
+    }
+    return sres;
+}
+
 /*
   It might be a good idea to make this non recursive.
   Now implemented with goto-statement. Yeah, it's ugly and easy.
@@ -182,6 +196,7 @@ db_line *db_readline_disk ()
 	DB_ATTR_TYPE attr;
 	char *fullname;
 	int add = 0;
+	struct AIDE_STAT_TYPE fs;
 
 	/* root needs special handling */
 	if (!root_handled) {
@@ -189,32 +204,23 @@ db_line *db_readline_disk ()
 		fullname=malloc((conf->root_prefix_length+2)*sizeof(char));
 		strncpy(fullname, conf->root_prefix, conf->root_prefix_length+1);
 		strncat (fullname, "/", 1);
-		add = check_rxtree (&fullname[conf->root_prefix_length], conf->tree, &attr);
+		if (!get_file_status(&fullname[conf->root_prefix_length], &fs)) {
+		add = check_rxtree (&fullname[conf->root_prefix_length], conf->tree, &attr, fs.st_mode);
 		error (240, "%s match=%d, tree=%p, attr=%llu\n", &fullname[conf->root_prefix_length], add,
 					 conf->tree, attr);
 
 		if (add > 0) {
-			fil = get_file_attrs (fullname, attr);
+			fil = get_file_attrs (fullname, attr, &fs);
 
 			error (240, "%s attr=%llu\n", &fullname[conf->root_prefix_length], attr);
 
 			if (fil != NULL) {
 				error (240, "%s attr=%llu\n", fil->filename, fil->attr);
+				return fil;
 			}
-
-			if (fil == NULL) {
-				/*
-				   Something went wrong during read process -> 
-				   Let's try next one.
-				 */
-				free_db_line (fil);			/* Filename is freeed? */
-				free (fil);
-				fil = NULL;
-			}
-            return fil;
-		} else {
-			free (fullname);
         }
+		}
+		free (fullname);
 	}
 recursion:
 	next_in_dir ();
@@ -244,29 +250,27 @@ recursion:
 		   If not call, db_readline_disk again...
 		 */
 
-		add = check_rxtree (&fullname[conf->root_prefix_length], conf->tree, &attr);
+		if (get_file_status(&fullname[conf->root_prefix_length], &fs)) {
+		    free (fullname);
+		    goto recursion;
+		}
+		add = check_rxtree (&fullname[conf->root_prefix_length], conf->tree, &attr, fs.st_mode);
 		error (240, "%s match=%d, tree=%p, attr=%llu\n", &fullname[conf->root_prefix_length], add,
 					 conf->tree, attr);
 
 		if (add > 0) {
-			fil = get_file_attrs (fullname, attr);
+			fil = get_file_attrs (fullname, attr, &fs);
 
 			error (240, "%s attr=%llu\n", &fullname[conf->root_prefix_length], attr);
 
 			if (fil != NULL) {
 				error (240, "%s attr=%llu\n", fil->filename, fil->attr);
-			}
-			/*
-			   Hack.
-			 */
-
-			if (fil == NULL) {
+			} else {
 				/*
 				   Something went wrong during read process -> 
 				   Let's try next one.
 				 */
-				free_db_line (fil);			/* Filename is freeed? */
-				fil = NULL;
+				free (fullname);
 				goto recursion;					// return db_readline_disk(db);
 			}
 

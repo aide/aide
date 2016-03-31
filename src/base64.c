@@ -95,7 +95,7 @@ char* encode_base64(byte* src,size_t ssize)
   unsigned long triple;
   byte *inb;
   
-  error(210, "encode base64");
+  error(235, "encode base64");
   /* Exit on empty input */
   if (!ssize||src==NULL){
     error(240,"\n");
@@ -109,7 +109,7 @@ char* encode_base64(byte* src,size_t ssize)
   triple = 0;
   pos = 0;
   left = ssize;
-  error(210, ", data length: %d\n", left);
+  error(235, ", data length: %d\n", left);
   /*
    * Process entire inbuf.
    */
@@ -183,7 +183,7 @@ byte* decode_base64(char* src,size_t ssize, size_t *ret_len)
   int pos;
   unsigned long triple;
 
-  error(210, "decode base64\n");
+  error(235, "decode base64\n");
   /* Exit on empty input */
   if (!ssize||src==NULL)
     return NULL;
@@ -262,7 +262,7 @@ size_t length_base64(char* src,size_t ssize)
   size_t pos;
   unsigned long triple;
 
-  error(210, "decode base64\n");
+  error(235, "decode base64\n");
   /* Exit on empty input */
   if (!ssize||src==NULL)
     return 0;

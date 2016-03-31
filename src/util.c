@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2004-2006,2010,2011,2013 Rami Lehti, Pablo
+ * Copyright (C) 1999-2002,2004-2006,2010,2011,2013,2016 Rami Lehti, Pablo
  * Virolainen, Mike Markley, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -305,7 +305,7 @@ char* perm_to_char(mode_t perm)
   }
 #endif
 
-  error(230,"perm_to_char(): %i -> %s\n",perm,pc);
+  error(240,"perm_to_char(): %i -> %s\n",perm,pc);
 
   return pc;
 }

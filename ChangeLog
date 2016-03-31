@@ -1,3 +1,6 @@
+2016-03-31 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Change verbosity levels to ease debugging
+
 2016-03-28 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix '.*'-rule matching and code cleanup
 

@@ -213,16 +213,19 @@ static char get_file_type_char(mode_t mode) {
         case S_IFREG: return 'f';
         case S_IFDIR: return 'd';
 #ifdef S_IFIFO
-        case S_IFIFO: return 'F';
+        case S_IFIFO: return 'p';
 #endif
-        case S_IFLNK: return 'L';
-        case S_IFBLK: return 'B';
-        case S_IFCHR: return 'D';
+        case S_IFLNK: return 'l';
+        case S_IFBLK: return 'b';
+        case S_IFCHR: return 'c';
 #ifdef S_IFSOCK
         case S_IFSOCK: return 's';
 #endif
 #ifdef S_IFDOOR
-        case S_IFDOOR: return '|';
+        case S_IFDOOR: return 'D';
+#endif
+#ifdef S_IFPORT
+        case S_IFPORT: return 'P';
 #endif
         default: return '?';
     }
@@ -348,6 +351,9 @@ static char* get_file_type_string(mode_t mode) {
 #endif
 #ifdef S_IFDOOR
         case S_IFDOOR: return _("Door");
+#endif
+#ifdef S_IFPORT
+        case S_IFPORT: return _("Port");
 #endif
         case 0: return NULL;
         default: return _("Unknown file type");

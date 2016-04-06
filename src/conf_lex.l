@@ -35,6 +35,7 @@ EX      [" "\t]*
 
 #include "aide.h"
 #include <string.h>
+#include "gen_list.h"
 #include "conf_yacc.h"
 #include "list.h"
 #include "symboltable.h"
@@ -120,6 +121,9 @@ int var_in_conflval=0;
   return('=');
 }
 
+<EXPR>, {
+  return (',');
+}
 
 <EXPR>[\ \t]*({L}|{D}|">")+ {
   conflval.s=strdup(conftext+firstnotempty(conftext));

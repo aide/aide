@@ -225,6 +225,90 @@ More in-depth discussion of the selection algorithm can be found in
 the aide manual.
 .IP
 .PP
+.SH "RESTRICTED SELECTION LINES"
+.PP
+Restricted selection lines are like normal selection lines but can be
+restricted to file types. The following file types are supported:
+
+.RS
+
+\fBf\fP: restrict rule to regular files
+
+\fBd\fP: restrict rule to directories
+
+\fBl\fP: restrict rule to symbolic links
+
+\fBc\fP: restrict rule to character devices
+
+\fBb\fP: restrict rule to block devices
+
+\fBp\fP: restrict rule to FIFO files
+
+\fBs\fP: restrict rule to unix sockets
+
+\fBD\fP: restrict rule to Solaris doors
+
+\fBP\fP: restrict rule to Solaris event ports
+.RE
+
+The file types are separated by comma. The syntax of restricted
+selection lines is as follows:
+
+Restricted regular selection line:
+.RS 3
+.nf
+.B /<regex> <file types> <group>
+.fi
+.RE
+
+Restricted negative selection line:
+.RS 3
+.nf
+.B !<regex> <file types>
+.fi
+.RE
+
+Restricted equals selection line:
+.RS 3
+.nf
+.B =<regex> <file types> <group>
+.fi
+.RE
+
+.B Examples
+.RS 3
+Only add directories and files to the database:
+
+.RS 3
+.nf
+.B / d,f R
+.fi
+.RE
+.RE
+
+.RS 3
+Add all but directory entries to the database:
+
+.RS 3
+.nf
+.B !/run d
+.B /run R
+.fi
+.RE
+.RE
+
+.RS 3
+Use specific rule for directories:
+
+.RS 3
+.nf
+.B /run d R-m-c-i
+.B /run R
+.fi
+.RE
+.RE
+
+.PP
 .SH "MACRO LINES"
 .PP
 .IP "@@define \fBVAR\fR \fBval\fR"

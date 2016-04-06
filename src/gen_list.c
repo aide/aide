@@ -523,6 +523,7 @@ void gen_seltree(list* rxlist,seltree* tree,char type)
       rxc->crx=rxtmp;
       rxc->attr=curr_rule->attr;
       rxc->conf_lineno=curr_rule->conf_lineno;
+      rxc->restriction=curr_rule->restriction;
 
       switch (type){
       case 's':{
@@ -546,7 +547,30 @@ void gen_seltree(list* rxlist,seltree* tree,char type)
   }
 }
 
-static int check_list_for_match(list* rxrlist,char* text,DB_ATTR_TYPE* attr)
+static RESTRICTION_TYPE get_file_type(mode_t mode) {
+    switch (mode & S_IFMT) {
+        case S_IFREG: return RESTRICTION_FT_REG;
+        case S_IFDIR: return RESTRICTION_FT_DIR;
+#ifdef S_IFIFO
+        case S_IFIFO: return RESTRICTION_FT_FIFO;
+#endif
+        case S_IFLNK: return RESTRICTION_FT_LNK;
+        case S_IFBLK: return RESTRICTION_FT_BLK;
+        case S_IFCHR: return RESTRICTION_FT_CHR;
+#ifdef S_IFSOCK
+        case S_IFSOCK: return RESTRICTION_FT_SOCK;
+#endif
+#ifdef S_IFDOOR
+        case S_IFDOOR: return RESTRICTION_FT_DOOR;
+#endif
+#ifdef S_IFDOOR
+        case S_IFPORT: return RESTRICTION_FT_PORT;
+#endif
+        default: return RESTRICTION_NULL;
+    }
+}
+
+static int check_list_for_match(list* rxrlist,char* text,DB_ATTR_TYPE* attr, RESTRICTION_TYPE file_type)
 {
   list* r=NULL;
   int retval=1;
@@ -555,9 +579,15 @@ static int check_list_for_match(list* rxrlist,char* text,DB_ATTR_TYPE* attr)
   for(r=rxrlist;r;r=r->next){
       pcre_retval=pcre_exec((pcre*)((rx_rule*)r->data)->crx, pcre_extra, text, strlen(text), 0, PCRE_PARTIAL_SOFT, NULL, 0);
       if (pcre_retval >= 0) {
-          *attr=((rx_rule*)r->data)->attr;
-          error(231,"\"%s\" matches (pcre_exec return value: %i) rule from line #%ld: %s\n",text, pcre_retval, ((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
-          return 0;
+              error(231,"\"%s\" matches (pcre_exec return value: %i) rule from line #%ld: %s\n",text, pcre_retval, ((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
+          if (!((rx_rule*)r->data)->restriction || file_type&((rx_rule*)r->data)->restriction) {
+              *attr=((rx_rule*)r->data)->attr;
+              error(231,"\"%s\" matches restriction (%u) for rule from line #%ld: %s\n",text, ((rx_rule*)r->data)->restriction, ((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
+              return 0;
+          } else {
+              error(232,"\"%s\" doesn't match restriction (%u) for rule from line #%ld: %s\n",text, ((rx_rule*)r->data)->restriction, ((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
+              retval=-1;
+          }
       } else if (pcre_retval == PCRE_ERROR_PARTIAL) {
           error(232,"\"%s\" PARTIAL matches (pcre_exec return value: %i) rule from line #%ld: %s\n",text, pcre_retval, ((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
           retval=-1;
@@ -587,18 +617,21 @@ static int check_list_for_match(list* rxrlist,char* text,DB_ATTR_TYPE* attr)
 static int check_node_for_match(seltree*node,char*text, mode_t perm, int retval,DB_ATTR_TYPE* attr)
 {
   int top=0;
+  RESTRICTION_TYPE file_type;
   
   if(node==NULL){
     return retval;
   }
   
+   file_type = get_file_type(perm);
+
   /* if this call is not recursive we check the equals list and we set top *
    * and retval so we know following calls are recursive */
   if(!(retval&16)){
     top=1;
     retval|=16;
 
-      switch (check_list_for_match(node->equ_rx_lst,text,attr)) {
+      switch (check_list_for_match(node->equ_rx_lst, text, attr, file_type)) {
           case 0: {
               error(220, "check_node_for_match: equal match for '%s'\n", text);
               retval|=2|4;
@@ -617,7 +650,7 @@ static int check_node_for_match(seltree*node,char*text, mode_t perm, int retval,
 
   /* If 4 and 8 are not set, we will check for matches */
   if(!(retval&(4|8))){
-      switch (check_list_for_match(node->sel_rx_lst,text,attr)) {
+      switch (check_list_for_match(node->sel_rx_lst, text, attr, file_type)) {
           case 0: {
               error(220, "check_node_for_match: selective match for '%s'\n", text);
               retval|=1|8;
@@ -638,7 +671,7 @@ static int check_node_for_match(seltree*node,char*text, mode_t perm, int retval,
   /* Negative regexps are the strongest so they are checked last */
   /* If this file is to be added */
   if(retval){
-    if(!check_list_for_match(node->neg_rx_lst,text,attr)){
+    if(!check_list_for_match(node->neg_rx_lst, text, attr, file_type)){
       error(220, "check_node_for_match: negative match for '%s'\n", text);
       retval=0;
     }

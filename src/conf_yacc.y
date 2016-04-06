@@ -45,6 +45,7 @@ extern long conf_lineno;
 %union {
   char* s;
   DB_ATTR_TYPE i;
+  RESTRICTION_TYPE r;
 }
 
 
@@ -144,6 +145,7 @@ extern long conf_lineno;
 %token TERROR
 %token TEOF
 
+%type  <r> restriction
 %type  <i> expr
 %type  <i> hash
 %type  <i> primary other
@@ -182,21 +184,39 @@ line : rule | equrule | negrule | definestmt | undefstmt
           } ;
 
 rule : TSELRXRULE expr newlineoreof
-{ decode_string($1); conf->selrxlst=append_rxlist($1,$2,conf->selrxlst); } ;
+{ decode_string($1); conf->selrxlst=append_rxlist($1,$2,conf->selrxlst, RESTRICTION_NULL); } ;
 
 equrule : TEQURXRULE expr newlineoreof
-{ decode_string($1); conf->equrxlst=append_rxlist($1,$2,conf->equrxlst); } ;
+{ decode_string($1); conf->equrxlst=append_rxlist($1,$2,conf->equrxlst, RESTRICTION_NULL); } ;
 
 negrule : TNEGRXRULE newlineoreof
-{ decode_string($1); conf->negrxlst=append_rxlist($1,0,conf->negrxlst); } |
-          TNEGRXRULE expr newlineoreof 
-{ decode_string($1); conf->negrxlst=append_rxlist($1,0,conf->negrxlst); };
+{ decode_string($1); conf->negrxlst=append_rxlist($1,0,conf->negrxlst, RESTRICTION_NULL); };
+
+rule : TSELRXRULE restriction expr newlineoreof
+{ decode_string($1); conf->selrxlst=append_rxlist($1,$3,conf->selrxlst, $2); } ;
+
+equrule : TEQURXRULE restriction expr newlineoreof
+{ decode_string($1); conf->equrxlst=append_rxlist($1,$3,conf->equrxlst, $2); } ;
+
+negrule : TNEGRXRULE restriction newlineoreof
+{ decode_string($1); conf->negrxlst=append_rxlist($1,0,conf->negrxlst, $2); };
 
 newlineoreof : TNEWLINE |
           TEOF {
             newlinelastinconfig=0;
 	    YYACCEPT;
           } ;
+
+restriction : restriction ',' restriction { $$ =$1  | $3 ; }
+    | TSTRING {
+       if((retval=get_restrictionval($1)) != RESTRICTION_NULL) {
+            $$=retval;
+       } else {
+            conf_lineno++;
+            conferror("Error in restriction");
+            YYABORT;
+       }
+    };
 
 expr :  expr '+' expr { $$ =$1  | $3 ; } |
         expr '-' expr { $$ =$1  & (~$3 ); } |

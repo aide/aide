@@ -22,7 +22,7 @@ extern YYSTYPE yylval;
 
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2005,2010,2013 Rami Lehti,Pablo Virolainen,
+ * Copyright (C) 1999-2002,2005,2010,2013,2016 Rami Lehti,Pablo Virolainen,
  * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -48,6 +48,7 @@ extern YYSTYPE yylval;
 #define YYDEBUG 1
 
 #include "aide.h"
+#include "gen_list.h"
 #include "conf_yacc.h"
 #include <string.h>
 #include "report.h"

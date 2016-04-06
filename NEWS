@@ -2,6 +2,7 @@ Version 0.16 (NOT_YET_RELEASED)
 	* Enabled summarize_changes by default
 	* Switch to PCRE library
 	* Fix '.*'-rule matching
+	* Support restricted selection lines
 	* Add new '--limit' parameter
 	* Sort entries of database file
 	* Compare database entries just once

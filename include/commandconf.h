@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2006,2011,2015 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002,2006,2011,2015,2016 Rami Lehti, Pablo Virolainen,
  * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -22,6 +22,7 @@
 #ifndef _COMMANDCONF_H_INCLUDED
 #define _COMMANDCONF_H_INCLUDED
 #include "list.h"
+#include "gen_list.h"
 #include "db_config.h"
 
 extern long conf_lineno;
@@ -32,7 +33,7 @@ int commandconf(const char mode,const char* line);
 int conf_input_wrapper(char* buf, int max_size, FILE* in);
 int db_input_wrapper(char* buf, int max_size, int db);
 
-list* append_rxlist(char*,DB_ATTR_TYPE,list*);
+list* append_rxlist(char*,DB_ATTR_TYPE,list*, RESTRICTION_TYPE);
 
 void do_define(char*,char*);
 
@@ -43,6 +44,8 @@ int do_ifxdef(int,char*);
 int do_ifxhost(int,char*);
 
 void do_groupdef(char*,DB_ATTR_TYPE);
+
+RESTRICTION_TYPE get_restrictionval(char*);
 
 DB_ATTR_TYPE get_groupval(char*);
 

@@ -32,6 +32,7 @@
 #include "types.h"
 #include "base64.h"
 #include "db_file.h"
+#include "gen_list.h"
 #include "conf_yacc.h"
 #include "util.h"
 #include "db_sql.h" /* typedefs */

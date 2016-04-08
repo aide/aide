@@ -201,7 +201,7 @@ static char* report_attrs(DB_ATTR_TYPE attrs) {
     for (int i = 0; i < num_attrs; ++i) {
         if ((1LLU<<i)&attrs) {
             if (j) { str[j++] = '+'; }
-            j += snprintf(&str[j], "%s", attrs_string[i]);
+            j += sprintf(&str[j], "%s", attrs_string[i]);
         }
     }
     str[j] = '\0';
@@ -414,17 +414,17 @@ snprintf(*values[0], l, "%s",s);
             easy_string(get_file_type_string(line->perm))
         } else if (DB_LINKNAME&attr) {
             easy_string(line->linkname)
-        easy_number((DB_SIZE|DB_SIZEG),size,"%llu")
+        easy_number((DB_SIZE|DB_SIZEG),size,"%li")
         } else if (DB_PERM&attr) {
             *values[0] = perm_to_char(line->perm);
         easy_time(DB_ATIME,atime)
         easy_time(DB_MTIME,mtime)
         easy_time(DB_CTIME,ctime)
-        easy_number(DB_BCOUNT,bcount,"%i")
+        easy_number(DB_BCOUNT,bcount,"%li")
         easy_number(DB_UID,uid,"%i")
         easy_number(DB_GID,gid,"%i")
-        easy_number(DB_INODE,inode,"%i")
-        easy_number(DB_LNKCOUNT,nlink,"%i")
+        easy_number(DB_INODE,inode,"%lu")
+        easy_number(DB_LNKCOUNT,nlink,"%lu")
         easy_md(DB_MD5,md5,HASH_MD5_LEN)
         easy_md(DB_SHA1,sha1,HASH_SHA1_LEN)
         easy_md(DB_RMD160,rmd160,HASH_RMD160_LEN)
@@ -488,7 +488,7 @@ static void print_line(seltree* node) {
                 } else if (summary_attributes[i]& (
                              (((node->old_data)->attr&~((node->new_data)->attr)&ignored_removed_attrs))|
                             (~((node->old_data)->attr)&(node->new_data)->attr&ignored_added_attrs)|
-                             ((node->old_data)->attr&(node->new_data)->attr)&ignored_changed_attrs
+                             (((node->old_data)->attr&(node->new_data)->attr)&ignored_changed_attrs)
                             ) ) {
                     summary[i]=g;
                 } else if (summary_attributes[i]&((node->old_data)->attr&(node->new_data)->attr)) {
@@ -614,7 +614,7 @@ static void print_report_details(seltree* node) {
     if (conf->verbose_level>=5) {
         if (node->checked&NODE_CHANGED) {
             print_dbline_attributes(node->old_data, node->new_data, node->changed_attrs, (conf->verbose_level>=6?(
-                ((node->old_data)->attr&~((node->new_data)->attr)&~(ignored_removed_attrs))|~((node->old_data)->attr)&(node->new_data)->attr&~(ignored_added_attrs)
+                ((node->old_data)->attr&~((node->new_data)->attr)&~(ignored_removed_attrs))|(~((node->old_data)->attr)&(node->new_data)->attr&~(ignored_added_attrs))
                             ):0)|forced_attrs);
         } else if ((conf->verbose_level>=7)) {
             if (node->checked&NODE_ADDED) { print_attributes_added_node(node->new_data); }

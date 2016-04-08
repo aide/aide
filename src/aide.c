@@ -181,7 +181,7 @@ static int read_param(int argc,char**argv)
       }
       case 'l': {
             if (optarg!=NULL) {
-                char* pcre_error;
+                const char* pcre_error;
                 int pcre_erroffset;
                 conf->limit=malloc(strlen(optarg)+1);
                 strcpy(conf->limit,optarg);

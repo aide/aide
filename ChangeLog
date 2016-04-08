@@ -1,3 +1,6 @@
+2016-04-08 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Fix some compiler warnings
+
 2016-04-06 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Support restricted selection lines
 

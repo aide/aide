@@ -35,7 +35,6 @@
 #include "gen_list.h"
 #include "conf_yacc.h"
 #include "util.h"
-#include "db_sql.h" /* typedefs */
 #include "commandconf.h"
 /*for locale support*/
 #include "locale-aide.h"

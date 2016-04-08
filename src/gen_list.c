@@ -492,7 +492,7 @@ seltree* new_seltree_node(
 void gen_seltree(list* rxlist,seltree* tree,char type)
 {
   pcre*        rxtmp = NULL;
-  char*        pcre_error;
+  const char*  pcre_error;
   int          pcre_erroffset;
 
   seltree*     curnode = NULL;
@@ -883,7 +883,7 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db,
   ignored_changed_attrs = get_special_report_group("ignore_list");
 
   if((node->checked&DB_OLD)&&(node->checked&DB_NEW)){
-      if (((node->old_data)->attr&~((node->new_data)->attr)&~(ignored_removed_attrs))|~((node->old_data)->attr)&(node->new_data)->attr&~(ignored_added_attrs)) {
+      if (((node->old_data)->attr&~((node->new_data)->attr)&~(ignored_removed_attrs))|(~((node->old_data)->attr)&(node->new_data)->attr&~(ignored_added_attrs))) {
       error(2,"Entry %s in databases has different attributes: %llx %llx\n",
             node->old_data->filename,node->old_data->attr,node->new_data->attr);
     }
@@ -1015,7 +1015,6 @@ int check_rxtree(char* filename,seltree* tree,DB_ATTR_TYPE* attr, mode_t perm)
 
 db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct AIDE_STAT_TYPE *fs)
 {
-  int sres=0;
   db_line* line=NULL;
   time_t cur_time;
 

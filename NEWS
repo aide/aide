@@ -13,6 +13,9 @@ Version 0.16 (NOT_YET_RELEASED)
 	* Added new report_base16 option
 	* Added new report_ignore_added_attrs option
 	* Added new report_ignore_removed_attrs option
+	* Add report_ignore_changed_attrs option
+	* Add report_force_attrs option
+	* Deprecate ignore_list and report_attributes option
 	* Added new report_ignore_e2fsattrs option
 	* Add new report_quiet option
 	* Wrap attribute values instead of cut them off

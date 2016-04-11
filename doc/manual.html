@@ -257,21 +257,21 @@ directory called  /var/adm/utmp_root_kit and place all the files
 he/she/they wanted there and they would be ignored by AIDE.
 </p>
 <p>
-There are two special group definitions to tweak what attributes are
-printed in the report. First report_attributes lists those attributes
+There are several special group definitions to tweak what attributes are
+printed in the report. First report_force_attrs lists those attributes
 that are always printed from changed files. For example, if you say
 <pre>
-report_attributes = u+g
+report_force_attrs = u+g
 </pre>
 and the size of a file changes, it's user and group id will also be printed
-in the report. Secondly, ignore_list defines which attributes to ignore from
-the report. For example, if you define
+in the report. Secondly,  report_ignore_added_attrs,
+report_ignore_removed_attrs and report_ignore_changed_attrs define which
+attributes to ignore from the report. For example, if you define
 <pre>
-ignore_list = b
+report_ignore_changed_attrs = b
 </pre>
 and this size of a file changes, it's block count will not be printed in the
-report, even if it did change as well. Ignore_list overrules
-report_attributes where they conflict.
+report, even if it did change as well.
 </p>
 <h3>Troubleshooting your config</h3>
 <p>Making a config file is a lot of hard work and must be done on a case

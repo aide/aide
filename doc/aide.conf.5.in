@@ -162,10 +162,16 @@ in the final report.
 .IP "report_ignore_removed_attrs"
 Special group definition that lists attributes whose removal is to be ignored
 in the final report.
-.IP "ignore_list"
+.TP
+report_ignore_changed_attrs
+.TQ
+ignore_list (DEPRECATED, will be removed in a future release)
 Special group definition that lists attributes whose change is to be ignored
 in the final report.
-.IP "report_attributes"
+.TP
+report_force_attrs
+.TQ
+report_attributes (DEPRECATED, will be removed in a future release)
 Special group definition that lists attributes which are always printed in the
 final report for changed files. If an attribute is both ignored and forced the
 attribute is not considered for file change but printed in the final report if

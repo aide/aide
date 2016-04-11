@@ -737,10 +737,10 @@ void send_audit_report()
 #endif /* WITH_AUDIT */
 
 int gen_report(seltree* node) {
-    forced_attrs = get_special_report_group("report_attributes");
+    forced_attrs = get_special_report_group("report_force_attrs");
     ignored_added_attrs = get_special_report_group("report_ignore_added_attrs");
     ignored_removed_attrs = get_special_report_group("report_ignore_removed_attrs");
-    ignored_changed_attrs = get_special_report_group("ignore_list");
+    ignored_changed_attrs = get_special_report_group("report_ignore_changed_attrs");
 
     terse_report(node);
 #ifdef WITH_AUDIT

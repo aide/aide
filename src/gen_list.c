@@ -880,7 +880,7 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db,
   /* We have a way to ignore some changes... */
   ignored_added_attrs = get_special_report_group("report_ignore_added_attrs");
   ignored_removed_attrs = get_special_report_group("report_ignore_removed_attrs");
-  ignored_changed_attrs = get_special_report_group("ignore_list");
+  ignored_changed_attrs = get_special_report_group("report_ignore_changed_attrs");
 
   if((node->checked&DB_OLD)&&(node->checked&DB_NEW)){
       if (((node->old_data)->attr&~((node->new_data)->attr)&~(ignored_removed_attrs))|(~((node->old_data)->attr)&(node->new_data)->attr&~(ignored_added_attrs))) {

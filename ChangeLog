@@ -1,3 +1,8 @@
+2016-04-11 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Add 'report_ignore_changed_attrs' option, deprecate 'ignore_list' option
+	* Add 'report_force_attrs' option, deprecate 'report_attributes'
+	  option
+
 2016-04-08 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix some compiler warnings
 

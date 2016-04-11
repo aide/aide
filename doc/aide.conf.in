@@ -105,15 +105,20 @@ report_url=stdout
 # Rule definition
 All=R+a+sha1+rmd160+sha256+sha512+tiger@aideextragroups@
 
-# report_attributes is a special rule definition
-# the attributes listed in it are alway displayed for changed files
-# in the final report
-#report_attributes = u+g
+# report_ignore_added_attrs, report_ignore_removed_attrs and
+# report_ignore_changed_attrs are special rule definitions
+# the addition, removal or change of the attributes listed are not displayed in
+# the final report
+#report_ignore_added_attrs = b
+#report_ignore_removed_attrs = b
+#report_ignore_changed_attrs = b
 
-# ignore_list is a special rule definition
-# the attributes listed in it are not displayed in the
-# final report, it overrules report_attributes where they conflict
-#ignore_list = b
+# report_force_attrs is a special rule definition
+# the attributes listed in it are always displayed for changed files in the
+# final report. If an attribute is both ignored and forced the attribute is not
+# considered for file change but printed in the final report if the file has
+# been otherwise changed.
+#report_force_attrs = u+g
 
 # Attributes that can be used to verify that aide in intact
 # by people that have downloaded it from the web.

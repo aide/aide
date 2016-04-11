@@ -1,6 +1,8 @@
 Version 0.16 (NOT_YET_RELEASED)
 	* Enabled summarize_changes by default
+	* Adjust file type letters in summarize_changes output
 	* Switch to PCRE library
+	* Drop bundled GNU regexp library
 	* Fix '.*'-rule matching
 	* Support restricted selection lines
 	* Add new '--limit' parameter
@@ -41,6 +43,7 @@ Version 0.16 (NOT_YET_RELEASED)
 	* Handle tilde (~) in database paths and report urls
 	* Add warning if a group is redefined
 	* Bug fixes
+	* Code clean up
 
 Version 0.15.1
 	* Fixed bug with DB_CHECKINODE

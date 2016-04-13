@@ -640,7 +640,7 @@ int handle_endif(int doit,int allow_else){
 	    return 0;
 	  }
 	  else {
-	    conferror("Ambigous else");
+	    conferror("Ambiguous else");
 	    return -1;
 	  }
 	}

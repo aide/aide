@@ -54,7 +54,7 @@ option may be set to no by default in a future release.
 .IP "verbose"
 The level of messages that is output. This value can be 0-255
 inclusive. This parameter can only be given once. Value from the first
-occurence is used. If \-\-verbose or \-V is used then the value from that
+occurrence is used. If \-\-verbose or \-V is used then the value from that
 is used. The default is 5. If verbosity is 20 then additional report
 output is written when doing \-\-check, \-\-update or \-\-compare.
 .IP "report_url"

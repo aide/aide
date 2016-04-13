@@ -1,5 +1,6 @@
 2016-04-13 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix spelling errors
+	* Makefile.am: fix distribution of doc files
 
 2016-04-11 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Add 'report_ignore_changed_attrs' option, deprecate 'ignore_list' option

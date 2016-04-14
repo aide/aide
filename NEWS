@@ -1,49 +1,52 @@
 Version 0.16 (NOT_YET_RELEASED)
-	* Enabled summarize_changes by default
-	* Adjust file type letters in summarize_changes output
-	* Switch to PCRE library
-	* Drop bundled GNU regexp library
-	* Fix '.*'-rule matching
-	* Support restricted selection lines
-	* Add new '--limit' parameter
-	* Sort entries of database file
-	* Compare database entries just once
-	* Added new root_prefix option
-	* Added new database_attrs option
-	* Add new database_add_metadata option
-	* Added new report_detailed_init option
-	* Added new report_base16 option
-	* Added new report_ignore_added_attrs option
-	* Added new report_ignore_removed_attrs option
-	* Add report_ignore_changed_attrs option
-	* Add report_force_attrs option
-	* Deprecate ignore_list and report_attributes option
-	* Added new report_ignore_e2fsattrs option
-	* Add new report_quiet option
-	* Wrap attribute values instead of cut them off
-	* Side-by-side output of acl and xattrs values
-	* Use '|' to separate the old value from the new one
-	* Print checksums of databases in verbose level 2 or higher
-	* Print added or removed attributes of changed entries if forced
-	  via report_attributes
-	* Print details about added and removed entries in verbose level 7
-	  or higher
-	* Print added and removed attribute values of changed entries in
-	  verbose level 6 or higher
-	* Added numeric timezone to time format
-	* Print "End timestamp" message in report
-	* Added run time to report
-	* Print human-readable info about ignored and forced attributes in report
-	* Added info about verbose level to report if it differs from standard
-	  value
-	* Changed report if aide found no changes
-	* Added info about number of entries if aide found no changes or
-	  the database has been initialized
-	* Added new default group X
-	* Handle tilde (~) in database paths and report urls
-	* Add warning if a group is redefined
-	* Bug fixes
-	* Code clean up
+    * BACKWARDS INCOMPATIBLE CHANGES:
+        - Negative selection lines of the form '!<regex> <groups>' are no
+          longer supported (use '!<regex>' instead)
+        - The switch to Perl 5 Compatible Regular Expressions and the fix of
+          '.*'-rule matching may result in different rule matching behaviour.
+    * Support restricted selection lines
+    * Switch to PCRE library (drops bundled GNU regexp library)
+    * New config options:
+        - database_add_metadata
+        - database_attrs
+        - report_base16
+        - report_detailed_init
+        - report_force_attrs (deprecates report_attributes)
+        - report_ignore_added_attrs
+        - report_ignore_removed_attrs
+        - report_ignore_changed_attrs (deprecates ignore_list)
+        - report_ignore_e2fsattrs
+        - report_quiet
+        - root_prefix
+    * New '--limit' parameter
+    * Report changes:
+        - enable summarize_changes by default
+        - use '|' to separate the old value from the new one
+        - wrap attribute values instead of cut them off
+        - side-by-side output of acl and xattrs values
+        - adjust file type letters in summarize_changes output
+        - add numeric timezone to time string
+        - add info about verbose level to report if it differs from standard
+        - add info about number of entries if aide found no changes or
+          the database has been initialized
+        - add run time to report
+        - print "End timestamp" message in report
+        - print human-readable info about ignored and forced attributes in report
+        - print checksums of databases in verbose level 2 or higher
+        - print added and removed attribute values of changed entries in
+          verbose level 6 or higher
+        - print details about added and removed entries in verbose level 7
+          or higher
+        - print added or removed attributes of changed entries if forced via
+          report_force_attrs
+    * New default group: X
+    * Fix '.*'-rule matching
+    * Handle tilde (~) in database paths and report urls
+    * Sort entries of database file
+    * Compare database entries just once
+    * Add warning if a group is redefined
+    * Bug fixes
+    * Code clean up
 
 Version 0.15.1
 	* Fixed bug with DB_CHECKINODE

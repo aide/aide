@@ -1,3 +1,6 @@
+2016-04-15 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Released version 0.16b1
+
 2016-04-13 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix spelling errors
 	* Makefile.am: fix distribution of doc files

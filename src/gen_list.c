@@ -635,12 +635,14 @@ static int check_node_for_match(seltree*node,char*text, mode_t perm, int retval,
           case 0: {
               error(220, "check_node_for_match: equal match for '%s'\n", text);
               retval|=2|4;
+              break;
           }
           case -1: {
            if(S_ISDIR(perm) && get_seltree_node(node,text)==NULL) {
                error(220, "check_node_for_match: creating new seltree node for '%s'\n", text);
                new_seltree_node(node,text,0,NULL);
            }
+           break;
           }
     }
   }
@@ -654,12 +656,14 @@ static int check_node_for_match(seltree*node,char*text, mode_t perm, int retval,
           case 0: {
               error(220, "check_node_for_match: selective match for '%s'\n", text);
               retval|=1|8;
+              break;
           }
           case -1: {
            if(S_ISDIR(perm) && get_seltree_node(node,text)==NULL) {
                error(220, "check_node_for_match: creating new seltree node for '%s'\n", text);
                new_seltree_node(node,text,0,NULL);
            }
+           break;
           }
       }
   }

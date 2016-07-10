@@ -30,6 +30,7 @@ fi
 AC_CHECK_PROGS(LD, ld)
 
 AC_PATH_PROG(PKG_CONFIG, pkg-config, "")
+AM_PROG_CC_C_O
 
 dnl AC_ARG_PROGRAM
 

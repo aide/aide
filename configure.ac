@@ -967,6 +967,17 @@ AS_IF([test "x$with_audit" != xno],
 		AC_MSG_ERROR(You don't have libaudit properly installed. Install it if you need it.)
 	)
 	AUDITLIB="-laudit"
+	if test "$aide_static_choice" == "yes"; then
+		saveLIBS=$LIBS
+		LIBS="-static $AUDITLIB"
+		AC_CHECK_LIB([audit], [audit_log_user_message], [], [
+			LIBS="$LIBS -lcap-ng"
+			AC_CHECK_LIB([cap-ng], [audit_log_user_message], [AUDITLIB="$AUDITLIB -lcap-ng"],
+			AC_MSG_ERROR([You don't have libaudit properly installed. Install it or try --without-audit.])
+			, [])
+		], [])
+		LIBS=$saveLIBS
+	fi
 	compoptionstring="${compoptionstring}WITH_AUDIT\\n"],
 	[with_audit=no]
 )

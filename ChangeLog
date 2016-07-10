@@ -1,3 +1,6 @@
+2016-07-10 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Fix compilation with latest libaudit
+
 2016-07-07 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Adapt manual to version 0.16
 

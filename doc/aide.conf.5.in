@@ -1,31 +1,31 @@
 .TH AIDE.CONF 5 "Apr 15, 2016" "aide 0.16b1" "AIDE"
 .SH NAME
 aide.conf - The configuration file for Advanced Intrusion Detection
-Environment 
+Environment
 .PP
 .SH SYNOPSIS
 \fBaide.conf\fP is the configuration file for Advanced Intrusion
 Detection Environment. \fBaide.conf\fP contains the runtime
-configuration aide uses to initiailize or check the aide database.
+configuration aide uses to initialize or check the AIDE database.
 .PP
 .SH "FILE FORMAT"
 \fBaide.conf\fP is similar in to Tripwire(tm)'s configuration
-file. With little effort tw.conf can be converted to aide.conf. 
+file. With little effort tw.conf can be converted to aide.conf.
 .PP
-aide.conf is case-sensitive. Leading and trailing whitespaces are
-ignored. 
+aide.conf is case-sensitive. Leading and trailing white spaces are
+ignored.
 .PP
 There are three types of lines in \fBaide.conf\fP. First there are the
 configuration lines which are used to set configuration parameters and
-define/undefine variables. Second, there are selection lines that are used
-to indicate which files are added to the database. Third, macro lines 
-define or undefine variables within the config file. Lines beginning
-with # are ignored as comments.
+define/undefine variables. Second, there are (restricted) selection lines that
+are used to indicate which files are added to the database. Third, macro lines
+define or undefine variables within the config file. Lines beginning with #
+are ignored as comments.
 .PP
 .SH "CONFIG LINES"
 .PP
 These lines have the format parameter=value. See URLS for a list of
-valid urls. 
+valid urls.
 .PP
 .IP "database"
 The url from which database is read. There can only be one of these
@@ -47,9 +47,9 @@ to
 .RB ' E '.
 By default all compiled in checksums are added to the report.
 .IP "database_add_metadata"
-Whether to add the Aide version and the time of database generation as comments
+Whether to add the AIDE version and the time of database generation as comments
 to the database file or not. Valid values are yes, true, no and false. The
-default is to add the Aide version and the time of database generation. This
+default is to add the AIDE version and the time of database generation. This
 option may be set to no by default in a future release.
 .IP "verbose"
 The level of messages that is output. This value can be 0-255
@@ -60,7 +60,7 @@ output is written when doing \-\-check, \-\-update or \-\-compare.
 .IP "report_url"
 The url that the output is written to. There can be multiple instances
 of this parameter. Output is written to all of them. The default is
-stdout. 
+stdout.
 .IP "report_base16"
 Whether to base16 encode the checksums in the report or not. Valid values are
 yes, true, no and false. The default is to report checksums not in base16 but
@@ -79,7 +79,7 @@ yes,true,no and false. The default is no. This option is available only
 if zlib support is compiled in.
 .IP "root_prefix"
 The prefix to strip from each file name in the file system before applying the
-rules and writing to database. Aide removes a trailing slash from the prefix.
+rules and writing to database. AIDE removes a trailing slash from the prefix.
 The default is no (an empty) prefix. This option has no effect in
 compare mode.
 .IP "acl_no_symlink_follow"
@@ -102,17 +102,17 @@ The general format is like the string YlZbpugamcinCAXSE, where Y is
 replaced by the file-type (\fBf\fP for a regular file, \fBd\fP for a
 directory, \fBl\fP for a symbolic link, \fBc\fP for a character device,
 \fBb\fP for a block device, \fBp\fP for a FIFO, \fBs\fP for a unix
-socket, \fBD\fP for a Solaris door, \fBP\fP for a Port, \fB!\fP if file type
-has changed and \fB?\fP otherwise).
+socket, \fBD\fP for a Solaris door, \fBP\fP for a Solaris event port, \fB!\fP
+if file type has changed and \fB?\fP otherwise).
 
 The Z is replaced as follows: A \fB=\fP means that the size has not changed,
 a \fB<\fP reports a shrinked size and a \fB>\fP reports a grown size.
 
-The other letters in the string are the actual letters that will be output 
+The other letters in the string are the actual letters that will be output
 if the associated attribute for the item has been changed or a "." for no
 change, a "+" if the attribute has been added, a "-" if it has been removed,
 a ":" if the attribute is ignored (but not forced) or a " " if the attribute has
-not been checked. The exceptions to this are: (1) a newly created file replaces 
+not been checked. The exceptions to this are: (1) a newly created file replaces
 each letter with a "+", and (2) a removed file replaces each letter with a "-".
 
 The attribute that is associated with each letter is as follows:
@@ -198,17 +198,17 @@ report_ignore_e2fsattrs=EhI
 .RE
 .RE
 .IP "config_version"
-The value of config_version is printed in the report and also printed 
+The value of config_version is printed in the report and also printed
 to the database. This is for informational purposes only. It has no
 other functionality.
 .IP "Group definitions"
 If the parameter is not one of the previous parameters then it is
 regarded as a group definition. Value is then regarded as an
-expression. Expression is of the following form. 
-.IP 
+expression. Expression is of the following form.
+.IP
 .nf
     <predefined group>| <expr> + <predefined group>
-                      | <expr> - <predifined group>
+                      | <expr> - <predefined group>
 .fi
 .IP
 See DEFAULT GROUPS for an explanation of default predefined groups.
@@ -216,19 +216,54 @@ Note that this is different from the way Tripwire(tm) does it.
 .PP
 .SH "SELECTION LINES"
 .PP
-aide supports three types of selection lines (regular, negative, equals)
-Lines beginning with "/" are regular selection lines. Lines beginning
-with "=" are equals selection lines. And lines beginning with "!"
-are negative selection lines. The string following the first character
-is taken as a regular expression matching to a complete filename,
-including the path. In a regular selection rule the "/" is included in the
-regular expression. Special characters in your filenames can be escaped
-using two-digit URL encoding (for example, %20 to represent a space).
-Following the regular expression is a group definition as explained above.
+AIDE supports three types of selection lines:
+
+Regular selection line:
+.RS 3
+
+.nf
+.B <regex> <group>
+.fi
+
+Files matching the regular expression are added to the database.
+
+.RE
+
+Negative selection line:
+.RS 3
+
+.nf
+.B !<regex>
+.fi
+
+Files matching the regular expression are ignored and not added to the
+database.
+
+.RE
+
+Equals selection line:
+.RS 3
+
+.nf
+.B =<regex> <group>
+.fi
+
+Files and directories matching the regular expression are added to the
+database. The children of directories are only added if the regular expression
+ends with a "/". The children of sub-directories are not added at all.
+
+.RE
+
+Every regular expression has to start with a "/". An implicit ^ is added in
+front of each regular expression. In other words the regular expressions are
+matched at the first position against the complete filename (i.e. including the
+path). Special characters in your filenames can be escaped using two-digit URL
+encoding (for example, %20 to represent a space).
+
 See EXAMPLES and doc/aide.conf for examples.
 .PP
 More in-depth discussion of the selection algorithm can be found in
-the aide manual.
+the AIDE manual.
 .IP
 .PP
 .SH "RESTRICTED SELECTION LINES"
@@ -250,7 +285,7 @@ restricted to file types. The following file types are supported:
 
 \fBp\fP: restrict rule to FIFO files
 
-\fBs\fP: restrict rule to unix sockets
+\fBs\fP: restrict rule to UNIX sockets
 
 \fBD\fP: restrict rule to Solaris doors
 
@@ -263,7 +298,7 @@ selection lines is as follows:
 Restricted regular selection line:
 .RS 3
 .nf
-.B /<regex> <file types> <group>
+.B <regex> <file types> <group>
 .fi
 .RE
 
@@ -330,9 +365,9 @@ the part between @@else and @@endif is used. @@ifndef reverses the
 logic of @@ifdef statement but otherwise works similarly.
 .IP "@@ifhost \fBhostname\fR, @@ifnhost \fBhostname\fR"
 @@ifhost works like @@ifdef only difference is that it checks whether
-\fBhostname\fR equals the name of the host that aide is running on.
+\fBhostname\fR equals the name of the host that AIDE is running on.
 \fBhostname\fR is the name of the host without the domainname
-(hostname, not hostname.aide.org).
+(hostname, not hostname.example.com).
 .IP "@@{\fBVAR\fR}"
 @@{\fBVAR\fR} is replaced with the value of the variable \fBVAR\fR.
 If variable \fBVAR\fR is not defined an empty string is used. Unlike
@@ -343,7 +378,7 @@ Begins the else part of an if statement.
 .IP "@@endif"
 Ends an if statement.
 .IP "@@include \fBVAR\fR"
-Includes the file \fBVAR\fR. The content of the file is used as if it 
+Includes the file \fBVAR\fR. The content of the file is used as if it
 were inserted in this part of the config file.
 .PP
 .SH URLS
@@ -356,7 +391,7 @@ Output is sent to stdout,stderr respectively.
 Input is read from stdin.
 .IP "file://\fBfilename\fR"
 Input is read from \fBfilename\fR or output is written to
-\fBfilename\fR. 
+\fBfilename\fR.
 .IP "fd:\fBnumber\fR"
 Input is read from filedescriptor \fBnumber\fR or output is written to
 \fBnumber\fR.
@@ -391,7 +426,7 @@ Input is read from filedescriptor \fBnumber\fR or output is written to
 .IP "L:	p+ftype+i+l+n+u+g+X"
 .IP "E:	Empty group"
 .IP "X:	acl+selinux+xattrs+e2fsattrs (if groups are explicitly enabled)"
-.IP ">:	Growing logfile p+ftype+l+u+g+i+n+S+X"
+.IP ">:	Growing file p+ftype+l+u+g+i+n+S+X"
 .LP
 And also the following if you have mhash support enabled
 .IP "gost: gost checksum"
@@ -415,21 +450,28 @@ but are ignored in the report.
 .PP
 .SH EXAMPLES
 .IP
-.B "/	R"
+.B "/ R"
 .LP
-This adds all files on your machine to the database. This is one line
+This adds all files on your machine to the database. This one line
 is a fully qualified configuration file.
 .IP
 .B "!/dev"
 .LP
 This ignores the /dev directory structure.
 .IP
-.B "=/tmp"
+.B "=/foo R"
 .LP
-Only /tmp is taken into the database. None of its children are added. 
-.IP 
+Only /foo and /foobar are taken into the database. None of their children are
+added.
+.IP
+.B "=/foo/ R"
+.LP
+Only /foo and its children (e.g. /foo/file and /foo/directory) are taken into
+the database. The children of sub-directories (e.g. /foo/directory/bar) are not
+added.
+.IP
 .B "\fBAll\fR=p+i+n+u+g+s+m+c+a+md5+sha1+tiger+rmd160"
-.LP 
+.LP
 This line defines group \fBAll\fR. It has all attributes and all
 md checksum functions. If you absolutely want all digest functions
 then you should enable mhash support and add
@@ -437,32 +479,15 @@ then you should enable mhash support and add
 \fBAll\fR. Mhash support can only be enabled at compile-time.
 .PP
 .SH HINTS
-.IP
-.B "=/foo p+i+l+n+u+g+s+m+c+md5"
-.IP
-.B "/foo/bar p+i+l+n+u+g+s+m+c+md5"
-.LP
-This config adds all files under /foo because they match to regex /foo,
-which is equivalent to /foo.* . What you probably want is:
-.IP 
-.B "=/foo$ p+i+l+n+u+g+s+m+c+md5"
-.IP
-.B "/foo/bar p+i+l+n+u+g+s+m+c+md5"
-.LP 
-Note that the following still works as expected because =/foo$ stop
-recuring of directory /foo.
-.IP
-.B "=/foo p+i+l+n+u+g+s+m+c+md5"
-.LP
 In the following, the first is not allowed in AIDE. Use the latter instead.
 .IP
 .B "/foo epug"
-.IP 
+.IP
 .B "/foo e+p+u+g"
 .PP
 .SH "SEE ALSO"
 .BR aide (1)
-.BR http://www.cs.tut.fi/~rammer/aide/manual.html
+.BR manual.html
 .SH DISCLAIMER
 All trademarks are the property of their respective owners.
 No animals were harmed while making this webpage or this piece of

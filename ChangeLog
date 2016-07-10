@@ -4,6 +4,7 @@
 	* Add AM_PROG_CC_C_O
 	* aide.conf.in: logfile -> file
 	* Update README
+	* Update manual pages (aide.1 and aide.conf.5)
 
 2016-07-07 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Adapt manual to version 0.16

@@ -6,8 +6,8 @@
 \%[\fBparameters\fP]
 \%\fBcommand\fP
 .SH DESCRIPTION
-\fBaide\fP is an intrusion detection system for checking the integrity
-of files. 
+\fBAIDE\fP is an intrusion detection system for checking the integrity
+of files.
 
 .SH COMMANDS
 .PP
@@ -19,15 +19,15 @@ command \fBaide\fP does a check.
 Initialize the database. You must initialize a database and move it to
 the appropriate place before you can use the \-\-check command.
 .IP "--update, -u"
-Checks the database and updates the database non-interactively. 
+Checks the database and updates the database non-interactively.
 The input and output databases must be different.
 .IP "--compare, -E"
-Compares two databases. They must be defined in configfile with
+Compares two databases. They must be defined in config file with
 database=<url> and database_new=<url>.
 .IP "--config-check, -D"
 Stops after reading in the configuration file. Any errors will be reported.
 If \fBaide\fP was compiled with the \(dq\fB--with-dbhmackey\fR\(dq option,
-a hash for the config file will be calculated. See the aide manual for more
+a hash for the config file will be calculated. See the AIDE manual for more
 information.
 .SH PARAMETERS
 .IP "--config=\fBconfigfile\fR , -c \fBconfigfile\fR"
@@ -35,10 +35,25 @@ Configuration is read from file \fBconfigfile\fR instead of "./aide.conf". Use '
 .IP "--limit=\fBREGEX\fR , -l \fBREGEX\fR"
 Limit command to entries matching REGEX. Note that the REGEX only matches
 at the first position.
+
+.RS
+.B Example
+.RS 3
+Only check and update the database entries matching /etc (i.e. the /etc
+directory) while leaving all other entries unchecked and unchanged:
+
+.RS 3
+.nf
+aide --update --limit /etc
+.fi
+.RE
+.RE
+.RE
+
 .IP "--before=\(dq\fBconfigparameters\fR\(dq , -B \(dq\fBconfigparameters\fR\(dq"
 These \fBconfigparameters\fR are handled before the reading of the
 configuration file. See aide.conf (5) for more details on what to put
-here. 
+here.
 .IP "--after=\(dq\fBconfigparameters\fR\(dq , -A \(dq\fBconfigparameters\fR\(dq"
 These \fBconfigparameters\fR are handled after the reading of the
 configuration file. See aide.conf (5) for more details on what to put
@@ -57,7 +72,7 @@ Prints out the standard help message.
 .PP
 .SH DIAGNOSTICS
 Normally, the exit status is 0 if no errors occurred. Except when the
-.BR --check,
+.BR --check ,
 .BR --compare " or"
 .B --update
 command was requested, in which case the exit status is defined as:
@@ -94,7 +109,7 @@ Default aide database.
 Default aide output database.
 .SH SEE ALSO
 .BR aide.conf (5)
-.BR http://www.cs.tut.fi/~rammer/aide/manual.html
+.BR manual.html
 .SH BUGS
 There are probably bugs in this release. Please report them
 at http://sourceforge.net/projects/aide . Bug fixes are more than welcome.

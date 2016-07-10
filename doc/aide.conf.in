@@ -91,7 +91,7 @@ report_url=stdout
 #R:		p+ftype+i+l+n+u+g+s+m+c+md5
 #L:		p+ftype+i+l+n+u+g
 #E:		Empty group
-#>:		Growing logfile p+ftype+l+u+g+i+n+S
+#>:		Growing file p+ftype+l+u+g+i+n+S
 #The following are available if you have mhash support enabled:
 #gost:		gost checksum
 #whirlpool:	whirlpool checksum

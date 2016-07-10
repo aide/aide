@@ -2,6 +2,7 @@
 	* Fix compilation with latest libaudit
 	* Use AC_PROG_CC_C99 instead of AC_PROG_CC
 	* Add AM_PROG_CC_C_O
+	* aide.conf.in: logfile -> file
 
 2016-07-07 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Adapt manual to version 0.16

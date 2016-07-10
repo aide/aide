@@ -62,7 +62,7 @@
     to use --disable-static when configuring AIDE. Please note that dynamic
     linking introduces a security risk and is not recommended.
 
-    For Mac OS Leopard (10.5) you also need to use --disable-lfs because it
+    Since Mac OS Leopard (10.5) you also need to use --disable-lfs because it
     handles 64 bit file support out of the box.
 
     Source Code Verification
@@ -85,7 +85,7 @@
 
     The current public key needed for signature verification is:
 
-        pub   4096R/68E7B931 2011-06-28 [expires: 2017-06-26]
+        pub   4096R/68E7B931 2011-06-28 [expires: 2021-06-27]
         uid                  Hannes von Haugwitz <hannes@vonhaugwitz.com>
 
     If you do not have this key, you can get it from one of the well known PGP

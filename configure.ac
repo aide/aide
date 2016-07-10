@@ -12,7 +12,7 @@ dnl The name of the configure h-file.
 AM_CONFIG_HEADER(config.h)
 
 dnl Checks for programs.
-AC_PROG_CC
+AC_PROG_CC_C99
 AC_PROG_MAKE_SET
 AC_PROG_RANLIB
 AC_PROG_INSTALL

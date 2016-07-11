@@ -3,7 +3,7 @@ Version 0.16 (NOT_YET_RELEASED)
         - Negative selection lines of the form '!<regex> <groups>' are no
           longer supported (use '!<regex>' instead)
         - The switch to Perl 5 Compatible Regular Expressions and the fix of
-          '.*'-rule matching may result in different rule matching behaviour.
+          '.*'-rule matching may result in different rule matching behaviour
     * Support restricted selection lines
     * Switch to PCRE library (drops bundled GNU regexp library)
     * New config options:
@@ -27,6 +27,7 @@ Version 0.16 (NOT_YET_RELEASED)
         - adjust file type letters in summarize_changes output
         - add numeric timezone to time string
         - add info about verbose level to report if it differs from standard
+          value
         - add info about number of entries if aide found no changes or
           the database has been initialized
         - add run time to report
@@ -45,6 +46,7 @@ Version 0.16 (NOT_YET_RELEASED)
     * Sort entries of database file
     * Compare database entries just once
     * Add warning if a group is redefined
+    * Update documentation
     * Bug fixes
     * Code clean up
 

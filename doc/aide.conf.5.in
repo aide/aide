@@ -1,4 +1,4 @@
-.TH AIDE.CONF 5 "Apr 15, 2016" "aide 0.16b1" "AIDE"
+.TH AIDE.CONF 5 "Jul 11, 2016" "aide 0.16rc1" "AIDE"
 .SH NAME
 aide.conf - The configuration file for Advanced Intrusion Detection
 Environment

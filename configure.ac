@@ -538,7 +538,7 @@ AS_IF([test "x$with_xattr_support" != xno],
 	[AC_DEFINE(WITH_XATTR,1,[use xattr])
 	ATTRLIB=-lattr
 	compoptionstring="${compoptionstring}WITH_XATTR\\n"
-	aideextragroups="${aideextragroups}+xattr"
+	aideextragroups="${aideextragroups}+xattrs"
 	AC_MSG_RESULT(yes)],
 	[AC_MSG_RESULT(no)]
 )

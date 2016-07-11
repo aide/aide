@@ -225,7 +225,8 @@ Regular selection line:
 .B <regex> <group>
 .fi
 
-Files matching the regular expression are added to the database.
+Files and directories matching the regular expression are added to the
+database.
 
 .RE
 
@@ -236,8 +237,8 @@ Negative selection line:
 .B !<regex>
 .fi
 
-Files matching the regular expression are ignored and not added to the
-database.
+Files and directories matching the regular expression are ignored and not added
+to the database.
 
 .RE
 

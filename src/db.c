@@ -28,6 +28,10 @@
 #include "db_disk.h"
 #include "md.h"
 
+#ifdef WITH_CURL
+#include "fopen.h"
+#endif
+
 #ifdef WITH_PSQL
 #include "db_sql.h"
 #endif

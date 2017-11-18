@@ -203,7 +203,7 @@ db_line *db_readline_disk ()
 		fullname=malloc((conf->root_prefix_length+2)*sizeof(char));
 		strncpy(fullname, conf->root_prefix, conf->root_prefix_length+1);
 		strncat (fullname, "/", 1);
-		if (!get_file_status(&fullname[conf->root_prefix_length], &fs)) {
+		if (!get_file_status(fullname, &fs)) {
 		add = check_rxtree (&fullname[conf->root_prefix_length], conf->tree, &attr, fs.st_mode);
 		error (240, "%s match=%d, tree=%p, attr=%llu\n", &fullname[conf->root_prefix_length], add,
 					 conf->tree, attr);
@@ -249,7 +249,7 @@ recursion:
 		   If not call, db_readline_disk again...
 		 */
 
-		if (get_file_status(&fullname[conf->root_prefix_length], &fs)) {
+		if (get_file_status(fullname, &fs)) {
 		    free (fullname);
 		    goto recursion;
 		}

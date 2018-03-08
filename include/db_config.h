@@ -62,7 +62,10 @@ typedef struct acl_type {
 
 #ifdef WITH_XATTR /* Do generic user Xattrs. */
 #include <sys/xattr.h>
-#include <attr/xattr.h>
+#include <attr/attributes.h>
+#ifndef ENOATTR
+# define ENOATTR ENODATA
+#endif
 #endif
 
 typedef struct xattr_node 

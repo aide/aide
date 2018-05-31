@@ -1,3 +1,6 @@
+2018-05-31 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Remove aide.spec.in
+
 2017-11-18 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix root_prefix option
 

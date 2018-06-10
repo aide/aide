@@ -1,3 +1,6 @@
+2018-06-10 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Add missing include in src/db.c (patch by Ilya Tumaykin)
+
 2018-05-31 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Remove aide.spec.in
 	* Remove contrib/mkdailyrelease.sh

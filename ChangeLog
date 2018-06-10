@@ -1,5 +1,6 @@
 2018-06-10 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Add missing include in src/db.c (patch by Ilya Tumaykin)
+	* src/base64.c: fix memory leak in decode_base64 (closes #95)
 
 2018-05-31 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Remove aide.spec.in

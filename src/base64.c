@@ -209,6 +209,7 @@ byte* decode_base64(char* src,size_t ssize, size_t *ret_len)
 	case FAIL:
 	  error(3, "decode_base64: Illegal character: %c\n", *inb);
 	  error(230, "decode_base64: Illegal line:\n%s\n", src);
+	  free(outbuf);
 	  return NULL;
 	  break;
 	case SKIP:

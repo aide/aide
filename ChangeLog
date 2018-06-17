@@ -1,3 +1,6 @@
+2018-06-17 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Fix some compiler warnings
+
 2018-06-10 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Add missing include in src/db.c (patch by Ilya Tumaykin)
 	* src/base64.c: fix memory leak in decode_base64 (closes #95)

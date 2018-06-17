@@ -396,19 +396,19 @@ snprintf(*values[0], l, "%s",s);
     *values[0] = malloc(time_string_len * sizeof (char));  \
     strftime(*values[0], time_string_len, time_format, localtime(&(line->b)));
 
-    int l;
     if (line==NULL || !(line->attr&attr)) {
         *values = NULL;
         return 0;
 #ifdef WITH_ACL
     } else if (DB_ACL&attr) {
-        return acl2array(line->acl, &*values);
+        return acl2array(line->acl, values);
 #endif
 #ifdef WITH_XATTR
     } else if (DB_XATTRS&attr) {
-        return xattrs2array(line->xattrs, &*values);
+        return xattrs2array(line->xattrs, values);
 #endif
     } else {
+        int l;
         *values = malloc(1 * sizeof (char*));
         if (DB_FTYPE&attr) {
             easy_string(get_file_type_string(line->perm))
@@ -459,13 +459,13 @@ static void print_line(seltree* node) {
         int length = sizeof(summary_attributes)/sizeof(DB_ATTR_TYPE);
         char* summary = malloc ((length+1) * sizeof (char));
         if (node->checked&(NODE_ADDED|NODE_REMOVED)) {
-            summary[0]=get_file_type_char((node->checked&NODE_REMOVED?node->old_data:node->new_data)->perm);
+            summary[0]=get_file_type_char(((node->checked&NODE_REMOVED)?node->old_data:node->new_data)->perm);
             for(i=1;i<length;i++){
-                summary[i]=node->checked&NODE_ADDED?'+':'-';
+                summary[i]=(node->checked&NODE_ADDED)?'+':'-';
             }
         } else if (node->checked&NODE_CHANGED) {
-            char c, u, a, r, g, s;
             for(i=0;i<length;i++) {
+                char c, u, a, r, g, s;
                 c = summary_char[i];
                 r = '-'; a = '+'; g = ':'; u = '.'; s = ' ';
                 switch (i) {
@@ -499,7 +499,7 @@ static void print_line(seltree* node) {
             }
         }
         summary[length]='\0';
-        error(2,"\n%s: %s", summary, (node->checked&NODE_REMOVED?node->old_data:node->new_data)->filename);
+        error(2,"\n%s: %s", summary, ((node->checked&NODE_REMOVED)?node->old_data:node->new_data)->filename);
         free(summary); summary=NULL;
     } else {
         if (node->checked&NODE_ADDED) {
@@ -538,11 +538,11 @@ static void print_dbline_attributes(db_line* oline, db_line* nline, DB_ATTR_TYPE
                 while (olen-p*k >= 0 || nlen-p*k >= 0) {
                     c = k*(p-1);
                     if (!onumber) {
-                        error(2," %s%-9s%c %-*c  %.*s\n", width_details%2?"":" ", i+k?"":details_string[j], i+k?' ':':', p, ' ', p-1, nlen-c>0?&nvalue[i][c]:"");
+                        error(2," %s%-9s%c %-*c  %.*s\n", width_details%2?"":" ", (i+k)?"":details_string[j], (i+k)?' ':':', p, ' ', p-1, nlen-c>0?&nvalue[i][c]:"");
                     } else if (!nnumber) {
-                        error(2," %s%-9s%c %.*s\n", width_details%2?"":" ", i+k?"":details_string[j], i+k?' ':':', p-1, olen-c>0?&ovalue[i][c]:"");
+                        error(2," %s%-9s%c %.*s\n", width_details%2?"":" ", (i+k)?"":details_string[j], (i+k)?' ':':', p-1, olen-c>0?&ovalue[i][c]:"");
                     } else {
-                        error(2," %s%-9s%c %-*.*s| %.*s\n", width_details%2?"":" ", i+k?"":details_string[j], i+k?' ':':', p, p-1, olen-c>0?&ovalue[i][c]:"", p-1, nlen-c>0?&nvalue[i][c]:"");
+                        error(2," %s%-9s%c %-*.*s| %.*s\n", width_details%2?"":" ", (i+k)?"":details_string[j], (i+k)?' ':':', p, p-1, olen-c>0?&ovalue[i][c]:"", p-1, nlen-c>0?&nvalue[i][c]:"");
                     }
                     k++;
                 }

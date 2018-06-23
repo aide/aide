@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2007,2010-2013,2016 Rami Lehti, Pablo Virolainen, Mike
- * Markley, Richard van den Berg, Hannes von Haugwitz
+ * Copyright (C) 1999-2007,2010-2013,2016,2018 Rami Lehti, Pablo Virolainen,
+ * Mike Markley, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -270,7 +270,7 @@ int db_file_read_spec(int db){
   }
   if (conf->attr==DB_ATTR_UNDEF) {
     conf->attr=0;
-    error(0,"Database does not have attr field.\nComparation may be incorrect\nGenerating attr-field from dbspec\nIt might be a good Idea to regenerate databases. Sorry.\n");
+    error(0,"Database does not have attr field.\nComparison may be incorrect\nGenerating attr-field from dbspec\nIt might be a good Idea to regenerate databases. Sorry.\n");
     for(i=0;i<conf->db_in_size;i++) {
       conf->attr|=1<<(*db_order)[i];
     }

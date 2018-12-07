@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  * vi: ts=8 sw=8
  *
- * Copyright (C) 1999-2002,2004-2006,2009-2011,2013 Rami Lehti, Pablo
+ * Copyright (C) 1999-2002,2004-2006,2009-2011,2013,2018 Rami Lehti, Pablo
  * Virolainen, Mike Markley, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -90,8 +90,10 @@ int is_prelinked(int fd) {
         if ((elf = elf_begin (fd, ELF_C_READ, NULL)) == NULL
             || elf_kind(elf) != ELF_K_ELF
             || gelf_getehdr(elf, &ehdr) == NULL
-            || !(ehdr.e_type == ET_DYN || ehdr.e_type == ET_EXEC))
+            || !(ehdr.e_type == ET_DYN || ehdr.e_type == ET_EXEC)) {
+                elf_end(elf);
                 return 0;
+        }
 
         bingo = 0;
         while (!bingo && (scn = elf_nextscn(elf, scn)) != NULL) {
@@ -113,6 +115,7 @@ int is_prelinked(int fd) {
                         }
                 }
         }
+        elf_end(elf);
 
         return bingo;
 }

@@ -1,8 +1,9 @@
 Version 0.16.1 (NOT_YET_RELEASED)
     * Move to GitHub
+    * Update documentation
     * Bug fixes
 
-Version 0.16 (NOT_YET_RELEASED)
+Version 0.16 (2016-07-25)
     * BACKWARDS INCOMPATIBLE CHANGES:
         - Negative selection lines of the form '!<regex> <groups>' are no
           longer supported (use '!<regex>' instead)
@@ -55,103 +56,102 @@ Version 0.16 (NOT_YET_RELEASED)
     * Code clean up
 
 Version 0.15.1
-	* Fixed bug with DB_CHECKINODE
+    * Fixed bug with DB_CHECKINODE
 
 Version 0.15
-	* Added new grouped option
-	* Sort files in report by filename
-	* Added support for e2fsattrs attribute
-	* Added support for ftype attribute
-	* Bug fixes
+    * Added new grouped option
+    * Sort files in report by filename
+    * Added support for e2fsattrs attribute
+    * Added support for ftype attribute
+    * Bug fixes
 
 Version 0.14.2
-	* Report correct file type in "Detailed information
-	  about changes" section
-	* Bug fixes
+    * Report correct file type in "Detailed information
+      about changes" section
+    * Bug fixes
 
 Version 0.14.1
-	* Added aide-attributes.sh contrib script
-	* Bug fixes
+    * Added aide-attributes.sh contrib script
+    * Bug fixes
 
 Version 0.14
-	* Renewed autoconf mechanism
-	* Resolved licensing conflicts
-	* New feature to summarize changes
-	* Added prelink support
-	* Many bugfixes
+    * Renewed autoconf mechanism
+    * Resolved licensing conflicts
+    * New feature to summarize changes
+    * Added prelink support
+    * Many bugfixes
 
 Version 0.13.1
-	* Fixed bug with reading gzipped aide.db files
-	* Removed dead ustat code
+    * Fixed bug with reading gzipped aide.db files
+    * Removed dead ustat code
 
 Version 0.13
-	* Added support for selinux and xattr attributes
-	  (kindly contributed by Red Hat)
-	* Added support for the Linux Audit System
-	  (kindly contributed by Red Hat)
-	* Fixed usage of libgcrypt instead of libmhash
-	* Added file locking for output files
-	* Fixed bugs
+    * Added support for selinux and xattr attributes
+      (kindly contributed by Red Hat)
+    * Added support for the Linux Audit System
+      (kindly contributed by Red Hat)
+    * Fixed usage of libgcrypt instead of libmhash
+    * Added file locking for output files
+    * Fixed bugs
 
 Version 0.12
-	* Fixed bugs
-	* Allow http/https/ftp URLs through libcurl
-	* Support posix_fadvice() to avoid caching files
+    * Fixed bugs
+    * Allow http/https/ftp URLs through libcurl
+    * Support posix_fadvice() to avoid caching files
 
 Version 0.11
-	* Fixed many bugs
-	* Updated automake/autoconf scripts
-	* Use snprintf by Mark Martinec if not in C library
-	* Support for more (legacy) Unix systems and cygwin
-	* Open files with O_NOATIME on supported Linux systems
-	* Added I/ANF/ARF directives
+    * Fixed many bugs
+    * Updated automake/autoconf scripts
+    * Use snprintf by Mark Martinec if not in C library
+    * Support for more (legacy) Unix systems and cygwin
+    * Open files with O_NOATIME on supported Linux systems
+    * Added I/ANF/ARF directives
 
 Version 0.10
-	* Fixed bugs
-	* Moved project over to sourceforge.net
-	* Change of project ownership
+    * Fixed bugs
+    * Moved project over to sourceforge.net
+    * Change of project ownership
 
 Version 0.9
-	* Fixed bugs
-	* Added support for keyed md check of db and config
-	* Removed dependancy on libgcrypt
-	* Added dependancy on mhash
+    * Fixed bugs
+    * Added support for keyed md check of db and config
+    * Removed dependancy on libgcrypt
+    * Added dependancy on mhash
 
 Version 0.8
-	* Fixed loads and loads of bugs
+    * Fixed loads and loads of bugs
         * Added syslog backend
         * Report format changed
         * added lots of parameters see man page and configure --help
         * added ACL support for SunOS 5.x (and compatibles)
-	* libgcrypt is now separate and required
+    * libgcrypt is now separate and required
 
 Version 0.7
-	* Bug fixes
-	* Compressed database support
-	* Linkname checking
-	* Mhash support (version 0.8.1 of mhash required)
+    * Bug fixes
+    * Compressed database support
+    * Linkname checking
+    * Mhash support (version 0.8.1 of mhash required)
 
 Version 0.6
-	* Bug fixes
-	* Mhash support fixed
-	* MD sums fixed for now
+    * Bug fixes
+    * Mhash support fixed
+    * MD sums fixed for now
 
-Version 0.5 
-	* Bug fixes
-	* ignore_list support
-	* Mhash library support (version 0.6.1 of mhash required)
-	* Disclaimer notices
+Version 0.5
+    * Bug fixes
+    * ignore_list support
+    * Mhash library support (version 0.6.1 of mhash required)
+    * Disclaimer notices
 
 Version 0.4
-	* Bug fixes 
+    * Bug fixes
 
 Version 0.3
-	* Added --update command
-	* some bugfixes
+    * Added --update command
+    * some bugfixes
 Version 0.2
-	* Bugfix release
+    * Bugfix release
 Version 0.1
-	* Implemented lots of stuff
+    * Implemented lots of stuff
 Version 0.0.0.1
-	* Nothing yet
-
+    * Nothing yet

@@ -145,15 +145,13 @@
     Feedback and Support
     --------------------
 
-    End user support is available on the AIDE mailing list. To subscribe,
-    send a message to majordomo@cs.tut.fi with an empty Subject: line and
-    the following text as the BODY of the message:
+    End user support is available on the AIDE mailing list:
 
-    subscribe aide
+        https://www.ipi.fi/mailman/listinfo/aide
 
     An archive for the mailing list archive is available online:
 
-        http://www.mail-archive.com/aide@cs.tut.fi/
+        http://www.ipi.fi/pipermail/aide/
 
     Please report bugs and feature requests to the aide issue tracker
 
@@ -161,6 +159,6 @@
 
 
     Credits
-    ------- 
+    -------
 
     Please see the AUTHORS file.

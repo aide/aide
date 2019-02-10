@@ -34,6 +34,7 @@
            configurations.
         o  Free software licensed under the GNU General Public License.
 
+    The homepage of AIDE is https://aide.github.io
 
     Current Version
     ---------------
@@ -121,10 +122,7 @@
        conf_lex.c:4728: error: for each function it appears in.)
 
       Either downgrade to flex 2.5.4 or get an updated version that fixes
-      this bug. See also:
-      http://sourceforge.net/tracker/index.php?func=detail&aid=866477&group_id=72099&atid=533377
-      http://sourceforge.net/mailarchive/message.php?msg_id=5415848
-      http://sourceforge.net/mailarchive/message.php?msg_id=5561246
+      this bug.
 
     Large File Support
     -----------------

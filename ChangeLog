@@ -4,6 +4,9 @@
 	 - move end user mailing list to ipi.fi
 	 - fix tabs/whitespaces
 	 - add mssing release date for 0.16 in NEWS file
+	* Update README
+	  - mention AIDE website aide.github.io
+	  - remove broken links
 
 2018-12-07 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* src/do_md.c: fix memory leak in is_prelinked (closes #103),

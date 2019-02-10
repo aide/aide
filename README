@@ -38,16 +38,15 @@
     Current Version
     ---------------
 
-    AIDE is currently maintained on the SourceForge. Details of the
-    latest version of AIDE can be found on the server project page under
-    http://sourceforge.net/projects/aide/.
+    AIDE is currently maintained on GitHub.
+
+    Please visit https://github.com/aide/aide/ to get the newest version of
+    the source code.
 
     Documentation
     -------------
 
-    The documentation for AIDE can be found in the doc/ directory. The
-    most up-to-date documentation an be found on the SourceForge project
-    web site.
+    The documentation for AIDE can be found in the doc/ directory.
 
     Installation
     ------------
@@ -156,10 +155,9 @@
 
         http://www.mail-archive.com/aide@cs.tut.fi/
 
-    To report bugs, contribute patches and contact the current team of
-    developers, visit the SourceForge project web site for additional info:
+    Please report bugs and feature requests to the aide issue tracker
 
-        http://sourceforge.net/projects/aide/
+        https://github.com/aide/aide/issues
 
 
     Credits

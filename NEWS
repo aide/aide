@@ -1,3 +1,7 @@
+Version 0.16.1 (NOT_YET_RELEASED)
+    * Move to GitHub
+    * Bug fixes
+
 Version 0.16 (NOT_YET_RELEASED)
     * BACKWARDS INCOMPATIBLE CHANGES:
         - Negative selection lines of the form '!<regex> <groups>' are no

@@ -112,8 +112,7 @@ Default aide output database.
 .BR manual.html
 .SH BUGS
 There are probably bugs in this release. Please report them
-at http://sourceforge.net/projects/aide . Bug fixes are more than welcome.
-Unified diffs are preferred.
+at https://github.com/aide/aide/issues .
 .SH DISCLAIMER
 All trademarks are the property of their respective owners.
 No animals were harmed while making this webpage or this piece of

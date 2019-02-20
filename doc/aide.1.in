@@ -80,6 +80,10 @@ command was requested, in which case the exit status is defined as:
 .IP "2 * (removed files detected?) +"
 .IP "4 * (changed files detected?)"
 .PP
+Since those three cases can occur together, the respective error codes
+are added. For example, if there are new files and removed files detected,
+the exit status will be 1 + 2 = 3.
+.PP
 Additionally, the following exit codes are defined for generic error
 conditions:
 .IP "14 Error writing error"

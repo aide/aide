@@ -29,7 +29,7 @@ if test "x${LEX}" != "xflex"; then
 fi
 AC_CHECK_PROGS(LD, ld)
 
-AC_PATH_PROG(PKG_CONFIG, pkg-config, "")
+AC_PATH_TOOL([PKG_CONFIG], [pkg-config], [no])
 AM_PROG_CC_C_O
 
 dnl AC_ARG_PROGRAM
@@ -477,7 +477,7 @@ AC_ARG_WITH([selinux],
 AS_IF([test "x$with_selinux_support" != xno],
     AC_DEFINE(WITH_SELINUX,1,[use SELinux])
     [AC_MSG_RESULT(yes)
-    if test -n "$PKG_CONFIG" && $PKG_CONFIG --exists libselinux; then
+    if test "x$PKG_CONFIG" != xno && $PKG_CONFIG --exists libselinux; then
         if test "$aide_static_choice" == "yes"; then
             SELINUXLIB=$(${PKG_CONFIG} --libs libselinux --static)
         else

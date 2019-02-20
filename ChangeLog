@@ -1,6 +1,7 @@
 2019-02-20 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Explain arithmetic exit codes in aide.1, thanks to Marc Haber
 	  for the patch
+	* Fix build against attr >= 2.4.48 (patch by Ilya Tumaykin)
 
 2019-02-10 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Move to GitHub

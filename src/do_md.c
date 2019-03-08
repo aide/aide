@@ -99,7 +99,7 @@ int is_prelinked(int fd) {
         while (!bingo && (scn = elf_nextscn(elf, scn)) != NULL) {
                 (void) gelf_getshdr(scn, &shdr);
 
-                if (shdr.sh_type != SHT_DYNAMIC)
+                if (shdr.sh_type != SHT_DYNAMIC || shdr.sh_entsize == 0)
                         continue;
 
                 while (!bingo && (data = elf_getdata (scn, data)) != NULL) {

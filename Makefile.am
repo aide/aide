@@ -79,3 +79,8 @@ src/conf_lex.c: src/conf_lex.l src/conf_yacc.c
 
 src/db_lex.c: src/db_lex.l src/conf_yacc.h
 	$(LEX) $(AM_LFLAGS) -o$@ -Pdb $<
+
+autoreconf-clean: maintainer-clean
+	-rm -f INSTALL Makefile.in aclocal.m4 compile config.guess \
+	 config.h.in config.h.in~ config.sub configure depcomp \
+	 install-sh missing version.m4 ylwrap

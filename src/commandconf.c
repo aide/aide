@@ -651,7 +651,7 @@ int handle_endif(int doit,int allow_else){
       case 0 : {
 	conferror("@@endif or @@else expected");
 	count=0;
-   return -1;
+        return -1;
       }
       
       default : {

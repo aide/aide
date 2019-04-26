@@ -20,7 +20,7 @@
     written to be a simple and free alternative to Tripwire. Features
     currently included in AIDE are as follows:
 
-        o  File attributes monitored: perissions, inode, user, group
+        o  File attributes monitored: permissions, inode, user, group
            file size, mtime, atime, ctime, links and growing size.
         o  Checksums and hashes supported: SHA1, MD5, RMD160, and TIGER.
            CRC32, HAVAL and GOST if Mhash support is compiled in.

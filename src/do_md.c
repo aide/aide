@@ -607,7 +607,8 @@ void xattrs2line(db_line *line) {
             ssize_t aret = 0;
 
             if (strncmp(attr, "user.", strlen("user.")) &&
-                    strncmp(attr, "root.", strlen("root.")))
+                    strncmp(attr, "security.", strlen("security.")) &&
+                    strncmp(attr, "trusted.", strlen("trusted.")))
                 goto next_attr; /* only store normal xattrs, and SELinux */
 
             while (((aret = getxattr(line->fullpath, attr, val, asz)) ==

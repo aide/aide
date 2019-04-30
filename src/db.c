@@ -91,6 +91,7 @@ const char* db_names[db_unknown+1] = {
    "selinux",
    "xattrs",
    "e2fsattrs",
+   "capabilities",
    "unknown"} ;
 
 const int db_value[db_unknown+1] = {
@@ -128,6 +129,7 @@ const int db_value[db_unknown+1] = {
    db_selinux,          /* "selinux", */
    db_xattrs,           /* "xattrs",  */
    db_e2fsattrs,        /* "e2fsattrs",  */
+   db_capabilities,     /* "capabilities", */
    db_unknown };        /* "unknown"  */
 
 const char* db_namealias[db_alias_size] = {
@@ -419,6 +421,7 @@ db_line* db_char2line(char** ss,int db){
   line->xattrs=NULL;
   line->e2fsattrs=0;
   line->cntx=NULL;
+  line->capabilities=NULL;
   
   line->attr=conf->attr; /* attributes from @@dbspec */
 
@@ -642,6 +645,14 @@ db_line* db_char2line(char** ss,int db){
     
     case db_e2fsattrs : {
       line->e2fsattrs=readlong(ss[(*db_order)[i]],"e2fsattrs");
+      break;
+    }
+
+    case db_capabilities : {
+      byte  *val = NULL;
+
+      val = base64tobyte(ss[(*db_order)[i]], strlen(ss[(*db_order)[i]]),NULL);
+      line->capabilities = (char *)val;
       break;
     }
 

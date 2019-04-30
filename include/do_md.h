@@ -48,4 +48,8 @@ void selinux2line(db_line *line);
 void e2fsattrs2line(db_line* line);
 #endif
 
+#ifdef WITH_CAPABILITIES
+void capabilities2line(db_line* line);
+#endif
+
 #endif /* _DO_MD_H_INCLUDED */

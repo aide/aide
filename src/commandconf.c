@@ -513,6 +513,9 @@ void update_db_out_order(DB_ATTR_TYPE attr)
   if((attr&DB_E2FSATTRS) && (check_dboo(db_e2fsattrs)!=RETFAIL)){
     conf->db_out_order[conf->db_out_size++]=db_e2fsattrs;
   }
+  if((attr&DB_CAPABILITIES) && (check_dboo(db_capabilities)!=RETFAIL)){
+    conf->db_out_order[conf->db_out_size++]=db_capabilities;
+  }
   if((attr&DB_CHECKMASK) && (check_dboo(db_checkmask)!=RETFAIL)){
     conf->db_out_order[conf->db_out_size++]=db_checkmask;
   }

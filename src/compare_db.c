@@ -75,6 +75,9 @@ const DB_ATTR_TYPE summary_attributes[] = { DB_FTYPE, DB_LINKNAME, DB_SIZE|DB_SI
 #ifdef WITH_E2FSATTRS
         , DB_E2FSATTRS
 #endif
+#ifdef WITH_CAPABILITIES
+        , DB_CAPABILITIES
+#endif
 };
 
 const char summary_char[] = { '!' ,'l', '>', 'b', 'p', 'u', 'g', 'a', 'm', 'c', 'i', 'n', 'D'
@@ -89,6 +92,9 @@ const char summary_char[] = { '!' ,'l', '>', 'b', 'p', 'u', 'g', 'a', 'm', 'c', 
 #endif
 #ifdef WITH_E2FSATTRS
     , 'E'
+#endif
+#ifdef WITH_CAPABILITIES
+    , 'C'
 #endif
 };
 
@@ -108,6 +114,9 @@ const DB_ATTR_TYPE details_attributes[] = { DB_FTYPE, DB_LINKNAME, DB_SIZE, DB_S
 #ifdef WITH_E2FSATTRS
         , DB_E2FSATTRS
 #endif
+#ifdef WITH_CAPABILITIES
+        , DB_CAPABILITIES
+#endif
 };
 
 const char* details_string[] = { _("File type") , _("Lname"), _("Size"), _("Size (>)"), _("Bcount"), _("Perm"), _("Uid"), _("Gid"), _("Atime"), _("Mtime"), _("Ctime"), _("Inode"), _("Linkcount"), _("MD5"), _("SHA1"), _("RMD160"), _("TIGER"), _("SHA256"), _("SHA512")
@@ -126,13 +135,16 @@ const char* details_string[] = { _("File type") , _("Lname"), _("Size"), _("Size
 #ifdef WITH_E2FSATTRS
     , _("E2FSAttrs")
 #endif
+#ifdef WITH_CAPABILITIES
+    , _("Caps")
+#endif
 };
 
 const char* attrs_string[] = { "filename", "l", "p", "u", "g", "s", "a", "c", "m", "i", "b", "n",
                                "md5", "sha1", "rmd160", "tiger", "crc32", "haval", "gost", "crc32b",
                                "attr", "acl", "bsize", "rdev", "dev", "checkmask", "S", "I", "ANF",
                                "ARF", "sha256", "sha512", "selinux", "xattrs", "whirlpool", "ftype",
-                               "e2fsattrs" };
+                               "e2fsattrs", "caps" };
 
 #ifdef WITH_E2FSATTRS
     /* flag->character mappings taken from lib/e2p/pf.c (git commit c46b57b)
@@ -445,6 +457,10 @@ snprintf(*values[0], l, "%s",s);
 #ifdef WITH_E2FSATTRS
         } else if (DB_E2FSATTRS&attr) {
             *values[0]=e2fsattrs2string(line->e2fsattrs, 0);
+#endif
+#ifdef WITH_CAPABILITIES
+        } else if (DB_CAPABILITIES&attr) {
+            easy_string(line->capabilities)
 #endif
         } else {
             easy_string("unknown attribute")

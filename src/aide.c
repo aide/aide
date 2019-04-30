@@ -432,6 +432,9 @@ static void setdefaults_before_config()
 #ifdef WITH_E2FSATTRS
   do_groupdef("e2fsattrs",DB_E2FSATTRS);
 #endif
+#ifdef WITH_CAPABILITIES
+  do_groupdef("caps",DB_CAPABILITIES);
+#endif
 
   X=0LLU;
 #ifdef WITH_ACL
@@ -445,6 +448,9 @@ static void setdefaults_before_config()
 #endif
 #ifdef WITH_E2FSATTRS
   X|=DB_E2FSATTRS;
+#endif
+#ifdef WITH_CAPABILITIES
+  X|=DB_CAPABILITIES;
 #endif
 
 

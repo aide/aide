@@ -668,6 +668,28 @@ void e2fsattrs2line(db_line* line) {
 }
 #endif
 
+#ifdef WITH_CAPABILITIES
+void capabilities2line(db_line* line) {
+    cap_t caps;
+    char *txt_caps;
+
+    if (!(DB_CAPABILITIES&line->attr))
+        return;
+
+    caps = cap_get_file(line->fullpath);
+
+    if (caps != NULL) {
+        txt_caps = cap_to_text(caps, NULL);
+        line->capabilities = strdup(txt_caps);
+	cap_free(txt_caps);
+	cap_free(caps);
+    } else {
+        line->attr&=(~DB_CAPABILITIES);
+        line->capabilities=NULL;
+    }
+}
+#endif
+
 void no_hash(db_line* line) {
   line->attr&=~DB_HASHES;
 }

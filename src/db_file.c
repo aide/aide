@@ -1048,6 +1048,12 @@ int db_writeline_file(db_line* line,db_config* dbconf, url_t* url){
       break;
     }
 #endif
+#ifdef WITH_CAPABILITIES
+    case db_capabilities : {
+      db_write_byte_base64((byte*)line->capabilities, 0, dbconf->db_out, i, 1, 1);
+      break;
+    }
+#endif
     case db_checkmask : {
       db_writeoct(line->attr,dbconf->db_out,i);
       break;

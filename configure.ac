@@ -545,6 +545,25 @@ AS_IF([test "x$with_xattr_support" != xno],
 
 AC_SUBST(ATTRLIB)
 
+AC_MSG_CHECKING(for capabilities-support)
+AC_ARG_WITH([capabilities],
+        [AC_HELP_STRING([--with-capabilities],
+                [use caps (no checking)])],
+        [with_capabilities_support="$withval"],
+        [with_capabilities_support=no]
+)
+
+AS_IF([test "x$with_capabilities_support" != xno],
+        [AC_DEFINE(WITH_CAPABILITIES,1,[use capabilities])
+        CAPLIB=-lcap
+        compoptionstring="${compoptionstring}WITH_CAPABILITIES\\n"
+        aideextragroups="${aideextragroups}+caps"
+        AC_MSG_RESULT(yes)],
+        [AC_MSG_RESULT(no)]
+)
+
+AC_SUBST(CAPLIB)
+
 AC_MSG_CHECKING(for e2fsattrs-support)
 AC_ARG_WITH([e2fsattrs],
 	[AC_HELP_STRING([--with-e2fsattrs],

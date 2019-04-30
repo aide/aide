@@ -545,6 +545,11 @@ char* db_get_sql(db_line* line,db_config* conf){
       /* TODO */
       break;
     }
+    case db_capabilities : {
+      error(0,"TODO db_capabilities write to db_sql.c");
+      /* TODO */
+      break;
+    }
     case db_checkmask : {
       sql_writeoct(line->attr,s,i);
       break;

@@ -98,7 +98,7 @@ Whether to summarize changes in the added, removed and changed files
 sections of the report or not. Valid values are yes,true,no and false.
 The default is to summarize the changes.
 
-The general format is like the string YlZbpugamcinDAXSE, where Y is
+The general format is like the string YlZbpugamcinCDAXSE, where Y is
 replaced by the file-type (\fBf\fP for a regular file, \fBd\fP for a
 directory, \fBl\fP for a symbolic link, \fBc\fP for a character device,
 \fBb\fP for a block device, \fBp\fP for a FIFO, \fBs\fP for a unix
@@ -155,6 +155,8 @@ A \fBX\fP means that the extended attributes have changed.
 A \fBS\fP means that the SELinux attributes have changed.
 .IP o
 A \fBE\fP means that the file attributes on a second extended file system have changed.
+.IP o
+A \fBC\fP means that the file capabilities have changed.
 .RE
 .IP "report_ignore_added_attrs"
 Special group definition that lists attributes whose addition is to be ignored
@@ -426,7 +428,7 @@ Input is read from filedescriptor \fBnumber\fR or output is written to
 .IP "R:	p+ftype+i+l+n+u+g+s+m+c+md5+X"
 .IP "L:	p+ftype+i+l+n+u+g+X"
 .IP "E:	Empty group"
-.IP "X:	acl+selinux+xattrs+e2fsattrs (if groups are explicitly enabled)"
+.IP "X:	acl+selinux+xattrs+e2fsattrs+caps (if groups are explicitly enabled)"
 .IP ">:	Growing file p+ftype+l+u+g+i+n+S+X"
 .LP
 And also the following if you have mhash support enabled
@@ -438,6 +440,7 @@ The following are available only when explicitly enabled using configure
 .IP "selinux: selinux attributes"
 .IP "xattrs: extended attributes"
 .IP "e2fsattrs: file attributes on a second extended file system
+.IP "caps: file capabilities"
 .LP
 Please note that 'I' and 'c' are incompatible. When the name of a file
 is changed, it's ctime is updated as well. When you put 'c' and 'I' in

@@ -55,7 +55,7 @@ if USE_CURL
 aide_SOURCES += include/fopen.h src/fopen.c
 endif
 
-aide_LDADD = -lm @PCRELIB@ @CRYPTLIB@ @ACLLIB@ @SELINUXLIB@ @AUDITLIB@ @ATTRLIB@ @E2FSATTRSLIB@ @ELFLIB@
+aide_LDADD = -lm @PCRELIB@ @CRYPTLIB@ @ACLLIB@ @SELINUXLIB@ @AUDITLIB@ @ATTRLIB@ @E2FSATTRSLIB@ @ELFLIB@ @CAPLIB@
 AM_CFLAGS = @AIDE_DEFS@ -W -Wall -g
 AM_CPPFLAGS = -I$(top_srcdir) \
 			  -I$(top_srcdir)/include \

@@ -258,6 +258,9 @@ static DB_ATTR_TYPE get_changed_attributes(db_line* l1,db_line* l2) {
 #ifdef WITH_E2FSATTRS
     easy_function_compare(DB_E2FSATTRS,e2fsattrs,has_e2fsattrs_changed);
 #endif
+#ifdef WITH_CAPABILITIES
+    easy_function_compare(DB_CAPABILITIES,capabilities,has_str_changed);
+#endif
     error(255,"Debug, changed attributes for entry %s [%llx %llx]: %llx\n", l1->filename,l1->attr,l2->attr,ret);
     return ret;
 }
@@ -846,6 +849,11 @@ void strip_dbline(db_line* line)
     checked_free(line->cntx);
   }
 #endif
+#ifdef WITH_CAPABILITIES
+  if(!(attr&DB_CAPABILITIES)){
+    checked_free(line->capabilities);
+  }
+#endif
   /* e2fsattrs is stripped within e2fsattrs2line in do_md */
 }
 
@@ -1121,6 +1129,10 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct AIDE_STAT_TYPE 
 
 #ifdef WITH_E2FSATTRS
     e2fsattrs2line(line);
+#endif
+
+#ifdef WITH_CAPABILITIES
+    capabilities2line(line);
 #endif
 
   if (attr&DB_HASHES && S_ISREG(fs->st_mode)) {

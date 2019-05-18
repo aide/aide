@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2006,2009-2012,2015,2016 Rami Lehti,Pablo Virolainen,
- * Mike Markley, Richard van den Berg, Hannes von Haugwitz
+ * Copyright (C) 1999-2006,2009-2012,2015,2016,2019 Rami Lehti,
+ * Pablo Virolainen, Mike Markley, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -285,6 +285,7 @@ char* strrxtok(char* rx)
       case '(':
       case '^':
       case '$':
+      case '?':
       case '*':
       case '[':
 	i=strlen(p);

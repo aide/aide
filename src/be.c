@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2003,2005,2006,2010,2011,2013 Rami Lehti, Pablo
+ * Copyright (C) 1999-2003,2005,2006,2010,2011,2013,2019 Rami Lehti, Pablo
  * Virolainen, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -148,6 +148,7 @@ FILE* be_init(int inout,url_t* u,int iszipped)
     }
 #if HAVE_FCNTL && HAVE_FTRUNCATE
     if(!inout) {
+     if (strncmp(u->value, "/dev/null", strlen("/dev/null"))) {
       fl.l_type = F_WRLCK;
       fl.l_whence = SEEK_SET;
       fl.l_start = 0;
@@ -162,6 +163,7 @@ FILE* be_init(int inout,url_t* u,int iszipped)
       if(ftruncate(fd,0)==-1)
 	error(0,_("Error truncating file %s"),u->value);
 
+     }
     }
 #endif
 #ifdef WITH_ZLIB

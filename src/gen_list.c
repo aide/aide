@@ -47,6 +47,11 @@
 
 #define CLOCK_SKEW 5
 
+#define PARTIAL_RULE_MATCH       (-1)
+#define NO_RULE_MATCH            (0)
+#define RESTRICTED_RULE_MATCH    (1)
+#define RULE_MATCH               (2)
+
 #ifdef WITH_MHASH
 #include <mhash.h>
 #endif
@@ -574,7 +579,7 @@ static RESTRICTION_TYPE get_file_type(mode_t mode) {
 static int check_list_for_match(list* rxrlist,char* text,DB_ATTR_TYPE* attr, RESTRICTION_TYPE file_type)
 {
   list* r=NULL;
-  int retval=1;
+  int retval=NO_RULE_MATCH;
   int pcre_retval;
   pcre_extra *pcre_extra = NULL;
   for(r=rxrlist;r;r=r->next){
@@ -583,15 +588,16 @@ static int check_list_for_match(list* rxrlist,char* text,DB_ATTR_TYPE* attr, RES
               error(231,"\"%s\" matches (pcre_exec return value: %i) rule from line #%ld: %s\n",text, pcre_retval, ((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
           if (!((rx_rule*)r->data)->restriction || file_type&((rx_rule*)r->data)->restriction) {
               *attr=((rx_rule*)r->data)->attr;
+              retval = ((rx_rule*)r->data)->restriction?RESTRICTED_RULE_MATCH:RULE_MATCH;
               error(231,"\"%s\" matches restriction (%u) for rule from line #%ld: %s\n",text, ((rx_rule*)r->data)->restriction, ((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
-              return 0;
+              break;
           } else {
               error(232,"\"%s\" doesn't match restriction (%u) for rule from line #%ld: %s\n",text, ((rx_rule*)r->data)->restriction, ((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
-              retval=-1;
+              retval=PARTIAL_RULE_MATCH;
           }
       } else if (pcre_retval == PCRE_ERROR_PARTIAL) {
           error(232,"\"%s\" PARTIAL matches (pcre_exec return value: %i) rule from line #%ld: %s\n",text, pcre_retval, ((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
-          retval=-1;
+          retval=PARTIAL_RULE_MATCH;
       } else {
           error(232,"\"%s\" doesn't match (pcre_exec return value: %i) rule from line #%ld: %s\n",text, pcre_retval,((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
       }
@@ -633,12 +639,13 @@ static int check_node_for_match(seltree*node,char*text, mode_t perm, int retval,
     retval|=16;
 
       switch (check_list_for_match(node->equ_rx_lst, text, attr, file_type)) {
-          case 0: {
+            case RESTRICTED_RULE_MATCH:
+            case RULE_MATCH: {
               error(220, "check_node_for_match: equal match for '%s'\n", text);
               retval|=2|4;
               break;
           }
-          case -1: {
+            case PARTIAL_RULE_MATCH: {
            if(S_ISDIR(perm) && get_seltree_node(node,text)==NULL) {
                error(220, "check_node_for_match: creating new seltree node for '%s'\n", text);
                new_seltree_node(node,text,0,NULL);
@@ -654,12 +661,13 @@ static int check_node_for_match(seltree*node,char*text, mode_t perm, int retval,
   /* If 4 and 8 are not set, we will check for matches */
   if(!(retval&(4|8))){
       switch (check_list_for_match(node->sel_rx_lst, text, attr, file_type)) {
-          case 0: {
+            case RESTRICTED_RULE_MATCH:
+            case RULE_MATCH: {
               error(220, "check_node_for_match: selective match for '%s'\n", text);
               retval|=1|8;
               break;
           }
-          case -1: {
+          case PARTIAL_RULE_MATCH: {
            if(S_ISDIR(perm) && get_seltree_node(node,text)==NULL) {
                error(220, "check_node_for_match: creating new seltree node for '%s'\n", text);
                new_seltree_node(node,text,0,NULL);
@@ -676,10 +684,19 @@ static int check_node_for_match(seltree*node,char*text, mode_t perm, int retval,
   /* Negative regexps are the strongest so they are checked last */
   /* If this file is to be added */
   if(retval){
-    if(!check_list_for_match(node->neg_rx_lst, text, attr, file_type)){
-      error(220, "check_node_for_match: negative match for '%s'\n", text);
-      retval=0;
-    }
+        switch (check_list_for_match(node->neg_rx_lst, text, attr, file_type)) {
+            case RESTRICTED_RULE_MATCH: {
+                if(S_ISDIR(perm) && get_seltree_node(node,text)==NULL) {
+                    error(220, "check_node_for_match: creating new seltree node for '%s'\n", text);
+                    new_seltree_node(node,text,0,NULL);
+                }
+            }
+            case RULE_MATCH: {
+                error(220, "check_node_for_match: negative match for '%s'\n", text);
+                retval=0;
+                break;
+            }
+        }
   }
   /* Now we discard the info whether a match was made or not *
    * and just return 0,1 or 2 */

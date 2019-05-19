@@ -1,3 +1,6 @@
+2019-05-19  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Release version 0.16.2
+
 2019-05-18  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
 
 	* Fix handling of directory-restricted negative rules (closes #24)

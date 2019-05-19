@@ -1,4 +1,4 @@
-Version 0.16.2 (UNRELEASED)
+Version 0.16.2 (2019-05-19)
     * Bug fixes
         - Fix handling of directory-restricted negative rules
         - Don't lock '/dev/null' when used as output database

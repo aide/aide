@@ -5,6 +5,13 @@ Version 0.16.2 (UNRELEASED)
         - Fix parsing of rules containing '?' quantifier
         - Fix extended attributes support (xattrs)
         - Fix processing of go files
+    * Please note:
+        - The addition of the "trusted.*", "user.*" and the "security.*"
+          namespaces to the xattrs attribute might lead to a vast amount of
+          reported changed entries during your next AIDE run. You can use the
+          `report_ignore_changed_attrs` option (see aide.conf(5)) to ignore
+          changes of the xattrs attribute; but be aware that this will exclude
+          the expected but also the unexpected (potentially malicious) changes.
 
 Version 0.16.1 (2019-02-25)
     * Move to GitHub

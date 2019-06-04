@@ -76,6 +76,7 @@ static void usage(int exitvalue)
 	    "  -B \"OPTION\"\t--before=\"OPTION\"\tBefore configuration file is read define OPTION\n"
 	    "  -A \"OPTION\"\t--after=\"OPTION\"\tAfter configuration file is read define OPTION\n"
 	    "  -r [reporter]\t--report=[reporter]\tWrite report output to [reporter] url\n"
+	    "  -q\t--quiet\t\tDon't generate output if no changes present\n"
 	    "  -V[level]\t--verbose=[level]\tSet debug message level to [level]\n"
 	    "\n")
 	  );
@@ -113,11 +114,12 @@ static int read_param(int argc,char**argv)
     { "config-check", no_argument, NULL, 'D'},
     { "limit", required_argument, NULL, 'l'},
     { "compare", no_argument, NULL, 'E'},
+    { "quiet", no_argument, NULL, 'q'},
     { NULL,0,NULL,0 }
   };
 
   while(1){
-    option = getopt_long(argc, argv, "hV::vc:l:B:A:r:iCuDE", options, &i);
+    option = getopt_long(argc, argv, "hV::vc:l:B:A:r:iCuDEq", options, &i);
     if(option==-1)
       break;
     switch(option)
@@ -128,6 +130,10 @@ static int read_param(int argc,char**argv)
       }
       case 'v':{
 	print_version();
+	break;
+      }
+      case 'q':{
+	conf->quiet=1;
 	break;
       }
       case 'V':{
@@ -296,6 +302,7 @@ static void setdefaults_before_config()
   conf->report_fd=NULL;
   conf->report_syslog=0;
   conf->report_db=0;
+  conf->quiet=0;
 #ifdef WITH_E2FSATTRS
   conf->report_ignore_e2fsattrs = 0UL;
 #endif
@@ -613,11 +620,11 @@ int main(int argc,char**argv)
 	exit(IO_ERROR);
       }
     }
-    if((conf->action&DO_INIT)||(conf->action&DO_COMPARE)){
+    if((conf->action&(DO_INIT|DO_COMPARE))){
       if(db_init(DB_DISK)==RETFAIL)
 	exit(IO_ERROR);
     }
-    if((conf->action&DO_COMPARE)||(conf->action&DO_DIFF)){
+    if((conf->action&(DO_COMPARE|DO_DIFF))){
       if(db_init(DB_OLD)==RETFAIL)
 	exit(IO_ERROR);
     }

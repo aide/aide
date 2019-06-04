@@ -635,13 +635,16 @@ static void print_report_header() {
     error(2,_("Start timestamp: %s (AIDE " AIDEVERSION ")\n"), time);
     free(time); time=NULL;
 
-    error(0,_("AIDE"));
     if(conf->action&(DO_COMPARE|DO_DIFF)) {
-        error(0,_(" found %sdifferences between %s%s!!\n"), (nadd||nrem||nchg)?"":"NO ", conf->action&DO_COMPARE?_("database and filesystem"):_("the two databases"), (nadd||nrem||nchg)?"":_(". Looks okay"));
+	if (! conf->quiet || (nadd|nrem|nchg) != 0) {
+    	    error(0,_("AIDE"));
+	    error(0,_(" found %sdifferences between %s%s!!\n"), (nadd||nrem||nchg)?"":"NO ", conf->action&DO_COMPARE?_("database and filesystem"):_("the two databases"), (nadd||nrem||nchg)?"":_(". Looks okay"));
+	}
         if(conf->action&(DO_INIT)) {
             error(0,_("New AIDE database written to %s\n"),conf->db_out_url->value);
         }
     } else {
+    	error(0,_("AIDE"));
         error(0,_(" initialized database at %s\n"),conf->db_out_url->value);
     }
 
@@ -685,7 +688,8 @@ static void print_report_header() {
         error(0,_("\nSummary:\n  Total number of entries:\t%li\n  Added entries:\t\t%li\n"
                     "  Removed entries:\t\t%li\n  Changed entries:\t\t%li"), ntotal, nadd, nrem, nchg);
     } else {
-        error(0,_("\nNumber of entries:\t%li"), ntotal);
+        if (conf->action&DO_COMPARE == 0 || !conf->quiet)
+            error(0,_("\nNumber of entries:\t%li"), ntotal);
     }
 }
 

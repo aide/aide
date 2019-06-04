@@ -372,6 +372,7 @@ typedef struct db_config {
   int report_base16;
   int report_quiet;
   int use_initial_errorsto;
+  int quiet;
 
 #ifdef WITH_E2FSATTRS
   unsigned long report_ignore_e2fsattrs;

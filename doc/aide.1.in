@@ -67,6 +67,8 @@ value set in a configuration file.
 output. See aide.conf (5) section URLS for available values.
 .IP "--version,-v"
 \fBaide\fP prints out its version number
+.IP "--quiet,-q"
+Suppresses output on a diff if no changes were detected on a check.
 .IP "--help,-h"
 Prints out the standard help message.
 .PP

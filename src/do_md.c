@@ -209,6 +209,15 @@ int stat_cmp(struct stat* f1,struct stat* f2) {
 	  stat_cmp_helper(st_dev,attr_dev));
 }
 
+#ifdef WITH_PRELINK
+/*
+ * Timeout handler
+ */
+void timeout(int signum) {
+	error(0, "Timeout of prelink child process\n");
+}
+#endif
+
 md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs) {
     int wstatus;
     md_hashsums md_hash;
@@ -424,8 +433,19 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
 #ifdef WITH_PRELINK
                     if (prelink_pid) {
                         int status;
+			struct sigaction newhandler;
+
+			newhandler.sa_handler = timeout;
+			sigemptyset(&newhandler.sa_mask);
+			newhandler.sa_flags = 0;
+
+			sigaction(SIGALRM, &newhandler, NULL);
+
+			alarm(10);
+
                         (void) waitpid(prelink_pid, &status, 0);
                         if (!WIFEXITED(status) || WEXITSTATUS(status)) {
+			    alarm(0);
                             log_msg(LOG_LEVEL_WARNING, "hash calculation: error on exit of prelink child process for '%s' (hashsums could not be calculated)", fullpath);
                             free(buf);
                             close(filedes);
@@ -433,6 +453,7 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
                             write_empty_md_hashsums(p_child_to_parent[1]);
                             continue;
                         }
+			alarm(0);
                     }
 #endif
                     free(buf);

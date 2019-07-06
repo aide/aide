@@ -401,12 +401,6 @@ int var_in_conflval=0;
   return (TROOT_PREFIX);
 }
 
-^[\t\ ]*"recstop"{E} {
-  error(230,"%li:recstop =\n",conf_lineno);
-  BEGIN CONFVALHUNT;
-  return (TRECSTOP);
-}
-
 ^[\ \t]*"config_version"{E} {
   error(230,"%li:config_version =\n",conf_lineno);
   BEGIN CONFVALHUNT;

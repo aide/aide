@@ -93,7 +93,6 @@ extern long conf_lineno;
 %token TTRUE
 %token TFALSE
 
-%token TRECSTOP
 %token TCONFIG_VERSION
 
 /* File rule */
@@ -101,36 +100,6 @@ extern long conf_lineno;
 %token <s> TSELRXRULE
 %token <s> TEQURXRULE
 %token <s> TNEGRXRULE
-
-/* expr alkiot */
-
-%token <i> TRIGHTS
-%token <i> TUSER
-%token <i> TGROUP
-%token <i> TINODE
-%token <i> TLINKCOUNT
-%token <i> TFTYPE
-%token <i> TSIZE
-%token <i> TGROWINGSIZE
-%token <i> TATIME
-%token <i> TCTIME
-%token <i> TMTIME
-%token <i> TACL
-%token <i> TXATTRS
-%token <i> TSELINUX
-%token <i> TE2FSATTRS
-
-/* hash funktions */
-
-%token <i> TTIGER
-%token <i> TSHA1
-%token <i> TRMD160
-%token <i> TMD2
-%token <i> TMD4
-%token <i> TMD5
-%token <i> TSHA256
-%token <i> TSHA512
-%token <i> TWHIRLPOOL
 
 /* predefs */
 
@@ -147,8 +116,7 @@ extern long conf_lineno;
 
 %type  <r> restriction
 %type  <i> expr
-%type  <i> hash
-%type  <i> primary other
+%type  <i> primary
 
 %left '+' '-'
 
@@ -160,7 +128,7 @@ line : rule | equrule | negrule | definestmt | undefstmt
        | ifdefstmt | ifndefstmt | ifhoststmt | ifnhoststmt
        | groupdef | db_in | db_out | db_new | db_attrs | verbose | report_detailed_init | config_version
        | database_add_metadata | report | gzipdbout | root_prefix | report_base16 | report_quiet
-       | report_ignore_e2fsattrs | recursion_stopper | warn_dead_symlinks | grouped
+       | report_ignore_e2fsattrs | warn_dead_symlinks | grouped
        | summarize_changes | acl_no_symlink_follow | beginconfigstmt | endconfigstmt
        | TEOF {
             newlinelastinconfig=1;
@@ -222,9 +190,7 @@ expr :  expr '+' expr { $$ =$1  | $3 ; } |
         expr '-' expr { $$ =$1  & (~$3 ); } |
 	primary { $$ =$1 ;} ;
 
-primary : hash { $$ =$1 ; } |
-	  other { $$ =$1 ; } |
-	  TSTRING { if((retval=get_groupval($1)) != DB_ATTR_UNDEF) {
+primary : TSTRING { if((retval=get_groupval($1)) != DB_ATTR_UNDEF) {
 	    $$=retval;
 	  }
 	  else {
@@ -233,18 +199,6 @@ primary : hash { $$ =$1 ; } |
 	    YYABORT;
 	  }
 	  } ;
-
-other : TRIGHTS { $$ =$1 ;} | TUSER {$$ =$1 ;} 
-        | TGROUP {$$ =$1 ;} | TINODE {$$ =$1 ;}
-        | TLINKCOUNT {$$ =$1 ;} | TFTYPE {$$ =$1 ;} | TSIZE {$$ =$1 ;}
-	| TGROWINGSIZE {$$ =$1 ;} | TATIME {$$ =$1 ;} 
-        | TCTIME {$$ =$1 ;} | TMTIME {$$ =$1 ;} | TL {$$ = $1;}
-        | TR {$$ = $1;} | TACL {$$ =$1 ;} | TXATTRS {$$ =$1 ;}
-        | TSELINUX {$$ =$1 ;} | TE2FSATTRS {$$ =$1 ;};
-
-hash : TTIGER { $$ =$1 ;} | TSHA1 { $$ =$1 ;} | TRMD160 { $$ =$1 ;}
-	| TMD5 {$$ =$1 ;} | TSHA256 { $$ =$1 ;} | TSHA512 { $$ =$1 ;}
-        | TWHIRLPOOL { $$ =$1 ;};
 
 definestmt : TDEFINE TSTRING TSTRING { do_define($2,$3); };
 
@@ -406,11 +360,6 @@ conf->gzip_dbout=1;
 #ifdef WITH_ZLIB
 conf->gzip_dbout=0; 
 #endif
-} ;
-
-recursion_stopper : TRECSTOP TSTRING {
-  /* FIXME implement me */  
-  
 } ;
 
 config_version : TCONFIG_VERSION TSTRING {

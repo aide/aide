@@ -98,7 +98,7 @@ Whether to summarize changes in the added, removed and changed files
 sections of the report or not. Valid values are yes,true,no and false.
 The default is to summarize the changes.
 
-The general format is like the string YlZbpugamcinCAXSE, where Y is
+The general format is like the string YlZbpugamcinDAXSE, where Y is
 replaced by the file-type (\fBf\fP for a regular file, \fBd\fP for a
 directory, \fBl\fP for a symbolic link, \fBc\fP for a character device,
 \fBb\fP for a block device, \fBp\fP for a FIFO, \fBs\fP for a unix
@@ -139,7 +139,7 @@ An \fBi\fP means that the inode has changed.
 .IP o
 A \fBn\fP means that the link count has changed.
 .IP o
-A \fBC\fP means that one or more checksums have changed.
+A \fBD\fP means that one or more message digests have changed.
 .RE
 
 .RS

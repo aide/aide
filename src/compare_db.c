@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2007,2010-2013,2015,2016 Rami Lehti, Pablo Virolainen,
- * Richard van den Berg, Mike Markley, Hannes von Haugwitz
+ * Copyright (C) 1999-2007,2010-2013,2015,2016,2018,2019 Rami Lehti,
+ * Pablo Virolainen, Richard van den Berg, Mike Markley, Hannes von Haugwitz
  * $Id$
  *
  * This program is free software; you can redistribute it and/or
@@ -77,7 +77,7 @@ const DB_ATTR_TYPE summary_attributes[] = { DB_FTYPE, DB_LINKNAME, DB_SIZE|DB_SI
 #endif
 };
 
-const char summary_char[] = { '!' ,'l', '>', 'b', 'p', 'u', 'g', 'a', 'm', 'c', 'i', 'n', 'C'
+const char summary_char[] = { '!' ,'l', '>', 'b', 'p', 'u', 'g', 'a', 'm', 'c', 'i', 'n', 'D'
 #ifdef WITH_ACL
     , 'A'
 #endif

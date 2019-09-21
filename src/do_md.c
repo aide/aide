@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  * vi: ts=8 sw=8
  *
- * Copyright (C) 1999-2002,2004-2006,2009-2011,2013,2018 Rami Lehti, Pablo
+ * Copyright (C) 1999-2002,2004-2006,2009-2011,2013,2018,2019 Rami Lehti, Pablo
  * Virolainen, Mike Markley, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -46,7 +46,6 @@
 /*for locale support*/
 #include "locale-aide.h"
 /*for locale support*/
-
 
 /* This define should be somewhere else */
 #define READ_BLOCK_SIZE 16777216
@@ -241,6 +240,9 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
   }
   
   sres=AIDE_FSTAT_FUNC(filedes,&fs);
+  if (sres != 0) {
+	error(1, "fsstat() for '%s' failed: %s\n", line->fullpath, strerror(errno));
+  }
   if(!(line->attr&DB_RDEV))
 	  fs.st_rdev=0;
   

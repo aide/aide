@@ -117,7 +117,7 @@ static char* get_first_value(char** in){
 
 #endif
 
-FILE* be_init(int inout,url_t* u,int iszipped)
+void* be_init(int inout,url_t* u,int iszipped)
 {
   FILE* fh=NULL;
   long a=0;
@@ -168,11 +168,12 @@ FILE* be_init(int inout,url_t* u,int iszipped)
 #endif
 #ifdef WITH_ZLIB
     if(iszipped && !inout){
-      fh=gzdopen(fd,"wb9");
+      gzFile gzfh = gzdopen(fd,"wb9");
       if(fh==NULL){
 	error(0,_("Couldn't open file %s for %s"),u->value,
 	      inout?"reading\n":"writing\n");
       }
+    return gzfh;
     }
     else{
 #endif
@@ -181,10 +182,10 @@ FILE* be_init(int inout,url_t* u,int iszipped)
 	error(0,_("Couldn't open file %s for %s"),u->value,
 	      inout?"reading\n":"writing\n");
       }
+    return fh;
 #ifdef WITH_ZLIB
     }
 #endif
-    return fh;
     }
   case url_stdout : {
 #ifdef WITH_ZLIB
@@ -229,10 +230,11 @@ FILE* be_init(int inout,url_t* u,int iszipped)
     }
 #ifdef WITH_ZLIB
     if(iszipped && !inout){
-      fh=gzdopen(a,"w");
+      gzFile gzfh = gzdopen(a,"w");
       if(fh==NULL){
 	error(0,"Couldn't reopen file descriptor %li\n",a);
       }
+      return gzfh;
     }
     else{
 #endif
@@ -240,10 +242,10 @@ FILE* be_init(int inout,url_t* u,int iszipped)
       if(fh==NULL){
 	error(0,"Couldn't reopen file descriptor %li\n",a);
       }
+      return fh;
 #ifdef WITH_ZLIB
     }
 #endif
-    return fh;
   }
 #ifdef WITH_PSQL
   case url_sql : {

@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  * vi: ts=2 sw=2
  *
- * Copyright (C) 1999-2006,2010,2011,2016 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2006,2010,2011,2016,2019 Rami Lehti, Pablo Virolainen,
  * Richard van den Berg, Mike Markley, Hannes von Haugwitz
  * $Header$
  *
@@ -122,7 +122,7 @@ static char *name_construct (const char *s)
 	strncpy(ret, conf->root_prefix, conf->root_prefix_length+1);
 	strncat (ret, r->path, len2);
 	if (r->path[len2 - 1] != '/') {
-		strncat (ret, "/", 1);
+		strcat (ret, "/");
 	}
 	strcat (ret, s);
 	return ret;
@@ -202,7 +202,7 @@ db_line *db_readline_disk ()
 		root_handled = 1;
 		fullname=malloc((conf->root_prefix_length+2)*sizeof(char));
 		strncpy(fullname, conf->root_prefix, conf->root_prefix_length+1);
-		strncat (fullname, "/", 1);
+		strcat (fullname, "/");
 		if (!get_file_status(fullname, &fs)) {
 		add = check_rxtree (&fullname[conf->root_prefix_length], conf->tree, &attr, fs.st_mode);
 		error (240, "%s match=%d, tree=%p, attr=%llu\n", &fullname[conf->root_prefix_length], add,
@@ -341,7 +341,7 @@ recursion:
 							 r->childs, r->parent, r->checked);
 				fullname=malloc((conf->root_prefix_length+strlen(r->path)+1)*sizeof(char));
 				strncpy(fullname, conf->root_prefix, conf->root_prefix_length+1);
-				strncat(fullname, r->path, strlen(r->path));
+				strcat(fullname, r->path);
 				dirh=open_dir(fullname);
 				if (! dirh) {
 
@@ -436,7 +436,7 @@ int db_disk_init ()
 
 	char* fullname=malloc((conf->root_prefix_length+2)*sizeof(char));
 	strncpy(fullname, conf->root_prefix, conf->root_prefix_length+1);
-	strncat (fullname, "/", 1);
+	strcat (fullname, "/");
 	dirh=open_dir(fullname);
 	free(fullname);
 

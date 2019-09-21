@@ -1,7 +1,7 @@
 /* Aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2005,2006,2010 Rami Lehti, Pablo Virolainen,
- * Richard van den Berg
+ * Copyright (C) 1999-2002,2005,2006,2010,2019 Rami Lehti, Pablo Virolainen,
+ * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -35,9 +35,9 @@
   stored. Only a speed issue.
 */
 
+#ifdef WITH_GCRYPT
 DB_ATTR_TYPE hash_gcrypt2attr(int i) {
   DB_ATTR_TYPE r=0;
-#ifdef WITH_GCRYPT
   switch (i) {
   case GCRY_MD_MD5: {
     r=DB_MD5;
@@ -74,9 +74,9 @@ DB_ATTR_TYPE hash_gcrypt2attr(int i) {
   default:
     break;
   }
-#endif
   return r;
 }
+#endif
 
 DB_ATTR_TYPE hash_mhash2attr(int i) {
   DB_ATTR_TYPE r=0;

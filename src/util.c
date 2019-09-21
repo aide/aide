@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2004-2006,2010,2011,2013,2016 Rami Lehti, Pablo
+ * Copyright (C) 1999-2002,2004-2006,2010,2011,2013,2016,2019 Rami Lehti, Pablo
  * Virolainen, Mike Markley, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -372,9 +372,8 @@ char *expand_tilde(char *path) {
                 homedir_len = strlen(homedir);
                 full_len = homedir_len+path_len;
                 full = malloc(sizeof(char) * (full_len+1));
-                strncpy(full, homedir, homedir_len);
-                strncpy(full+homedir_len, path+sizeof(char), path_len);
-                full[full_len] = '\0';
+                strcpy(full, homedir);
+                strcat(full+homedir_len, path+sizeof(char));
                 free(path);
                 /* Don't free(homedir); because it is not safe on some platforms */
                 path = full;
@@ -517,29 +516,6 @@ int syslog_facility_lookup(char *s)
 
 	error(0,"Syslog facility \"%s\" is unknown, using default\n",s);
 	return(AIDE_SYSLOG_FACILITY);
-}
-
-/* We need these dummy stubs to fool the linker into believing that
-   we do not need them at link time */
-
-void* dlopen(char*filename,int flag)
-{
-  return NULL;
-}
-
-void* dlsym(void*handle,char*symbol)
-{
-  return NULL;
-}
-
-void* dlclose(void*handle)
-{
-  return NULL;
-}
-
-const char* dlerror(void)
-{
-  return NULL;
 }
 
 const char* aide_key_2=CONFHMACKEY_02;

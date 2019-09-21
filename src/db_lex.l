@@ -22,7 +22,7 @@ extern YYSTYPE yylval;
 
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2005,2010,2013,2016 Rami Lehti,Pablo Virolainen,
+ * Copyright (C) 1999-2002,2005,2010,2013,2016,2019 Rami Lehti,Pablo Virolainen,
  * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -78,6 +78,7 @@ int db_at_hand=0;
 
 %}
 
+%option noinput
 %option nounput
 
 %Start MDVALHUNT

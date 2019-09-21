@@ -694,6 +694,7 @@ static int check_node_for_match(seltree*node,char*text, mode_t perm, int retval,
                     new_seltree_node(node,text,0,NULL);
                 }
             }
+            // fall through
             case RULE_MATCH: {
                 error(220, "check_node_for_match: negative match for '%s'\n", text);
                 retval=0;

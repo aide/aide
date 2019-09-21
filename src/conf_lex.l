@@ -15,7 +15,7 @@ EX      [" "\t]*
 #define YYDEBUG 1
 
 /*
- * Copyright (C) 1999-2002,2004-2006,2010-2013,2015,2016 Rami Lehti, Pablo
+ * Copyright (C) 1999-2002,2004-2006,2010-2013,2015,2016,2019 Rami Lehti, Pablo
  * Virolainen, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  * This program is free software; you can redistribute it and/or
@@ -71,6 +71,8 @@ int include_stack_ptr = 0;
 int var_in_conflval=0;
 
 %}
+
+%option noinput
 
 %Start A EXPR DEFSTMT DEFSTMT2 IFDEFSTMT INCLUDE EXPREQUHUNT VARSUB CONFVALHUNT IFHOSTSTMT E2FSATTRS
 

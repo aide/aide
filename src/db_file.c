@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2007,2010-2013,2016,2018 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2007,2010-2013,2016,2018,2019 Rami Lehti, Pablo Virolainen,
  * Mike Markley, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -626,7 +626,7 @@ int db_writechar(char* s,FILE* file,int i)
   return retval;
 }
 
-int db_writeint(long i,FILE* file,int a)
+static int db_writelong(long i,FILE* file,int a)
 {
   (void)file;
   
@@ -637,7 +637,8 @@ int db_writeint(long i,FILE* file,int a)
   return dofprintf("%li",i);
   
 }
-int db_writelong(AIDE_OFF_TYPE i,FILE* file,int a)
+
+static int db_writelonglong(long long i,FILE* file,int a)
 {
   (void)file;
   
@@ -645,13 +646,10 @@ int db_writelong(AIDE_OFF_TYPE i,FILE* file,int a)
     dofprintf(" ");
   }
   
-#if defined HAVE_OFF64_TYPE && SIZEOF_OFF64_T == SIZEOF_LONG_LONG || !defined HAVE_OFF64_TYPE && SIZEOF_OFF_T == SIZEOF_LONG_LONG
-  return dofprintf("%lli",(long long)i);
-#else
-  return dofprintf("%li",i);
-#endif
+  return dofprintf("%lli",i);
   
 }
+
 
 int db_write_byte_base64(byte*data,size_t len,FILE* file,int i,
                          DB_ATTR_TYPE th, DB_ATTR_TYPE attr )
@@ -881,7 +879,7 @@ int db_writeline_file(db_line* line,db_config* dbconf, url_t* url){
       break;
     }
     case db_bcount : {
-      db_writeint(line->bcount,dbconf->db_out,i);
+      db_writelonglong(line->bcount,dbconf->db_out,i);
       break;
     }
 
@@ -898,23 +896,23 @@ int db_writeline_file(db_line* line,db_config* dbconf, url_t* url){
       break;
     }
     case db_inode : {
-      db_writeint(line->inode,dbconf->db_out,i);
+      db_writelong(line->inode,dbconf->db_out,i);
       break;
     }
     case db_lnkcount : {
-      db_writeint(line->nlink,dbconf->db_out,i);
+      db_writelong(line->nlink,dbconf->db_out,i);
       break;
     }
     case db_uid : {
-      db_writeint(line->uid,dbconf->db_out,i);
+      db_writelong(line->uid,dbconf->db_out,i);
       break;
     }
     case db_gid : {
-      db_writeint(line->gid,dbconf->db_out,i);
+      db_writelong(line->gid,dbconf->db_out,i);
       break;
     }
     case db_size : {
-      db_writelong(line->size,dbconf->db_out,i);
+      db_writelonglong(line->size,dbconf->db_out,i);
       break;
     }
     case db_md5 : {
@@ -1004,7 +1002,7 @@ int db_writeline_file(db_line* line,db_config* dbconf, url_t* url){
       break;
     }
     case db_attr : {
-      db_writelong(line->attr, dbconf->db_out,i);
+      db_writelonglong(line->attr, dbconf->db_out,i);
       break;
     }
 #ifdef WITH_ACL

@@ -23,7 +23,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <sys/stat.h>
 #include <math.h>
 #ifdef WITH_AUDIT
 #include <libaudit.h>
@@ -426,17 +425,17 @@ snprintf(*values[0], l, "%s",s);
             easy_string(get_file_type_string(line->perm))
         } else if (DB_LINKNAME&attr) {
             easy_string(line->linkname)
-        easy_number((DB_SIZE|DB_SIZEG),size,"%li")
+        easy_number((DB_SIZE|DB_SIZEG),size,"%lli")
         } else if (DB_PERM&attr) {
             *values[0] = perm_to_char(line->perm);
         easy_time(DB_ATIME,atime)
         easy_time(DB_MTIME,mtime)
         easy_time(DB_CTIME,ctime)
-        easy_number(DB_BCOUNT,bcount,"%li")
-        easy_number(DB_UID,uid,"%i")
-        easy_number(DB_GID,gid,"%i")
-        easy_number(DB_INODE,inode,"%lu")
-        easy_number(DB_LNKCOUNT,nlink,"%lu")
+        easy_number(DB_BCOUNT,bcount,"%lli")
+        easy_number(DB_UID,uid,"%li")
+        easy_number(DB_GID,gid,"%li")
+        easy_number(DB_INODE,inode,"%li")
+        easy_number(DB_LNKCOUNT,nlink,"%li")
         easy_md(DB_MD5,md5,HASH_MD5_LEN)
         easy_md(DB_SHA1,sha1,HASH_SHA1_LEN)
         easy_md(DB_RMD160,rmd160,HASH_RMD160_LEN)

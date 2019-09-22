@@ -59,8 +59,8 @@
 #include "do_md.h"
 
 void hsymlnk(db_line* line);
-void fs2db_line(struct AIDE_STAT_TYPE* fs,db_line* line);
-void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line);
+void fs2db_line(struct stat* fs,db_line* line);
+void calc_md(struct stat* old_fs,db_line* line);
 void no_hash(db_line* line);
 
 static DB_ATTR_TYPE get_special_report_group(char* group) {
@@ -1044,7 +1044,7 @@ int check_rxtree(char* filename,seltree* tree,DB_ATTR_TYPE* attr, mode_t perm)
   return retval;
 }
 
-db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct AIDE_STAT_TYPE *fs)
+db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct stat *fs)
 {
   db_line* line=NULL;
   time_t cur_time;
@@ -1097,7 +1097,6 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct AIDE_STAT_TYPE 
   line->fullpath=filename;
   line->filename=&filename[conf->root_prefix_length];
   line->perm_o=fs->st_mode;
-  line->size_o=fs->st_size;
   line->linkname=NULL;
 
   /*
@@ -1247,9 +1246,9 @@ void hsymlnk(db_line* line) {
 #endif   
     
     if(conf->warn_dead_symlinks==1) {
-      struct AIDE_STAT_TYPE fs;
+      struct stat fs;
       int sres;
-      sres=AIDE_STAT_FUNC(line->fullpath,&fs);
+      sres=stat(line->fullpath,&fs);
       if (sres!=0 && sres!=EACCES) {
 	error(4,"Dead symlink detected at %s\n",line->fullpath);
       }

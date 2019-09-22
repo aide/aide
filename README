@@ -62,9 +62,6 @@
     to use --disable-static when configuring AIDE. Please note that dynamic
     linking introduces a security risk and is not recommended.
 
-    Since Mac OS Leopard (10.5) you also need to use --disable-lfs because it
-    handles 64 bit file support out of the box.
-
     Source Code Verification
     ------------------------
 
@@ -101,7 +98,7 @@
 
     AIDE requires the following development tools:
 
-       o  C compiler (such as Gcc).
+       o  C99 compatible compiler.
        o  GNU flex.
        o  GNU yacc (bison).
        o  GNU make.
@@ -127,18 +124,10 @@
     Large File Support
     -----------------
 
-    To be able to store the size of files larger than 2GB, aide needs
-    large file support (LFS) to be available in the OS. The configure
-    script automatically checks for the correct defines and functions.
-    If configure fails, and during compile time you see errors containing
-    the number 64, try configure again with the --disable-lfs option.
-    This turns off the large file support.
-
-    Cross Compilation
-    -----------------
-    When cross compiling, manually verify the data types defines in config.h
-    as they cannot be accurately determined by configure. Most notably,
-    AIDE_INO_TYPE will be set to "cross".
+    To be able to store the size of files larger than 2GB, AIDE needs large
+    file support (LFS) to be available in the OS. The configure script
+    automatically checks for LFS. To turn off LFS call the configure script
+    with the '-disable-largefile' option.
 
     Feedback and Support
     --------------------

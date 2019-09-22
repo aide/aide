@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2006,2010,2011,2013 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2006,2010,2011,2013,2019 Rami Lehti, Pablo Virolainen,
  * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -51,8 +51,6 @@
 /*for locale support*/
 
 db_line* db_char2line(char** ss,int db);
-long readint(char* s,char* err);
-AIDE_OFF_TYPE readlong(char* s,char* err);
 long readoct(char* s,char* err);
 time_t base64totime_t(char*);
 
@@ -137,6 +135,26 @@ const char* db_namealias[db_alias_size] = {
 
 const int db_aliasvalue[db_alias_size] = {
   db_lnkcount } ;       /* "count",  */
+
+static long readlong(char* s,char* err){
+  long i;
+  char* e;
+  i=strtol(s,&e,10);
+  if (e[0]!='\0') {
+    error(0,_("Could not read %s from database"),err);
+  }
+  return i;
+}
+
+static long long readlonglong(char* s,char* err){
+  long long int i;
+  char* e;
+  i=strtoll(s,&e,10);
+  if (e[0]!='\0') {
+    error(0,_("Could not read %s from database"),err);
+  }
+  return i;
+}
 
 static struct md_container *init_db_attrs(URL_TYPE type) {
     struct md_container *mdc = NULL;
@@ -447,7 +465,7 @@ db_line* db_char2line(char** ss,int db){
       break;
     }
     case db_bcount : {
-      line->bcount=readint(ss[(*db_order)[i]],"bcount");
+      line->bcount=readlonglong(ss[(*db_order)[i]],"bcount");
       break;
     }
     case db_atime : {
@@ -459,20 +477,20 @@ db_line* db_char2line(char** ss,int db){
       break;
     }
     case db_inode : {
-      line->inode=readint(ss[(*db_order)[i]],"inode");
+      line->inode=readlong(ss[(*db_order)[i]],"inode");
       break;
     }
 
     case db_uid : {
-      line->uid=readint(ss[(*db_order)[i]],"uid");
+      line->uid=readlong(ss[(*db_order)[i]],"uid");
       break;
     }
     case db_gid : {
-      line->gid=readint(ss[(*db_order)[i]],"gid");
+      line->gid=readlong(ss[(*db_order)[i]],"gid");
       break;
     }
     case db_size : {
-      line->size=readlong(ss[(*db_order)[i]],"size");
+      line->size=readlonglong(ss[(*db_order)[i]],"size");
       break;
     }
     case db_md5 : {
@@ -634,12 +652,12 @@ db_line* db_char2line(char** ss,int db){
     }
     
     case db_lnkcount : {
-      line->nlink=readint(ss[(*db_order)[i]],"nlink");
+      line->nlink=readlong(ss[(*db_order)[i]],"nlink");
       break;
     }
 
     case db_attr : {
-      line->attr=readlong(ss[(*db_order)[i]],"attr");
+      line->attr=readlonglong(ss[(*db_order)[i]],"attr");
       break;
     }
     
@@ -697,26 +715,6 @@ time_t base64totime_t(char* s){
   }
   
   
-}
-
-long readint(char* s,char* err){
-  long i;
-  char* e;
-  i=strtol(s,&e,10);
-  if (e[0]!='\0') {
-    error(0,_("Could not read %s from database"),err);
-  }
-  return i;
-}
-
-AIDE_OFF_TYPE readlong(char* s,char* err){
-  AIDE_OFF_TYPE i;
-  char* e;
-  i=AIDE_STRTOLL_FUNC(s,&e,10);
-  if (e[0]!='\0') {
-    error(0,_("Could not read %s from database"),err);
-  }
-  return i;
 }
 
 long readoct(char* s,char* err){

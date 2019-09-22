@@ -68,20 +68,6 @@ int snprintf(char *str,size_t count,const char *fmt,...);
 # define HAVE_STRTOIMAX
 #endif
 
-#if defined HAVE_OFF64_TYPE && SIZEOF_OFF64_T == SIZEOF_LONG_LONG || !defined HAVE_OFF64_TYPE && SIZEOF_OFF_T == SIZEOF_LONG_LONG
-# ifdef HAVE_STRTOLL
-#  define AIDE_STRTOLL_FUNC strtoll
-# else
-#  ifdef HAVE_STRTOIMAX
-#   define AIDE_STRTOLL_FUNC strtoimax
-#  else
-#   define AIDE_STRTOLL_FUNC strtol
-#  endif
-# endif
-#else
-# define AIDE_STRTOLL_FUNC strtol
-#endif
-
 #ifndef __NetBSD__
 #ifndef _POSIX_C_SOURCE
 /* For _POSIX_THREAD_SEMANTICS _REENTRANT */

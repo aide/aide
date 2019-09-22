@@ -21,6 +21,7 @@
  */
 
 #include "aide.h"
+#include "config.h"
 
 #ifndef _POSIX_C_SOURCE
 #define _POSIX_C_SOURCE 200112L
@@ -174,7 +175,7 @@ void free_hashes(db_line* dl){
   free_hash(sha512);
 }
 
-int stat_cmp(struct AIDE_STAT_TYPE* f1,struct AIDE_STAT_TYPE* f2) {
+int stat_cmp(struct stat* f1,struct stat* f2) {
   if (f1==NULL || f2==NULL) {
     return RETFAIL;
   }
@@ -197,13 +198,13 @@ int stat_cmp(struct AIDE_STAT_TYPE* f1,struct AIDE_STAT_TYPE* f2) {
 
 void no_hash(db_line* line);
 
-void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
+void calc_md(struct stat* old_fs,db_line* line) {
   /*
     We stat after opening just to make sure that the file
     from we are about to calculate the hash is the correct one,
     and we don't read from a pipe :)
    */
-  struct AIDE_STAT_TYPE fs;
+  struct stat fs;
   int sres=0;
   int stat_diff,filedes;
 #ifdef WITH_PRELINK
@@ -239,7 +240,7 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
     return;
   }
   
-  sres=AIDE_FSTAT_FUNC(filedes,&fs);
+  sres=fstat(filedes,&fs);
   if (sres != 0) {
 	error(1, "fsstat() for '%s' failed: %s\n", line->fullpath, strerror(errno));
   }
@@ -249,8 +250,6 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
 #ifdef HAVE_POSIX_FADVISE
   if (posix_fadvise(filedes,0,fs.st_size,POSIX_FADV_NOREUSE)!=0) {
 	error(255,"posix_fadvise error %s\n",strerror(errno));
-  } else {
-	error(255,"posix_fadvise(%i,0,%li,POSIX_FADV_NOREUSE) ok\n",filedes,fs.st_size);
   }
 #endif
   if ((stat_diff=stat_cmp(&fs,old_fs))==RETOK) {
@@ -395,7 +394,7 @@ void calc_md(struct AIDE_STAT_TYPE* old_fs,db_line* line) {
   return;
 }
 
-void fs2db_line(struct AIDE_STAT_TYPE* fs,db_line* line) {
+void fs2db_line(struct stat* fs,db_line* line) {
   
   line->inode=fs->st_ino;
 

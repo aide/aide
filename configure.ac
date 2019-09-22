@@ -13,6 +13,10 @@ AM_CONFIG_HEADER(config.h)
 
 dnl Checks for programs.
 AC_PROG_CC_C99
+if test "x$ac_cv_prog_cc_c99" = xno; then
+    AC_MSG_ERROR([AIDE needs a C99 compatible compiler])
+fi
+
 AC_PROG_MAKE_SET
 AC_PROG_RANLIB
 AC_PROG_INSTALL
@@ -31,6 +35,8 @@ AC_CHECK_PROGS(LD, ld)
 
 AC_PATH_TOOL([PKG_CONFIG], [pkg-config], [no])
 AM_PROG_CC_C_O
+
+AC_SYS_LARGEFILE
 
 dnl AC_ARG_PROGRAM
 
@@ -251,13 +257,23 @@ AC_CHECK_TYPES([byte, ushort, ulong, u16, u32, u64])
 AC_CHECK_SIZEOF(unsigned short, 2)
 AC_CHECK_SIZEOF(unsigned int, 4)
 AC_CHECK_SIZEOF(unsigned long, 4)
-AC_CHECK_SIZEOF(long long, 8)
 AC_CHECK_SIZEOF(unsigned long long, 8)
+
+AC_CHECK_SIZEOF(int)
+AC_CHECK_SIZEOF(long)
+AC_CHECK_SIZEOF(long long)
+
+AC_CHECK_SIZEOF(uid_t)
+AC_CHECK_SIZEOF(gid_t)
+AC_CHECK_SIZEOF(ino_t)
+AC_CHECK_SIZEOF(nlink_t)
+AC_CHECK_SIZEOF(off_t)
+AC_CHECK_SIZEOF(blkcnt_t)
+
 AC_C_LONG_DOUBLE
 
 AC_HEADER_STDC
 AC_CHECK_FUNCS(strtoll strtoimax readdir)
-AIDE_CHECK_READDIR_R_ARGS
 AC_CHECK_FUNCS(stricmp strnstr strnlen)
 
 AC_ARG_WITH([mmap],
@@ -582,101 +598,6 @@ AS_IF([test "x$with_e2fsattrs_support" != xno],
 )
 
 AC_SUBST(E2FSATTRSLIB)
-
-# Check whether LFS has explicitly been disabled
-AC_ARG_ENABLE(lfs,[  --disable-lfs           Disable large file support on 32-bit platforms], [aide_lfs_choice=$enableval], [aide_lfs_choice=yes])
-
-if test "$aide_lfs_choice" = "yes"; then
-# This looks weird because Linux defines lstat64 and then screws it up
-AC_CHECK_FUNC(lstat64,
-    [AC_CHECK_FUNC(stat64,
-	AIDE_DEFS="$AIDE_DEFS -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64"
-	AIDE_LSTAT_FUNC="lstat64"
-	compoptionstring="${compoptionstring}WITH_LSTAT64\\n"
-	AIDE_STAT_FUNC="stat64"
-	AIDE_FSTAT_FUNC="fstat64"
-	AIDE_STAT_TYPE="stat64"
-	AIDE_OFF_TYPE="off64_t"
-	AC_DEFINE(HAVE_OFF64_T,1,[have off64_t])
-	AIDE_BLKCNT_TYPE="blkcnt64_t"
-	[AC_CHECK_FUNC(readdir64,
-		AIDE_READDIR_FUNC="readdir64"
-		compoptionstring="${compoptionstring}WITH_READDIR64\\n",
-		AIDE_READDIR_FUNC="readdir")]
-	[AC_CHECK_FUNC(readdir64_r,
-		AIDE_READDIR_R_FUNC="readdir64_r",
-		AIDE_READDIR_R_FUNC="readdir_r")],
-	AIDE_LSTAT_FUNC="lstat"
-	AIDE_STAT_FUNC="stat"
-	AIDE_FSTAT_FUNC="fstat"
-	AIDE_STAT_TYPE="stat"
-	AIDE_OFF_TYPE="off_t"
-	AIDE_BLKCNT_TYPE="blkcnt_t"
-	AIDE_READDIR_FUNC="readdir"
-	AIDE_READDIR_R_FUNC="readdir_r"
-	compoptionstring="${compoptionstring}WITH_LSTAT\\n"
-	compoptionstring="${compoptionstring}WITH_READDIR\\n"
-)],
-	[AIDE_LSTAT_FUNC="lstat"
-	AIDE_STAT_FUNC="stat"
-	AIDE_FSTAT_FUNC="fstat"
-	AIDE_STAT_TYPE="stat"
-	AIDE_OFF_TYPE="off_t"
-	AIDE_BLKCNT_TYPE="blkcnt_t"
-	AIDE_READDIR_FUNC="readdir"
-	AIDE_READDIR_R_FUNC="readdir_r"
-	compoptionstring="${compoptionstring}WITH_LSTAT\\n"
-	compoptionstring="${compoptionstring}WITH_READDIR\\n"]
-)
-
-saved_CFLAGS="$CFLAGS"
-CFLAGS="$CFLAGS $AIDE_DEFS"
-AC_CACHE_CHECK([for LFS ino_t],ac_cv_ino_type,[
-AC_TRY_RUN([
-#include <unistd.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-main() { struct stat64 st; ino64_t s; if (sizeof(ino_t) == sizeof(ino64_t)) exit(1); exit((lstat64("/dev/null", &st)==0)?0:1); }],
-ac_cv_ino_type=ino64_t,ac_cv_ino_type=ino_t,ac_cv_ino_type=cross)])
-AIDE_INO_TYPE=$ac_cv_ino_type
-
-AC_CACHE_CHECK([for LFS dirent],ac_cv_dirent_type,[
-AC_TRY_COMPILE([
-#include <unistd.h>
-#include <sys/types.h>
-#include <dirent.h>],
-[struct dirent64 de;],
-ac_cv_dirent_type=dirent64,ac_cv_dirent_type=dirent)])
-AIDE_DIRENT_TYPE=$ac_cv_dirent_type
-else
-	AIDE_LSTAT_FUNC="lstat"
-	AIDE_STAT_FUNC="stat"
-	AIDE_FSTAT_FUNC="fstat"
-	AIDE_STAT_TYPE="stat"
-	AIDE_OFF_TYPE="off_t"
-	AIDE_BLKCNT_TYPE="blkcnt_t"
-	AIDE_READDIR_FUNC="readdir"
-	AIDE_READDIR_R_FUNC="readdir_r"
-	compoptionstring="${compoptionstring}WITH_LSTAT\\n"
-	compoptionstring="${compoptionstring}WITH_READDIR\\n"
-	AIDE_INO_TYPE=ino_t
-	AIDE_DIRENT_TYPE=dirent
-fi
-AC_CHECK_SIZEOF(off_t)
-AC_CHECK_SIZEOF(off64_t)
-CFLAGS="$saved_CFLAGS"
-
-AC_DEFINE_UNQUOTED(AIDE_LSTAT_FUNC,$AIDE_LSTAT_FUNC,[lstat])
-AC_DEFINE_UNQUOTED(AIDE_STAT_FUNC,$AIDE_STAT_FUNC,[stat])
-AC_DEFINE_UNQUOTED(AIDE_FSTAT_FUNC,$AIDE_FSTAT_FUNC,[fstat])
-AC_DEFINE_UNQUOTED(AIDE_STAT_TYPE,$AIDE_STAT_TYPE,[stat type])
-AC_DEFINE_UNQUOTED(AIDE_INO_TYPE,$AIDE_INO_TYPE,[ino_t])
-AC_DEFINE_UNQUOTED(AIDE_OFF_TYPE,$AIDE_OFF_TYPE,[off_t])
-AC_DEFINE_UNQUOTED(AIDE_BLKCNT_TYPE,$AIDE_BLKCNT_TYPE,[blkcnt_t])
-AC_DEFINE_UNQUOTED(AIDE_READDIR_FUNC,$AIDE_READDIR_FUNC,[readdir])
-AC_DEFINE_UNQUOTED(AIDE_READDIR_R_FUNC,$AIDE_READDIR_R_FUNC,[readdir_r])
-AC_DEFINE_UNQUOTED(AIDE_DIRENT_TYPE,$AIDE_DIRENT_TYPE,[dirent])
 
 AC_ARG_WITH([config_file],
 	AC_HELP_STRING([--with-config-file=config-file],

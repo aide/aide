@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2004-2006,2010-2013,2015,2016 Rami Lehti, Pablo
+ * Copyright (C) 1999-2002,2004-2006,2010-2013,2015,2016,2019 Rami Lehti, Pablo
  * Virolainen, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -282,17 +282,16 @@ typedef struct db_line {
 
   mode_t perm;
   mode_t perm_o; /* Permission for tree traverse */
-  uid_t uid;
-  gid_t gid;
+  long uid; /* uid_t */
+  long gid; /* gid_t */
   time_t atime;
   time_t ctime;
   time_t mtime;
-  AIDE_INO_TYPE inode;
-  nlink_t nlink;
+  long inode; /* ino_t */
+  long nlink; /* nlink_t */
 
-  AIDE_OFF_TYPE size;
-  AIDE_OFF_TYPE size_o; /* ... */
-  AIDE_BLKCNT_TYPE bcount;
+  long long size; /* off_t */
+  long long bcount; /* blkcnt_t */
   char* filename;
   char* fullpath;
   char* linkname;

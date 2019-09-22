@@ -55,16 +55,12 @@
 #endif
 
 static DIR *dirh = NULL;
-static struct AIDE_DIRENT_TYPE *entp = NULL;
-static struct AIDE_DIRENT_TYPE **resp = NULL;
+static struct dirent *entp = NULL;
 
 static struct seltree *r = NULL;
 
 
-#if defined HAVE_READDIR && !defined HAVE_READDIR_R
 static long td = -1;
-#endif
-static int rdres = 0;
 
 static int root_handled = 0;
 
@@ -79,32 +75,19 @@ static DIR *open_dir(char* path) {
 
 static void next_in_dir (void)
 {
-#ifdef HAVE_READDIR_R
-	if (dirh != NULL)
-		rdres = AIDE_READDIR_R_FUNC (dirh, entp, resp);
-#else
-#ifdef HAVE_READDIR
 	if (dirh != NULL) {
-		entp = AIDE_READDIR_FUNC (dirh);
+		entp = readdir (dirh);
 		if(entp!=NULL)
 			td = telldir(dirh);
 		else
 			td=-1;
 	}
-#endif
-#endif
 
 }
 
 static int in_this (void)
 {
-#ifdef HAVE_READDIR_R
-	return (dirh != NULL && rdres == 0 && (*resp) != NULL);
-#else
-#ifdef HAVE_READDIR
 	return (dirh != NULL && entp != NULL && td >= 0);
-#endif
-#endif
 }
 
 static char *name_construct (const char *s)
@@ -170,9 +153,9 @@ void add_child (db_line * fil)
 	r->childs = list_sorted_insert (r->childs, new_r, compare_node_by_path);
 }
 
-static int get_file_status(char *filename, struct AIDE_STAT_TYPE *fs) {
+static int get_file_status(char *filename, struct stat *fs) {
     int sres = 0;
-    sres = AIDE_LSTAT_FUNC(filename,fs);
+    sres = lstat(filename,fs);
     if(sres == -1){
         char* er = strerror(errno);
         if (er == NULL) {
@@ -195,7 +178,7 @@ db_line *db_readline_disk ()
 	DB_ATTR_TYPE attr;
 	char *fullname;
 	int add = 0;
-	struct AIDE_STAT_TYPE fs;
+	struct stat fs;
 
 	/* root needs special handling */
 	if (!root_handled) {
@@ -416,23 +399,6 @@ int db_disk_init ()
 {
 
 	r = conf->tree;
-
-#  ifdef HAVE_READDIR_R
-	resp = (struct AIDE_DIRENT_TYPE **)
-		malloc (sizeof (struct AIDE_DIRENT_TYPE) + _POSIX_PATH_MAX);
-	entp = (struct AIDE_DIRENT_TYPE *)
-		malloc (sizeof (struct AIDE_DIRENT_TYPE) + _POSIX_PATH_MAX);
-#  else
-#   ifdef HAVE_READDIR
-	/*
-	   Should we do something here?
-
-	 */
-#   else
-#    error AIDE needs readdir or readdir_r
-#   endif
-#  endif
-
 
 	char* fullname=malloc((conf->root_prefix_length+2)*sizeof(char));
 	strncpy(fullname, conf->root_prefix, conf->root_prefix_length+1);

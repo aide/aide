@@ -840,50 +840,6 @@ void do_dbdef(int dbtype,char* val)
   free(val);
 }
 
-void do_dbindef(char* val)
-{
-  url_t* u=NULL;
-
-  if(conf->db_in_url==NULL){
-    u=parse_url(val);
-    /* FIXME Check the URL if you add support for databases that cannot be 
-     * both input and output urls */
-    if(u==NULL||u->type==url_unknown||u->type==url_stdout
-       ||u->type==url_stderr) {
-      error(0,_("Unsupported input URL-type:%s\n"),val);
-    }
-    else {
-      conf->db_in_url=u;
-    }
-  }
-
-  free(val);
-}
-
-void do_dboutdef(char* val)
-{
-  url_t* u=NULL;
-
-  error(200,_("Setting output database \"%s\"\n"),val);
-
-  if(conf->db_out_url==NULL){
-    u=parse_url(val);
-    /* FIXME Check the URL if you add support for databases that cannot be 
-     * both input and output urls */
-    if(u==NULL||u->type==url_unknown||u->type==url_stdin){
-      error(0,_("Unsupported output URL-type:%s\n"),val);
-    }
-    else{
-      conf->db_out_url=u;
-      error(200,_("Output database set to \"%s\" \"%s\"\n"),val,u->value);
-    }
-  } else {
-    error(200,_("Output database already set\n"));
-  }
-
-  free(val);
-}
-
 void do_repurldef(char* val)
 {
   url_t* u=NULL;

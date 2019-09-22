@@ -33,6 +33,7 @@
 #include <time.h>
 #include <pcre.h>
 
+#include "attributes.h"
 #include "report.h"
 #include "list.h"
 #include "gen_list.h"
@@ -915,8 +916,10 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db,
 
   if((node->checked&DB_OLD)&&(node->checked&DB_NEW)){
       if (((node->old_data)->attr&~((node->new_data)->attr)&~(ignored_removed_attrs))|(~((node->old_data)->attr)&(node->new_data)->attr&~(ignored_added_attrs))) {
-      error(2,"Entry %s in databases has different attributes: %llx %llx\n",
-            node->old_data->filename,node->old_data->attr,node->new_data->attr);
+          char *str = NULL;
+          error(2,"Entry %s in databases has different attributes: %s\n",
+                  node->old_data->filename,str= diff_attributes(node->old_data->attr,node->new_data->attr));
+          free(str);
     }
 
     node->changed_attrs=get_changed_attributes(node->old_data,node->new_data);

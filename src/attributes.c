@@ -30,23 +30,29 @@ static const char* attrs_string[] = { "filename", "l", "p", "u", "g", "s", "a", 
                                "ARF", "sha256", "sha512", "selinux", "xattrs", "whirlpool", "ftype",
                                "e2fsattrs", "caps" };
 
-char* report_attrs(DB_ATTR_TYPE attrs) {
-    char* str;
-    int j = 1;
-    int num_attrs = sizeof(attrs_string)/sizeof(char*);
+static int num_attrs = sizeof(attrs_string)/sizeof(char*);
+
+static int get_diff_attrs_string(DB_ATTR_TYPE a, DB_ATTR_TYPE b, char *str) {
+    int n = 0;
     for (int i = 0; i < num_attrs; ++i) {
-        if ((1LLU<<i)&attrs) {
-            j += strlen(attrs_string[i])+1;
+        if (((1LLU<<i)&a) ^ ((1LLU<<i)&b)) {
+            if (n || a != 0) {
+                if (str) { str[n] = ((1LLU<<i)&b)?'+':'-'; }
+                n++;
+            }
+            if (str) { sprintf(&str[n], "%s", attrs_string[i]); }
+            n += strlen(attrs_string[i]);
         }
     }
-    str = malloc(j * sizeof (char));
-    j=0;
-    for (int i = 0; i < num_attrs; ++i) {
-        if ((1LLU<<i)&attrs) {
-            if (j) { str[j++] = '+'; }
-            j += sprintf(&str[j], "%s", attrs_string[i]);
-        }
-    }
-    str[j] = '\0';
+    if (str) { str[n] = '\0'; }
+    n++;
+    return n;
+}
+
+char *diff_attributes(DB_ATTR_TYPE a, DB_ATTR_TYPE b) {
+    char *str = NULL;
+    int n = get_diff_attrs_string(a, b, str);
+    str = malloc(n);
+    get_diff_attrs_string(a, b, str);
     return str;
 }

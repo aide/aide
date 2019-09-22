@@ -652,17 +652,22 @@ static void print_report_header() {
         error (2,_("Verbose level: %d"), conf->verbose_level);
     }
     if (!first) { error (2,"\n"); }
+    char *str;
     if (ignored_added_attrs) {
-        error (2,_("Ignored added attributes: %s\n"),report_attrs(ignored_added_attrs));
+        error (2,_("Ignored added attributes: %s\n"), str = diff_attributes(0, ignored_added_attrs));
+        free(str);
     }
     if (ignored_removed_attrs) {
-        error (2,_("Ignored removed attributes: %s\n"),report_attrs(ignored_removed_attrs));
+        error (2,_("Ignored removed attributes: %s\n"), str = diff_attributes(0, ignored_removed_attrs));
+        free(str);
     }
     if (ignored_changed_attrs) {
-        error (2,_("Ignored changed attributes: %s\n"),report_attrs(ignored_changed_attrs));
+        error (2,_("Ignored changed attributes: %s\n"), str = diff_attributes(0, ignored_changed_attrs));
+        free(str);
     }
     if (forced_attrs) {
-        error (2,_("Forced attributes: %s\n"),report_attrs(forced_attrs));
+        error (2,_("Forced attributes: %s\n"), str = diff_attributes(0, forced_attrs));
+        free(str);
     }
 #ifdef WITH_E2FSATTRS
     if (conf->report_ignore_e2fsattrs) {

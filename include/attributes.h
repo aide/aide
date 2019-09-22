@@ -64,5 +64,6 @@
 #define DB_E2FSATTRS    (1LLU<<36) /* "e2fs attributes" */
 #define DB_CAPABILITIES (1LLU<<37) /* "capabilities"    */
 
-char* report_attrs(DB_ATTR_TYPE);
+/* memory for the returned string is obtained with malloc(3), and should be freed with free(3). */
+char *diff_attributes(DB_ATTR_TYPE, DB_ATTR_TYPE);
 #endif

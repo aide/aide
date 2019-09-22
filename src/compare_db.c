@@ -31,6 +31,7 @@
 #endif
 #endif
 
+#include "attributes.h"
 #include "base64.h"
 #include "report.h"
 #include "db_config.h"
@@ -139,12 +140,6 @@ const char* details_string[] = { _("File type") , _("Lname"), _("Size"), _("Size
 #endif
 };
 
-const char* attrs_string[] = { "filename", "l", "p", "u", "g", "s", "a", "c", "m", "i", "b", "n",
-                               "md5", "sha1", "rmd160", "tiger", "crc32", "haval", "gost", "crc32b",
-                               "attr", "acl", "bsize", "rdev", "dev", "checkmask", "S", "I", "ANF",
-                               "ARF", "sha256", "sha512", "selinux", "xattrs", "whirlpool", "ftype",
-                               "e2fsattrs", "caps" };
-
 #ifdef WITH_E2FSATTRS
     /* flag->character mappings taken from lib/e2p/pf.c (git commit c46b57b)
      * date: 2015-05-10
@@ -196,27 +191,6 @@ const char* attrs_string[] = { "filename", "l", "p", "u", "g", "s", "a", "c", "m
 static DB_ATTR_TYPE get_special_report_group(char* group) {
     DB_ATTR_TYPE attr = get_groupval(group);
     return attr==DB_ATTR_UNDEF?0:attr;
-}
-
-static char* report_attrs(DB_ATTR_TYPE attrs) {
-    char* str;
-    int j = 1;
-    int num_attrs = sizeof(attrs_string)/sizeof(char*);
-    for (int i = 0; i < num_attrs; ++i) {
-        if ((1LLU<<i)&attrs) {
-            j += strlen(attrs_string[i])+1;
-        }
-    }
-    str = malloc(j * sizeof (char));
-    j=0;
-    for (int i = 0; i < num_attrs; ++i) {
-        if ((1LLU<<i)&attrs) {
-            if (j) { str[j++] = '+'; }
-            j += sprintf(&str[j], "%s", attrs_string[i]);
-        }
-    }
-    str[j] = '\0';
-    return str;
 }
 
 static char get_file_type_char(mode_t mode) {

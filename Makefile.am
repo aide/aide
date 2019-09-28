@@ -46,7 +46,6 @@ aide_SOURCES = src/aide.c include/aide.h \
 	include/list.h src/list.c \
 	include/locale-aide.h \
 	include/md.h src/md.c \
-	src/snprintf.c \
 	include/seltree.h \
 	include/symboltable.h src/symboltable.c \
 	include/types.h \

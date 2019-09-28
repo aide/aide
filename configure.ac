@@ -291,48 +291,6 @@ AS_IF([test "x$with_mmap" != xno],
 AC_CHECK_FUNCS(fcntl ftruncate posix_fadvise asprintf snprintf \
 	vasprintf vsnprintf va_copy __va_copy)
 
-AC_CACHE_CHECK(for ISO C99 compliant snprintf,ac_cv_func_snprintf_c99,
-	[AC_TRY_RUN([
-#include <stdio.h>
-
-int main()
-{
-	char buf[] = {0, 0, 0, 0};
-
-	snprintf(buf, 3, "ABC");
-	exit ((buf[2] != 0) || (snprintf(NULL, 0, "%d", 100) != 3));
-}],ac_cv_func_snprintf_c99=yes,ac_cv_func_snprintf_c99=no,ac_cv_func_snprintf_c99=no)])
-if test $ac_cv_func_snprintf_c99 = yes; then
-	AC_DEFINE(HAVE_C99_SNPRINTF,1,[snprintf is ISO C99 compliant])
-fi
-AC_CACHE_CHECK(for ISO C99 compliant vsnprintf,ac_cv_func_vsnprintf_c99,
-	[AC_TRY_RUN([
-#include <stdio.h>
-#include <stdarg.h>
-
-int doit(char *buf, int len, const char *s, ...)
-{
-	va_list ap;
-	int r;
-
-	va_start(ap, s);
-	r = vsnprintf(buf, len, s, ap);
-	va_end(ap);
-
-	return r;
-}
-
-int main()
-{
-	char buf[] = {0, 0, 0, 0};
-
-	doit(buf, 3, "ABC");
-	exit ((buf[2] != 0) || (doit(NULL, 0, "%d", 100) != 3));
-}],ac_cv_func_vsnprintf_c99=yes,ac_cv_func_vsnprintf_c99=no,ac_cv_func_vsnprintf_c99=no)])
-if test $ac_cv_func_vsnprintf_c99 = yes; then
-	AC_DEFINE(HAVE_C99_VSNPRINTF,1,[vsnprintf is ISO C99 compliant])
-fi
-
 # Linux has the O_NOATIME flag, sometimes
 AC_CACHE_CHECK([for open/O_NOATIME], db_cv_open_o_noatime, [
 echo "test for working open/O_NOATIME" > __o_noatime_file

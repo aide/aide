@@ -33,7 +33,7 @@
 
 #include "attributes.h"
 #include "base64.h"
-#include "report.h"
+#include "error.h"
 #include "db_config.h"
 #include "gen_list.h"
 #include "list.h"

@@ -35,7 +35,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "base64.h"
-#include "report.h"
+#include "error.h"
 /*for locale support*/
 #include "locale-aide.h"
 /*for locale support*/

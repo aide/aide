@@ -28,7 +28,7 @@
 #include <errno.h>
 #include "db_config.h"
 #include "db_file.h"
-#include "report.h"
+#include "error.h"
 #include "util.h"
 #ifdef WITH_CURL
 #include "fopen.h"

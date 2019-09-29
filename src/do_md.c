@@ -42,7 +42,7 @@
 
 #include "db_config.h"
 #include "do_md.h"
-#include "report.h"
+#include "error.h"
 #include "list.h"
 /*for locale support*/
 #include "locale-aide.h"

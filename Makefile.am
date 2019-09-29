@@ -39,7 +39,7 @@ aide_SOURCES = src/aide.c include/aide.h \
 	include/db_list.h src/db_list.c \
 	include/db_sql.h src/db_sql.c \
 	include/do_md.h src/do_md.c \
-	include/report.h src/error.c \
+	include/error.h src/error.c \
 	include/gen_list.h src/gen_list.c \
 	src/getopt1.c \
 	include/getopt.h src/getopt.c \

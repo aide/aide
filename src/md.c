@@ -22,7 +22,7 @@
 #include "aide.h"
 #include <stdlib.h>
 #include "md.h"
-#include "report.h"
+#include "error.h"
 #include <string.h>
 #ifdef WITH_MHASH
 #include <mhash.h>

@@ -30,7 +30,7 @@
 #include <syslog.h>
 #endif
 
-#include "report.h"
+#include "error.h"
 #include "list.h"
 #include "be.h"
 /*for locale support*/

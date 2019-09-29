@@ -37,7 +37,7 @@
 #include "db_sql.h"
 #include "db_config.h"
 #include "libpq-fe.h"
-#include "report.h"
+#include "error.h"
 
 #ifdef WITH_MHASH
 #include <mhash.h>

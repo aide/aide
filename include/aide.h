@@ -32,7 +32,7 @@
 #if HAVE_FCNTL_H
 # include <fcntl.h>
 #endif
-#include "report.h"
+#include "error.h"
 
 #ifndef TEMP_FAILURE_RETRY
 /* Evaluate EXPRESSION, and repeat as long as it returns -1 with errno'

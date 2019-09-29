@@ -22,7 +22,7 @@
 #include "aide.h"
 #include <stdlib.h>
 #include "list.h"
-#include "report.h"
+#include "error.h"
 /*for locale support*/
 #include "locale-aide.h"
 /*for locale support*/

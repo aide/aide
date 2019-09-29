@@ -36,7 +36,7 @@
 #define MAXHOSTNAMELEN 256
 #endif
 
-#include "report.h"
+#include "error.h"
 #include "db_config.h"
 #include "util.h"
 

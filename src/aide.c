@@ -41,7 +41,7 @@
 #include "db_config.h"
 #include "db_file.h"
 #include "do_md.h"
-#include "report.h"
+#include "error.h"
 #include "gen_list.h"
 #include "getopt.h"
 #include "list.h"

@@ -37,7 +37,7 @@
 #endif
 
 #include "db_config.h"
-#include "report.h"
+#include "error.h"
 #include "be.h"
 
 #ifdef WITH_MHASH

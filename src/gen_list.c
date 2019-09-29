@@ -34,14 +34,13 @@
 #include <pcre.h>
 
 #include "attributes.h"
-#include "report.h"
 #include "list.h"
 #include "gen_list.h"
 #include "seltree.h"
 #include "db.h"
 #include "db_config.h"
 #include "commandconf.h"
-#include "report.h"
+#include "error.h"
 /*for locale support*/
 #include "locale-aide.h"
 /*for locale support*/

@@ -51,7 +51,7 @@ extern YYSTYPE yylval;
 #include "gen_list.h"
 #include "conf_yacc.h"
 #include <string.h>
-#include "report.h"
+#include "error.h"
 #include "commandconf.h"
 
 /* We need to define these here since we cannot include db.h*/

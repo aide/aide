@@ -885,8 +885,6 @@ AC_SUBST(AUDITLIB)
 extrasub="s&@aideextragroups@&$aideextragroups&;t t
 s&@AIDEVERSION@&$PACKAGE_VERSION&;t t"
 
-AIDE_DO_LINK_FILES
-
 compoptionstring="${compoptionstring}CONFIG_FILE = \\\"${config_file}\\\"\\n"
 
 AC_DEFINE_UNQUOTED(AIDECOMPILEOPTIONS, "${compoptionstring}",[Compile-time options displayed in -v output])

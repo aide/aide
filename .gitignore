@@ -1,0 +1,33 @@
+/INSTALL
+/Makefile
+/Makefile.in
+/aclocal.m4
+/aide
+/aide*.tar.gz
+/autom4te.cache/
+/compile
+/config.guess
+/config.h
+/config.h.in
+/config.log
+/config.status
+/config.sub
+/configure
+/depcomp
+/install-sh
+/missing
+/stamp-h1
+/version.m4
+/ylwrap
+# doc
+doc/aide.1
+doc/aide.conf
+doc/aide.conf.5
+# src
+src/*.o
+src/.deps/
+src/.dirstamp
+src/conf_lex.c
+src/conf_yacc.c
+src/conf_yacc.h
+src/db_lex.c

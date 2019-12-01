@@ -115,21 +115,6 @@ typedef struct xattrs_type
 
 #include "url.h"
 
-/*
-typedef enum {
-  url_file, url_stdout, url_stdin, url_stderr, url_fd, url_http,
-  url_sql, url_syslog, url_database, url_multiplexer , url_unknown
-} URL_TYPE;
-*/
-/*
-  typedef struct url_t {*/
-  /* Everything before the first ':' */
-/*
-  URL_TYPE type;
-  char* value;
-} url_t;
-*/
-
 typedef enum { 
    db_filename=0, 		/* "name",   */ 
    db_linkname, 		/* "lname",   */
@@ -346,7 +331,6 @@ typedef struct db_config {
   /* Report syslog */
   
   int report_syslog;
-  int report_db;
   
   /* defsyms is a list of symba*s */
   list* defsyms;

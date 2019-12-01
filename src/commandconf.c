@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2006,2010,2011,2013,2015,2016 Rami Lehti, Pablo
+ * Copyright (C) 1999-2006,2010,2011,2013,2015,2016,2019 Rami Lehti, Pablo
  * Virolainen, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -846,8 +846,7 @@ void do_repurldef(char* val)
 
   
   u=parse_url(val);
-  /* FIXME Check the URL if you add support for databases that cannot be 
-   * both input and output urls */
+
   if(u==NULL||u->type==url_unknown||u->type==url_stdin){
     error(0,_("Unsupported output URL-type:%s\n"),val);
   } else {

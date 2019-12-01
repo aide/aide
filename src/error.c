@@ -50,11 +50,6 @@ int error_init(url_t* url,int initial)
   FILE* fh=NULL;
 	int   sfac;
   
-  if (url->type==url_database) {
-    conf->report_db++;
-    return RETOK;
-  }
-  
   if(initial==1){
     if (url->type==url_syslog) {
       conf->report_syslog++;
@@ -195,36 +190,6 @@ void error(int errorlevel,char* error_msg,...)
   }
 #endif
 
-
-#ifdef WITH_DBERROR
-  if (conf->report_db!=0 && ( conf->db_out!=NULL
-#ifdef WITH_ZLIB
-			      || conf->db_gzout
-#endif
-			      )) {
-    db_line line;
-    int len;
-    memset(&line,0,sizeof(db_line));
-    line.filename=(char*)malloc(3);
-    if (line.filename!=NULL) {
-      va_start(ap,error_msg);
-      len=vsnprintf(line.filename,2,error_msg,ap);
-      va_end(ap);
-      free(line.filename);
-      line.filename=malloc(len+2);
-      line.filename[0]='#';
-      if (line.filename!=NULL) {
-	line.attr=DB_FILENAME;
-        va_start(ap,error_msg);
-	len=vsnprintf(line.filename+1,len+1,error_msg,ap);
-        va_end(ap);
-	db_writeline(&line,conf);
-	free(line.filename);
-      }
-    }
-  }
-#endif
-  
   for(r=conf->report_fd;r;r=r->next){
     va_start(ap, error_msg);
     retval=vfprintf((FILE*)r->data, error_msg,ap);

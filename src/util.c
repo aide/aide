@@ -44,10 +44,10 @@
 #define ISPRINT(c) (isascii(c) && isprint(c))
 
 static const char* url_name[] = { 
-  "file", "stdin", "stdout", "stderr", "fd", "sql", "syslog", "database", "https", "http", "ftp" };
+  "file", "stdin", "stdout", "stderr", "fd", "sql", "syslog", "https", "http", "ftp" };
 
 static const int url_value[] = {
-  url_file, url_stdin, url_stdout,url_stderr,url_fd, url_sql, url_syslog, url_database, url_https, url_http, url_ftp };
+  url_file, url_stdin, url_stdout,url_stderr,url_fd, url_sql, url_syslog, url_https, url_http, url_ftp };
 
 const int url_ntypes=sizeof(url_value)/sizeof(URL_TYPE);
 

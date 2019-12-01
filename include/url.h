@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 2002,2006 Rami Lehti, Pablo Virolainen, Richard van den
- * Berg
+ * Copyright (C) 2002,2006,2019 Rami Lehti, Pablo Virolainen, Richard van den
+ * Berg, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -23,12 +23,18 @@
 #define _URL_H_INCLUDED
 
 typedef enum {
-  url_file, url_stdout, url_stdin, url_stderr, url_fd, url_http,
-  url_sql, url_syslog, url_database, url_multiwriter, 
-  url_gzip, url_string, url_ftp, url_https, 
+  url_file,
+  url_stdout,
+  url_stdin,
+  url_stderr,
+  url_fd,
+  url_ftp,
+  url_http,
+  url_https,
+  url_sql,
+  url_syslog,
   url_unknown
 } URL_TYPE;
-
 
 typedef struct url_t {
   /* Everything before the first ':' */

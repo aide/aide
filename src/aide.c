@@ -37,7 +37,7 @@
 
 #include "md.h"
 #include "commandconf.h"
-#include "compare_db.h"
+#include "report.h"
 #include "db_config.h"
 #include "db_file.h"
 #include "do_md.h"

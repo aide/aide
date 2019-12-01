@@ -19,8 +19,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _COMPARE_DB_H_INCLUDED
-#define _COMPARE_DB_H_INCLUDED
+#ifndef _REPORT_H_INCLUDED
+#define _REPORT_H_INCLUDED
 #include "list.h"
 #include "db_config.h"
 #include "seltree.h"

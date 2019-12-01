@@ -901,7 +901,7 @@ void do_report_ignore_e2fsattrs(char* val) {
     conf->report_ignore_e2fsattrs = 0UL;
     while (*val) {
         switch(*val){
-            /* source for mappings see compare_db.c */
+            /* source for mappings see report.c */
             easy_e2fsattrs_case('s',EXT2_SECRM_FL)
             easy_e2fsattrs_case('u',EXT2_UNRM_FL)
             easy_e2fsattrs_case('S',EXT2_SYNC_FL)

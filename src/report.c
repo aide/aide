@@ -41,7 +41,7 @@
 #include "util.h"
 #include "commandconf.h"
 #include "gen_list.h"
-#include "compare_db.h"
+#include "report.h"
 /*for locale support*/
 #include "locale-aide.h"
 /*for locale support*/

@@ -28,7 +28,7 @@ aide_SOURCES = src/aide.c include/aide.h \
 	include/be.h src/be.c \
 	include/commandconf.h src/commandconf.c \
 	include/attributes.h src/attributes.c \
-	include/compare_db.h src/compare_db.c \
+	include/report.h src/report.c \
 	include/conf_lex.h src/conf_lex.l  \
 	src/conf_yacc.h src/conf_yacc.y \
 	include/db.h src/db.c \

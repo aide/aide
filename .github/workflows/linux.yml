@@ -1,3 +1,4 @@
+---
 name: Aide CI Linux
 
 on: [push]
@@ -9,18 +10,18 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, ubuntu-16.04]
-    
+
     steps:
-    - uses: actions/checkout@v1
-    - name: Install deps
-      run: sudo apt install bison flex libmhash-dev libpcre3-dev zlib1g-dev
-    - name: autoconf
-      run: sh autogen.sh
-    - name: configure
-      run: ./configure
-    - name: make
-      run: make
-    - name: make check
-      run: make check
-    - name: make distcheck
-      run: make distcheck
+      - uses: actions/checkout@v1
+      - name: Install deps
+        run: sudo apt install bison flex libmhash-dev libpcre3-dev zlib1g-dev check
+      - name: autoconf
+        run: sh autogen.sh
+      - name: configure
+        run: ./configure
+      - name: make
+        run: make
+      - name: make check
+        run: make check
+      - name: make distcheck
+        run: make distcheck

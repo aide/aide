@@ -56,6 +56,16 @@ aide_SOURCES += include/fopen.h src/fopen.c
 endif
 
 aide_LDADD = -lm @PCRELIB@ @CRYPTLIB@ @ACLLIB@ @SELINUXLIB@ @AUDITLIB@ @ATTRLIB@ @E2FSATTRSLIB@ @ELFLIB@ @CAPLIB@
+
+if HAVE_CHECK
+TESTS				= check_aide
+check_PROGRAMS		= check_aide
+check_aide_SOURCES	= tests/check_aide.c \
+					  tests/check_attributes.c src/attributes.c
+check_aide_CFLAGS	= -I$(top_srcdir)/include $(CHECK_CFLAGS)
+check_aide_LDADD	= -lm @PCRELIB@ @CRYPTLIB@ $(CHECK_LIBS)
+endif # HAVE_CHECK
+
 AM_CFLAGS = @AIDE_DEFS@ -W -Wall -g
 AM_CPPFLAGS = -I$(top_srcdir) \
 			  -I$(top_srcdir)/include \

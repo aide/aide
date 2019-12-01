@@ -3,7 +3,7 @@ m4_include([version.m4])
 dnl Initialize autoconf/automake
 AC_INIT(aide, AIDE_VERSION)
 AC_CANONICAL_TARGET
-AM_INIT_AUTOMAKE([1.10 -Wall -Werror silent-rules subdir-objects])
+AM_INIT_AUTOMAKE([1.10 -Wall -Werror silent-rules subdir-objects serial-tests])
 
 AC_DEFINE_UNQUOTED(AIDEVERSION, "AIDE_VERSION")
 AH_TEMPLATE([AIDEVERSION], [package version])
@@ -556,6 +556,9 @@ AS_IF([test "x$with_e2fsattrs_support" != xno],
 )
 
 AC_SUBST(E2FSATTRSLIB)
+
+PKG_CHECK_MODULES(CHECK, [check >= 0.9.4], , [AC_MSG_RESULT([Check not found (testing via 'make check' disabled)])])
+AM_CONDITIONAL(HAVE_CHECK, [test "x$CHECK_LIBS" != "x"])
 
 AC_ARG_WITH([config_file],
 	AC_HELP_STRING([--with-config-file=config-file],

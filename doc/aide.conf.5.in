@@ -443,7 +443,7 @@ The following are available only when explicitly enabled using configure
 .IP "caps: file capabilities"
 .LP
 Please note that 'I' and 'c' are incompatible. When the name of a file
-is changed, it's ctime is updated as well. When you put 'c' and 'I' in
+is changed, its ctime is updated as well. When you put 'c' and 'I' in
 the same rule the, a changed ctime is silently ignored.
 .LP
 When 'ANF' is used, new files are added to the new database, but are

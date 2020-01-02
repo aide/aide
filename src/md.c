@@ -160,7 +160,7 @@ DB_ATTR_TYPE hash_mhash2attr(int i) {
 }
 
 /*
-  Initialise md_container according it's todo_attr field
+  Initialise md_container according its todo_attr field
  */
 
 int init_md(struct md_container* md) {

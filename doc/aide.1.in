@@ -63,7 +63,7 @@ Controls how verbose \fBaide\fP is. Value must [0-255]. The default is
 5. With no argument Value is set to 20. This parameter overrides the
 value set in a configuration file.
 .IP "--report=\fBreporter\fR,-r \fBreporter\fR"
-\fBreporter\fR is a URL which tells \fBaide\fP where to send it's
+\fBreporter\fR is a URL which tells \fBaide\fP where to send its
 output. See aide.conf (5) section URLS for available values.
 .IP "--version,-v"
 \fBaide\fP prints out its version number

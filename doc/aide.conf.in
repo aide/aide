@@ -130,7 +130,7 @@ Norm=l+s+n+b+md5+sha1+rmd160+sha256+sha512+tiger@aideextragroups@
 
 #Selection regexp rule
 @@{TOPDIR}/.* Norm
-#Equals selection only the directory doc is checked and not it's children
+#Equals selection only the directory doc is checked and not its children
 #=@@{TOPDIR}/doc L
 #Negative selection no rule is necessary but ignored if there
 !@@{TOPDIR}/.*~

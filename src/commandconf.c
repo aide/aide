@@ -942,7 +942,7 @@ void do_report_ignore_e2fsattrs(char* val) {
                  break;
             }
         }
-        *val++;
+        val++;
     }
 }
 #endif

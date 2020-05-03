@@ -1222,13 +1222,13 @@ void populate_tree(seltree* tree)
                 } else if (conf->limit!=NULL && add < 0) {
                     add_file_to_tree(tree,old,DB_OLD|DB_NEW,attr);
                 }else{
+                    if(!initdbwarningprinted){
+                        error(3,_("WARNING: old database entry '%s' has no matching rule, run --init or --update (this warning is only shown once)\n"), old->filename);
+                        initdbwarningprinted=1;
+                    }
                     free_db_line(old);
                     free(old);
                     old=NULL;
-                    if(!initdbwarningprinted){
-                        error(3,_("WARNING: Old db contains a entry that shouldn\'t be there, run --init or --update\n"));
-                        initdbwarningprinted=1;
-                    }
                 }
             }
     }

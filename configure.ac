@@ -676,6 +676,24 @@ AS_IF([test "x$with_gcrypt" != xno],
 	[with_gcrypt=no]
 )
 
+AC_ARG_WITH([gcrypt-gost],
+        [AC_HELP_STRING([--with-gcrypt-gost],
+                [use gost algo from gcrypt library])],
+                [],
+                [with_gcrypt_gost=check]
+)
+
+AS_IF([test "x$with_gcrypt_gost" != xno],
+        [AC_DEFINE(WITH_GCRYPT_GOST,1,[use gost algo from gcrypt library])
+        if test "x$with_gcrypt" = xno; then
+                AC_MSG_ERROR([Using gost algo from gcrypt must include gcrypt lib. To enable gcrypt use --with-gcrypt])
+        fi
+        with_gcrypt_gost=yes
+        compoptionstring="${compoptionstring}WITH_GCRYPT_GOST\\n"],
+        [with_gcrypt_gost=no]
+)
+
+
 AC_SUBST(CRYPTLIB)
 
 AC_ARG_WITH([confighmactype],

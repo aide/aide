@@ -1052,6 +1052,40 @@ int db_writeline_file(db_line* line,db_config* dbconf, url_t* url){
       break;
     }
 #endif
+#ifdef WITH_GCRYPT_GOST
+    case db_gostr3411_94 : {
+      db_write_byte_base64(line->gostr3411_94,
+                           HASH_GOSTR3411_94_LEN,
+                           dbconf->db_out,i,
+                           DB_GOSTR3411_94,line->attr);
+
+      break;
+    }
+    case db_stribog256 : {
+      db_write_byte_base64(line->stribog256,
+                           HASH_STRIBOG256_LEN,
+                           dbconf->db_out,i,
+                           DB_STRIBOG256,line->attr);
+
+      break;
+    }
+    case db_stribog512 : {
+      db_write_byte_base64(line->stribog512,
+                           HASH_STRIBOG512_LEN,
+                           dbconf->db_out,i,
+                           DB_STRIBOG512,line->attr);
+
+      break;
+    }
+    case db_gostr3411_cp : {
+      db_write_byte_base64(line->gostr3411_cp,
+                           HASH_GOSTR3411_CP_LEN,
+                           dbconf->db_out,i,
+                           DB_GOSTR3411_CP,line->attr);
+
+      break;
+    }
+#endif
     case db_checkmask : {
       db_writeoct(line->attr,dbconf->db_out,i);
       break;

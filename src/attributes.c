@@ -28,7 +28,8 @@ static const char* attrs_string[] = { "filename", "l", "p", "u", "g", "s", "a", 
                                "md5", "sha1", "rmd160", "tiger", "crc32", "haval", "gost", "crc32b",
                                "attr", "acl", "bsize", "rdev", "dev", "checkmask", "S", "I", "ANF",
                                "ARF", "sha256", "sha512", "selinux", "xattrs", "whirlpool", "ftype",
-                               "e2fsattrs", "caps" };
+                               "e2fsattrs", "caps", "gostr3411_94", "stribog256", "stribog512", 
+			       "gostr3411_cp" };
 
 static int num_attrs = sizeof(attrs_string)/sizeof(char*);
 

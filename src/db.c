@@ -90,6 +90,10 @@ const char* db_names[db_unknown+1] = {
    "xattrs",
    "e2fsattrs",
    "capabilities",
+   "gostr3411_94",
+   "stribog256",
+   "stribog512",
+   "gostr3411_cp",
    "unknown"} ;
 
 const int db_value[db_unknown+1] = {
@@ -128,6 +132,10 @@ const int db_value[db_unknown+1] = {
    db_xattrs,           /* "xattrs",  */
    db_e2fsattrs,        /* "e2fsattrs",  */
    db_capabilities,     /* "capabilities", */
+   db_gostr3411_94,     /* "GOST R 34.11-94",  */
+   db_stribog256,       /* "GOST R 34.11-2012, 256 bit.",  */
+   db_stribog512,       /* "GOST R 34.11-2012, 512 bit.",  */
+   db_gostr3411_cp,     /* "GOST R 34.11-94 with CryptoPro-A S-Box.",  */
    db_unknown };        /* "unknown"  */
 
 const char* db_namealias[db_alias_size] = {
@@ -440,7 +448,12 @@ db_line* db_char2line(char** ss,int db){
   line->e2fsattrs=0;
   line->cntx=NULL;
   line->capabilities=NULL;
-  
+
+  line->gostr3411_94=NULL;
+  line->stribog256=NULL;
+  line->stribog512=NULL;
+  line->gostr3411_cp=NULL;
+
   line->attr=conf->attr; /* attributes from @@dbspec */
 
   for(i=0;i<*db_osize;i++){
@@ -673,6 +686,28 @@ db_line* db_char2line(char** ss,int db){
       line->capabilities = (char *)val;
       break;
     }
+#ifdef WITH_GCRYPT_GOST
+    case db_gostr3411_94 : {
+      line->gostr3411_94=base64tobyte(ss[(*db_order)[i]],
+                                strlen(ss[(*db_order)[i]]), NULL);
+      break;
+    }
+    case db_stribog256 : {
+      line->stribog256=base64tobyte(ss[(*db_order)[i]],
+                                strlen(ss[(*db_order)[i]]), NULL);
+      break;
+    }
+    case db_stribog512 : {
+      line->stribog512=base64tobyte(ss[(*db_order)[i]],
+                                strlen(ss[(*db_order)[i]]), NULL);
+      break;
+    }
+    case db_gostr3411_cp : {
+      line->gostr3411_cp=base64tobyte(ss[(*db_order)[i]],
+                                strlen(ss[(*db_order)[i]]), NULL);
+      break;
+    }
+#endif
 
     case db_unknown : {
       /* Unknown fields are ignored. */
@@ -901,6 +936,12 @@ void free_db_line(db_line* dl)
     free(dl->xattrs->ents);
   checked_free(dl->xattrs);
   checked_free(dl->cntx);
+#ifdef WITH_GCRYPT_GOST
+  checked_free(dl->gostr3411_94);
+  checked_free(dl->stribog256);
+  checked_free(dl->stribog512);
+  checked_free(dl->gostr3411_cp);
+#endif
 }
 const char* aide_key_5=CONFHMACKEY_05;
 const char* db_key_5=DBHMACKEY_05;

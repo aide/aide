@@ -117,6 +117,9 @@ const DB_ATTR_TYPE details_attributes[] = { DB_FTYPE, DB_LINKNAME, DB_SIZE, DB_S
 #ifdef WITH_CAPABILITIES
         , DB_CAPABILITIES
 #endif
+#ifdef WITH_GCRYPT_GOST
+        , DB_GOSTR3411_94, DB_STRIBOG256, DB_STRIBOG512, DB_GOSTR3411_CP
+#endif
 };
 
 const char* details_string[] = { _("File type") , _("Lname"), _("Size"), _("Size (>)"), _("Bcount"), _("Perm"), _("Uid"), _("Gid"), _("Atime"), _("Mtime"), _("Ctime"), _("Inode"), _("Linkcount"), _("MD5"), _("SHA1"), _("RMD160"), _("TIGER"), _("SHA256"), _("SHA512")
@@ -137,6 +140,9 @@ const char* details_string[] = { _("File type") , _("Lname"), _("Size"), _("Size
 #endif
 #ifdef WITH_CAPABILITIES
     , _("Caps")
+#endif
+#ifdef WITH_GCRYPT_GOST
+    , _("GOSTR3411_94"), _("STRIBOG256"), _("STRIBOG512"), _("GOSTR3411_CP")
 #endif
 };
 
@@ -422,6 +428,12 @@ snprintf(*values[0], l, "%s",s);
         easy_md(DB_GOST,gost,HASH_GOST_LEN)
         easy_md(DB_CRC32B,crc32b,HASH_CRC32B_LEN)
         easy_md(DB_WHIRLPOOL,whirlpool,HASH_WHIRLPOOL_LEN)
+#endif
+#ifdef WITH_GCRYPT_GOST
+        easy_md(DB_GOSTR3411_94,gostr3411_94,HASH_GOSTR3411_94_LEN)
+        easy_md(DB_STRIBOG256,stribog256,HASH_STRIBOG256_LEN)
+        easy_md(DB_STRIBOG512,stribog512,HASH_STRIBOG512_LEN)
+        easy_md(DB_GOSTR3411_CP,gostr3411_cp,HASH_GOSTR3411_CP_LEN)
 #endif
 #ifdef WITH_SELINUX
         } else if (DB_SELINUX&attr) {

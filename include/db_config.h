@@ -151,13 +151,18 @@ typedef enum {
    db_xattrs, 			/* "xattrs",      */
    db_e2fsattrs,                /* "e2fsattrs"    */
    db_capabilities,             /* "capabilities" */
+   db_gostr3411_94,             /* "GOST R 34.11-94",  */
+   db_stribog256,               /* "GOST R 34.11-2012, 256 bit.",  */
+   db_stribog512,               /* "GOST R 34.11-2012, 512 bit.",  */
+   db_gostr3411_cp,             /* "GOST R 34.11-94 with CryptoPro-A S-Box.",  */
    db_unknown } DB_FIELD; 	/* "unknown"  */
 
 /* db_unknown must be last because it is used to determine size of
    DB_FILED */
 
 #define DB_HASHES    (DB_MD5|DB_SHA1|DB_RMD160|DB_TIGER|DB_CRC32|DB_HAVAL| \
-		      DB_GOST|DB_CRC32B|DB_SHA256|DB_SHA512|DB_WHIRLPOOL)
+		      DB_GOST|DB_CRC32B|DB_SHA256|DB_SHA512|DB_WHIRLPOOL| \
+		      DB_GOSTR3411_94|DB_STRIBOG256|DB_STRIBOG512|DB_GOSTR3411_CP)
 
 extern const char* db_names[db_unknown+1];
 extern const int db_value[db_unknown+1];
@@ -211,6 +216,11 @@ typedef struct db_line {
   byte* gost;
   byte* crc32b;
   byte* whirlpool;
+
+  byte* gostr3411_94;
+  byte* stribog256;
+  byte* stribog512;
+  byte* gostr3411_cp;
 
   acl_type* acl;
   /* Something here.. */

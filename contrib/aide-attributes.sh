@@ -24,6 +24,7 @@ attributes=( "filename" "linkname" "perm" "uid" "gid" "size" "atime" \
     "rmd160" "tiger" "crc32" "haval" "gost" "crc32b" "attr" \
     "acl" "bsize" "rdev" "dev" "checkmask" "growingsize" "checkinode" \
     "allownewfile" "allowrmfile" "sha256" "sha512"  "selinux" \
+    "gostr3411_94" "stribog256" "stribog512" "gostr3411_cp" \
     "xattrs" "whirlpool" "ftype" "e2fsattrs" "capabilities" )
 
 NAME="aide-attributes"

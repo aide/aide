@@ -173,6 +173,12 @@ void free_hashes(db_line* dl){
 #endif
   free_hash(sha256);
   free_hash(sha512);
+#ifdef WITH_GCRYPT_GOST
+  free_hash(gostr3411_94);
+  free_hash(stribog256);
+  free_hash(stribog512);
+  free_hash(gostr3411_cp);
+#endif
 }
 
 int stat_cmp(struct stat* f1,struct stat* f2) {

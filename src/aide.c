@@ -433,6 +433,12 @@ static void setdefaults_before_config()
 #ifdef WITH_CAPABILITIES
   do_groupdef("caps",DB_CAPABILITIES);
 #endif
+#ifdef WITH_GCRYPT_GOST
+  do_groupdef("gostr3411_94",DB_GOSTR3411_94);
+  do_groupdef("stribog256",DB_STRIBOG256);
+  do_groupdef("stribog512",DB_STRIBOG512);
+  do_groupdef("gostr3411_cp",DB_GOSTR3411_CP);
+#endif
 
   X=0LLU;
 #ifdef WITH_ACL

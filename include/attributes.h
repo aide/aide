@@ -63,6 +63,10 @@
 #define DB_FTYPE        (1LLU<<35) /* "file type",      */
 #define DB_E2FSATTRS    (1LLU<<36) /* "e2fs attributes" */
 #define DB_CAPABILITIES (1LLU<<37) /* "capabilities"    */
+#define DB_GOSTR3411_94 (1LLU<<38) /* "GOST R 34.11-94",  */
+#define DB_STRIBOG256   (1LLU<<39) /* "GOST R 34.11-2012, 256 bit.",  */
+#define DB_STRIBOG512   (1LLU<<40) /* "GOST R 34.11-2012, 512 bit.",  */
+#define DB_GOSTR3411_CP (1LLU<<41) /* "GOST R 34.11-94 with CryptoPro-A S-Box.",  */
 
 /* memory for the returned string is obtained with malloc(3), and should be freed with free(3). */
 char *diff_attributes(DB_ATTR_TYPE, DB_ATTR_TYPE);

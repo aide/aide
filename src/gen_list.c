@@ -261,6 +261,12 @@ static DB_ATTR_TYPE get_changed_attributes(db_line* l1,db_line* l2) {
 #ifdef WITH_CAPABILITIES
     easy_function_compare(DB_CAPABILITIES,capabilities,has_str_changed);
 #endif
+#ifdef WITH_GCRYPT_GOST
+    easy_md_compare(DB_GOSTR3411_94,gostr3411_94,HASH_GOSTR3411_94_LEN);
+    easy_md_compare(DB_STRIBOG256,stribog256,HASH_STRIBOG256_LEN);
+    easy_md_compare(DB_STRIBOG512,stribog512,HASH_STRIBOG512_LEN);
+    easy_md_compare(DB_GOSTR3411_CP,gostr3411_cp,HASH_GOSTR3411_CP_LEN);
+#endif
     error(255,"Debug, changed attributes for entry %s [%llx %llx]: %llx\n", l1->filename,l1->attr,l2->attr,ret);
     return ret;
 }
@@ -853,6 +859,20 @@ void strip_dbline(db_line* line)
 #ifdef WITH_CAPABILITIES
   if(!(attr&DB_CAPABILITIES)){
     checked_free(line->capabilities);
+  }
+#endif
+#ifdef WITH_GCRYPT_GOST
+  if(!(attr&DB_GOSTR3411_94)){
+    checked_free(line->gostr3411_94);
+  }
+  if(!(attr&DB_STRIBOG256)){
+    checked_free(line->stribog256);
+  }
+  if(!(attr&DB_STRIBOG512)){
+    checked_free(line->stribog512);
+  }
+  if(!(attr&DB_GOSTR3411_CP)){
+    checked_free(line->gostr3411_cp);
   }
 #endif
   /* e2fsattrs is stripped within e2fsattrs2line in do_md */

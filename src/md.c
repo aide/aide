@@ -71,6 +71,24 @@ DB_ATTR_TYPE hash_gcrypt2attr(int i) {
     r=DB_CRC32;
     break;
   }
+#ifdef WITH_GCRYPT_GOST
+  case GCRY_MD_GOSTR3411_94: {
+    r=DB_GOSTR3411_94;
+    break;
+  }
+  case GCRY_MD_STRIBOG256: {
+    r=DB_STRIBOG256;
+    break;
+  }
+  case GCRY_MD_STRIBOG512: {
+    r=DB_STRIBOG512;
+    break;
+  }
+  case GCRY_MD_GOSTR3411_CP: {
+    r=DB_GOSTR3411_CP;
+    break;
+  }
+#endif
   default:
     break;
   }
@@ -298,7 +316,13 @@ int close_md(struct md_container* md) {
   get_libgcrypt_hash(DB_CRC32,GCRY_MD_CRC32,crc32,HASH_CRC32_LEN);
   
   /*.    There might be more hashes in the library. Add those here..   */
-  
+#ifdef WITH_GCRYPT_GOST
+  get_libgcrypt_hash(DB_GOSTR3411_94,GCRY_MD_GOSTR3411_94,gostr3411_94,HASH_GOSTR3411_94_LEN);
+  get_libgcrypt_hash(DB_STRIBOG256,GCRY_MD_STRIBOG256,stribog256,HASH_STRIBOG256_LEN);
+  get_libgcrypt_hash(DB_STRIBOG512,GCRY_MD_STRIBOG512,stribog512,HASH_STRIBOG512_LEN);
+  get_libgcrypt_hash(DB_GOSTR3411_CP,GCRY_MD_GOSTR3411_CP,gostr3411_cp,HASH_GOSTR3411_CP_LEN);
+#endif
+
   gcry_md_reset(md->mdh);
 #endif  
 
@@ -370,4 +394,11 @@ void md2line(struct md_container* md,struct db_line* line) {
   copyhash(DB_SHA256,sha256,HASH_SHA256_LEN);
   copyhash(DB_SHA512,sha512,HASH_SHA512_LEN);
   copyhash(DB_WHIRLPOOL,whirlpool,HASH_WHIRLPOOL_LEN);
+
+#ifdef WITH_GCRYPT_GOST
+  copyhash(DB_GOSTR3411_94,gostr3411_94,HASH_GOSTR3411_94_LEN);
+  copyhash(DB_STRIBOG256,stribog256,HASH_STRIBOG256_LEN);
+  copyhash(DB_STRIBOG512,stribog512,HASH_STRIBOG512_LEN);
+  copyhash(DB_GOSTR3411_CP,gostr3411_cp,HASH_GOSTR3411_CP_LEN);
+#endif
 }

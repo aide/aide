@@ -519,6 +519,20 @@ void update_db_out_order(DB_ATTR_TYPE attr)
   if((attr&DB_CHECKMASK) && (check_dboo(db_checkmask)!=RETFAIL)){
     conf->db_out_order[conf->db_out_size++]=db_checkmask;
   }
+#ifdef WITH_GCRYPT_GOST
+  if((attr&DB_GOSTR3411_94) && (check_dboo(db_gostr3411_94)!=RETFAIL)){
+    conf->db_out_order[conf->db_out_size++]=db_gostr3411_94;
+  }
+  if((attr&DB_STRIBOG256) && (check_dboo(db_stribog256)!=RETFAIL)){
+    conf->db_out_order[conf->db_out_size++]=db_stribog256;
+  }
+  if((attr&DB_STRIBOG512) && (check_dboo(db_stribog512)!=RETFAIL)){
+    conf->db_out_order[conf->db_out_size++]=db_stribog512;
+  }
+  if((attr&DB_GOSTR3411_CP) && (check_dboo(db_gostr3411_cp)!=RETFAIL)){
+    conf->db_out_order[conf->db_out_size++]=db_gostr3411_cp;
+  }
+#endif
 }
 
 

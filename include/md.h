@@ -45,10 +45,19 @@
 
 #ifdef WITH_GCRYPT
 #include <gcrypt.h>
+#ifdef WITH_GCTYPT_GOST
+#define HASH_GCRYPT_COUNT GCRY_MD_BLAKE2S_128 //325
+#ifndef WITH_MHASH
+#define HASH_USE_GCRYPT (DB_MD5|DB_SHA1|DB_RMD160|DB_TIGER|DB_CRC32|\
+                         DB_HAVAL|DB_CRC32|DB_SHA256|DB_SHA512|\
+			 DB_GOSTR3411_94|DB_STRIBOG256|DB_STRIBOG512|DB_GOSTR3411_CP)
+#endif
+#else
 #define HASH_GCRYPT_COUNT GCRY_MD_CRC32
 #ifndef WITH_MHASH
 #define HASH_USE_GCRYPT (DB_MD5|DB_SHA1|DB_RMD160|DB_TIGER|DB_CRC32|\
                          DB_HAVAL|DB_CRC32|DB_SHA256|DB_SHA512)
+#endif
 #endif
 #endif
 
@@ -75,6 +84,10 @@
 #define HASH_ADLER32_LEN 4
 #define HASH_CRC32B_LEN 4
 #define HASH_CRC32_LEN 4
+#define HASH_GOSTR3411_94_LEN 32
+#define HASH_STRIBOG256_LEN 32
+#define HASH_STRIBOG512_LEN 64
+#define HASH_GOSTR3411_CP_LEN 32
 
 
 /*
@@ -119,7 +132,13 @@ typedef struct md_container {
   char sha512[HASH_SHA512_LEN];
   char adler32[HASH_ADLER32_LEN];
   char whirlpool[HASH_WHIRLPOOL_LEN];
-  
+
+#ifdef WITH_GCRYPT_GOST  
+  char gostr3411_94[HASH_GOSTR3411_94_LEN];
+  char stribog256[HASH_STRIBOG256_LEN];
+  char stribog512[HASH_STRIBOG512_LEN];
+  char gostr3411_cp[HASH_GOSTR3411_CP_LEN];
+#endif
 
   /* 
      Attr which are to be calculated.

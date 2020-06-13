@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright © 2010 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+# Copyright © 2010,2019 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

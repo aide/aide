@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2003,2005,2006,2010,2011,2013,2019 Rami Lehti, Pablo
+ * Copyright (C) 1999-2003,2005,2006,2010,2011,2013,2019,2020 Rami Lehti, Pablo
  * Virolainen, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -36,7 +36,7 @@
 #include "be.h"
 
 #ifdef WITH_PSQL
-#include "libpq-fe.h"
+#include <postgresql/libpq-fe.h>
 #endif
 /*for locale support*/
 #include "locale-aide.h"

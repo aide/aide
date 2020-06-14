@@ -830,29 +830,19 @@ AC_ARG_WITH(initial_errors_to,
 	AC_DEFINE_UNQUOTED(INITIALERRORSTO,"stderr",[send errors to stderr])
 )
 
-AC_MSG_CHECKING(for PostgresSQL support)
 AC_ARG_WITH([psql],
-	[AC_HELP_STRING([--with-psql],
-		[use postgresql library for storing databases])],
-	[],
-	[with_psql=no]
-)
-
-AS_IF([test "x$with_psql" != xno],
-	AC_DEFINE(WITH_PSQL,1,[postgresql support])
-	AC_CHECK_LIB(pq,PQclear,[],
-		with_psql=no
-		AC_MSG_RESULT([not found])
-  	)
-	PSQLLIB="-lpq"
-	compoptionstring="${compoptionstring}WITH_PSQL\\n"
-	AC_MSG_RESULT(yes),
-	PSQLLIB=""
-	[with_psql=no]
-	AC_MSG_RESULT([no])
-)
-
-AC_SUBST(PSQLLIB)
+ AS_HELP_STRING([--with-psql],
+  [use postgresql library for storing databases (default: no)]),
+ [with_psql=$withval], [with_psql=no])
+AS_IF([test "x$with_psql" = "xyes"], [
+       if test "$aide_static_choice" == "yes"; then
+           PKG_CHECK_MODULES_STATIC(PSQL, [libpq], , [AC_MSG_RESULT([libpq not found by pkg-config - Try --without-psql or add directory containing libpq.pc to PKG_CONFIG_PATH environment variable])])
+        else
+           PKG_CHECK_MODULES(PSQL, [libpq], , [AC_MSG_RESULT([libpq not found by pkg-config - Try --without-psql or add directory containing libpq.pc to PKG_CONFIG_PATH environment variable])])
+        fi
+        AC_DEFINE(WITH_PSQL,1,[Define to 1 if libpq is available])
+        compoptionstring="${compoptionstring}WITH_PSQL\\n"
+])
 
 # Check for Linux auditing API
 #

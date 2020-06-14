@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 2000-2002,2004-2006,2011 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 2000-2002,2004-2006,2011,2020 Rami Lehti, Pablo Virolainen,
  * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -30,18 +30,15 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-#include <gcrypt.h>
+#include "md.h"
 #include "base64.h"
 #include "db.h"
 
 #include "db_sql.h"
 #include "db_config.h"
-#include "libpq-fe.h"
+#include <postgresql/libpq-fe.h>
 #include "error.h"
 
-#ifdef WITH_MHASH
-#include <mhash.h>
-#endif
 
 char* db_get_sql(db_line*,db_config*);
 
@@ -223,7 +220,7 @@ void db_readline_sql_byte(void** d,int db,int i, db_config* conf) {
   db_readline_sql_char(d,db,i, conf);
   
   if (*d!=NULL) {
-    *((byte*)d)=base64tobyte(*d,strlen(*d));
+    *((byte*)d)=base64tobyte(*d,strlen(*d), NULL);
   }
   
 }
@@ -485,23 +482,23 @@ char* db_get_sql(db_line* line,db_config* conf){
     }
     case db_md5 : {
       sql_write_byte_base64(line->md5,
-			   gcry_md_get_algo_dlen(GCRY_MD_MD5),s,i);
+			   HASH_MD5_LEN,s,i);
       break;
     }
     case db_sha1 : {
       sql_write_byte_base64(line->sha1,
-			   gcry_md_get_algo_dlen(GCRY_MD_SHA1),s,i);
+			   HASH_SHA1_LEN,s,i);
       break;
     }
     case db_rmd160 : {
       sql_write_byte_base64(line->rmd160,
-			   gcry_md_get_algo_dlen(GCRY_MD_RMD160),
+			   HASH_RMD160_LEN,
 			   s,i);
       break;
     }
     case db_tiger : {
       sql_write_byte_base64(line->tiger,
-			   gcry_md_get_algo_dlen(GCRY_MD_TIGER),
+			   HASH_TIGER_LEN,
 			   s,i);
       break;
     }
@@ -509,32 +506,30 @@ char* db_get_sql(db_line* line,db_config* conf){
       sql_writeoct(line->perm,s,i);
       break;
     }
-#ifdef WITH_MHASH
     case db_crc32 : {
       sql_write_byte_base64(line->crc32,
-			   mhash_get_block_size(MHASH_CRC32),
+			   HASH_CRC32_LEN,
 			   s,i);
       break;
     }
     case db_crc32b : {
       sql_write_byte_base64(line->crc32b,
-			   mhash_get_block_size(MHASH_CRC32B),
+			   HASH_CRC32B_LEN,
 			   s,i);
       break;
     }
     case db_haval : {
       sql_write_byte_base64(line->haval,
-			   mhash_get_block_size(MHASH_HAVAL256),
+			   HASH_HAVAL256_LEN,
 			   s,i);
       break;
     }
     case db_gost : {
       sql_write_byte_base64(line->gost ,
-			   mhash_get_block_size(MHASH_GOST),
+			   HASH_GOST_LEN,
 			   s,i);
       break;
     }
-#endif
     case db_acl : {
       error(0,"TODO db_acl write to db_sql.c");
       /* TODO */

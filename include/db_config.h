@@ -369,7 +369,7 @@ typedef struct db_config {
 } db_config;
 
 #ifdef WITH_PSQL
-#include "libpq-fe.h"
+#include <postgresql/libpq-fe.h>
 
 typedef struct psql_data{
   PGconn* conn;

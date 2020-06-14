@@ -47,7 +47,7 @@ static int be_sql_readinit(psql_data* ret) {
   /* Yes.. we don't want to know about two first result.. 
      and we want no memoryleaking.
   */
-  int i,j,nFields;
+  int i,nFields;
   char* s;
   char declare []="DECLARE aidecursor CURSOR FOR select * from ";
   

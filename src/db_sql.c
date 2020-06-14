@@ -32,6 +32,7 @@
 #include <string.h>
 #include "md.h"
 #include "base64.h"
+#include "util.h"
 #include "db.h"
 
 #include "db_sql.h"
@@ -45,12 +46,10 @@ char* db_get_sql(db_line*,db_config*);
 int _db_check_result(PGconn *conn, PGresult *res, char *query) 
 {
   int status = 0;
-  int ret = RETOK;
 
 
   if (!res || ( (PQresultStatus(res) != PGRES_COMMAND_OK) &&
                 (PQresultStatus(res) != PGRES_TUPLES_OK) )){
-    ret = RETFAIL;
     if (res!=NULL) {
         error(0,"Sql error %s while doing %s\n", PQerrorMessage(conn), query);
     } else {
@@ -64,7 +63,7 @@ int _db_check_result(PGconn *conn, PGresult *res, char *query)
   return status;
 }
 
-int db_writespec_sql(db_config* conf){
+int db_writespec_sql(db_config* dbconf){
   PGresult *res;
   int i;
   int table_exists;
@@ -80,9 +79,9 @@ int db_writespec_sql(db_config* conf){
 
   /* check if the table exists already */
   sprintf(s, "SELECT * FROM pg_class WHERE relname = '%s'", 
-             ((psql_data*)conf->db_out)->table);
-  res = PQexec(((psql_data*)conf->db_out)->conn, s);
-  if ( _db_check_result(((psql_data*)conf->db_out)->conn, res, s) == 0 ) {
+             ((psql_data*)dbconf->db_out)->table);
+  res = PQexec(((psql_data*)dbconf->db_out)->conn, s);
+  if ( _db_check_result(((psql_data*)dbconf->db_out)->conn, res, s) == 0 ) {
     ret = RETFAIL;
   }
   table_exists = PQntuples(res) == 1 ? 1 : 0;
@@ -95,24 +94,24 @@ int db_writespec_sql(db_config* conf){
     
     s = strcat(s, "CREATE TABLE ");
 
-    s = strcat(s, ((psql_data*)conf->db_out)->table);
+    s = strcat(s, ((psql_data*)dbconf->db_out)->table);
     s = strcat(s, "(");
   
-    for (i=0;i<conf->db_out_size;i++) {
+    for (i=0;i<dbconf->db_out_size;i++) {
       if (i!=0) {
         s = strcat(s, ",");
       }
-      s = strcat(s, db_names[conf->db_out_order[i]]);
+      s = strcat(s, db_names[dbconf->db_out_order[i]]);
       s = strcat(s, " ");
-      s = strcat(s, db_sql_types[conf->db_out_order[i]]);
+      s = strcat(s, db_sql_types[dbconf->db_out_order[i]]);
     }
     s = strcat(s,");");
 
     error(255,"SQL:%s\n",s);
     
-    res = PQexec(((psql_data*)conf->db_out)->conn,s);
+    res = PQexec(((psql_data*)dbconf->db_out)->conn,s);
 
-    if (_db_check_result(((psql_data*)conf->db_out)->conn, res, s) == 0) {
+    if (_db_check_result(((psql_data*)dbconf->db_out)->conn, res, s) == 0) {
       ret = RETFAIL;
     }
   
@@ -126,12 +125,11 @@ int db_writespec_sql(db_config* conf){
   /* FIXME!! No error checkin may be broken. Fix malloc also */ 
 }
 
-int db_writeline_sql(db_line* line,db_config* conf){
+int db_writeline_sql(db_line* line,db_config* dbconf){
 
   PGresult *res;
-  int i;
   int ret=RETOK;
-  char* s=db_get_sql(line,conf) ;
+  char* s=db_get_sql(line,dbconf) ;
   
   if (s==NULL) {
     return RETFAIL;
@@ -139,8 +137,8 @@ int db_writeline_sql(db_line* line,db_config* conf){
   
   error(255,"SQL:%s",s);
   
-  res = PQexec(((psql_data*)conf->db_out)->conn,s);
-  if ( _db_check_result(((psql_data*)conf->db_out)->conn, res, s) == 0 ) {
+  res = PQexec(((psql_data*)dbconf->db_out)->conn,s);
+  if ( _db_check_result(((psql_data*)dbconf->db_out)->conn, res, s) == 0 ) {
     ret = RETFAIL;
   }
   PQclear(res);
@@ -150,25 +148,24 @@ int db_writeline_sql(db_line* line,db_config* conf){
   return ret;
 }
 
-void db_readline_sql_int(int* d,int db,int i, db_config* conf) 
-{
-  FILE** db_filep=NULL;
+void db_readline_sql_int(int* d,int db,int i, db_config* dbconf) {
+  psql_data *sql_data;
 
   switch (db) {
   case DB_OLD: {
-    db_filep=&(conf->db_in);
+    sql_data=dbconf->db_in;
     break;
   }
   case DB_NEW: {
-    db_filep=&(conf->db_new);
+    sql_data=dbconf->db_new;
     break;
   }
   }
 
-  if (((psql_data*)(*db_filep))->des[i]!=-1) {
-    *d=(int)PQgetvalue(((psql_data*)(*db_filep))->res, 
-		       ((psql_data*)(*db_filep))->curread,
-		       ((psql_data*)(*db_filep))->des[i]);
+  if (sql_data->des[i]!=-1) {
+    *d=(int)PQgetvalue(sql_data->res,
+		       sql_data->curread,
+		       sql_data->des[i]);
   } else {
     *d=0;
   }
@@ -176,38 +173,34 @@ void db_readline_sql_int(int* d,int db,int i, db_config* conf)
 
 }
 
-void db_readline_sql_char(void** d,int db,const int i, db_config* conf) 
-{
+void db_readline_sql_char(void** d,int db,const int i, db_config* dbconf) {
   
   volatile int cr,des;
-  psql_data* data;
-  FILE** db_filep=NULL;
+  psql_data* sql_data;
 
   switch (db) {
   case DB_OLD: {
-    db_filep=&(conf->db_in);
+    sql_data=dbconf->db_in;
     break;
   }
   case DB_NEW: {
-    db_filep=&(conf->db_new);
+    sql_data=dbconf->db_new;
     break;
   }
   }
-
-  data=((psql_data*)(*db_filep));
   
-  cr=data->curread;
-  des=data->des[i];
+  cr=sql_data->curread;
+  des=sql_data->des[i];
   if (des!=-1) {
     volatile char* s=NULL;
     
-    s = (char*)PQgetvalue(data->res,cr,des);
+    s = (char*)PQgetvalue(sql_data->res,cr,des);
     if (s!=NULL) {
       *d=(void*)strdup((char*)s);
     } else {
       *d=NULL;
     }
-    error(254,"sql_readline_sql_char %i,%i %s got %s\n",cr,des,db_names[i],*d);
+    error(254,"sql_readline_sql_char %i,%i %s got %s\n",cr,des,db_names[i],(char *)*d);
   } else {
     *d=NULL;
     error(254,"sql_readline_sql_char %i,%i %s got NULL\n",cr,des,db_names[i]);
@@ -215,9 +208,9 @@ void db_readline_sql_char(void** d,int db,const int i, db_config* conf)
   
 }
 
-void db_readline_sql_byte(void** d,int db,int i, db_config* conf) {
+void db_readline_sql_byte(void** d,int db,int i, db_config* dbconf) {
   
-  db_readline_sql_char(d,db,i, conf);
+  db_readline_sql_char(d,db,i, dbconf);
   
   if (*d!=NULL) {
     *((byte*)d)=base64tobyte(*d,strlen(*d), NULL);
@@ -225,9 +218,9 @@ void db_readline_sql_byte(void** d,int db,int i, db_config* conf) {
   
 }
 
-void db_readline_sql_time(void** d,int db,int i, db_config* conf) {
+void db_readline_sql_time(void** d,int db,int i, db_config* dbconf) {
   
-  db_readline_sql_char(d,db,i, conf);
+  db_readline_sql_char(d,db,i, dbconf);
   
   if (*d!=NULL) {
     *((time_t*)d)=base64totime_t(*d);
@@ -235,70 +228,60 @@ void db_readline_sql_time(void** d,int db,int i, db_config* conf) {
   
 }
 
-db_line* db_readline_sql(int db, db_config* conf) {
+db_line* db_readline_sql(int db, db_config* dbconf) {
   
   volatile db_line* rline;
-  int i;
-  url_t* db_url=NULL;
-  FILE** db_filep=NULL;
-  int* db_osize=0;
-  DB_FIELD** db_order=NULL;
+  psql_data *sql_data;
 
   switch (db) {
   case DB_OLD: {
-    db_url=conf->db_in_url;
-    db_filep=&(conf->db_in);
-    db_osize=&(conf->db_in_size);
-    db_order=&(conf->db_in_order);
+    sql_data=dbconf->db_in;
     break;
   }
   case DB_NEW: {
-    db_url=conf->db_new_url;
-    db_filep=&(conf->db_new);
-    db_osize=&(conf->db_new_size);
-    db_order=&(conf->db_new_order);
+    sql_data=dbconf->db_new;
     break;
   }
   }
 
   
-  if (((psql_data*)(*db_filep))->curread>=
-      ((psql_data*)(*db_filep))->maxread) {
+  if (sql_data->curread>=
+      sql_data->maxread) {
     error(255,"Everything read from SQL\n");
     return NULL;
   }
   rline=(db_line*)malloc(1*sizeof(db_line));
   
-  db_readline_sql_byte((void*)&(rline->md5),db,(int)db_md5, conf);
-  db_readline_sql_byte((void*)&(rline->sha1),db,db_sha1, conf);
-  db_readline_sql_byte((void*)&(rline->rmd160),db,db_rmd160, conf);
-  db_readline_sql_byte((void*)&(rline->tiger),db,db_tiger, conf);
+  db_readline_sql_byte((void*)&(rline->md5),db,(int)db_md5, dbconf);
+  db_readline_sql_byte((void*)&(rline->sha1),db,db_sha1, dbconf);
+  db_readline_sql_byte((void*)&(rline->rmd160),db,db_rmd160, dbconf);
+  db_readline_sql_byte((void*)&(rline->tiger),db,db_tiger, dbconf);
 #ifdef WITH_MHASH
-  db_readline_sql_byte((void*)&(rline->crc32),db,db_crc32, conf);
-  db_readline_sql_byte((void*)&(rline->haval),db,db_haval, conf);
-  db_readline_sql_byte((void*)&(rline->gost),db,db_gost, conf);
+  db_readline_sql_byte((void*)&(rline->crc32),db,db_crc32, dbconf);
+  db_readline_sql_byte((void*)&(rline->haval),db,db_haval, dbconf);
+  db_readline_sql_byte((void*)&(rline->gost),db,db_gost, dbconf);
 #endif
-  db_readline_sql_char((void*)&(rline->fullpath),db,db_filename, conf);
+  db_readline_sql_char((void*)&(rline->fullpath),db,db_filename, dbconf);
   rline->filename=rline->fullpath;
-  db_readline_sql_char((void*)&(rline->linkname),db,db_linkname, conf);
+  db_readline_sql_char((void*)&(rline->linkname),db,db_linkname, dbconf);
   
-  db_readline_sql_int((void*)&(rline->perm),db,db_perm, conf);
-  db_readline_sql_int((void*)&(rline->uid),db,db_uid, conf);
-  db_readline_sql_int((void*)&(rline->gid),db,db_gid, conf);
-  db_readline_sql_int((void*)&(rline->inode),db,db_inode, conf);
-  db_readline_sql_int((void*)&(rline->nlink),db,db_lnkcount, conf);
+  db_readline_sql_int((void*)&(rline->perm),db,db_perm, dbconf);
+  db_readline_sql_int((void*)&(rline->uid),db,db_uid, dbconf);
+  db_readline_sql_int((void*)&(rline->gid),db,db_gid, dbconf);
+  db_readline_sql_int((void*)&(rline->inode),db,db_inode, dbconf);
+  db_readline_sql_int((void*)&(rline->nlink),db,db_lnkcount, dbconf);
   
-  db_readline_sql_int((void*)&(rline->size),db,*db_osize, conf);
-  db_readline_sql_int((void*)&(rline->bcount),db,db_bcount, conf);
-  db_readline_sql_int((void*)&(rline->attr),db,db_attr, conf);
+  db_readline_sql_int((void*)&(rline->size),db,db_size, dbconf);
+  db_readline_sql_int((void*)&(rline->bcount),db,db_bcount, dbconf);
+  db_readline_sql_int((void*)&(rline->attr),db,db_attr, dbconf);
   
-  db_readline_sql_time((void*)&(rline->atime),db,db_atime, conf);
-  db_readline_sql_time((void*)&(rline->ctime),db,db_ctime, conf);
-  db_readline_sql_time((void*)&(rline->mtime),db,db_mtime, conf);
+  db_readline_sql_time((void*)&(rline->atime),db,db_atime, dbconf);
+  db_readline_sql_time((void*)&(rline->ctime),db,db_ctime, dbconf);
+  db_readline_sql_time((void*)&(rline->mtime),db,db_mtime, dbconf);
 #ifdef WITH_ACL
   rline->acl=NULL;
 #endif
-  ((psql_data*)(*db_filep))->curread++;
+  sql_data->curread++;
   
   error(255,"filename %s\n",rline->filename);
   
@@ -324,7 +307,7 @@ void sql_writeoct(int data,char *s,int i){
   if (i!=0) {
     s = strcat(s,",");
   }
-  sprintf(t,"%lo",data);
+  sprintf(t,"%o",data);
   
   strcat(s,t);
   
@@ -333,7 +316,6 @@ void sql_writeoct(int data,char *s,int i){
 void sql_write_time_base64(time_t data,char* s,int i){
   static char* ptr=NULL;
   char* tmpstr=NULL;
-  int retval=0;
   
   if(i!=0){
     strcat(s,",");
@@ -356,7 +338,7 @@ void sql_write_time_base64(time_t data,char* s,int i){
   sprintf(ptr,"%li",data);
 
 
-  tmpstr=encode_base64(ptr,strlen(ptr));
+  tmpstr=encode_base64((byte *)ptr,strlen(ptr));
   strcat(s,"'");
   strcat(s,tmpstr);
   strcat(s,"'");
@@ -371,7 +353,6 @@ void sql_write_time_base64(time_t data,char* s,int i){
 void sql_write_byte_base64(byte*data,size_t len,char* s,int i )
 {
   char* tmpstr=NULL;
-  int retval=0;
   
   tmpstr=encode_base64(data,len);
   if(i){
@@ -392,7 +373,7 @@ void sql_write_byte_base64(byte*data,size_t len,char* s,int i )
 }
 
 
-char* db_get_sql(db_line* line,db_config* conf){
+char* db_get_sql(db_line* line,db_config* dbconf){
   
   int i;
   char* s=(char*) malloc(sizeof(char)*10240); /* FIXME .. */
@@ -408,11 +389,11 @@ char* db_get_sql(db_line* line,db_config* conf){
      provided name from the configfile */
   
   s = strcat(s,"INSERT INTO ");
-  s = strcat(s, ((psql_data*)conf->db_out)->table);
+  s = strcat(s, ((psql_data*)dbconf->db_out)->table);
   s = strcat(s," values(");
   
-  for(i=0;i<conf->db_out_size;i++){
-    switch (conf->db_out_order[i]) {
+  for(i=0;i<dbconf->db_out_size;i++){
+    switch (dbconf->db_out_order[i]) {
     case db_filename : {
       char* tmp;
       if ( i!=0 ) {

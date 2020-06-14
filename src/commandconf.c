@@ -236,7 +236,7 @@ int db_input_wrapper(char* buf, int max_size, int db)
   void* key=NULL;
   int keylen;
 #endif
-  FILE** db_filep=NULL;
+  FILE* db_filep=NULL;
 #ifdef WITH_ZLIB
   gzFile* db_gzp=NULL;
 #endif
@@ -252,7 +252,7 @@ int db_input_wrapper(char* buf, int max_size, int db)
     md=&(conf->dboldmd);
 #endif
     
-    db_filep=&(conf->db_in);
+    db_filep=conf->db_in;
     
 #ifdef WITH_ZLIB
     db_gzp=&(conf->db_gzin);
@@ -269,7 +269,7 @@ int db_input_wrapper(char* buf, int max_size, int db)
     md=&(conf->dbnewmd);
 #endif
     
-    db_filep=&(conf->db_new);
+    db_filep=conf->db_new;
     
 #ifdef WITH_ZLIB
     db_gzp=&(conf->db_gznew);
@@ -283,7 +283,7 @@ int db_input_wrapper(char* buf, int max_size, int db)
   case url_http:
   case url_https:
   case url_ftp: {
-    retval=url_fread(buf,1,max_size,(URL_FILE *)*db_filep);
+    retval=url_fread(buf,1,max_size,(URL_FILE *)db_filep);
     if ((mdc = (db == DB_OLD ? conf->mdc_in : conf->mdc_out))) {
         update_md(mdc, buf, retval);
     }
@@ -296,7 +296,7 @@ int db_input_wrapper(char* buf, int max_size, int db)
   /* Read a character at a time until we are doing md */
 #ifdef WITH_ZLIB
   if((*db_gzp==NULL)&&(*domd)){
-    retval=fread(buf,1,max_size,*db_filep);
+    retval=fread(buf,1,max_size,db_filep);
   }
   if((*db_gzp!=NULL)&&(*domd)){
     if(gzeof(*db_gzp)){
@@ -323,14 +323,14 @@ int db_input_wrapper(char* buf, int max_size, int db)
     retval= (c==EOF) ? 0 : (buf[0] = c,1);
   }
   if((*db_gzp==NULL)&&!(*domd)){
-    c=fgetc(*db_filep);
+    c=fgetc(db_filep);
     if(c==(unsigned char)'\037'){
-      c=fgetc(*db_filep);
+      c=fgetc(db_filep);
       if(c==(unsigned char)'\213'){
 	/* We got gzip header. */
 	error(255,"Got Gzip header. Handling..\n");
-	lseek(fileno(*db_filep),0L,SEEK_SET);
-	*db_gzp=gzdopen(fileno(*db_filep),"rb");
+	lseek(fileno(db_filep),0L,SEEK_SET);
+	*db_gzp=gzdopen(fileno(db_filep),"rb");
 	c=gzgetc(*db_gzp);
 	error(255,"First character after gzip header is: %c(%#X)\n",c,c);
   if(c==-1) {
@@ -340,7 +340,7 @@ int db_input_wrapper(char* buf, int max_size, int db)
   }
       }else {
 	/* False alarm */
-	ungetc(c,*db_filep);
+	ungetc(c,db_filep);
       }
     }
     retval= (c==EOF) ? 0 : (buf[0] = c,1);
@@ -349,13 +349,13 @@ int db_input_wrapper(char* buf, int max_size, int db)
 #else /* WITH_ZLIB */
 #ifdef WITH_MHASH
   if(*domd){
-    retval=fread(buf,1,max_size,*db_filep);
+    retval=fread(buf,1,max_size,db_filep);
   }else {
-    c=fgetc(*db_filep);
+    c=fgetc(db_filep);
     retval= (c==EOF) ? 0 : (buf[0] = c,1);
   }
 #else /* WITH_MHASH */
-  retval=fread(buf,1,max_size,*db_filep);
+  retval=fread(buf,1,max_size,db_filep);
 #endif /* WITH_MHASH */ 
 #endif /* WITH_ZLIB */
 

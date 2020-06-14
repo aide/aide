@@ -247,13 +247,13 @@ typedef struct db_line {
 typedef struct db_config {
   
   url_t* db_in_url;
-  FILE* db_in;
+  void* db_in;
   
   url_t* db_new_url;
-  FILE* db_new;
+  void* db_new;
   
   url_t* db_out_url;
-  FILE* db_out;
+  void* db_out;
   
   int config_check;
 

@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2007,2010-2013,2016,2018,2019 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2007,2010-2013,2016,2018-2020 Rami Lehti, Pablo Virolainen,
  * Mike Markley, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -295,7 +295,7 @@ char** db_readline_file(int db){
   char** oldmdstr=NULL;
   int* db_osize=0;
   DB_FIELD** db_order=NULL;
-  FILE** db_filep=NULL;
+  FILE* db_filep=NULL;
   url_t* db_url=NULL;
 
   switch (db) {
@@ -308,7 +308,7 @@ char** db_readline_file(int db){
     
     db_osize=&(conf->db_in_size);
     db_order=&(conf->db_in_order);
-    db_filep=&(conf->db_in);
+    db_filep=conf->db_in;
     db_url=conf->db_in_url;
     db_lineno=&db_in_lineno;
     break;
@@ -322,7 +322,7 @@ char** db_readline_file(int db){
     
     db_osize=&(conf->db_new_size);
     db_order=&(conf->db_new_order);
-    db_filep=&(conf->db_new);
+    db_filep=conf->db_new;
     db_url=conf->db_new_url;
     db_lineno=&db_new_lineno;
     break;
@@ -330,7 +330,7 @@ char** db_readline_file(int db){
   }
   
   if (*db_osize==0) {
-    db_buff(db,*db_filep);
+    db_buff(db,db_filep);
     
     token=db_scan();
     while((token!=TDBSPEC && token!=TEOF)){

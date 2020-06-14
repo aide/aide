@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2006,2010,2011,2013,2019 Rami Lehti, Pablo Virolainen,
- * Richard van den Berg, Hannes von Haugwitz
+ * Copyright (C) 1999-2006,2010,2011,2013,2019,2020 Rami Lehti, Pablo
+ * Virolainen, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -52,7 +52,6 @@
 
 db_line* db_char2line(char** ss,int db);
 long readoct(char* s,char* err);
-time_t base64totime_t(char*);
 
 const char* db_names[db_unknown+1] = {
    "name",
@@ -266,7 +265,7 @@ db_line* db_readline(int db){
   db_line* s=NULL;
   int i=0;
   url_t* db_url=NULL;
-  FILE** db_filep=NULL;
+  FILE* db_filep=NULL;
   int* db_osize=0;
   DB_FIELD** db_order=NULL;
 
@@ -281,14 +280,14 @@ db_line* db_readline(int db){
   
   case DB_OLD: {
     db_url=conf->db_in_url;
-    db_filep=&(conf->db_in);
+    db_filep=conf->db_in;
     db_osize=&(conf->db_in_size);
     db_order=&(conf->db_in_order);
     break;
   }
   case DB_NEW: {
     db_url=conf->db_new_url;
-    db_filep=&(conf->db_new);
+    db_filep=conf->db_new;
     db_osize=&(conf->db_new_size);
     db_order=&(conf->db_new_order);
     break;
@@ -306,7 +305,7 @@ db_line* db_readline(int db){
   case url_file: {
     /* Should set errno */
     /* Please FIXME */
-    if ((*db_filep)!=NULL) {
+    if (db_filep!=NULL) {
       char** ss=db_readline_file(db);
       if (ss!=NULL){
 	s=db_char2line(ss,db);

@@ -43,10 +43,12 @@ aide_SOURCES = src/aide.c include/aide.h \
 	include/gen_list.h src/gen_list.c \
 	src/getopt1.c \
 	include/getopt.h src/getopt.c \
+	include/rx_rule.h src/rx_rule.c \
 	include/list.h src/list.c \
 	include/locale-aide.h \
 	include/md.h src/md.c \
-	include/seltree.h \
+	include/seltree_struct.h \
+	include/seltree.h src/seltree.c \
 	include/symboltable.h src/symboltable.c \
 	include/types.h \
 	include/url.h \

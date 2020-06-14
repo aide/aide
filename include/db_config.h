@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2004-2006,2010-2013,2015,2016,2019 Rami Lehti, Pablo
- * Virolainen, Richard van den Berg, Hannes von Haugwitz
+ * Copyright (C) 1999-2002,2004-2006,2010-2013,2015,2016,2019,2020 Rami Lehti,
+ * Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -301,12 +301,6 @@ typedef struct db_config {
 #endif
   char* old_dbnewmdstr;
   char* old_dboldmdstr;
-
-
-  /* The following three a lists of rx_rule*s */
-  list* selrxlst;
-  list* equrxlst;
-  list* negrxlst;
 
   int verbose_level;
   int database_add_metadata;

@@ -717,22 +717,31 @@ int do_ifxhost(int mode,char* name)
   return (handle_endif(doit,1));
 }
 
-list* append_rxlist(char* rx,DB_ATTR_TYPE attr,list* rxlst, RESTRICTION_TYPE restriction)
-{
-  extern long conf_lineno; /* defined & set in conf_lex.l */
-    
-  rx_rule* r=NULL;
-  r=(rx_rule*)malloc(sizeof(rx_rule));
-  r->rx=rx;
-  r->attr=attr;
-  r->conf_lineno = conf_lineno;
-  r->restriction = restriction;
-  if (attr&DB_CHECKINODE && attr&DB_CTIME)
-    error(20,"Rule at line %li has c and I flags enabled at the same time. If same inode is found, flag c is ignored\n",conf_lineno);
-  update_db_out_order(r->attr);
-  rxlst=list_append(rxlst,(void*)r);
-  
-  return rxlst;
+bool add_rx_rule_to_tree(char* rx, RESTRICTION_TYPE restriction, DB_ATTR_TYPE attr, int type, seltree *tree) {
+
+    rx_rule* r=NULL;
+
+    bool retval = false;
+
+    char *path = NULL;
+
+    const char* pcre_error;
+    int         pcre_erroffset;
+
+    if ((r = add_rx_to_tree(rx, restriction, type, tree, path, &pcre_error, &pcre_erroffset)) == NULL) {
+        error(0,_("Error in regexp '%s' at %i: %s\n"),rx, pcre_erroffset, pcre_error);
+        retval = false;
+    }else {
+        r->attr=attr;
+        update_db_out_order(r->attr);
+
+        if (attr&DB_CHECKINODE && attr&DB_CTIME) {
+            error(20,"Rule at line %li has c and I flags enabled at the same time. If same inode is found, flag c is ignored\n",conf_lineno);
+        }
+
+        retval = true;
+    }
+    return retval;
 }
 
 void do_groupdef(char* group,DB_ATTR_TYPE value)
@@ -758,19 +767,6 @@ void do_groupdef(char* group,DB_ATTR_TYPE value)
   s->name=group;
   s->ival=value;
   conf->groupsyms=list_append(conf->groupsyms,(void*)s);
-}
-
-RESTRICTION_TYPE get_restrictionval(char* ch) {
-    if (strcmp(ch, "f") == 0) { return RESTRICTION_FT_REG; }
-    else if (strcmp(ch, "d") == 0) { return RESTRICTION_FT_DIR; }
-    else if (strcmp(ch, "p") == 0) { return RESTRICTION_FT_FIFO; }
-    else if (strcmp(ch, "l") == 0) { return RESTRICTION_FT_LNK; }
-    else if (strcmp(ch, "b") == 0) { return RESTRICTION_FT_BLK; }
-    else if (strcmp(ch, "c") == 0) { return RESTRICTION_FT_CHR; }
-    else if (strcmp(ch, "s") == 0) { return RESTRICTION_FT_SOCK; }
-    else if (strcmp(ch, "D") == 0) { return RESTRICTION_FT_DOOR; }
-    else if (strcmp(ch, "P") == 0) { return RESTRICTION_FT_PORT; }
-    else { return RESTRICTION_NULL; }
 }
 
 DB_ATTR_TYPE get_groupval(char* group)

@@ -1,8 +1,8 @@
 %{ 
 
 /*	
- * Copyright (C) 1999-2006,2010-2013,2015,2016 Rami Lehti, Pablo Virolainen,
- * Richard van den Berg, Hannes von Haugwitz
+ * Copyright (C) 1999-2006,2010-2013,2015,2016,2019,2020 Rami Lehti, Pablo
+ * Virolainen, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -36,6 +36,12 @@
 DB_ATTR_TYPE retval=0;
 extern int conflex();
 void conferror(const char*);
+
+#define rule(regex, restriction, attributes, rule_type) \
+    decode_string(regex); \
+    if (!add_rx_rule_to_tree(regex, restriction, attributes, rule_type, conf->tree)) { \
+        YYABORT; \
+    }
 
 extern char *conftext;
 extern long conf_lineno;
@@ -124,7 +130,7 @@ extern long conf_lineno;
 
 lines : lines line | ;
 
-line : rule | equrule | negrule | definestmt | undefstmt
+line : rule | definestmt | undefstmt
        | ifdefstmt | ifndefstmt | ifhoststmt | ifnhoststmt
        | groupdef | db_in | db_out | db_new | db_attrs | verbose | report_detailed_init | config_version
        | database_add_metadata | report | gzipdbout | root_prefix | report_base16 | report_quiet
@@ -151,29 +157,14 @@ line : rule | equrule | negrule | definestmt | undefstmt
 	  YYABORT;
           } ;
 
-rule : TSELRXRULE expr newlineoreof
-{ decode_string($1); conf->selrxlst=append_rxlist($1,$2,conf->selrxlst, RESTRICTION_NULL); } ;
 
-equrule : TEQURXRULE expr newlineoreof
-{ decode_string($1); conf->equrxlst=append_rxlist($1,$2,conf->equrxlst, RESTRICTION_NULL); } ;
+rule : TSELRXRULE expr TNEWLINE { rule($1, RESTRICTION_NULL, $2, AIDE_SELECTIVE_RULE) }
+     | TEQURXRULE expr TNEWLINE { rule($1, RESTRICTION_NULL, $2, AIDE_EQUAL_RULE) }
+     | TNEGRXRULE TNEWLINE { rule($1, RESTRICTION_NULL, 0, AIDE_NEGATIVE_RULE) }
+     | TSELRXRULE restriction expr TNEWLINE { rule($1, $2, $3, AIDE_SELECTIVE_RULE) }
+     | TEQURXRULE restriction expr TNEWLINE { rule($1, $2, $3, AIDE_EQUAL_RULE) }
+     | TNEGRXRULE restriction TNEWLINE { rule($1, $2, 0, AIDE_NEGATIVE_RULE) };
 
-negrule : TNEGRXRULE newlineoreof
-{ decode_string($1); conf->negrxlst=append_rxlist($1,0,conf->negrxlst, RESTRICTION_NULL); };
-
-rule : TSELRXRULE restriction expr newlineoreof
-{ decode_string($1); conf->selrxlst=append_rxlist($1,$3,conf->selrxlst, $2); } ;
-
-equrule : TEQURXRULE restriction expr newlineoreof
-{ decode_string($1); conf->equrxlst=append_rxlist($1,$3,conf->equrxlst, $2); } ;
-
-negrule : TNEGRXRULE restriction newlineoreof
-{ decode_string($1); conf->negrxlst=append_rxlist($1,0,conf->negrxlst, $2); };
-
-newlineoreof : TNEWLINE |
-          TEOF {
-            newlinelastinconfig=0;
-	    YYACCEPT;
-          } ;
 
 restriction : restriction ',' restriction { $$ =$1  | $3 ; }
     | TSTRING {

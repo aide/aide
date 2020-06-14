@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2006,2010-2013,2015,2016,2019 Rami Lehti, Pablo
+ * Copyright (C) 1999-2006,2010-2013,2015,2016,2019,2020 Rami Lehti, Pablo
  * Virolainen, Mike Markley, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -283,7 +283,7 @@ static void setdefaults_before_config()
   }
   
   /* Setting some defaults */
-  conf->tree=NULL;
+  conf->tree=init_tree();
   conf->config_check=0;
   conf->verbose_level=-1;
   conf->database_add_metadata=1;
@@ -376,10 +376,6 @@ static void setdefaults_before_config()
 
   conf->limit=NULL;
   conf->limit_crx=NULL;
-
-  conf->selrxlst=NULL;
-  conf->equrxlst=NULL;
-  conf->negrxlst=NULL;
 
   conf->groupsyms=NULL;
 
@@ -533,12 +529,8 @@ int main(int argc,char**argv)
 
   setdefaults_after_config();
   
-  /*
-    This won't actualy work, because conf->tree is not constructed.
-    Now we construct it. And we have THE tree.
-   */
+  print_tree(conf->tree);
   
-  conf->tree=gen_tree(conf->selrxlst,conf->negrxlst,conf->equrxlst);
   
   /* Let's do some sanity checks for the config */
   if(cmpurl(conf->db_in_url,conf->db_out_url)==RETOK){

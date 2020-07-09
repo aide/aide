@@ -846,7 +846,19 @@ void do_repurldef(char* val)
   if(u==NULL||u->type==url_unknown||u->type==url_stdin){
     error(0,_("Unsupported output URL-type:%s\n"),val);
   } else {
-    error_init(u,0);
+    add_report_url(u);
+  }
+
+}
+
+void do_reportlevel(char* val) {
+  REPORT_LEVEL report_level=0;
+
+  report_level = get_report_level(val);
+  if (report_level) {
+      conf->report_level = report_level;
+  } else {
+      error(0, _("Ignoring unknown report level: %s\n"),val);
   }
   
 }

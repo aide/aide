@@ -58,11 +58,6 @@ void fs2db_line(struct stat* fs,db_line* line);
 void calc_md(struct stat* old_fs,db_line* line);
 void no_hash(db_line* line);
 
-static DB_ATTR_TYPE get_special_report_group(char* group) {
-    DB_ATTR_TYPE attr = get_groupval(group);
-    return attr==DB_ATTR_UNDEF?0:attr;
-}
-
 static int bytecmp(byte *b1, byte *b2, size_t len) {
   return strncmp((char *)b1, (char *)b2, len);
 }
@@ -421,7 +416,6 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db,
 {
   seltree* node=NULL;
   DB_ATTR_TYPE localignorelist=0;
-  DB_ATTR_TYPE ignored_added_attrs, ignored_removed_attrs, ignored_changed_attrs;
 
   node=get_seltree_node(tree,file->filename);
 
@@ -461,22 +455,11 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db,
     return;
   }
   }
-  /* We have a way to ignore some changes... */
-  ignored_added_attrs = get_special_report_group("report_ignore_added_attrs");
-  ignored_removed_attrs = get_special_report_group("report_ignore_removed_attrs");
-  ignored_changed_attrs = get_special_report_group("report_ignore_changed_attrs");
 
   if((node->checked&DB_OLD)&&(node->checked&DB_NEW)){
-      if (((node->old_data)->attr&~((node->new_data)->attr)&~(ignored_removed_attrs))|(~((node->old_data)->attr)&(node->new_data)->attr&~(ignored_added_attrs))) {
-          char *str = NULL;
-          error(2,"Entry %s in databases has different attributes: %s\n",
-                  node->old_data->filename,str= diff_attributes(node->old_data->attr,node->new_data->attr));
-          free(str);
-    }
-
     node->changed_attrs=get_changed_attributes(node->old_data,node->new_data);
     /* Free the data if same else leave as is for report_tree */
-    if((~(ignored_changed_attrs)&node->changed_attrs)==RETOK){
+    if(node->changed_attrs==RETOK){
       /* FIXME this messes up the tree on SunOS. Don't know why. Fix
 	 needed badly otherwise we leak memory like hell. */
 
@@ -529,7 +512,7 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db,
                  oldData->filename, oldData->attr, newData->filename, newData->attr, localignorelist);
      } else {
          /* Free the data if same else leave as is for report_tree */
-         if ((get_changed_attributes(oldData, newData)&~(ignored_changed_attrs|DB_CTIME)) == RETOK) {
+         if ((get_changed_attributes(oldData, newData)&~(DB_CTIME)) == RETOK) {
              node->checked |= db==DB_NEW ? NODE_MOVED_IN : NODE_MOVED_OUT;
              moved_node->checked |= db==DB_NEW ? NODE_MOVED_OUT : NODE_MOVED_IN;
              error(220,_("Entry was moved: %s [%llx] => %s [%llx]\n"),

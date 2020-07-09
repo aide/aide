@@ -31,6 +31,7 @@
 #define E2O(n) (1<<n)
 
 #include "list.h"
+#include "report.h"
 
 #ifdef WITH_SUN_ACL /* First try to implement support for sun acl. */
 /*#define WITH_ACL    If we use sun acl then we have acl :) */
@@ -307,25 +308,19 @@ typedef struct db_config {
   int report_detailed_init;
   int report_base16;
   int report_quiet;
-  int use_initial_errorsto;
+
+  DB_ATTR_TYPE report_ignore_added_attrs;
+  DB_ATTR_TYPE report_ignore_removed_attrs;
+  DB_ATTR_TYPE report_ignore_changed_attrs;
+  DB_ATTR_TYPE report_force_attrs;
 
 #ifdef WITH_E2FSATTRS
   unsigned long report_ignore_e2fsattrs;
 #endif
 
-  url_t* initial_report_url;
-  FILE* initial_report_fd;
-  
-  /* report_url is a list of url_t*s */
-  list* report_url;
+  list* report_urls;
+  REPORT_LEVEL report_level;
 
-  /* report_fd is a list of FILE*s */
-  list* report_fd;
-
-  /* Report syslog */
-  
-  int report_syslog;
-  
   /* defsyms is a list of symba*s */
   list* defsyms;
   /* so is groupsyms */

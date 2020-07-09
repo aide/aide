@@ -55,6 +55,8 @@ void do_dbdef(int, char*);
 
 void do_verbdef(char*);
 
+void do_reportlevel(char *);
+
 void do_replevdef(char*);
 
 void do_repurldef(char*);

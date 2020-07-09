@@ -45,9 +45,4 @@ void error(int errorlevel, char* error_msg,...)
  ;
 #endif
 
-int error_init(url_t*,int);
-
-void write_error_stderr(int errorlevel, char*error_msg,va_list ap);
-
-
 #endif

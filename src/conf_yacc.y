@@ -43,6 +43,9 @@ void conferror(const char*);
         YYABORT; \
     }
 
+#define report_attrs_option(option, value) \
+   conf->option=value;
+
 extern char *conftext;
 extern long conf_lineno;
 
@@ -83,9 +86,14 @@ extern long conf_lineno;
 %token TNEWLINE
 %token TVERBOSE
 %token TDATABASEADDMETADATA
+%token TREPORTLEVEL
 %token TREPORTDETAILEDINIT
 %token TREPORTBASE16
 %token TREPORTQUIET
+%token TREPORTIGNOREADDEDATTRS
+%token TREPORTIGNOREREMOVEDATTRS
+%token TREPORTIGNORECHANGEDATTRS
+%token TREPORTFORCEATTRS
 %token TREPORTIGNOREE2FSATTRS
 %token TCONFIG_FILE
 %token TDATABASE
@@ -132,9 +140,9 @@ lines : lines line | ;
 
 line : rule | definestmt | undefstmt
        | ifdefstmt | ifndefstmt | ifhoststmt | ifnhoststmt
-       | groupdef | db_in | db_out | db_new | db_attrs | verbose | report_detailed_init | config_version
+       | groupdef | db_in | db_out | db_new | db_attrs | verbose | report_level | report_detailed_init | config_version
        | database_add_metadata | report | gzipdbout | root_prefix | report_base16 | report_quiet
-       | report_ignore_e2fsattrs | warn_dead_symlinks | grouped
+       | report_attrs | report_ignore_e2fsattrs | warn_dead_symlinks | grouped
        | summarize_changes | acl_no_symlink_follow | beginconfigstmt | endconfigstmt
        | TEOF {
             newlinelastinconfig=1;
@@ -236,6 +244,8 @@ db_new : TDATABASE_NEW TSTRING { do_dbdef(DB_NEW,$2); };
 
 verbose : TVERBOSE TSTRING { do_verbdef($2); };
 
+report_level : TREPORTLEVEL TSTRING { do_reportlevel($2); };
+
 report : TREPORT_URL TSTRING { do_repurldef($2); } ;
 
 db_attrs : TDATABASE_ATTRS expr {
@@ -297,6 +307,11 @@ report_detailed_init : TREPORTDETAILEDINIT TTRUE {
 report_detailed_init : TREPORTDETAILEDINIT TFALSE {
   conf->report_detailed_init=0;
 } ;
+
+report_attrs : TREPORTIGNOREADDEDATTRS expr TNEWLINE { report_attrs_option(report_ignore_added_attrs, $2); };
+             | TREPORTIGNOREREMOVEDATTRS expr TNEWLINE { report_attrs_option(report_ignore_removed_attrs, $2); };
+             | TREPORTIGNORECHANGEDATTRS expr TNEWLINE { report_attrs_option(report_ignore_changed_attrs, $2); };
+             | TREPORTFORCEATTRS expr TNEWLINE { report_attrs_option(report_force_attrs, $2); };
 
 report_ignore_e2fsattrs : TREPORTIGNOREE2FSATTRS TSTRING {
 #ifdef WITH_E2FSATTRS

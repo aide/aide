@@ -326,13 +326,27 @@ int var_in_conflval=0;
 }
 
 ^[\t\ ]*"grouped"{E} {
+  error(2, "DEPRECATION WARNING, Using '%s' is deprecated. Update your config and use '%s' instead.\n", "grouped", "report_grouped");
   error(230,"%li:grouped =\n",conf_lineno);
   BEGIN CONFVALHUNT;
   return (TGROUPED);
 }
 
+^[\t\ ]*"report_grouped"{E} {
+  error(230,"%li:report_grouped =\n",conf_lineno);
+  BEGIN CONFVALHUNT;
+  return (TGROUPED);
+}
+
 ^[\t\ ]*"summarize_changes"{E} {
+  error(2, "DEPRECATION WARNING, Using '%s' is deprecated. Update your config and use '%s' instead.\n", "summarize_changes", "report_summarize_changes");
   error(230,"%li:summarize_changes =\n",conf_lineno);
+  BEGIN CONFVALHUNT;
+  return (TSUMMARIZECHANGES);
+}
+
+^[\t\ ]*"report_summarize_changes"{E} {
+  error(230,"%li:report_summarize_changes =\n",conf_lineno);
   BEGIN CONFVALHUNT;
   return (TSUMMARIZECHANGES);
 }
@@ -347,6 +361,33 @@ int var_in_conflval=0;
 ^[\t\ ]*"verbose"{E} {
   error(230,"%li:verbose =\n",conf_lineno);
   return (TVERBOSE);  
+}
+
+^[\t\ ]*"report_level"{E} {
+  error(230,"%li:report_level =\n",conf_lineno);
+  BEGIN CONFVALHUNT;
+  return (TREPORTLEVEL);
+}
+
+^[\t\ ]*"report_ignore_added_attrs"{E} {
+  error(230,"%li:report_ignore_added_attrs =\n",conf_lineno);
+  BEGIN(EXPR);
+  return (TREPORTIGNOREADDEDATTRS);
+}
+^[\t\ ]*"report_ignore_removed_attrs"{E} {
+  error(230,"%li:report_ignore_removed_attrs =\n",conf_lineno);
+  BEGIN(EXPR);
+  return (TREPORTIGNOREREMOVEDATTRS);
+}
+^[\t\ ]*"report_ignore_changed_attrs"{E} {
+  error(230,"%li:report_ignore_changed_attrs =\n",conf_lineno);
+  BEGIN(EXPR);
+  return (TREPORTIGNORECHANGEDATTRS);
+}
+^[\t\ ]*"report_force_attrs"{E} {
+  error(230,"%li:report_force_attrs =\n",conf_lineno);
+  BEGIN(EXPR);
+  return (TREPORTFORCEATTRS);
 }
 
 ^[\t\ ]*"database_add_metadata"{E} {

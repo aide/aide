@@ -75,7 +75,6 @@ static void usage(int exitvalue)
 	    "  -l [REGEX]\t--limit=[REGEX]\t\tLimit command to entries matching [REGEX]\n"
 	    "  -B \"OPTION\"\t--before=\"OPTION\"\tBefore configuration file is read define OPTION\n"
 	    "  -A \"OPTION\"\t--after=\"OPTION\"\tAfter configuration file is read define OPTION\n"
-	    "  -r [reporter]\t--report=[reporter]\tWrite report output to [reporter] url\n"
 	    "  -V[level]\t--verbose=[level]\tSet debug message level to [level]\n"
 	    "\n")
 	  );
@@ -106,7 +105,7 @@ static int read_param(int argc,char**argv)
     { "config", required_argument, NULL, 'c'},
     { "before", required_argument, NULL, 'B'},
     { "after", required_argument, NULL, 'A'},
-    { "report", required_argument, NULL, 'r'},
+    { "report", no_argument, NULL, 'r'},
     { "init", no_argument, NULL, 'i'},
     { "check", no_argument, NULL, 'C'},
     { "update", no_argument, NULL, 'u'},
@@ -117,7 +116,7 @@ static int read_param(int argc,char**argv)
   };
 
   while(1){
-    option = getopt_long(argc, argv, "hV::vc:l:B:A:r:iCuDE", options, &i);
+    option = getopt_long(argc, argv, "hV::vc:l:B:A:riCuDE", options, &i);
     if(option==-1)
       break;
     switch(option)
@@ -197,12 +196,9 @@ static int read_param(int argc,char**argv)
             break;
       }
       case 'r': {
-	if(optarg!=NULL) {
-	  do_repurldef(optarg);
-	}else {
-	  error(0,_("-r must have an argument\n"));
-	}
-	break;
+       error(0,_("option '%s' is no longer supported, use 'report_url' config option (see man 5 aide.conf for details)\n"), argv[optind-1]);
+       exit(INVALID_ARGUMENT_ERROR);
+       break;
       }
       case 'i': {
 	if(conf->action==0){
@@ -263,8 +259,6 @@ static int read_param(int argc,char**argv)
 
 static void setdefaults_before_config()
 {
-  char* urlstr=INITIALERRORSTO;
-  url_t* u=NULL;
   char* s=(char*)malloc(sizeof(char)*MAXHOSTNAMELEN+1);
   DB_ATTR_TYPE X;
 
@@ -290,16 +284,16 @@ static void setdefaults_before_config()
   conf->report_detailed_init=0;
   conf->report_base16=0;
   conf->report_quiet=0;
-  conf->use_initial_errorsto=1;
-  conf->report_url=NULL;
-  conf->report_fd=NULL;
-  conf->report_syslog=0;
+  conf->report_ignore_added_attrs = 0;
+  conf->report_ignore_removed_attrs = 0;
+  conf->report_ignore_changed_attrs = 0;
+  conf->report_force_attrs = 0;
 #ifdef WITH_E2FSATTRS
   conf->report_ignore_e2fsattrs = 0UL;
 #endif
 
-  u=parse_url(urlstr);
-  error_init(u,1);
+  conf->report_urls=NULL;
+  conf->report_level=REPORT_LEVEL_CHANGED_ATTRIBUTES;
 
   conf->config_file=CONFIG_FILE;
   conf->config_version=NULL;
@@ -480,15 +474,14 @@ static void setdefaults_after_config()
     u->value=DEFAULT_DB_OUT;
     conf->db_out_url=u;
   }
-  if(conf->report_url==NULL){
-    url_t* u=NULL;
 
-    /* Don't free this one because conf->report_url needs it */
-    u=(url_t*)malloc(sizeof(url_t));
+  if(conf->report_urls==NULL){
+    url_t* u = malloc(sizeof(url_t)); /* not to be freed, needed for reporting */
     u->type=url_stdout;
-    u->value="";
-    error_init(u,0);
+    u->value=NULL;
+    add_report_url(u);
   }
+
   if(conf->action==0){
     conf->action=DO_COMPARE;
   }
@@ -595,7 +588,6 @@ int main(int argc,char**argv)
     }
   }
 #endif
-  conf->use_initial_errorsto=0;
   if (!conf->config_check) {
     if(conf->action&DO_INIT){
       if(db_init(DB_WRITE)==RETFAIL) {

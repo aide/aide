@@ -822,14 +822,6 @@ AC_ARG_ENABLE(forced_dbmd,
 	AC_DEFINE(FORCEDBMD,0,[don't force database checksum])
 )
 
-AC_ARG_WITH(initial_errors_to,
-	AC_HELP_STRING([--with-initial-errors-to=URL],
-		[Where errors should go while checking config. Default is stderr.]),
-	AC_DEFINE_UNQUOTED(INITIALERRORSTO,"$withval",[send errors here])
-	compoptionstring="${compoptionstring}INITIALERRORSTO=${withval}\\n",
-	AC_DEFINE_UNQUOTED(INITIALERRORSTO,"stderr",[send errors to stderr])
-)
-
 AC_ARG_WITH([psql],
  AS_HELP_STRING([--with-psql],
   [use postgresql library for storing databases (default: no)]),

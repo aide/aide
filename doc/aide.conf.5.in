@@ -40,7 +40,7 @@ The url from which the other database for \-\-compare is read.
 There is no default for this one.
 .IP "database_attrs"
 The attributes of the (uncompressed) database files which are to be added to
-the final report in verbose level 2 or higher. Only checksum attributes are
+the reports in report level >= \fBdatabase_attributes\fP . Only checksum attributes are
 supported. To disable set
 .I database_attrs
 to
@@ -55,24 +55,8 @@ option may be set to no by default in a future release.
 The level of messages that is output. This value can be 0-255
 inclusive. This parameter can only be given once. Value from the first
 occurrence is used. If \-\-verbose or \-V is used then the value from that
-is used. The default is 5. If verbosity is 20 then additional report
-output is written when doing \-\-check, \-\-update or \-\-compare.
-.IP "report_url"
-The url that the output is written to. There can be multiple instances
-of this parameter. Output is written to all of them. The default is
-stdout.
-.IP "report_base16"
-Whether to base16 encode the checksums in the report or not. Valid values are
-yes, true, no and false. The default is to report checksums not in base16 but
-in base64 encoding.
-.IP "report_detailed_init"
-Whether to report added files (verbose level >= 2) and their details (verbose
-level >=7) in initialization mode or not. Valid values are yes, true, no and
-false. The default is to not report added files or their details in init mode.
-.IP "report_quiet"
-Whether to suppress report output if no differences to the database have been
-found or not. Valid values are yes, true, no and false. The default is to not
-suppress output in the report.
+is used. The default is 5. If verbosity is 20 then additional output is written
+when doing \-\-check, \-\-update or \-\-compare. Verbose messages go to stderr.
 .IP "gzip_dbout"
 Whether the output to the database is gzipped or not. Valid values are
 yes,true,no and false. The default is no. This option is available only
@@ -89,14 +73,111 @@ is available only if acl support is compiled in.
 .IP "warn_dead_symlinks"
 Whether to warn about dead symlinks or not. Valid values are
 yes,true,no and false. The default is not to warn about dead symlinks.
-.IP "grouped"
-Whether to group the files in the report by added, removed and changed
-files or not. Valid values are yes, true, no and false.
-The default is to group the files in the report.
-.IP "summarize_changes"
-Whether to summarize changes in the added, removed and changed files
-sections of the report or not. Valid values are yes,true,no and false.
-The default is to summarize the changes.
+.IP "config_version"
+The value of config_version is printed in the report and also printed
+to the database. This is for informational purposes only. It has no
+other functionality.
+.IP "Group definitions"
+If the parameter is not one of the previous parameters then it is
+regarded as a group definition. Value is then regarded as an
+expression. Expression is of the following form.
+.IP
+.nf
+    <predefined group>| <expr> + <predefined group>
+                      | <expr> - <predefined group>
+.fi
+.IP
+See DEFAULT GROUPS for an explanation of default predefined groups.
+Note that this is different from the way Tripwire(tm) does it.
+.PP
+
+.SH REPORT CONFIG LINES
+.PP
+
+.IP "report_url (type: URL, default: \fBstdout\fR)"
+
+The URL that the output is written to.
+
+Multiple instances of the \fBreport_url\fR option are supported.
+
+.RS
+.B Examples:
+
+.RS 3
+.nf
+.B report_url=file:///var/log/aide.log
+.fi
+
+.RS 3
+Write report to \fI/var/log/aide.log\fR.
+.RE
+.RE
+
+.RS 3
+.nf
+.B report_url=stdout
+.fi
+
+.RS 3
+Write report to \fIstdout\fR.
+.RE
+.RE
+
+.RS 3
+.nf
+.B report_url=syslog://
+.fi
+
+.RS 3
+Write report to \fIsyslog\fR.
+.RE
+.RE
+
+.RE
+
+.PP
+The following report options are available (to take effect they
+have to be set before \fBreport_url\fR):
+.PP
+
+.IP "report_level (type: enum, default: \fBchanged_attributes\fR)"
+
+The report level to use. The available report levels are as follows:
+
+.RS
+\fBminimal\fP: print single line whether AIDE found differences to the database
+
+\fBsummary\fP: additionally print number of added, removed and changed files
+
+\fBdatabase_attributes\fP: additionally print database checksums
+
+\fBlist_entries\fP: additionally print lists of added, removed and changed entries
+
+\fBchanged_attributes\fP: additionally print details about changed entries
+
+\fBadded_removed_attributes\fP: additionally print details about added and removed attributes
+
+\fBadded_removed_entries\fP: additionally print details about added and removed entries
+.RE
+.IP "report_base16 (type: bool, default: \fBfalse\fR)"
+Base16 encode the checksums in the report. The default is to
+report checksums in base64 encoding.
+.IP "report_detailed_init (type: bool, default: \fBfalse\fR)"
+Report added files (report level >= \fBlist_entries\fP) and their details (report
+level >= \fBadded_removed_entries\fP) in initialization mode.
+.IP "report_quiet (type: bool, default: \fBfalse\fR)"
+Suppress report output if no differences to the database have been found
+.TP
+report_grouped (type: bool, default: \fBtrue\fR)
+.TQ
+grouped (DEPRECATED, will be removed in a future release)
+Group the files in the report by added, removed and changed files.
+.TP
+report_summarize_changes (type: bool, default: \fBtrue\fR)
+.TQ
+summarize_changes (DEPRECATED, will be removed in a future release)
+Summarize changes in the added, removed and changed files
+sections of the report.
 
 The general format is like the string YlZbpugamcinDAXSEC, where Y is
 replaced by the file-type (\fBf\fP for a regular file, \fBd\fP for a
@@ -158,36 +239,31 @@ A \fBE\fP means that the file attributes on a second extended file system have c
 .IP o
 A \fBC\fP means that the file capabilities have changed.
 .RE
-.IP "report_ignore_added_attrs"
-Special group definition that lists attributes whose addition is to be ignored
-in the final report.
-.IP "report_ignore_removed_attrs"
-Special group definition that lists attributes whose removal is to be ignored
-in the final report.
+.IP "report_ignore_added_attrs (type: attribute expression, default: \fBempty\fR)"
+Attributes whose addition is to be ignored in the report.
+.IP "report_ignore_removed_attrs (type: attribute expression, default: \fBempty\fR)"
+Attributes whose removal is to be ignored in the report.
 .TP
-report_ignore_changed_attrs
+report_ignore_changed_attrs (type: attribute expression, default: \fBempty\fR)
 .TQ
 ignore_list (DEPRECATED, will be removed in a future release)
-Special group definition that lists attributes whose change is to be ignored
-in the final report.
+Attributes whose change is to be ignored in the report.
 .TP
-report_force_attrs
+report_force_attrs (type: attribute expression, default: \fBempty\fR)
 .TQ
 report_attributes (DEPRECATED, will be removed in a future release)
-Special group definition that lists attributes which are always printed in the
-final report for changed files. If an attribute is both ignored and forced the
-attribute is not considered for file change but printed in the final report if
-the file has been otherwise changed.
-.IP "report_ignore_e2fsattrs"
-List (no delimiter) of ext2 file attributes which are to be ignored in the final report.
+Attributes which are always printed in the report for changed files. If an attribute is both ignored and forced the
+attribute is not considered for file change but printed in the final report as long as the file has been otherwise changed.
+.IP "report_ignore_e2fsattrs (type: string, default: \fB0\fR)"
+List (no delimiter) of ext2 file attributes which are to be ignored in the report.
 See
 .BR chattr (1)
-for the available attributes. Use '0' to not ignore any
-attribute. Ignored attributes are represented by a ':' in the output. The
-default is to not ignore any ext2 file attribute.
+for the available attributes. Use \fB0\fR (zero) to not ignore any
+attribute. Ignored attributes are represented by a ':' in the output.
 
 .RS
-.B Example
+.B Example:
+
 .RS 3
 Ignore changes of the ext2 file attributes compression error (E), huge file
 (h), indexed directory (I):
@@ -199,22 +275,6 @@ report_ignore_e2fsattrs=EhI
 .RE
 .RE
 .RE
-.IP "config_version"
-The value of config_version is printed in the report and also printed
-to the database. This is for informational purposes only. It has no
-other functionality.
-.IP "Group definitions"
-If the parameter is not one of the previous parameters then it is
-regarded as a group definition. Value is then regarded as an
-expression. Expression is of the following form.
-.IP
-.nf
-    <predefined group>| <expr> + <predefined group>
-                      | <expr> - <predefined group>
-.fi
-.IP
-See DEFAULT GROUPS for an explanation of default predefined groups.
-Note that this is different from the way Tripwire(tm) does it.
 .PP
 .SH "SELECTION LINES"
 .PP

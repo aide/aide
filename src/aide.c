@@ -494,8 +494,6 @@ static void setdefaults_after_config()
 int main(int argc,char**argv)
 {
   int errorno=0;
-  byte* dig=NULL;
-  char* digstr=NULL;
 
 #ifdef USE_LOCALE
   setlocale(LC_ALL,"");
@@ -559,6 +557,8 @@ int main(int argc,char**argv)
       }
   }
 #ifdef WITH_MHASH
+  byte* dig=NULL;
+  char* digstr=NULL;
   if(conf->config_check&&FORCECONFIGMD){
     error(0,"Can't give config checksum when compiled with --enable-forced_configmd\n");
     exit(INVALID_ARGUMENT_ERROR);

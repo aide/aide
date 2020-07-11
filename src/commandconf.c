@@ -166,13 +166,10 @@ int commandconf(const char mode,const char* line)
 int conf_input_wrapper(char* buf, int max_size, FILE* in)
 {
   int retval=0;
-  int c=0;
-  char* tmp=NULL;
-  void* key=NULL;
-  int keylen=0;
 
   /* FIXME Add support for gzipped config. :) */
 #ifdef WITH_MHASH
+  int c=0;
   /* Read a character at a time until we are doing md */
   if(conf->do_configmd){
     retval=fread(buf,1,max_size,in);
@@ -185,6 +182,9 @@ int conf_input_wrapper(char* buf, int max_size, FILE* in)
 #endif 
 
 #ifdef WITH_MHASH    
+  char* tmp=NULL;
+  void* key=NULL;
+  int keylen=0;
   if(conf->do_configmd||conf->config_check){
     if(((conf->do_configmd==1)&&conf->config_check)||!conf->confmd){
       if(conf->do_configmd==1){

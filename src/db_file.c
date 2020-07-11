@@ -291,8 +291,8 @@ char** db_readline_file(int db){
   int* domd=NULL;
 #ifdef WITH_MHASH
   MHASH* md=NULL;
-#endif
   char** oldmdstr=NULL;
+#endif
   int* db_osize=0;
   DB_FIELD** db_order=NULL;
   FILE* db_filep=NULL;
@@ -302,9 +302,9 @@ char** db_readline_file(int db){
   case DB_OLD: {
 #ifdef WITH_MHASH
     md=&(conf->dboldmd);
+    oldmdstr=&(conf->old_dboldmdstr);
 #endif
     domd=&(conf->do_dboldmd);
-    oldmdstr=&(conf->old_dboldmdstr);
     
     db_osize=&(conf->db_in_size);
     db_order=&(conf->db_in_order);
@@ -316,9 +316,9 @@ char** db_readline_file(int db){
   case DB_NEW: {
 #ifdef WITH_MHASH
     md=&(conf->dbnewmd);
+    oldmdstr=&(conf->old_dbnewmdstr);
 #endif
     domd=&(conf->do_dbnewmd);
-    oldmdstr=&(conf->old_dbnewmdstr);
     
     db_osize=&(conf->db_new_size);
     db_order=&(conf->db_new_order);
@@ -735,8 +735,6 @@ int db_writespec_file(db_config* dbconf)
   int i=0;
   int j=0;
   int retval=1;
-  void*key=NULL;
-  int keylen=0;
   struct tm* st;
   time_t tim=time(&tim);
   st=localtime(&tim);
@@ -747,6 +745,8 @@ int db_writespec_file(db_config* dbconf)
   }
 
 #ifdef WITH_MHASH
+  void*key=NULL;
+  int keylen=0;
   /* From hereon everything must MD'd before write to db */
   if((key=get_db_key())!=NULL){
     keylen=get_db_key_len();

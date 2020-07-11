@@ -24,6 +24,7 @@
 #include "list.h"
 #include "gen_list.h"
 #include "db_config.h"
+#include <stdbool.h>
 
 extern long conf_lineno;
 extern int newlinelastinconfig;

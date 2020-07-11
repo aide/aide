@@ -78,9 +78,9 @@ DB_ATTR_TYPE hash_gcrypt2attr(int i) {
 }
 #endif
 
+#ifdef WITH_MHASH
 DB_ATTR_TYPE hash_mhash2attr(int i) {
   DB_ATTR_TYPE r=0;
-#ifdef WITH_MHASH
   switch (i) {
   case MHASH_CRC32: {
     r=DB_CRC32;
@@ -155,9 +155,9 @@ DB_ATTR_TYPE hash_mhash2attr(int i) {
   default:
     break;
   }
-#endif
   return r;
 }
+#endif
 
 /*
   Initialise md_container according its todo_attr field
@@ -234,8 +234,6 @@ int init_md(struct md_container* md) {
  */
 
 int update_md(struct md_container* md,void* data,ssize_t size) {
-  int i;
-    
   error(255,"update_md called\n");
 
 #ifdef _PARAMETER_CHECK_
@@ -246,7 +244,7 @@ int update_md(struct md_container* md,void* data,ssize_t size) {
 
 #ifdef WITH_MHASH
   
-  for(i=0;i<=HASH_MHASH_COUNT;i++) {
+  for(int i=0;i<=HASH_MHASH_COUNT;i++) {
     if (md->mhash_mdh[i]!=MHASH_FAILED) {
       mhash (md->mhash_mdh[i], data, size);
     }
@@ -265,7 +263,6 @@ int update_md(struct md_container* md,void* data,ssize_t size) {
 */
 
 int close_md(struct md_container* md) {
-  int i;
 #ifdef _PARAMETER_CHECK_
   if (md==NULL) {
     return RETFAIL;
@@ -273,7 +270,7 @@ int close_md(struct md_container* md) {
 #endif
   error(255,"close_md called \n");
 #ifdef WITH_MHASH
-  for(i=0;i<=HASH_MHASH_COUNT;i++) {
+  for(int i=0;i<=HASH_MHASH_COUNT;i++) {
     if (md->mhash_mdh[i]!=MHASH_FAILED) {
       mhash (md->mhash_mdh[i], NULL, 0);
     }  

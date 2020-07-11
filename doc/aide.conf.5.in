@@ -485,15 +485,14 @@ Input is read from filedescriptor \fBnumber\fR or output is written to
 .IP "tiger: tiger checksum"
 .IP "haval: haval checksum"
 .IP "crc32:	crc32 checksum"
+.IP "gost: GOST R 34.11-94 checksum"
+.IP "whirlpool: whirlpool checksum"
 .IP "R:	p+ftype+i+l+n+u+g+s+m+c+md5+X"
 .IP "L:	p+ftype+i+l+n+u+g+X"
 .IP "E:	Empty group"
 .IP "X:	acl+selinux+xattrs+e2fsattrs+caps (if groups are explicitly enabled)"
 .IP ">:	Growing file p+ftype+l+u+g+i+n+S+X"
 .LP
-And also the following if you have mhash support enabled
-.IP "gost: gost checksum"
-.IP "whirlpool: whirlpool checksum"
 .LP
 The following are available only when explicitly enabled using configure
 .IP "acl: access control list"

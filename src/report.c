@@ -100,9 +100,7 @@ const char summary_char[] = { '!' ,'l', '>', 'b', 'p', 'u', 'g', 'a', 'm', 'c', 
 };
 
 const DB_ATTR_TYPE details_attributes[] = { DB_FTYPE, DB_LINKNAME, DB_SIZE, DB_SIZEG, DB_BCOUNT, DB_PERM, DB_UID, DB_GID, DB_ATIME, DB_MTIME, DB_CTIME, DB_INODE, DB_LNKCOUNT, DB_MD5, DB_SHA1, DB_RMD160, DB_TIGER, DB_SHA256, DB_SHA512
-#ifdef WITH_MHASH
     , DB_CRC32, DB_HAVAL, DB_GOST, DB_CRC32B, DB_WHIRLPOOL
-#endif
 #ifdef WITH_ACL
         , DB_ACL
 #endif
@@ -121,9 +119,7 @@ const DB_ATTR_TYPE details_attributes[] = { DB_FTYPE, DB_LINKNAME, DB_SIZE, DB_S
 };
 
 const char* details_string[] = { _("File type") , _("Lname"), _("Size"), _("Size (>)"), _("Bcount"), _("Perm"), _("Uid"), _("Gid"), _("Atime"), _("Mtime"), _("Ctime"), _("Inode"), _("Linkcount"), _("MD5"), _("SHA1"), _("RMD160"), _("TIGER"), _("SHA256"), _("SHA512")
-#ifdef WITH_MHASH
     , _("CRC32"), _("HAVAL"), _("GOST"), _("CRC32B"), _("WHIRLPOOL")
-#endif
 #ifdef WITH_ACL
     , _("ACL")
 #endif
@@ -594,13 +590,11 @@ snprintf(*values[0], l, "%s",s);
         easy_md(DB_TIGER,tiger,HASH_TIGER_LEN)
         easy_md(DB_SHA256,sha256,HASH_SHA256_LEN)
         easy_md(DB_SHA512,sha512,HASH_SHA512_LEN)
-#ifdef WITH_MHASH
         easy_md(DB_CRC32,crc32,HASH_CRC32_LEN)
         easy_md(DB_HAVAL,haval,HASH_HAVAL256_LEN)
         easy_md(DB_GOST,gost,HASH_GOST_LEN)
         easy_md(DB_CRC32B,crc32b,HASH_CRC32B_LEN)
         easy_md(DB_WHIRLPOOL,whirlpool,HASH_WHIRLPOOL_LEN)
-#endif
 #ifdef WITH_SELINUX
         } else if (DB_SELINUX&attr) {
             easy_string(line->cntx)

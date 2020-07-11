@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 2000-2002,2005,2006 Rami Lehti,Pablo Virolainen,
+ * Copyright (C) 2000-2002,2005,2006,2020 Rami Lehti,Pablo Virolainen,
  * Richard van den Berg
  * $Header$
  *
@@ -45,10 +45,12 @@
 
 #ifdef WITH_GCRYPT
 #include <gcrypt.h>
-#define HASH_GCRYPT_COUNT GCRY_MD_CRC32
+#define HASH_GCRYPT_COUNT GCRY_MD_GOSTR3411_94
 #ifndef WITH_MHASH
 #define HASH_USE_GCRYPT (DB_MD5|DB_SHA1|DB_RMD160|DB_TIGER|DB_CRC32|\
-                         DB_HAVAL|DB_CRC32|DB_SHA256|DB_SHA512)
+                         DB_HAVAL|DB_GOST|DB_CRC32B|\
+                         DB_SHA256|DB_SHA512|DB_WHIRLPOOL)
+
 #endif
 #endif
 

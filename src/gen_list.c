@@ -228,13 +228,11 @@ static DB_ATTR_TYPE get_changed_attributes(db_line* l1,db_line* l2) {
     easy_md_compare(DB_SHA256,sha256,HASH_SHA256_LEN);
     easy_md_compare(DB_SHA512,sha512,HASH_SHA512_LEN);
 
-#ifdef WITH_MHASH
     easy_md_compare(DB_CRC32,crc32,HASH_CRC32_LEN);
     easy_md_compare(DB_HAVAL,haval,HASH_HAVAL256_LEN);
     easy_md_compare(DB_GOST,gost,HASH_GOST_LEN);
     easy_md_compare(DB_CRC32B,crc32b,HASH_CRC32B_LEN);
     easy_md_compare(DB_WHIRLPOOL,whirlpool,HASH_WHIRLPOOL_LEN);
-#endif
 
 #ifdef WITH_ACL
     easy_function_compare(DB_ACL,acl,has_acl_changed);

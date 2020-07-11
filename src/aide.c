@@ -341,11 +341,9 @@ static void setdefaults_before_config()
   conf->db_attrs = 0;
 #if defined(WITH_MHASH) || defined(WITH_GCRYPT)
   conf->db_attrs |= DB_MD5|DB_TIGER|DB_HAVAL|DB_CRC32|DB_SHA1|DB_RMD160|DB_SHA256|DB_SHA512;
-#ifdef WITH_MHASH
   conf->db_attrs |= DB_GOST;
-#ifdef HAVE_MHASH_WHIRLPOOL
+#if defined(HAVE_MHASH_WHIRLPOOL) || defined(WITH_GCRYPT)
   conf->db_attrs |= DB_WHIRLPOOL;
-#endif
 #endif
 #endif
   
@@ -409,12 +407,9 @@ static void setdefaults_before_config()
 #ifdef WITH_SELINUX
   do_groupdef("selinux",DB_SELINUX);
 #endif
-
-#ifdef WITH_MHASH
+#if defined(WITH_MHASH) || defined(WITH_GCRYPT)
   do_groupdef("gost",DB_GOST);
-#ifdef HAVE_MHASH_WHIRLPOOL
   do_groupdef("whirlpool",DB_WHIRLPOOL);
-#endif
 #endif
   do_groupdef("ftype",DB_FTYPE);
 #ifdef WITH_E2FSATTRS

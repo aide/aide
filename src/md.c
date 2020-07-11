@@ -55,6 +55,10 @@ DB_ATTR_TYPE hash_gcrypt2attr(int i) {
     r=DB_TIGER;
     break;
   }
+  case GCRY_MD_GOSTR3411_94: {
+    r=DB_GOST;
+    break;
+  }
   case GCRY_MD_HAVAL: {
     r=DB_HAVAL;
     break;
@@ -69,6 +73,10 @@ DB_ATTR_TYPE hash_gcrypt2attr(int i) {
   }
   case GCRY_MD_CRC32: {
     r=DB_CRC32;
+    break;
+  }
+  case GCRY_MD_WHIRLPOOL: {
+    r=DB_WHIRLPOOL;
     break;
   }
   default:
@@ -290,9 +298,11 @@ int close_md(struct md_container* md) {
   get_libgcrypt_hash(DB_SHA1,GCRY_MD_SHA1,sha1,HASH_SHA1_LEN);
   get_libgcrypt_hash(DB_TIGER,GCRY_MD_TIGER,tiger,HASH_TIGER_LEN);
   get_libgcrypt_hash(DB_RMD160,GCRY_MD_RMD160,rmd160,HASH_RMD160_LEN);
+  get_libgcrypt_hash(DB_GOST,GCRY_MD_GOSTR3411_94,gost,HASH_GOST_LEN);
   get_libgcrypt_hash(DB_SHA256,GCRY_MD_SHA256,sha256,HASH_SHA256_LEN);
   get_libgcrypt_hash(DB_SHA512,GCRY_MD_SHA512,sha512,HASH_SHA512_LEN);
   get_libgcrypt_hash(DB_CRC32,GCRY_MD_CRC32,crc32,HASH_CRC32_LEN);
+  get_libgcrypt_hash(DB_WHIRLPOOL,GCRY_MD_WHIRLPOOL,whirlpool,HASH_WHIRLPOOL_LEN);
   
   /*.    There might be more hashes in the library. Add those here..   */
   

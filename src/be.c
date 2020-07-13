@@ -169,7 +169,7 @@ void* be_init(int inout,url_t* u,int iszipped)
 #ifdef WITH_ZLIB
     if(iszipped && !inout){
       gzFile gzfh = gzdopen(fd,"wb9");
-      if(fh==NULL){
+      if(gzfh==NULL){
 	error(0,_("Couldn't open file %s for %s"),u->value,
 	      inout?"reading\n":"writing\n");
       }

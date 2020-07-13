@@ -620,7 +620,7 @@ static void print_line(seltree* node, const int grouped, const int node_status) 
     for (l=conf->report_urls; l; l=l->next) {
         report_t* r = l->data;
 
-if ((!(conf->action&DO_INIT) || r->detailed_init)
+if ((conf->action&(DO_COMPARE|DO_DIFF) || (conf->action&DO_INIT && r->detailed_init))
    && (r->grouped == grouped && node->checked&node_status) ) {
 
         if (r->level >= REPORT_LEVEL_LIST_ENTRIES) {
@@ -709,7 +709,7 @@ static void print_dbline_attributes(REPORT_LEVEL report_level, db_line* oline, d
     for (l=conf->report_urls; l; l=l->next) {
         report_t* r = l->data;
 
-        if ( !(conf->action&DO_INIT) || r->detailed_init || force) {
+        if ( conf->action&(DO_COMPARE|DO_DIFF) || (conf->action&DO_INIT && r->detailed_init) || force) {
 
         added_attrs = oline&&nline?(~(oline->attr)&nline->attr&~(r->ignore_added_attrs)):0;
         removed_attrs = oline&&nline?(oline->attr&~(nline->attr)&~(r->ignore_removed_attrs)):0;

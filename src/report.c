@@ -784,7 +784,7 @@ static void terse_report(seltree* node) {
         if (!(node->checked&DB_OLD)){
             /* File is in new db but not old. (ADDED) */
             /* unless it was moved in */
-            if (conf->action&DO_INIT?r->detailed_init:!((node->checked&NODE_ALLOW_NEW)||(node->checked&NODE_MOVED_IN))) {
+            if ( (conf->action&DO_INIT && r->detailed_init) || (conf->action&(DO_COMPARE|DO_DIFF) && !((node->checked&NODE_ALLOW_NEW)||(node->checked&NODE_MOVED_IN))) ) {
 #ifdef WITH_AUDIT
                 nadd++;
 #endif

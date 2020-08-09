@@ -225,21 +225,7 @@ int db_file_read_spec(int db){
 	  break;
 	}
       }
-      for (l=0;l<db_alias_size;l++){
-	
-	if (strcmp(db_namealias[l],dbtext)==0) {
-	  
-	  if (check_db_order(*db_order, *db_osize,
-			     db_aliasvalue[l])==RETFAIL) {
-	    error(0,"Field %s redefined in @@dbspec\n",dbtext);
-	    (*db_order)[*db_osize]=db_unknown;
-	  } else {
-	    (*db_order)[*db_osize]=db_aliasvalue[l];
-	  }
-	  (*db_osize)++;
-	  break;
-	}
-      }
+
       if(l==db_unknown){
 	error(0,"Unknown field %s in database\n",dbtext);
 	(*db_osize)++;

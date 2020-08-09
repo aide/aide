@@ -125,11 +125,7 @@ const int db_value[db_unknown+1] = {
    db_capabilities,     /* "capabilities", */
    db_unknown };        /* "unknown"  */
 
-const char* db_namealias[db_alias_size] = {
-  "count" } ;
 
-const int db_aliasvalue[db_alias_size] = {
-  db_lnkcount } ;       /* "count",  */
 
 static long readlong(char* s,char* err){
   long i;

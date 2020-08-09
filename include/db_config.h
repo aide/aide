@@ -146,12 +146,6 @@ typedef enum {
 extern const char* db_names[db_unknown+1];
 extern const int db_value[db_unknown+1];
 
-/* db_namealias && db_aliasvalue are here to support earlier database 
- * names that are no longer used. */
-#define db_alias_size 1
-extern const char* db_namealias[db_alias_size];
-extern const int db_aliasvalue[db_alias_size];
-
 /* TIMEBUFSIZE should be exactly ceil(sizeof(time_t)*8*ln(2)/ln(10))
  * Now it is ceil(sizeof(time_t)*2.5)
  * And of course we add one for end of string char

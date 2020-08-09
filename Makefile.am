@@ -37,7 +37,6 @@ aide_SOURCES = src/aide.c include/aide.h \
 	include/db_file.h src/db_file.c \
 	src/db_lex.l \
 	include/db_list.h src/db_list.c \
-	include/db_sql.h src/db_sql.c \
 	include/do_md.h src/do_md.c \
 	include/error.h src/error.c \
 	include/gen_list.h src/gen_list.c \
@@ -57,7 +56,7 @@ if USE_CURL
 aide_SOURCES += include/fopen.h src/fopen.c
 endif
 
-aide_LDADD = -lm @PCRELIB@ @CRYPTLIB@ @ACLLIB@ @SELINUXLIB@ @AUDITLIB@ @ATTRLIB@ @E2FSATTRSLIB@ @ELFLIB@ @CAPLIB@ $(PSQL_LIBS)
+aide_LDADD = -lm @PCRELIB@ @CRYPTLIB@ @ACLLIB@ @SELINUXLIB@ @AUDITLIB@ @ATTRLIB@ @E2FSATTRSLIB@ @ELFLIB@ @CAPLIB@
 
 if HAVE_CHECK
 TESTS				= check_aide

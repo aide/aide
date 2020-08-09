@@ -822,20 +822,6 @@ AC_ARG_ENABLE(forced_dbmd,
 	AC_DEFINE(FORCEDBMD,0,[don't force database checksum])
 )
 
-AC_ARG_WITH([psql],
- AS_HELP_STRING([--with-psql],
-  [use postgresql library for storing databases (default: no)]),
- [with_psql=$withval], [with_psql=no])
-AS_IF([test "x$with_psql" = "xyes"], [
-       if test "$aide_static_choice" == "yes"; then
-           PKG_CHECK_MODULES_STATIC(PSQL, [libpq], , [AC_MSG_RESULT([libpq not found by pkg-config - Try --without-psql or add directory containing libpq.pc to PKG_CONFIG_PATH environment variable])])
-        else
-           PKG_CHECK_MODULES(PSQL, [libpq], , [AC_MSG_RESULT([libpq not found by pkg-config - Try --without-psql or add directory containing libpq.pc to PKG_CONFIG_PATH environment variable])])
-        fi
-        AC_DEFINE(WITH_PSQL,1,[Define to 1 if libpq is available])
-        compoptionstring="${compoptionstring}WITH_PSQL\\n"
-])
-
 # Check for Linux auditing API
 #
 AC_ARG_WITH([audit],

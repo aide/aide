@@ -32,10 +32,6 @@
 #include "fopen.h"
 #endif
 
-#ifdef WITH_PSQL
-#include "db_sql.h"
-#endif
-
 #include "db_config.h"
 #include "error.h"
 #include "be.h"
@@ -172,10 +168,6 @@ static struct md_container *init_db_attrs(URL_TYPE type) {
                 mdc->todo_attr = conf->db_attrs;
                 init_md(mdc);
                 break;
-            #ifdef WITH_PSQL
-            case url_sql:
-                break;
-            #endif /* WITH_PSQL */
             default :
                 error(200,_("init_db_attrs(): Unknown url type.\n"));
         }
@@ -326,14 +318,6 @@ db_line* db_readline(int db){
   }
 
 
-#ifdef WITH_PSQL
-  case url_sql: {
-    error(255,"db_sql readline...");
-    s=db_readline_sql(db, conf);
-    
-    break;
-  }
-#endif
   default : {
     error(0,_("db_readline():Url-type backend not implemented\n"));
     return NULL;
@@ -754,16 +738,6 @@ int db_writespec(db_config* dbconf)
       break;
     }
 #endif /* WITH CURL */
-#ifdef WITH_PSQL
-  case url_sql: {
-    if(dbconf->db_out!=NULL){
-      if(db_writespec_sql(dbconf)==RETOK){
-	return RETOK;
-      }
-    }
-    break;
-  }
-#endif
   default:{
     error(0,_("Unknown output in db out.\n"));    
     return RETFAIL;
@@ -798,17 +772,6 @@ int db_writeline(db_line* line,db_config* dbconf){
     return RETFAIL;
     break;
   }
-#ifdef WITH_PSQL
-  case url_sql: {
-    if (dbconf->db_out!=NULL) {
-      if (db_writeline_sql(line,dbconf)==RETOK) {
-	return RETOK;
-      }
-    }
-    return RETFAIL;
-    break;
-  }
-#endif
   default : {
     error(0,_("Unknown output in db out.\n"));    
     return RETFAIL;
@@ -843,14 +806,6 @@ void db_close() {
       break;
     }
 #endif /* WITH CURL */
-#ifdef WITH_PSQL
-  case url_sql: {
-    if (conf->db_out!=NULL) {
-      db_close_sql(conf->db_out);
-    }
-    break;
-  }
-#endif
   default : {
     error(0,_("db_close():Unknown output in db out.\n"));    
   } 

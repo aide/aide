@@ -357,18 +357,4 @@ typedef struct db_config {
 
 } db_config;
 
-#ifdef WITH_PSQL
-#include <postgresql/libpq-fe.h>
-
-typedef struct psql_data{
-  PGconn* conn;
-  char* table;
-  PGresult *res;
-  int des[db_unknown];
-  int curread;
-  int maxread;
-} psql_data;
-
-#endif
-
 #endif

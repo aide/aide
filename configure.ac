@@ -402,24 +402,6 @@ AC_ARG_WITH([curl],
 	[with_curl=no]
 )
 
-AC_MSG_CHECKING(for sun-acl-support)
-AC_ARG_WITH([sun-acl],
-	[AC_HELP_STRING([--with-sun-acl],
-		[use ACL on solaris (no checking)])],
-	[],
-	[with_sun_acl=no]
-)
-
-AS_IF([test "x$with_sun_acl" != xno],
-	[AC_DEFINE(WITH_SUN_ACL,1,[use ACL on Solaris])
-	AC_DEFINE(WITH_ACL,1,[use ACL])
-	ACLLIB="-lsec"
-	compoptionstring="${compoptionstring}WITH_SUN_ACL\\n"
-	aideextragroups="${aideextragroups}+acl"
-	AC_MSG_RESULT(yes)],
-	[AC_MSG_RESULT(no)]
-)
-
 AC_MSG_CHECKING(for posix-acl-support)
 AC_ARG_WITH([posix-acl],
 	[AC_HELP_STRING([--with-posix-acl],

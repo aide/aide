@@ -810,25 +810,6 @@ int db_writespec_file(db_config* dbconf)
 #ifdef WITH_ACL
 int db_writeacl(acl_type* acl,FILE* file,int a)
 {
-#ifdef WITH_SUN_ACL
-  int i;
-
-  if(a) {
-    dofprintf(" ");
-  }
-  
-  if (acl==NULL) {
-    dofprintf("0");
-  } else {
-    
-    dofprintf("%i",acl->entries);
-    
-    for (i=0;i<acl->entries;i++) {
-      dofprintf(",%i,%i,%i", acl->acl[i].a_type, acl->acl[i].a_id,
-	      acl->acl[i].a_perm);
-    }
-  }
-#endif
 #ifdef WITH_POSIX_ACL
   if(a) {
     dofprintf(" ");

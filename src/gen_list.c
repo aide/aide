@@ -78,20 +78,7 @@ static int has_md_changed(byte* old,byte* new,int len) {
 }
 
 #ifdef WITH_ACL
-#ifdef WITH_SUN_ACL
-static int compare_single_acl(aclent_t* a1,aclent_t* a2) {
-  if (a1->a_type!=a2->a_type ||
-      a1->a_id!=a2->a_id ||
-      a1->a_perm!=a2->a_perm) {
-    return RETFAIL;
-  }
-  return RETOK;
-}
-#endif
 static int has_acl_changed(acl_type* old, acl_type* new) {
-#ifdef WITH_SUN_ACL
-    int i;
-#endif
     if (old==NULL && new==NULL) {
         return RETOK;
     }
@@ -104,19 +91,6 @@ static int has_acl_changed(acl_type* old, acl_type* new) {
             || (old->acl_a && strcmp(old->acl_a, new->acl_a))
             || (old->acl_d && strcmp(old->acl_d, new->acl_d))){
         return RETFAIL;
-    }
-#endif
-#ifdef WITH_SUN_ACL
-    if (old->entries!=new->entries) {
-        return RETFAIL;
-    }
-    /* Sort em up. */
-    aclsort(old->entries,0,old->acl);
-    aclsort(new->entries,0,new->acl);
-    for(i=0;i<old->entries;i++){
-        if (compare_single_acl(old->acl+i,new->acl+i)==RETFAIL) {
-            return RETFAIL;
-        }
     }
 #endif
     return RETOK;

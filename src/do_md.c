@@ -504,34 +504,6 @@ void acl2line(db_line* line) {
   }
   line->acl = ret;
 #endif  
-#ifdef WITH_SUN_ACL
-  if(DB_ACL&line->attr) { /* There might be a bug here. */
-    int res;
-    line->acl=malloc(sizeof(acl_type));
-    line->acl->entries=acl(line->fullpath,GETACLCNT,0,NULL);
-    if (line->acl->entries==-1) {
-      char* er=strerror(errno);
-      line->acl->entries=0;
-      if (er==NULL) {
-	error(0,"ACL query failed for %s. strerror failed for %i\n",line->fullpath,errno);
-      } else {
-	error(0,"ACL query failed for %s:%s\n",line->fullpath,er);
-      }
-    } else {
-      line->acl->acl=malloc(sizeof(aclent_t)*line->acl->entries);
-      res=acl(line->fullpath,GETACL,line->acl->entries,line->acl->acl);
-      if (res==-1) {
-	error(0,"ACL error %s\n",strerror(errno));
-      } else {
-	if (res!=line->acl->entries) {
-	  error(0,"Tried to read %i acl but got %i\n",line->acl->entries,res);
-	}
-      }
-    }
-  }else{
-    line->acl=NULL;
-  }
-#endif
 }
 #endif
 

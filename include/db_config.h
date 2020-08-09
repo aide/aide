@@ -33,23 +33,6 @@
 #include "list.h"
 #include "report.h"
 
-#ifdef WITH_SUN_ACL /* First try to implement support for sun acl. */
-/*#define WITH_ACL    If we use sun acl then we have acl :) */
-/* Warning! if acl in database is corrupted then
-   this will break down. See and fix db.c */
-
-#ifndef WITH_ACL
-# error "No ACL support ... but Sun ACL support."
-#endif
-
-#include <sys/acl.h>
-typedef struct acl_type{
-  int entries;
-  aclent_t* acl;
-} acl_type;
-
-#endif
-
 #ifdef WITH_POSIX_ACL /* POSIX acl works for Sun ACL, AIUI but anyway... */
 #include <sys/acl.h>
 #ifndef WITH_ACL

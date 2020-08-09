@@ -329,9 +329,6 @@ static int acl2array(acl_type* acl, char* **values) {
         easy_posix_acl(acl_d, 'D')
     }
 #endif
-#ifdef WITH_SUN_ACL
-/* FIXME: readd sun acl support */
-#endif
     return n;
 }
 #endif

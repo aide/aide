@@ -537,34 +537,6 @@ db_line* db_char2line(char** ss,int db){
                                 strlen(ss[(*db_order)[i]]), NULL);
       break;
     }
-#ifdef WITH_SUN_ACL
-    case db_acl : {
-      char* endp,*pos;
-      int entries,lc;
-      line->acl=NULL;
-      
-      entries=strtol(ss[(*db_order)[i]],&endp,10);
-      if (endp==ss[(*db_order)[i]]) {
- 	/* Something went wrong */
-	break;
-      }
-      pos=endp+1; /* Warning! if acl in database is corrupted then
-		     this will break down. */
-      
-      line->acl=malloc(sizeof(acl_type));
-      line->acl->entries=entries;
-      line->acl->acl=malloc(sizeof(aclent_t)*entries);
-      for (lc=0;lc<entries;lc++) {
-	line->acl->acl[lc].a_type=strtol(pos,&endp,10);
-	pos=endp+1;
-	line->acl->acl[lc].a_id=strtol(pos,&endp,10);
-	pos=endp+1;
-	line->acl->acl[lc].a_perm=strtol(pos,&endp,10);
-	pos=endp+1;
-      }
-      break;
-    }
-#endif
 #ifdef WITH_POSIX_ACL
     case db_acl : {
       char *tval = NULL;

@@ -395,31 +395,6 @@ AC_ARG_WITH([zlib],
 	[with_zlib=yes]
 )
 
-AC_ARG_WITH([curl],
-	AC_HELP_STRING([--with-curl],
-		[use curl for http,https and ftp backends]),
-		,
-	[with_curl=no]
-)
-
-AC_MSG_CHECKING(for sun-acl-support)
-AC_ARG_WITH([sun-acl],
-	[AC_HELP_STRING([--with-sun-acl],
-		[use ACL on solaris (no checking)])],
-	[],
-	[with_sun_acl=no]
-)
-
-AS_IF([test "x$with_sun_acl" != xno],
-	[AC_DEFINE(WITH_SUN_ACL,1,[use ACL on Solaris])
-	AC_DEFINE(WITH_ACL,1,[use ACL])
-	ACLLIB="-lsec"
-	compoptionstring="${compoptionstring}WITH_SUN_ACL\\n"
-	aideextragroups="${aideextragroups}+acl"
-	AC_MSG_RESULT(yes)],
-	[AC_MSG_RESULT(no)]
-)
-
 AC_MSG_CHECKING(for posix-acl-support)
 AC_ARG_WITH([posix-acl],
 	[AC_HELP_STRING([--with-posix-acl],
@@ -603,25 +578,20 @@ if test x$with_zlib = xyes; then
   compoptionstring="${compoptionstring}WITH_ZLIB\\n"
 fi
 
-if test x$with_curl = xyes; then
-	AC_PATH_PROG(curlconfig, "curl-config")
-	if test "_$curlconfig" != _ ; then
-		CURL_CFLAGS=`$curlconfig --cflags`
-		CURL_LIBS=`$curlconfig --libs`
-	else
-		AC_MSG_ERROR([You don't have curl properly installed. Install it or try --without-curl.])
-	fi
-  AC_CHECK_HEADERS(curl/curl.h,,
- 	[AC_MSG_ERROR([You don't have curl properly installed. Install it or try --without-curl.])])
-  CFLAGS="$CFLAGS $CURL_CFLAGS"
-  LDFLAGS="$LDFLAGS $CURL_LIBS"
-  AC_CHECK_LIB(curl,curl_easy_init,havecurl=yes,
- 	[AC_MSG_ERROR([You don't have curl properly installed. Install it or try --without-curl.])]
-)
-  AC_DEFINE(WITH_CURL,1,[use curl])
-	compoptionstring="${compoptionstring}WITH_CURL\\n"
-fi
-AM_CONDITIONAL(USE_CURL, test x$havecurl = xyes)
+AC_ARG_WITH([curl],
+ AS_HELP_STRING([--with-curl],
+  [use curl library for http, https and ftp database backend (default: no)]),
+ [with_curl=$withval], [with_curl=no])
+AS_IF([test "x$with_curl" = "xyes"], [
+       if test "$aide_static_choice" == "yes"; then
+           PKG_CHECK_MODULES_STATIC(CURL, [libcurl], , [AC_MSG_RESULT([libcurl not found by pkg-config - Try --without-curl or add directory containing libcurl.pc to PKG_CONFIG_PATH environment variable])])
+        else
+           PKG_CHECK_MODULES(CURL, [libcurl], , [AC_MSG_RESULT([libcurl not found by pkg-config - Try --without-curl or add directory containing libcurl.pc to PKG_CONFIG_PATH environment variable])])
+        fi
+        AC_DEFINE(WITH_CURL,1,[Define to 1 if libcurl is available])
+        compoptionstring="${compoptionstring}WITH_CURL\\n"
+])
+AM_CONDITIONAL(USE_CURL, [test "x$CURL_LIBS" != "x"])
 
 AC_ARG_WITH(mhash,
 	AC_HELP_STRING([--with-mhash],
@@ -839,38 +809,6 @@ AC_ARG_ENABLE(forced_dbmd,
 	AC_DEFINE(FORCEDBMD,1,[force database checksum]),
 	AC_DEFINE(FORCEDBMD,0,[don't force database checksum])
 )
-
-AC_ARG_WITH(initial_errors_to,
-	AC_HELP_STRING([--with-initial-errors-to=URL],
-		[Where errors should go while checking config. Default is stderr.]),
-	AC_DEFINE_UNQUOTED(INITIALERRORSTO,"$withval",[send errors here])
-	compoptionstring="${compoptionstring}INITIALERRORSTO=${withval}\\n",
-	AC_DEFINE_UNQUOTED(INITIALERRORSTO,"stderr",[send errors to stderr])
-)
-
-AC_MSG_CHECKING(for PostgresSQL support)
-AC_ARG_WITH([psql],
-	[AC_HELP_STRING([--with-psql],
-		[use postgresql library for storing databases])],
-	[],
-	[with_psql=no]
-)
-
-AS_IF([test "x$with_psql" != xno],
-	AC_DEFINE(WITH_PSQL,1,[postgresql support])
-	AC_CHECK_LIB(pq,PQclear,[],
-		with_psql=no
-		AC_MSG_RESULT([not found])
-  	)
-	PSQLLIB="-lpq"
-	compoptionstring="${compoptionstring}WITH_PSQL\\n"
-	AC_MSG_RESULT(yes),
-	PSQLLIB=""
-	[with_psql=no]
-	AC_MSG_RESULT([no])
-)
-
-AC_SUBST(PSQLLIB)
 
 # Check for Linux auditing API
 #

@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2004-2006,2010-2013,2015,2016,2019 Rami Lehti, Pablo
- * Virolainen, Richard van den Berg, Hannes von Haugwitz
+ * Copyright (C) 1999-2002,2004-2006,2010-2013,2015,2016,2019,2020 Rami Lehti,
+ * Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -31,23 +31,7 @@
 #define E2O(n) (1<<n)
 
 #include "list.h"
-
-#ifdef WITH_SUN_ACL /* First try to implement support for sun acl. */
-/*#define WITH_ACL    If we use sun acl then we have acl :) */
-/* Warning! if acl in database is corrupted then
-   this will break down. See and fix db.c */
-
-#ifndef WITH_ACL
-# error "No ACL support ... but Sun ACL support."
-#endif
-
-#include <sys/acl.h>
-typedef struct acl_type{
-  int entries;
-  aclent_t* acl;
-} acl_type;
-
-#endif
+#include "report.h"
 
 #ifdef WITH_POSIX_ACL /* POSIX acl works for Sun ACL, AIUI but anyway... */
 #include <sys/acl.h>
@@ -167,12 +151,6 @@ typedef enum {
 extern const char* db_names[db_unknown+1];
 extern const int db_value[db_unknown+1];
 
-/* db_namealias && db_aliasvalue are here to support earlier database 
- * names that are no longer used. */
-#define db_alias_size 1
-extern const char* db_namealias[db_alias_size];
-extern const int db_aliasvalue[db_alias_size];
-
 /* TIMEBUFSIZE should be exactly ceil(sizeof(time_t)*8*ln(2)/ln(10))
  * Now it is ceil(sizeof(time_t)*2.5)
  * And of course we add one for end of string char
@@ -257,13 +235,13 @@ typedef struct db_line {
 typedef struct db_config {
   
   url_t* db_in_url;
-  FILE* db_in;
+  void* db_in;
   
   url_t* db_new_url;
-  FILE* db_new;
+  void* db_new;
   
   url_t* db_out_url;
-  FILE* db_out;
+  void* db_out;
   
   int config_check;
 
@@ -312,36 +290,24 @@ typedef struct db_config {
   char* old_dbnewmdstr;
   char* old_dboldmdstr;
 
-
-  /* The following three a lists of rx_rule*s */
-  list* selrxlst;
-  list* equrxlst;
-  list* negrxlst;
-
   int verbose_level;
   int database_add_metadata;
   int report_detailed_init;
   int report_base16;
   int report_quiet;
-  int use_initial_errorsto;
+
+  DB_ATTR_TYPE report_ignore_added_attrs;
+  DB_ATTR_TYPE report_ignore_removed_attrs;
+  DB_ATTR_TYPE report_ignore_changed_attrs;
+  DB_ATTR_TYPE report_force_attrs;
 
 #ifdef WITH_E2FSATTRS
   unsigned long report_ignore_e2fsattrs;
 #endif
 
-  url_t* initial_report_url;
-  FILE* initial_report_fd;
-  
-  /* report_url is a list of url_t*s */
-  list* report_url;
+  list* report_urls;
+  REPORT_LEVEL report_level;
 
-  /* report_fd is a list of FILE*s */
-  list* report_fd;
-
-  /* Report syslog */
-  
-  int report_syslog;
-  
   /* defsyms is a list of symba*s */
   list* defsyms;
   /* so is groupsyms */
@@ -377,19 +343,5 @@ typedef struct db_config {
   struct seltree* tree;
 
 } db_config;
-
-#ifdef WITH_PSQL
-#include "libpq-fe.h"
-
-typedef struct psql_data{
-  PGconn* conn;
-  char* table;
-  PGresult *res;
-  int des[db_unknown];
-  int curread;
-  int maxread;
-} psql_data;
-
-#endif
 
 #endif

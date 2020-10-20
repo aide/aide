@@ -62,9 +62,6 @@ here.
 Controls how verbose \fBaide\fP is. Value must [0-255]. The default is
 5. With no argument Value is set to 20. This parameter overrides the
 value set in a configuration file.
-.IP "--report=\fBreporter\fR,-r \fBreporter\fR"
-\fBreporter\fR is a URL which tells \fBaide\fP where to send its
-output. See aide.conf (5) section URLS for available values.
 .IP "--version,-v"
 \fBaide\fP prints out its version number
 .IP "--help,-h"
@@ -76,12 +73,12 @@ Normally, the exit status is 0 if no errors occurred. Except when the
 .BR --compare " or"
 .B --update
 command was requested, in which case the exit status is defined as:
-.IP "1 * (new files detected?)     +"
-.IP "2 * (removed files detected?) +"
-.IP "4 * (changed files detected?)"
+.IP "1 * (new files reported?)     +"
+.IP "2 * (removed files reported?) +"
+.IP "4 * (changed files reported?)"
 .PP
 Since those three cases can occur together, the respective error codes
-are added. For example, if there are new files and removed files detected,
+are added. For example, if there are new files and removed files reported,
 the exit status will be 1 + 2 = 3.
 .PP
 Additionally, the following exit codes are defined for generic error

@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2010 Rami Lehti,Pablo Virolainen, Hannes von
+ * Copyright (C) 1999-2002,2010,2020 Rami Lehti,Pablo Virolainen, Hannes von
  * Haugwitz
  * $Header$
  *
@@ -21,44 +21,27 @@
 
 #ifndef _SELTREE_H_INCLUDED
 #define _SELTREE_H_INCLUDED
-struct seltree;
-#include "db_config.h"
-#include "list.h"
+#include "attributes.h"
+#include "seltree_struct.h"
+#include "rx_rule.h"
 
+#define AIDE_NEGATIVE_RULE -1
+#define AIDE_EQUAL_RULE 0
+#define AIDE_SELECTIVE_RULE 1
 
-/* seltree structure
- * lists have regex_t* in them
- * checked is whether or not the node has been checked yet and status
- * when added  
- * path is the path of the node
- * parent is the parent, NULL if root
- * childs is list of seltree*:s
- * new_data is this nodes new attributes (read from disk or db in --compare)
- * old_data is this nodes old attributes (read from db)
- * attr attributes to add for this node and possibly for its children
- * changed_attrs changed attributes between new_data and old_data
- */
+seltree* init_tree();
 
-typedef struct seltree {
-  list* sel_rx_lst;
-  list* neg_rx_lst;
-  list* equ_rx_lst;
-  list* childs;
-  struct seltree* parent;
+seltree* new_seltree_node(seltree*, char*, int, rx_rule*);
 
-  char* path;
-  int checked;
+seltree* get_seltree_node(seltree* ,char*);
 
-  long      conf_lineno;
-  char*     rx;    
+rx_rule * add_rx_to_tree(char *, RESTRICTION_TYPE, int, seltree *, char *, const char **, int *);
 
-  DB_ATTR_TYPE attr;
+int check_seltree(seltree *, char *, RESTRICTION_TYPE, DB_ATTR_TYPE *);
 
-  struct db_line* new_data;
-  struct db_line* old_data;
+int treedepth(seltree *);
 
-  DB_ATTR_TYPE changed_attrs;
+void print_tree(seltree *);
 
-} seltree;
-
+char* strgetndirname(char* ,int);
 #endif /* _SELTREE_H_INCLUDED*/

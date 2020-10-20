@@ -166,13 +166,10 @@ int commandconf(const char mode,const char* line)
 int conf_input_wrapper(char* buf, int max_size, FILE* in)
 {
   int retval=0;
-  int c=0;
-  char* tmp=NULL;
-  void* key=NULL;
-  int keylen=0;
 
   /* FIXME Add support for gzipped config. :) */
 #ifdef WITH_MHASH
+  int c=0;
   /* Read a character at a time until we are doing md */
   if(conf->do_configmd){
     retval=fread(buf,1,max_size,in);
@@ -185,6 +182,9 @@ int conf_input_wrapper(char* buf, int max_size, FILE* in)
 #endif 
 
 #ifdef WITH_MHASH    
+  char* tmp=NULL;
+  void* key=NULL;
+  int keylen=0;
   if(conf->do_configmd||conf->config_check){
     if(((conf->do_configmd==1)&&conf->config_check)||!conf->confmd){
       if(conf->do_configmd==1){
@@ -236,7 +236,7 @@ int db_input_wrapper(char* buf, int max_size, int db)
   void* key=NULL;
   int keylen;
 #endif
-  FILE** db_filep=NULL;
+  FILE* db_filep=NULL;
 #ifdef WITH_ZLIB
   gzFile* db_gzp=NULL;
 #endif
@@ -252,7 +252,7 @@ int db_input_wrapper(char* buf, int max_size, int db)
     md=&(conf->dboldmd);
 #endif
     
-    db_filep=&(conf->db_in);
+    db_filep=conf->db_in;
     
 #ifdef WITH_ZLIB
     db_gzp=&(conf->db_gzin);
@@ -269,7 +269,7 @@ int db_input_wrapper(char* buf, int max_size, int db)
     md=&(conf->dbnewmd);
 #endif
     
-    db_filep=&(conf->db_new);
+    db_filep=conf->db_new;
     
 #ifdef WITH_ZLIB
     db_gzp=&(conf->db_gznew);
@@ -283,7 +283,7 @@ int db_input_wrapper(char* buf, int max_size, int db)
   case url_http:
   case url_https:
   case url_ftp: {
-    retval=url_fread(buf,1,max_size,(URL_FILE *)*db_filep);
+    retval=url_fread(buf,1,max_size,(URL_FILE *)db_filep);
     if ((mdc = (db == DB_OLD ? conf->mdc_in : conf->mdc_out))) {
         update_md(mdc, buf, retval);
     }
@@ -296,7 +296,7 @@ int db_input_wrapper(char* buf, int max_size, int db)
   /* Read a character at a time until we are doing md */
 #ifdef WITH_ZLIB
   if((*db_gzp==NULL)&&(*domd)){
-    retval=fread(buf,1,max_size,*db_filep);
+    retval=fread(buf,1,max_size,db_filep);
   }
   if((*db_gzp!=NULL)&&(*domd)){
     if(gzeof(*db_gzp)){
@@ -323,14 +323,14 @@ int db_input_wrapper(char* buf, int max_size, int db)
     retval= (c==EOF) ? 0 : (buf[0] = c,1);
   }
   if((*db_gzp==NULL)&&!(*domd)){
-    c=fgetc(*db_filep);
+    c=fgetc(db_filep);
     if(c==(unsigned char)'\037'){
-      c=fgetc(*db_filep);
+      c=fgetc(db_filep);
       if(c==(unsigned char)'\213'){
 	/* We got gzip header. */
 	error(255,"Got Gzip header. Handling..\n");
-	lseek(fileno(*db_filep),0L,SEEK_SET);
-	*db_gzp=gzdopen(fileno(*db_filep),"rb");
+	lseek(fileno(db_filep),0L,SEEK_SET);
+	*db_gzp=gzdopen(fileno(db_filep),"rb");
 	c=gzgetc(*db_gzp);
 	error(255,"First character after gzip header is: %c(%#X)\n",c,c);
   if(c==-1) {
@@ -340,7 +340,7 @@ int db_input_wrapper(char* buf, int max_size, int db)
   }
       }else {
 	/* False alarm */
-	ungetc(c,*db_filep);
+	ungetc(c,db_filep);
       }
     }
     retval= (c==EOF) ? 0 : (buf[0] = c,1);
@@ -349,13 +349,13 @@ int db_input_wrapper(char* buf, int max_size, int db)
 #else /* WITH_ZLIB */
 #ifdef WITH_MHASH
   if(*domd){
-    retval=fread(buf,1,max_size,*db_filep);
+    retval=fread(buf,1,max_size,db_filep);
   }else {
-    c=fgetc(*db_filep);
+    c=fgetc(db_filep);
     retval= (c==EOF) ? 0 : (buf[0] = c,1);
   }
 #else /* WITH_MHASH */
-  retval=fread(buf,1,max_size,*db_filep);
+  retval=fread(buf,1,max_size,db_filep);
 #endif /* WITH_MHASH */ 
 #endif /* WITH_ZLIB */
 
@@ -731,22 +731,31 @@ int do_ifxhost(int mode,char* name)
   return (handle_endif(doit,1));
 }
 
-list* append_rxlist(char* rx,DB_ATTR_TYPE attr,list* rxlst, RESTRICTION_TYPE restriction)
-{
-  extern long conf_lineno; /* defined & set in conf_lex.l */
-    
-  rx_rule* r=NULL;
-  r=(rx_rule*)malloc(sizeof(rx_rule));
-  r->rx=rx;
-  r->attr=attr;
-  r->conf_lineno = conf_lineno;
-  r->restriction = restriction;
-  if (attr&DB_CHECKINODE && attr&DB_CTIME)
-    error(20,"Rule at line %li has c and I flags enabled at the same time. If same inode is found, flag c is ignored\n",conf_lineno);
-  update_db_out_order(r->attr);
-  rxlst=list_append(rxlst,(void*)r);
-  
-  return rxlst;
+bool add_rx_rule_to_tree(char* rx, RESTRICTION_TYPE restriction, DB_ATTR_TYPE attr, int type, seltree *tree) {
+
+    rx_rule* r=NULL;
+
+    bool retval = false;
+
+    char *path = NULL;
+
+    const char* pcre_error;
+    int         pcre_erroffset;
+
+    if ((r = add_rx_to_tree(rx, restriction, type, tree, path, &pcre_error, &pcre_erroffset)) == NULL) {
+        error(0,_("Error in regexp '%s' at %i: %s\n"),rx, pcre_erroffset, pcre_error);
+        retval = false;
+    }else {
+        r->attr=attr;
+        update_db_out_order(r->attr);
+
+        if (attr&DB_CHECKINODE && attr&DB_CTIME) {
+            error(20,"Rule at line %li has c and I flags enabled at the same time. If same inode is found, flag c is ignored\n",conf_lineno);
+        }
+
+        retval = true;
+    }
+    return retval;
 }
 
 void do_groupdef(char* group,DB_ATTR_TYPE value)
@@ -772,19 +781,6 @@ void do_groupdef(char* group,DB_ATTR_TYPE value)
   s->name=group;
   s->ival=value;
   conf->groupsyms=list_append(conf->groupsyms,(void*)s);
-}
-
-RESTRICTION_TYPE get_restrictionval(char* ch) {
-    if (strcmp(ch, "f") == 0) { return RESTRICTION_FT_REG; }
-    else if (strcmp(ch, "d") == 0) { return RESTRICTION_FT_DIR; }
-    else if (strcmp(ch, "p") == 0) { return RESTRICTION_FT_FIFO; }
-    else if (strcmp(ch, "l") == 0) { return RESTRICTION_FT_LNK; }
-    else if (strcmp(ch, "b") == 0) { return RESTRICTION_FT_BLK; }
-    else if (strcmp(ch, "c") == 0) { return RESTRICTION_FT_CHR; }
-    else if (strcmp(ch, "s") == 0) { return RESTRICTION_FT_SOCK; }
-    else if (strcmp(ch, "D") == 0) { return RESTRICTION_FT_DOOR; }
-    else if (strcmp(ch, "P") == 0) { return RESTRICTION_FT_PORT; }
-    else { return RESTRICTION_NULL; }
 }
 
 DB_ATTR_TYPE get_groupval(char* group)
@@ -864,7 +860,19 @@ void do_repurldef(char* val)
   if(u==NULL||u->type==url_unknown||u->type==url_stdin){
     error(0,_("Unsupported output URL-type:%s\n"),val);
   } else {
-    error_init(u,0);
+    add_report_url(u);
+  }
+
+}
+
+void do_reportlevel(char* val) {
+  REPORT_LEVEL report_level=0;
+
+  report_level = get_report_level(val);
+  if (report_level) {
+      conf->report_level = report_level;
+  } else {
+      error(0, _("Ignoring unknown report level: %s\n"),val);
   }
   
 }

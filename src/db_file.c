@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2007,2010-2013,2016,2018,2019 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2007,2010-2013,2016,2018-2020 Rami Lehti, Pablo Virolainen,
  * Mike Markley, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -225,21 +225,7 @@ int db_file_read_spec(int db){
 	  break;
 	}
       }
-      for (l=0;l<db_alias_size;l++){
-	
-	if (strcmp(db_namealias[l],dbtext)==0) {
-	  
-	  if (check_db_order(*db_order, *db_osize,
-			     db_aliasvalue[l])==RETFAIL) {
-	    error(0,"Field %s redefined in @@dbspec\n",dbtext);
-	    (*db_order)[*db_osize]=db_unknown;
-	  } else {
-	    (*db_order)[*db_osize]=db_aliasvalue[l];
-	  }
-	  (*db_osize)++;
-	  break;
-	}
-      }
+
       if(l==db_unknown){
 	error(0,"Unknown field %s in database\n",dbtext);
 	(*db_osize)++;
@@ -291,24 +277,24 @@ char** db_readline_file(int db){
   int* domd=NULL;
 #ifdef WITH_MHASH
   MHASH* md=NULL;
-#endif
   char** oldmdstr=NULL;
+#endif
   int* db_osize=0;
   DB_FIELD** db_order=NULL;
-  FILE** db_filep=NULL;
+  FILE* db_filep=NULL;
   url_t* db_url=NULL;
 
   switch (db) {
   case DB_OLD: {
 #ifdef WITH_MHASH
     md=&(conf->dboldmd);
+    oldmdstr=&(conf->old_dboldmdstr);
 #endif
     domd=&(conf->do_dboldmd);
-    oldmdstr=&(conf->old_dboldmdstr);
     
     db_osize=&(conf->db_in_size);
     db_order=&(conf->db_in_order);
-    db_filep=&(conf->db_in);
+    db_filep=conf->db_in;
     db_url=conf->db_in_url;
     db_lineno=&db_in_lineno;
     break;
@@ -316,13 +302,13 @@ char** db_readline_file(int db){
   case DB_NEW: {
 #ifdef WITH_MHASH
     md=&(conf->dbnewmd);
+    oldmdstr=&(conf->old_dbnewmdstr);
 #endif
     domd=&(conf->do_dbnewmd);
-    oldmdstr=&(conf->old_dbnewmdstr);
     
     db_osize=&(conf->db_new_size);
     db_order=&(conf->db_new_order);
-    db_filep=&(conf->db_new);
+    db_filep=conf->db_new;
     db_url=conf->db_new_url;
     db_lineno=&db_new_lineno;
     break;
@@ -330,7 +316,7 @@ char** db_readline_file(int db){
   }
   
   if (*db_osize==0) {
-    db_buff(db,*db_filep);
+    db_buff(db,db_filep);
     
     token=db_scan();
     while((token!=TDBSPEC && token!=TEOF)){
@@ -735,8 +721,6 @@ int db_writespec_file(db_config* dbconf)
   int i=0;
   int j=0;
   int retval=1;
-  void*key=NULL;
-  int keylen=0;
   struct tm* st;
   time_t tim=time(&tim);
   st=localtime(&tim);
@@ -747,6 +731,8 @@ int db_writespec_file(db_config* dbconf)
   }
 
 #ifdef WITH_MHASH
+  void*key=NULL;
+  int keylen=0;
   /* From hereon everything must MD'd before write to db */
   if((key=get_db_key())!=NULL){
     keylen=get_db_key_len();
@@ -810,25 +796,6 @@ int db_writespec_file(db_config* dbconf)
 #ifdef WITH_ACL
 int db_writeacl(acl_type* acl,FILE* file,int a)
 {
-#ifdef WITH_SUN_ACL
-  int i;
-
-  if(a) {
-    dofprintf(" ");
-  }
-  
-  if (acl==NULL) {
-    dofprintf("0");
-  } else {
-    
-    dofprintf("%i",acl->entries);
-    
-    for (i=0;i<acl->entries;i++) {
-      dofprintf(",%i,%i,%i", acl->acl[i].a_type, acl->acl[i].a_id,
-	      acl->acl[i].a_perm);
-    }
-  }
-#endif
 #ifdef WITH_POSIX_ACL
   if(a) {
     dofprintf(" ");

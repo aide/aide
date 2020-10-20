@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2010 Rami Lehti, Pablo Virolainen, Richard
- * van den Berg
+ * Copyright (C) 1999-2002,2010,2020 Rami Lehti, Pablo Virolainen, Richard
+ * van den Berg, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -24,7 +24,7 @@
 
 #include <stdio.h>
 #include <stdarg.h>
-#include "db_config.h"
+#include "config.h"
 #include "url.h"
 
 /* Exitcodes */
@@ -44,10 +44,5 @@ void error(int errorlevel, char* error_msg,...)
 #else
  ;
 #endif
-
-int error_init(url_t*,int);
-
-void write_error_stderr(int errorlevel, char*error_msg,va_list ap);
-
 
 #endif

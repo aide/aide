@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2004,2005,2013,2016 Rami Lehti, Pablo Virolainen,
- * Richard van den Berg, Hannes von Haugwitz
+ * Copyright (C) 1999-2002,2004,2005,2013,2016,2020 Rami Lehti, Pablo
+ * Virolainen, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -24,6 +24,9 @@
 
 #include <stdio.h>
 #include "db_config.h"
+
+byte* base64tobyte(char*, int, size_t *);
+time_t base64totime_t(char*);
 
 int db_init(int);
 

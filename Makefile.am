@@ -37,16 +37,17 @@ aide_SOURCES = src/aide.c include/aide.h \
 	include/db_file.h src/db_file.c \
 	src/db_lex.l \
 	include/db_list.h src/db_list.c \
-	include/db_sql.h src/db_sql.c \
 	include/do_md.h src/do_md.c \
 	include/error.h src/error.c \
 	include/gen_list.h src/gen_list.c \
 	src/getopt1.c \
 	include/getopt.h src/getopt.c \
+	include/rx_rule.h src/rx_rule.c \
 	include/list.h src/list.c \
 	include/locale-aide.h \
 	include/md.h src/md.c \
-	include/seltree.h \
+	include/seltree_struct.h \
+	include/seltree.h src/seltree.c \
 	include/symboltable.h src/symboltable.c \
 	include/types.h \
 	include/url.h \
@@ -55,7 +56,7 @@ if USE_CURL
 aide_SOURCES += include/fopen.h src/fopen.c
 endif
 
-aide_LDADD = -lm @PCRELIB@ @CRYPTLIB@ @ACLLIB@ @SELINUXLIB@ @AUDITLIB@ @ATTRLIB@ @E2FSATTRSLIB@ @ELFLIB@ @CAPLIB@
+aide_LDADD = -lm @PCRELIB@ @CRYPTLIB@ @ACLLIB@ @SELINUXLIB@ @AUDITLIB@ @ATTRLIB@ @E2FSATTRSLIB@ @ELFLIB@ @CAPLIB@ ${CURL_LIBS}
 
 if HAVE_CHECK
 TESTS				= check_aide

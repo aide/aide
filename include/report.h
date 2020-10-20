@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2006,2010 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002,2006,2010,2020 Rami Lehti, Pablo Virolainen,
  * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -22,8 +22,23 @@
 #ifndef _REPORT_H_INCLUDED
 #define _REPORT_H_INCLUDED
 #include "list.h"
-#include "db_config.h"
+#include "url.h"
 #include "seltree.h"
+
+/* report level */
+typedef enum { /* preserve order */
+    REPORT_LEVEL_MINIMAL = 1,
+    REPORT_LEVEL_SUMMARY = 2,
+    REPORT_LEVEL_DATABASE_ATTRIBUTES = 3,
+    REPORT_LEVEL_LIST_ENTRIES = 4,
+    REPORT_LEVEL_CHANGED_ATTRIBUTES = 5,
+    REPORT_LEVEL_ADDED_REMOVED_ATTRIBUTES = 6,
+    REPORT_LEVEL_ADDED_REMOVED_ENTRIES = 7,
+} REPORT_LEVEL;
+
+int add_report_url(url_t* url);
+
+REPORT_LEVEL get_report_level(char *);
 
 /*
  * gen_report()

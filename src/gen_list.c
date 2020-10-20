@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2006,2009-2012,2015,2016,2019 Rami Lehti,
+ * Copyright (C) 1999-2006,2009-2012,2015,2016,2019,2020 Rami Lehti,
  * Pablo Virolainen, Mike Markley, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -47,11 +47,6 @@
 
 #define CLOCK_SKEW 5
 
-#define PARTIAL_RULE_MATCH       (-1)
-#define NO_RULE_MATCH            (0)
-#define RESTRICTED_RULE_MATCH    (1)
-#define RULE_MATCH               (2)
-
 #ifdef WITH_MHASH
 #include <mhash.h>
 #endif
@@ -62,11 +57,6 @@ void hsymlnk(db_line* line);
 void fs2db_line(struct stat* fs,db_line* line);
 void calc_md(struct stat* old_fs,db_line* line);
 void no_hash(db_line* line);
-
-static DB_ATTR_TYPE get_special_report_group(char* group) {
-    DB_ATTR_TYPE attr = get_groupval(group);
-    return attr==DB_ATTR_UNDEF?0:attr;
-}
 
 static int bytecmp(byte *b1, byte *b2, size_t len) {
   return strncmp((char *)b1, (char *)b2, len);
@@ -88,20 +78,7 @@ static int has_md_changed(byte* old,byte* new,int len) {
 }
 
 #ifdef WITH_ACL
-#ifdef WITH_SUN_ACL
-static int compare_single_acl(aclent_t* a1,aclent_t* a2) {
-  if (a1->a_type!=a2->a_type ||
-      a1->a_id!=a2->a_id ||
-      a1->a_perm!=a2->a_perm) {
-    return RETFAIL;
-  }
-  return RETOK;
-}
-#endif
 static int has_acl_changed(acl_type* old, acl_type* new) {
-#ifdef WITH_SUN_ACL
-    int i;
-#endif
     if (old==NULL && new==NULL) {
         return RETOK;
     }
@@ -114,19 +91,6 @@ static int has_acl_changed(acl_type* old, acl_type* new) {
             || (old->acl_a && strcmp(old->acl_a, new->acl_a))
             || (old->acl_d && strcmp(old->acl_d, new->acl_d))){
         return RETFAIL;
-    }
-#endif
-#ifdef WITH_SUN_ACL
-    if (old->entries!=new->entries) {
-        return RETFAIL;
-    }
-    /* Sort em up. */
-    aclsort(old->entries,0,old->acl);
-    aclsort(new->entries,0,new->acl);
-    for(i=0;i<old->entries;i++){
-        if (compare_single_acl(old->acl+i,new->acl+i)==RETFAIL) {
-            return RETFAIL;
-        }
     }
 #endif
     return RETOK;
@@ -238,13 +202,11 @@ static DB_ATTR_TYPE get_changed_attributes(db_line* l1,db_line* l2) {
     easy_md_compare(DB_SHA256,sha256,HASH_SHA256_LEN);
     easy_md_compare(DB_SHA512,sha512,HASH_SHA512_LEN);
 
-#ifdef WITH_MHASH
     easy_md_compare(DB_CRC32,crc32,HASH_CRC32_LEN);
     easy_md_compare(DB_HAVAL,haval,HASH_HAVAL256_LEN);
     easy_md_compare(DB_GOST,gost,HASH_GOST_LEN);
     easy_md_compare(DB_CRC32B,crc32b,HASH_CRC32B_LEN);
     easy_md_compare(DB_WHIRLPOOL,whirlpool,HASH_WHIRLPOOL_LEN);
-#endif
 
 #ifdef WITH_ACL
     easy_function_compare(DB_ACL,acl,has_acl_changed);
@@ -269,110 +231,6 @@ static DB_ATTR_TYPE get_changed_attributes(db_line* l1,db_line* l2) {
 #endif
     error(255,"Debug, changed attributes for entry %s [%llx %llx]: %llx\n", l1->filename,l1->attr,l2->attr,ret);
     return ret;
-}
-
-int compare_node_by_path(const void *n1, const void *n2)
-{
-    const seltree *x1 = n1;
-    const seltree *x2 = n2;
-    return strcmp(x1->path, x2->path);
-}
-
-char* strrxtok(char* rx)
-{
-  char*p=NULL;
-  char*t=NULL;
-  size_t i=0;
-
-  /* The following code assumes that the first character is a slash */
-  size_t lastslash=1;
-
-  p=strdup(rx);
-  p[0]='/';
-
-  for(i=1;i<strlen(p);i++){
-    switch(p[i])
-      {
-      case '/':
-	lastslash=i;
-	break;
-      case '(':
-      case '^':
-      case '$':
-      case '?':
-      case '*':
-      case '[':
-	i=strlen(p);
-	break;
-      case '\\':
-	t=strdup(p);
-	strcpy(p+i,t+i+1);
-	free(t);
-	t=NULL;
-	break;
-      default:
-	break;
-      }
-  }
-
-  p[lastslash]='\0';
-
-  return p;
-}
-
-char* strlastslash(char*str)
-{
-  char* p=NULL;
-  size_t lastslash=1;
-  size_t i=0;
-
-  for(i=1;i<strlen(str);i++){
-    if(str[i]=='/'){
-      lastslash=i;
-    }
-  }
-  
-  p=(char*)malloc(sizeof(char)*lastslash+1);
-  strncpy(p,str,lastslash);
-  p[lastslash]='\0';
-
-  return p;
-}
-
-char* strgetndirname(char* path,int depth)
-{
-  char* r=NULL;
-  char* tmp=NULL;
-  int i=0;
-
-  for(r=path;;r+=1){
-    if(*r=='/')
-      i++;
-    if(*r=='\0')
-      break;
-    if(i==depth)
-      break;
-  }
-  /* If we ran out string return the whole string */
-  if(!(*r))
-    return strdup(path);
-
-  tmp=strdup(path);
-
-  tmp[r-path]='\0';
-
-  return tmp;
-}
-
-int treedepth(seltree* node)
-{
-  seltree* r=NULL;
-  int depth=0;
-
-  for(r=node;r;r=r->parent)
-    depth++;
-  
-  return depth;
 }
 
 /* This function returns a node with the same inode value as the 'file' */
@@ -413,348 +271,10 @@ static seltree* get_seltree_inode(seltree* tree, db_line* file, int db)
   return node;
 }
 
-seltree* get_seltree_node(seltree* tree,char* path)
-{
-  seltree* node=NULL;
-  list* r=NULL;
-  char* tmp=NULL;
-
-  if(tree==NULL){
-    return NULL;
-  }
-
-  if(strncmp(path,tree->path,strlen(path)+1)==0){
-    return tree;
-  }
-  else{
-    tmp=strgetndirname(path,treedepth(tree)+1);
-    for(r=tree->childs;r;r=r->next){
-      if(strncmp(((seltree*)r->data)->path,tmp,strlen(tmp)+1)==0){
-	node=get_seltree_node((seltree*)r->data,path);
-	if(node!=NULL){
-	  /* Don't leak memory */
-	  free(tmp);
-	  return node;
-	}
-      }
-    }
-    free(tmp);
-  }
-  return NULL;
-}
-
-void copy_rule_ref(seltree* node, rx_rule* r)
-{
-    if( r!=NULL ){
-        node->conf_lineno = r->conf_lineno;  
-        node->rx=strdup(r->rx);
-    } else {
-        node->conf_lineno = -1;
-        node->rx=NULL;
-    }
-}
-
-seltree* new_seltree_node(
-        seltree* tree,
-        char*path,
-        int isrx,
-        rx_rule* r)
-{
-  seltree* node=NULL;
-  seltree* parent=NULL;
-  char* tmprxtok = NULL;
-
-  node=(seltree*)malloc(sizeof(seltree));
-  node->childs=NULL;
-  node->path=strdup(path);
-  node->sel_rx_lst=NULL;
-  node->neg_rx_lst=NULL;
-  node->equ_rx_lst=NULL;
-  node->checked=0;
-  node->attr=0;
-  node->new_data=NULL;
-  node->old_data=NULL;
-
-  copy_rule_ref(node,r);
-
-  if(tree!=NULL){
-    tmprxtok = strrxtok(path);
-    if(isrx){
-      parent=get_seltree_node(tree,tmprxtok);
-    }else {
-      char* dirn=strlastslash(path);
-      parent=get_seltree_node(tree,dirn);
-      free(dirn);
-    }      
-    if(parent==NULL){
-      if(isrx){
-	parent=new_seltree_node(tree,tmprxtok,isrx,r);
-      }else {
-        char* dirn=strlastslash(path);
-        parent=new_seltree_node(tree,dirn,isrx,r);
-        free(dirn);
-      }
-    }
-    free(tmprxtok);
-    parent->childs=list_sorted_insert(parent->childs,(void*)node, compare_node_by_path);
-    node->parent=parent;
-  }else {
-    node->parent=NULL;
-  }
-  return node;
-}
-
-void gen_seltree(list* rxlist,seltree* tree,char type)
-{
-  pcre*        rxtmp = NULL;
-  const char*  pcre_error;
-  int          pcre_erroffset;
-
-  seltree*     curnode = NULL;
-  list*        r       = NULL;
-  char*        rxtok   = NULL;
-  rx_rule*     rxc     = NULL;
-
-  for(r=rxlist;r;r=r->next){
-    rx_rule* curr_rule = (rx_rule*)r->data;
-    
-    
-    rxtok=strrxtok(curr_rule->rx);
-    curnode=get_seltree_node(tree,rxtok);
-
-    if(curnode==NULL){
-      curnode=new_seltree_node(tree,rxtok,1,curr_rule);
-    }
-
-    error(240,"Handling %s with %c \"%s\" with node \"%s\"\n",rxtok,type,curr_rule->rx,curnode->path);
-
-    if((rxtmp=pcre_compile(curr_rule->rx, PCRE_ANCHORED, &pcre_error, &pcre_erroffset, NULL)) == NULL) {
-      error(0,_("Error in regexp '%s' at %i: %s\n"),curr_rule->rx, pcre_erroffset, pcre_error);
-    }else{
-      /* replace regexp text with regexp compiled */
-      rxc=(rx_rule*)malloc(sizeof(rx_rule));
-      /* and copy the rest */
-      rxc->rx=curr_rule->rx;
-      rxc->crx=rxtmp;
-      rxc->attr=curr_rule->attr;
-      rxc->conf_lineno=curr_rule->conf_lineno;
-      rxc->restriction=curr_rule->restriction;
-
-      switch (type){
-      case 's':{
-	curnode->sel_rx_lst=list_append(curnode->sel_rx_lst,(void*)rxc);
-	break;
-      }
-      case 'n':{
-	curnode->neg_rx_lst=list_append(curnode->neg_rx_lst,(void*)rxc);
-	break;
-      }
-      case 'e':{
-	curnode->equ_rx_lst=list_append(curnode->equ_rx_lst,(void*)rxc);
-	break;
-      }
-      }
-    }
-    /* Data should not be free'ed because it's in rxc struct
-     * and freeing is done if error occour.
-     */
-      free(rxtok);
-  }
-}
-
-static RESTRICTION_TYPE get_file_type(mode_t mode) {
-    switch (mode & S_IFMT) {
-        case S_IFREG: return RESTRICTION_FT_REG;
-        case S_IFDIR: return RESTRICTION_FT_DIR;
-#ifdef S_IFIFO
-        case S_IFIFO: return RESTRICTION_FT_FIFO;
-#endif
-        case S_IFLNK: return RESTRICTION_FT_LNK;
-        case S_IFBLK: return RESTRICTION_FT_BLK;
-        case S_IFCHR: return RESTRICTION_FT_CHR;
-#ifdef S_IFSOCK
-        case S_IFSOCK: return RESTRICTION_FT_SOCK;
-#endif
-#ifdef S_IFDOOR
-        case S_IFDOOR: return RESTRICTION_FT_DOOR;
-#endif
-#ifdef S_IFDOOR
-        case S_IFPORT: return RESTRICTION_FT_PORT;
-#endif
-        default: return RESTRICTION_NULL;
-    }
-}
-
-static int check_list_for_match(list* rxrlist,char* text,DB_ATTR_TYPE* attr, RESTRICTION_TYPE file_type)
-{
-  list* r=NULL;
-  int retval=NO_RULE_MATCH;
-  int pcre_retval;
-  pcre_extra *pcre_extra = NULL;
-  for(r=rxrlist;r;r=r->next){
-      pcre_retval=pcre_exec((pcre*)((rx_rule*)r->data)->crx, pcre_extra, text, strlen(text), 0, PCRE_PARTIAL_SOFT, NULL, 0);
-      if (pcre_retval >= 0) {
-              error(231,"\"%s\" matches (pcre_exec return value: %i) rule from line #%ld: %s\n",text, pcre_retval, ((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
-          if (!((rx_rule*)r->data)->restriction || file_type&((rx_rule*)r->data)->restriction) {
-              *attr=((rx_rule*)r->data)->attr;
-              retval = ((rx_rule*)r->data)->restriction?RESTRICTED_RULE_MATCH:RULE_MATCH;
-              error(231,"\"%s\" matches restriction (%u) for rule from line #%ld: %s\n",text, ((rx_rule*)r->data)->restriction, ((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
-              break;
-          } else {
-              error(232,"\"%s\" doesn't match restriction (%u) for rule from line #%ld: %s\n",text, ((rx_rule*)r->data)->restriction, ((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
-              retval=PARTIAL_RULE_MATCH;
-          }
-      } else if (pcre_retval == PCRE_ERROR_PARTIAL) {
-          error(232,"\"%s\" PARTIAL matches (pcre_exec return value: %i) rule from line #%ld: %s\n",text, pcre_retval, ((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
-          retval=PARTIAL_RULE_MATCH;
-      } else {
-          error(232,"\"%s\" doesn't match (pcre_exec return value: %i) rule from line #%ld: %s\n",text, pcre_retval,((rx_rule*)r->data)->conf_lineno,((rx_rule*)r->data)->rx);
-      }
-  }
-  return retval;
-}
-
-/* 
- * Function check_node_for_match()
- * calls itself recursively to go to the top and then back down.
- * uses check_list_for_match()
- * returns:
- * 0,  if a negative rule was matched 
- * 1,  if a selective rule was matched
- * 2,  if a equals rule was matched
- * retval if no rule was matched.
- * retval&3 if no rule was matched and first in the recursion
- * to keep state revat is orred with:
- * 4,  matched deeper on equ rule
- * 8,  matched deeper on sel rule
- *16,  this is a recursed call
- */    
-
-static int check_node_for_match(seltree*node,char*text, mode_t perm, int retval,DB_ATTR_TYPE* attr)
-{
-  int top=0;
-  RESTRICTION_TYPE file_type;
-  
-  if(node==NULL){
-    return retval;
-  }
-  
-   file_type = get_file_type(perm);
-
-  /* if this call is not recursive we check the equals list and we set top *
-   * and retval so we know following calls are recursive */
-  if(!(retval&16)){
-    top=1;
-    retval|=16;
-
-      switch (check_list_for_match(node->equ_rx_lst, text, attr, file_type)) {
-            case RESTRICTED_RULE_MATCH:
-            case RULE_MATCH: {
-              error(220, "check_node_for_match: equal match for '%s'\n", text);
-              retval|=2|4;
-              break;
-          }
-            case PARTIAL_RULE_MATCH: {
-           if(S_ISDIR(perm) && get_seltree_node(node,text)==NULL) {
-               error(220, "check_node_for_match: creating new seltree node for '%s'\n", text);
-               new_seltree_node(node,text,0,NULL);
-           }
-           break;
-          }
-    }
-  }
-  /* We'll use retval to pass information on whether to recurse 
-   * the dir or not */
 
 
-  /* If 4 and 8 are not set, we will check for matches */
-  if(!(retval&(4|8))){
-      switch (check_list_for_match(node->sel_rx_lst, text, attr, file_type)) {
-            case RESTRICTED_RULE_MATCH:
-            case RULE_MATCH: {
-              error(220, "check_node_for_match: selective match for '%s'\n", text);
-              retval|=1|8;
-              break;
-          }
-          case PARTIAL_RULE_MATCH: {
-           if(S_ISDIR(perm) && get_seltree_node(node,text)==NULL) {
-               error(220, "check_node_for_match: creating new seltree node for '%s'\n", text);
-               new_seltree_node(node,text,0,NULL);
-           }
-           break;
-          }
-      }
-  }
-
-  /* Now let's check the ancestors */
-  retval=check_node_for_match(node->parent,text, perm, retval,attr);
 
 
-  /* Negative regexps are the strongest so they are checked last */
-  /* If this file is to be added */
-  if(retval){
-        switch (check_list_for_match(node->neg_rx_lst, text, attr, file_type)) {
-            case RESTRICTED_RULE_MATCH: {
-                if(S_ISDIR(perm) && get_seltree_node(node,text)==NULL) {
-                    error(220, "check_node_for_match: creating new seltree node for '%s'\n", text);
-                    new_seltree_node(node,text,0,NULL);
-                }
-            }
-            // fall through
-            case RULE_MATCH: {
-                error(220, "check_node_for_match: negative match for '%s'\n", text);
-                retval=0;
-                break;
-            }
-        }
-  }
-  /* Now we discard the info whether a match was made or not *
-   * and just return 0,1 or 2 */
-  if(top){
-    retval&=3;
-  }
-  return retval;
-}
-
-void print_tree(seltree* tree) {
-  
-  list* r;
-  rx_rule* rxc;
-  error(220,"tree: \"%s\"\n",tree->path);
-
-  for(r=tree->sel_rx_lst;r!=NULL;r=r->next) {
-	rxc=r->data;
-	error(220,"%li\t%s\n",rxc->conf_lineno,rxc->rx);
-  }
-  for(r=tree->equ_rx_lst;r!=NULL;r=r->next) {
-        rxc=r->data;
-        error(220,"%li=\t%s\n",rxc->conf_lineno,rxc->rx);
-  }
-  
-  for(r=tree->neg_rx_lst;r!=NULL;r=r->next) {
-	  rxc=r->data;
-	  error(220,"%li!\t%s\n",rxc->conf_lineno,rxc->rx);
-  }
-  
-  for(r=tree->childs;r!=NULL;r=r->next) {
-	print_tree(r->data);
-  }
-}
-
-seltree* gen_tree(list* prxlist,list* nrxlist,list* erxlist)
-{
-  seltree* tree=NULL;
-
-  tree=new_seltree_node(NULL,"/",0,NULL);
-
-  gen_seltree(prxlist,tree,'s');
-  gen_seltree(nrxlist,tree,'n');
-  gen_seltree(erxlist,tree,'e');
-
-  print_tree(tree);
-
-  return tree;
-}
 
 /*
  * strip_dbline()
@@ -888,7 +408,6 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db,
 {
   seltree* node=NULL;
   DB_ATTR_TYPE localignorelist=0;
-  DB_ATTR_TYPE ignored_added_attrs, ignored_removed_attrs, ignored_changed_attrs;
 
   node=get_seltree_node(tree,file->filename);
 
@@ -928,22 +447,11 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db,
     return;
   }
   }
-  /* We have a way to ignore some changes... */
-  ignored_added_attrs = get_special_report_group("report_ignore_added_attrs");
-  ignored_removed_attrs = get_special_report_group("report_ignore_removed_attrs");
-  ignored_changed_attrs = get_special_report_group("report_ignore_changed_attrs");
 
   if((node->checked&DB_OLD)&&(node->checked&DB_NEW)){
-      if (((node->old_data)->attr&~((node->new_data)->attr)&~(ignored_removed_attrs))|(~((node->old_data)->attr)&(node->new_data)->attr&~(ignored_added_attrs))) {
-          char *str = NULL;
-          error(2,"Entry %s in databases has different attributes: %s\n",
-                  node->old_data->filename,str= diff_attributes(node->old_data->attr,node->new_data->attr));
-          free(str);
-    }
-
     node->changed_attrs=get_changed_attributes(node->old_data,node->new_data);
     /* Free the data if same else leave as is for report_tree */
-    if((~(ignored_changed_attrs)&node->changed_attrs)==RETOK){
+    if(node->changed_attrs==RETOK){
       /* FIXME this messes up the tree on SunOS. Don't know why. Fix
 	 needed badly otherwise we leak memory like hell. */
 
@@ -996,7 +504,7 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db,
                  oldData->filename, oldData->attr, newData->filename, newData->attr, localignorelist);
      } else {
          /* Free the data if same else leave as is for report_tree */
-         if ((get_changed_attributes(oldData, newData)&~(ignored_changed_attrs|DB_CTIME)) == RETOK) {
+         if ((get_changed_attributes(oldData, newData)&~(DB_CTIME)) == RETOK) {
              node->checked |= db==DB_NEW ? NODE_MOVED_IN : NODE_MOVED_OUT;
              moved_node->checked |= db==DB_NEW ? NODE_MOVED_OUT : NODE_MOVED_IN;
              error(220,_("Entry was moved: %s [%llx] => %s [%llx]\n"),
@@ -1023,21 +531,6 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db,
 int check_rxtree(char* filename,seltree* tree,DB_ATTR_TYPE* attr, mode_t perm)
 {
   int retval=0;
-  char * tmp=NULL;
-  char * parentname=NULL;
-  seltree* pnode=NULL;
-
-  parentname=strdup(filename);
-  tmp=strrchr(parentname,'/');
-  if(tmp!=parentname){
-    *tmp='\0';
-  }else {
-    
-    if(parentname[1]!='\0'){
-      /* we are in the root dir */
-      parentname[1]='\0';
-    }
-  }
 
   if(conf->limit!=NULL) {
       retval=pcre_exec(conf->limit_crx, NULL, filename, strlen(filename), 0, PCRE_PARTIAL_SOFT, NULL, 0);
@@ -1056,14 +549,8 @@ int check_rxtree(char* filename,seltree* tree,DB_ATTR_TYPE* attr, mode_t perm)
       }
   }
 
-  pnode=get_seltree_node(tree,parentname);
-
   *attr=0;
-  retval=check_node_for_match(pnode,filename, perm, 0,attr);
-    
-  free(parentname);
-
-  return retval;
+  return check_seltree(tree, filename, get_file_type(perm), attr);
 }
 
 db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct stat *fs)

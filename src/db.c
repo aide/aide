@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2006,2010,2011,2013,2019 Rami Lehti, Pablo Virolainen,
- * Richard van den Berg, Hannes von Haugwitz
+ * Copyright (C) 1999-2006,2010,2011,2013,2019,2020 Rami Lehti, Pablo
+ * Virolainen, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -32,10 +32,6 @@
 #include "fopen.h"
 #endif
 
-#ifdef WITH_PSQL
-#include "db_sql.h"
-#endif
-
 #include "db_config.h"
 #include "error.h"
 #include "be.h"
@@ -52,7 +48,6 @@
 
 db_line* db_char2line(char** ss,int db);
 long readoct(char* s,char* err);
-time_t base64totime_t(char*);
 
 const char* db_names[db_unknown+1] = {
    "name",
@@ -138,11 +133,7 @@ const int db_value[db_unknown+1] = {
    db_gostr3411_cp,     /* "GOST R 34.11-94 with CryptoPro-A S-Box.",  */
    db_unknown };        /* "unknown"  */
 
-const char* db_namealias[db_alias_size] = {
-  "count" } ;
 
-const int db_aliasvalue[db_alias_size] = {
-  db_lnkcount } ;       /* "count",  */
 
 static long readlong(char* s,char* err){
   long i;
@@ -181,10 +172,6 @@ static struct md_container *init_db_attrs(URL_TYPE type) {
                 mdc->todo_attr = conf->db_attrs;
                 init_md(mdc);
                 break;
-            #ifdef WITH_PSQL
-            case url_sql:
-                break;
-            #endif /* WITH_PSQL */
             default :
                 error(200,_("init_db_attrs(): Unknown url type.\n"));
         }
@@ -274,7 +261,7 @@ db_line* db_readline(int db){
   db_line* s=NULL;
   int i=0;
   url_t* db_url=NULL;
-  FILE** db_filep=NULL;
+  FILE* db_filep=NULL;
   int* db_osize=0;
   DB_FIELD** db_order=NULL;
 
@@ -289,14 +276,14 @@ db_line* db_readline(int db){
   
   case DB_OLD: {
     db_url=conf->db_in_url;
-    db_filep=&(conf->db_in);
+    db_filep=conf->db_in;
     db_osize=&(conf->db_in_size);
     db_order=&(conf->db_in_order);
     break;
   }
   case DB_NEW: {
     db_url=conf->db_new_url;
-    db_filep=&(conf->db_new);
+    db_filep=conf->db_new;
     db_osize=&(conf->db_new_size);
     db_order=&(conf->db_new_order);
     break;
@@ -314,7 +301,7 @@ db_line* db_readline(int db){
   case url_file: {
     /* Should set errno */
     /* Please FIXME */
-    if ((*db_filep)!=NULL) {
+    if (db_filep!=NULL) {
       char** ss=db_readline_file(db);
       if (ss!=NULL){
 	s=db_char2line(ss,db);
@@ -335,14 +322,6 @@ db_line* db_readline(int db){
   }
 
 
-#ifdef WITH_PSQL
-  case url_sql: {
-    error(255,"db_sql readline...");
-    s=db_readline_sql(db, conf);
-    
-    break;
-  }
-#endif
   default : {
     error(0,_("db_readline():Url-type backend not implemented\n"));
     return NULL;
@@ -567,34 +546,6 @@ db_line* db_char2line(char** ss,int db){
                                 strlen(ss[(*db_order)[i]]), NULL);
       break;
     }
-#ifdef WITH_SUN_ACL
-    case db_acl : {
-      char* endp,*pos;
-      int entries,lc;
-      line->acl=NULL;
-      
-      entries=strtol(ss[(*db_order)[i]],&endp,10);
-      if (endp==ss[(*db_order)[i]]) {
- 	/* Something went wrong */
-	break;
-      }
-      pos=endp+1; /* Warning! if acl in database is corrupted then
-		     this will break down. */
-      
-      line->acl=malloc(sizeof(acl_type));
-      line->acl->entries=entries;
-      line->acl->acl=malloc(sizeof(aclent_t)*entries);
-      for (lc=0;lc<entries;lc++) {
-	line->acl->acl[lc].a_type=strtol(pos,&endp,10);
-	pos=endp+1;
-	line->acl->acl[lc].a_id=strtol(pos,&endp,10);
-	pos=endp+1;
-	line->acl->acl[lc].a_perm=strtol(pos,&endp,10);
-	pos=endp+1;
-      }
-      break;
-    }
-#endif
 #ifdef WITH_POSIX_ACL
     case db_acl : {
       char *tval = NULL;
@@ -790,16 +741,6 @@ int db_writespec(db_config* dbconf)
       break;
     }
 #endif /* WITH CURL */
-#ifdef WITH_PSQL
-  case url_sql: {
-    if(dbconf->db_out!=NULL){
-      if(db_writespec_sql(dbconf)==RETOK){
-	return RETOK;
-      }
-    }
-    break;
-  }
-#endif
   default:{
     error(0,_("Unknown output in db out.\n"));    
     return RETFAIL;
@@ -834,17 +775,6 @@ int db_writeline(db_line* line,db_config* dbconf){
     return RETFAIL;
     break;
   }
-#ifdef WITH_PSQL
-  case url_sql: {
-    if (dbconf->db_out!=NULL) {
-      if (db_writeline_sql(line,dbconf)==RETOK) {
-	return RETOK;
-      }
-    }
-    return RETFAIL;
-    break;
-  }
-#endif
   default : {
     error(0,_("Unknown output in db out.\n"));    
     return RETFAIL;
@@ -879,14 +809,6 @@ void db_close() {
       break;
     }
 #endif /* WITH CURL */
-#ifdef WITH_PSQL
-  case url_sql: {
-    if (conf->db_out!=NULL) {
-      db_close_sql(conf->db_out);
-    }
-    break;
-  }
-#endif
   default : {
     error(0,_("db_close():Unknown output in db out.\n"));    
   } 

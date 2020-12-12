@@ -749,14 +749,6 @@ void do_groupdef(char* group,DB_ATTR_TYPE value)
   list* r=NULL;
   symba* s=NULL;
 
-  if (strcmp(group, "ignore_list") == 0) {
-      error(2, "DEPRECATION WARNING, Using '%s' is deprecated. Update your config and use '%s' instead.\n", group, "report_ignore_changed_attrs");
-      group = "report_ignore_changed_attrs";
-  } else if (strcmp(group, "report_attributes") == 0) {
-      error(2, "DEPRECATION WARNING, Using '%s' is deprecated. Update your config and use '%s' instead.\n", group, "report_force_attrs");
-      group = "report_force_attrs";
-  }
-
   if((r=list_find(group,conf->groupsyms))){
       error(2, "Warning: group '%s' is redefined\n", group);
       ((symba*)r->data)->ival=value;

@@ -246,12 +246,12 @@ Attributes whose removal is to be ignored in the report.
 .TP
 report_ignore_changed_attrs (type: attribute expression, default: \fBempty\fR)
 .TQ
-ignore_list (DEPRECATED, will be removed in a future release)
+ignore_list (removed in AIDE v0.17)
 Attributes whose change is to be ignored in the report.
 .TP
 report_force_attrs (type: attribute expression, default: \fBempty\fR)
 .TQ
-report_attributes (DEPRECATED, will be removed in a future release)
+report_attributes (removed in AIDE v0.17)
 Attributes which are always printed in the report for changed files. If an attribute is both ignored and forced the
 attribute is not considered for file change but printed in the final report as long as the file has been otherwise changed.
 .IP "report_ignore_e2fsattrs (type: string, default: \fB0\fR)"

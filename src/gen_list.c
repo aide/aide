@@ -153,7 +153,7 @@ static int have_xattrs_changed(xattrs_type* x1,xattrs_type* x2) {
 
 #ifdef WITH_E2FSATTRS
 static int has_e2fsattrs_changed(unsigned long old, unsigned long new) {
-    return (~(conf->report_ignore_e2fsattrs)&(old^new));
+    return (old^new);
 }
 #endif
 

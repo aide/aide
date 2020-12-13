@@ -46,8 +46,6 @@ typedef struct seltree {
   char* path;
   int checked;
 
-  DB_ATTR_TYPE attr;
-
   struct db_line* new_data;
   struct db_line* old_data;
 

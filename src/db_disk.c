@@ -131,7 +131,6 @@ void add_child (db_line * fil)
 
 	new_r = malloc (sizeof (seltree));
 
-	new_r->attr = 0;
 	i = strlen (fil->filename);
 
 	new_r->path = malloc (i + 1);

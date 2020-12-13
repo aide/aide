@@ -340,10 +340,8 @@ void strip_dbline(db_line* line)
 /*
  * add_file_to_tree
  * db = which db this file belongs to
- * attr attributes to add
  */
-static void add_file_to_tree(seltree* tree,db_line* file,int db,
-                      DB_ATTR_TYPE attr)
+static void add_file_to_tree(seltree* tree,db_line* file,int db)
 {
   seltree* node=NULL;
   DB_ATTR_TYPE localignorelist=0;
@@ -360,8 +358,6 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db,
 
   /* add note to this node which db has modified it */
   node->checked|=db;
-
-  node->attr=attr;
 
   strip_dbline(file);
 
@@ -640,7 +636,7 @@ void populate_tree(seltree* tree)
 	  node=new_seltree_node(tree,new->filename,0,NULL);
 	}
 	if((add=check_rxtree(new->filename,tree,&attr, new->perm))>0){
-	  add_file_to_tree(tree,new,DB_NEW,attr);
+	  add_file_to_tree(tree,new,DB_NEW);
 	} else {
           free_db_line(new);
           free(new);
@@ -653,7 +649,7 @@ void populate_tree(seltree* tree)
       /* FIXME  */
       new=NULL;
       while((new=db_readline(DB_DISK)) != NULL) {
-	    add_file_to_tree(tree,new,DB_NEW,attr);
+	    add_file_to_tree(tree,new,DB_NEW);
       }
     }
     if((conf->action&DO_COMPARE)||(conf->action&DO_DIFF)){
@@ -665,9 +661,9 @@ void populate_tree(seltree* tree)
                 }
                 add=check_rxtree(old->filename,tree,&attr, old->perm);
                 if(add > 0) {
-                    add_file_to_tree(tree,old,DB_OLD,attr);
+                    add_file_to_tree(tree,old,DB_OLD);
                 } else if (conf->limit!=NULL && add < 0) {
-                    add_file_to_tree(tree,old,DB_OLD|DB_NEW,attr);
+                    add_file_to_tree(tree,old,DB_OLD|DB_NEW);
                 }else{
                     if(!initdbwarningprinted){
                         error(3,_("WARNING: old database entry '%s' has no matching rule, run --init or --update (this warning is only shown once)\n"), old->filename);

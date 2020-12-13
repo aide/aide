@@ -212,7 +212,6 @@ seltree* new_seltree_node(
   node->neg_rx_lst=NULL;
   node->equ_rx_lst=NULL;
   node->checked=0;
-  node->attr=0;
   node->new_data=NULL;
   node->old_data=NULL;
 

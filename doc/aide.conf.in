@@ -88,6 +88,7 @@ report_url=stdout
 #tiger:		tiger checksum
 #haval:		haval checksum
 #crc32:		crc32 checksum
+#crc32b:	crc32b checksum
 #R:		p+ftype+i+l+n+u+g+s+m+c+md5
 #L:		p+ftype+i+l+n+u+g
 #E:		Empty group

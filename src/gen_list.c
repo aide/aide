@@ -169,11 +169,6 @@ static DB_ATTR_TYPE get_changed_attributes(db_line* l1,db_line* l2) {
         ret|=a;\
     }
 
-#define easy_md_compare(a,b,c) \
-    if((a&l1->attr && (a&l2->attr)) && has_md_changed(l1->b,l2->b, c)){ \
-        ret|=a; \
-    }
-
 #define easy_function_compare(a,b,c) \
     if((a&l1->attr && (a&l2->attr)) && c(l1->b,l2->b)){ \
         ret|=a; \
@@ -181,47 +176,41 @@ static DB_ATTR_TYPE get_changed_attributes(db_line* l1,db_line* l2) {
 
     DB_ATTR_TYPE ret=0;
 
-    if ((DB_FTYPE&l1->attr && DB_FTYPE&l2->attr) && (l1->perm&S_IFMT)!=(l2->perm&S_IFMT)) { ret|=DB_FTYPE; }
-    easy_function_compare(DB_LINKNAME,linkname,has_str_changed);
-    if ((DB_SIZEG&l1->attr && DB_SIZEG&l2->attr) && l1->size>l2->size){ ret|=DB_SIZEG; }
-    easy_compare(DB_SIZE,size);
-    easy_compare(DB_BCOUNT,bcount);
-    easy_compare(DB_PERM,perm);
-    easy_compare(DB_UID,uid);
-    easy_compare(DB_GID,gid);
-    easy_compare(DB_ATIME,atime);
-    easy_compare(DB_MTIME,mtime);
-    easy_compare(DB_CTIME,ctime);
-    easy_compare(DB_INODE,inode);
-    easy_compare(DB_LNKCOUNT,nlink);
+    if ((ATTR(attr_ftype)&l1->attr && ATTR(attr_ftype)&l2->attr) && (l1->perm&S_IFMT)!=(l2->perm&S_IFMT)) { ret|=ATTR(attr_ftype); }
+    easy_function_compare(ATTR(attr_linkname),linkname,has_str_changed);
+    if ((ATTR(attr_sizeg)&l1->attr && ATTR(attr_sizeg)&l2->attr) && l1->size>l2->size){ ret|=ATTR(attr_sizeg); }
+    easy_compare(ATTR(attr_size),size);
+    easy_compare(ATTR(attr_bcount),bcount);
+    easy_compare(ATTR(attr_perm),perm);
+    easy_compare(ATTR(attr_uid),uid);
+    easy_compare(ATTR(attr_gid),gid);
+    easy_compare(ATTR(attr_atime),atime);
+    easy_compare(ATTR(attr_mtime),mtime);
+    easy_compare(ATTR(attr_ctime),ctime);
+    easy_compare(ATTR(attr_inode),inode);
+    easy_compare(ATTR(attr_linkcount),nlink);
 
-    easy_md_compare(DB_MD5,md5,HASH_MD5_LEN);
-    easy_md_compare(DB_SHA1,sha1,HASH_SHA1_LEN);
-    easy_md_compare(DB_RMD160,rmd160,HASH_RMD160_LEN);
-    easy_md_compare(DB_TIGER,tiger,HASH_TIGER_LEN);
-    easy_md_compare(DB_SHA256,sha256,HASH_SHA256_LEN);
-    easy_md_compare(DB_SHA512,sha512,HASH_SHA512_LEN);
-
-    easy_md_compare(DB_CRC32,crc32,HASH_CRC32_LEN);
-    easy_md_compare(DB_HAVAL,haval,HASH_HAVAL256_LEN);
-    easy_md_compare(DB_GOST,gost,HASH_GOST_LEN);
-    easy_md_compare(DB_CRC32B,crc32b,HASH_CRC32B_LEN);
-    easy_md_compare(DB_WHIRLPOOL,whirlpool,HASH_WHIRLPOOL_LEN);
+  for (int i = 0 ; i < num_hashes ; ++i) {
+    DB_ATTR_TYPE attr = ATTR(hashsums[i].attribute);
+    if((attr&l1->attr && (attr&l2->attr)) && has_md_changed(l1->hashsums[i],l2->hashsums[i], hashsums[i].length)){
+        ret|=attr;
+    }
+  }
 
 #ifdef WITH_ACL
-    easy_function_compare(DB_ACL,acl,has_acl_changed);
+    easy_function_compare(ATTR(attr_acl),acl,has_acl_changed);
 #endif
 #ifdef WITH_XATTR
-    easy_function_compare(DB_XATTRS,xattrs,have_xattrs_changed);
+    easy_function_compare(ATTR(attr_xattrs),xattrs,have_xattrs_changed);
 #endif
 #ifdef WITH_SELINUX
-    easy_function_compare(DB_SELINUX,cntx,has_str_changed);
+    easy_function_compare(ATTR(attr_selinux),cntx,has_str_changed);
 #endif
 #ifdef WITH_E2FSATTRS
-    easy_function_compare(DB_E2FSATTRS,e2fsattrs,has_e2fsattrs_changed);
+    easy_function_compare(ATTR(attr_e2fsattrs),e2fsattrs,has_e2fsattrs_changed);
 #endif
 #ifdef WITH_CAPABILITIES
-    easy_function_compare(DB_CAPABILITIES,capabilities,has_str_changed);
+    easy_function_compare(ATTR(attr_capabilities),capabilities,has_str_changed);
 #endif
     error(255,"Debug, changed attributes for entry %s [%llx %llx]: %llx\n", l1->filename,l1->attr,l2->attr,ret);
     return ret;
@@ -281,75 +270,45 @@ void strip_dbline(db_line* line)
     DB_ATTR_TYPE attr = line->attr;
 
   /* filename is always needed, hence it is never stripped */
-  if(!(attr&DB_LINKNAME)){
+  if(!(attr&ATTR(attr_linkname))){
     checked_free(line->linkname);
   }
   /* permissions are always needed for file type detection, hence they are
    * never stripped */
-  if(!(attr&DB_UID)){
+  if(!(attr&ATTR(attr_uid))){
     line->uid=0;
   }
-  if(!(attr&DB_GID)){
+  if(!(attr&ATTR(attr_gid))){
     line->gid=0;
   }
-  if(!(attr&DB_ATIME)){
+  if(!(attr&ATTR(attr_atime))){
     line->atime=0;
   }
-  if(!(attr&DB_CTIME)){
+  if(!(attr&ATTR(attr_ctime))){
     line->ctime=0;
   }
-  if(!(attr&DB_MTIME)){
+  if(!(attr&ATTR(attr_mtime))){
     line->mtime=0;
   }
   /* inode is always needed for ignoring changed filename, hence it is
    * never stripped */
-  if(!(attr&DB_LNKCOUNT)){
+  if(!(attr&ATTR(attr_linkcount))){
     line->nlink=0;
   }
-  if(!(attr&DB_SIZE)&&!(attr&DB_SIZEG)){
+  if(!(attr&ATTR(attr_size))&&!(attr&ATTR(attr_sizeg))){
     line->size=0;
   }
-  if(!(attr&DB_BCOUNT)){
+  if(!(attr&ATTR(attr_bcount))){
     line->bcount=0;
   }
 
-  if(!(attr&DB_MD5)){
-    checked_free(line->md5);
-  }
-  if(!(attr&DB_SHA1)){
-    checked_free(line->sha1);
-  }
-  if(!(attr&DB_RMD160)){
-    checked_free(line->rmd160);
-  }
-  if(!(attr&DB_TIGER)){
-    checked_free(line->tiger);
-  }
-  if(!(attr&DB_HAVAL)){
-    checked_free(line->haval);
-  }
-  if(!(attr&DB_CRC32)){
-    checked_free(line->crc32);
-  }
-#ifdef WITH_MHASH
-  if(!(attr&DB_CRC32B)){
-    checked_free(line->crc32b);
-  }
-  if(!(attr&DB_GOST)){
-    checked_free(line->gost);
-  }
-  if(!(attr&DB_WHIRLPOOL)){
-    checked_free(line->whirlpool);
-  }
-#endif
-  if(!(attr&DB_SHA256)){
-    checked_free(line->sha256);
-  }
-  if(!(attr&DB_SHA512)){
-    checked_free(line->sha512);
+  for (int i = 0 ; i < num_hashes ; ++i) {
+      if(!(attr&ATTR(hashsums[i].attribute))){
+          checked_free(line->hashsums[i]);
+      }
   }
 #ifdef WITH_ACL
-  if(!(attr&DB_ACL)){
+  if(!(attr&ATTR(attr_acl))){
     if (line->acl)
     {
       free(line->acl->acl_a);
@@ -359,19 +318,19 @@ void strip_dbline(db_line* line)
   }
 #endif
 #ifdef WITH_XATTR
-  if(!(attr&DB_XATTRS)){
+  if(!(attr&ATTR(attr_xattrs))){
     if (line->xattrs)
       free(line->xattrs->ents);
     checked_free(line->xattrs);
   }
 #endif
 #ifdef WITH_SELINUX
-  if(!(attr&DB_SELINUX)){
+  if(!(attr&ATTR(attr_selinux))){
     checked_free(line->cntx);
   }
 #endif
 #ifdef WITH_CAPABILITIES
-  if(!(attr&DB_CAPABILITIES)){
+  if(!(attr&ATTR(attr_capabilities))){
     checked_free(line->capabilities);
   }
 #endif
@@ -458,7 +417,7 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db,
    * and has not been changed.
    */
   if( (node->old_data!=NULL || node->new_data!=NULL) &&
-    (file->attr & DB_CHECKINODE)) {
+    (file->attr & ATTR(attr_checkinode))) {
     /* Check if file was moved (same inode, different name in the other DB)*/
     db_line *oldData;
     db_line *newData;
@@ -477,14 +436,14 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db,
         oldData = node->old_data;
       }
 
-      localignorelist=(oldData->attr^newData->attr)&(~(DB_NEWFILE|DB_RMFILE|DB_CHECKINODE));
+      DB_ATTR_TYPE move_attr = ATTR(attr_allownewfile)|ATTR(attr_allowrmfile)|ATTR(attr_checkinode);
 
-      if (localignorelist!=0) {
+      if((oldData->attr^newData->attr)&(~move_attr)) {
          error(220,"Ignoring moved entry (\"%s\" [%llx] => \"%s\" [%llx]) due to different attributes: %llx\n",
                  oldData->filename, oldData->attr, newData->filename, newData->attr, localignorelist);
      } else {
          /* Free the data if same else leave as is for report_tree */
-         if ((get_changed_attributes(oldData, newData)&~(DB_CTIME)) == RETOK) {
+         if ((get_changed_attributes(oldData, newData)&~(ATTR(attr_ctime))) == RETOK) {
              node->checked |= db==DB_NEW ? NODE_MOVED_IN : NODE_MOVED_OUT;
              moved_node->checked |= db==DB_NEW ? NODE_MOVED_OUT : NODE_MOVED_IN;
              error(220,_("Entry was moved: %s [%llx] => %s [%llx]\n"),
@@ -498,12 +457,12 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db,
   }
   if( (db == DB_NEW) &&
       (node->new_data!=NULL) &&
-      (file->attr & DB_NEWFILE) ){
+      (file->attr & ATTR(attr_allownewfile)) ){
 	 node->checked|=NODE_ALLOW_NEW;
   }
   if( (db == DB_OLD) &&
       (node->old_data!=NULL) &&
-      (file->attr & DB_RMFILE) ){
+      (file->attr & ATTR(attr_allowrmfile)) ){
 	  node->checked|=NODE_ALLOW_RM;
   }
 }
@@ -538,8 +497,9 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct stat *fs)
   db_line* line=NULL;
   time_t cur_time;
 
-  if(!(attr&DB_RDEV))
+  if(!(attr&ATTR(attr_rdev))) {
     fs->st_rdev=0;
+  }
   /*
     Get current time for future time notification.
    */
@@ -577,8 +537,8 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct stat *fs)
     We want filename
   */
 
-  line->attr=attr|DB_FILENAME;
-  
+  line->attr=attr|ATTR(attr_filename);
+
   /*
     Just copy some needed fields.
   */
@@ -624,7 +584,7 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct stat *fs)
     capabilities2line(line);
 #endif
 
-  if (attr&DB_HASHES && S_ISREG(fs->st_mode)) {
+  if (line->attr&get_hashes() && S_ISREG(fs->st_mode)) {
     calc_md(fs,line);
   } else {
     /*
@@ -730,7 +690,7 @@ void hsymlnk(db_line* line) {
     int len=0;
 #ifdef WITH_ACL   
     if(conf->no_acl_on_symlinks!=1) {
-      line->attr&=(~DB_ACL);
+      line->attr&=(~ATTR(attr_acl));
     }
 #endif   
     
@@ -741,8 +701,9 @@ void hsymlnk(db_line* line) {
       if (sres!=0 && sres!=EACCES) {
 	error(4,"Dead symlink detected at %s\n",line->fullpath);
       }
-      if(!(line->attr&DB_RDEV))
+      if(!(line->attr&ATTR(attr_rdev))) {
 	fs.st_rdev=0;
+      }
     }
     /*
       Is this valid?? 
@@ -773,7 +734,7 @@ void hsymlnk(db_line* line) {
      */
     line->linkname=realloc(line->linkname,len+1);
   } else {
-      line->attr&=(~DB_LINKNAME);
+      line->attr&=(~ATTR(attr_linkname));
   }
   
 }

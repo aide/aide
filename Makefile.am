@@ -42,6 +42,7 @@ aide_SOURCES = src/aide.c include/aide.h \
 	include/gen_list.h src/gen_list.c \
 	src/getopt1.c \
 	include/getopt.h src/getopt.c \
+	include/hashsum.h src/hashsum.c \
 	include/rx_rule.h src/rx_rule.c \
 	include/list.h src/list.c \
 	include/locale-aide.h \

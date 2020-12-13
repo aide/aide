@@ -250,7 +250,7 @@ report : TREPORT_URL TSTRING { do_repurldef($2); } ;
 
 db_attrs : TDATABASE_ATTRS expr {
   DB_ATTR_TYPE attr;
-  if((attr = $2&(~DB_HASHES))){
+  if((attr = $2&(~get_hashes()))){
     error(0, "%li: invalid attribute(s) in database_attrs: %llx\n", conf_lineno-1, attr);
     YYABORT;
   }

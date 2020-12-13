@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  * vi: ts=8 sw=8
  *
- * Copyright (C) 1999-2002,2004-2006,2009-2011,2013,2018,2019 Rami Lehti, Pablo
+ * Copyright (C) 1999-2002,2004-2006,2009-2011,2013,2018-2020 Rami Lehti, Pablo
  * Virolainen, Mike Markley, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -157,42 +157,24 @@ pid_t open_prelinked(const char * path, int * fd) {
 
 #endif
 
-void free_hashes(db_line* dl){
-
-#define free_hash(a) dl->a=NULL
-
-  free_hash(md5);
-  free_hash(sha1);
-  free_hash(rmd160);
-  free_hash(tiger);
-#ifdef WITH_MHASH
-  free_hash(crc32);
-  free_hash(haval);
-  free_hash(gost);
-  free_hash(crc32b);  
-#endif
-  free_hash(sha256);
-  free_hash(sha512);
-}
-
 int stat_cmp(struct stat* f1,struct stat* f2) {
   if (f1==NULL || f2==NULL) {
     return RETFAIL;
   }
-#define stat_cmp_helper(n,n2) ((f1->n!=f2->n)*n2)
+#define stat_cmp_helper(n,attribute) ((f1->n!=f2->n)*ATTR(attribute))
 
-  return (stat_cmp_helper(st_ino,DB_INODE)|
-	  stat_cmp_helper(st_mode,DB_PERM)|
-	  stat_cmp_helper(st_nlink,DB_LNKCOUNT)|
-	  stat_cmp_helper(st_size,DB_SIZE)|
-	  stat_cmp_helper(st_mtime,DB_MTIME)|
-	  stat_cmp_helper(st_ctime,DB_CTIME)|
-	  stat_cmp_helper(st_blocks,DB_BCOUNT)|
-	  stat_cmp_helper(st_blksize,DB_BSIZE)|
-	  stat_cmp_helper(st_rdev,DB_RDEV)|
-	  stat_cmp_helper(st_gid,DB_GID)|
-	  stat_cmp_helper(st_uid,DB_UID)|
-	  stat_cmp_helper(st_dev,DB_DEV));
+  return (stat_cmp_helper(st_ino,attr_inode)|
+	  stat_cmp_helper(st_mode,attr_perm)|
+	  stat_cmp_helper(st_nlink,attr_linkcount)|
+	  stat_cmp_helper(st_size,attr_size)|
+	  stat_cmp_helper(st_mtime,attr_mtime)|
+	  stat_cmp_helper(st_ctime,attr_ctime)|
+	  stat_cmp_helper(st_blocks,attr_bcount)|
+	  stat_cmp_helper(st_blksize,attr_bsize)|
+	  stat_cmp_helper(st_rdev,attr_rdev)|
+	  stat_cmp_helper(st_gid,attr_gid)|
+	  stat_cmp_helper(st_uid,attr_uid)|
+	  stat_cmp_helper(st_dev,attr_dev));
 }
 
 
@@ -244,7 +226,7 @@ void calc_md(struct stat* old_fs,db_line* line) {
   if (sres != 0) {
 	error(1, "fsstat() for '%s' failed: %s\n", line->fullpath, strerror(errno));
   }
-  if(!(line->attr&DB_RDEV))
+  if(!(line->attr&ATTR(attr_rdev)))
 	  fs.st_rdev=0;
   
 #ifdef HAVE_POSIX_FADVISE
@@ -372,7 +354,6 @@ void calc_md(struct stat* old_fs,db_line* line) {
       return;
     }
   } else {
-    unsigned i;
     /*
       Something just wasn't correct, so no hash calculated.
     */
@@ -380,9 +361,9 @@ void calc_md(struct stat* old_fs,db_line* line) {
     error(5,"Entry %s was changed so that hash cannot be calculated for it\n"
 	  ,line->fullpath);
 
-    for(i=0;i<db_unknown;i++) {
+    for(ATTRIBUTE i=0;i<num_attrs;i++) {
       if (((1<<i)&stat_diff)!=0) {
-	error(5,"Attribute %s has been changed\n",db_names[i]);
+	error(5,"Attribute %s has been changed\n", attributes[i].db_name);
       }
     }
     
@@ -398,13 +379,13 @@ void fs2db_line(struct stat* fs,db_line* line) {
   
   line->inode=fs->st_ino;
 
-  if(DB_UID&line->attr) {
+  if(ATTR(attr_uid)&line->attr) {
     line->uid=fs->st_uid;
   }else {
     line->uid=0;
   }
 
-  if(DB_GID&line->attr){
+  if(ATTR(attr_gid)&line->attr){
     line->gid=fs->st_gid;
   }else{
     line->gid=0;
@@ -412,37 +393,37 @@ void fs2db_line(struct stat* fs,db_line* line) {
 
   line->perm=fs->st_mode;
 
-  if(DB_SIZE&line->attr||DB_SIZEG&line->attr){
+  if(ATTR(attr_size)&line->attr||ATTR(attr_sizeg)&line->attr){
     line->size=fs->st_size;
   }else{
     line->size=0;
   }
   
-  if(DB_LNKCOUNT&line->attr){
+  if(ATTR(attr_linkcount)&line->attr){
     line->nlink=fs->st_nlink;
   }else {
     line->nlink=0;
   }
 
-  if(DB_MTIME&line->attr){
+  if(ATTR(attr_mtime)&line->attr){
     line->mtime=fs->st_mtime;
   }else{
     line->mtime=0;
   }
 
-  if(DB_CTIME&line->attr){
+  if(ATTR(attr_ctime)&line->attr){
     line->ctime=fs->st_ctime;
   }else{
     line->ctime=0;
   }
   
-  if(DB_ATIME&line->attr){
+  if(ATTR(attr_atime)&line->attr){
     line->atime=fs->st_atime;
   }else{
     line->atime=0;
   }
 
-  if(DB_BCOUNT&line->attr){
+  if(ATTR(attr_bcount)&line->attr){
     line->bcount=fs->st_blocks;
   } else {
     line->bcount=0;
@@ -455,7 +436,7 @@ void acl2line(db_line* line) {
   acl_type *ret = NULL;
   
 #ifdef WITH_POSIX_ACL
-  if(DB_ACL&line->attr) {
+  if(ATTR(attr_acl)&line->attr) {
     acl_t acl_a;
     acl_t acl_d;
     char *tmp = NULL;
@@ -463,7 +444,7 @@ void acl2line(db_line* line) {
     acl_a = acl_get_file(line->fullpath, ACL_TYPE_ACCESS);
     acl_d = acl_get_file(line->fullpath, ACL_TYPE_DEFAULT);
     if ((acl_a == NULL) && (errno == ENOTSUP)) {
-      line->attr&=(~DB_ACL);
+      line->attr&=(~ATTR(attr_acl));
       return;
     }
     if (acl_a == NULL)
@@ -551,7 +532,7 @@ void xattrs2line(db_line *line) {
     static char *xatrs = NULL;
     ssize_t xret = -1;
 
-    if (!(DB_XATTRS&line->attr))
+    if (!(ATTR(attr_xattrs)&line->attr))
         return;
 
     /* assume memory allocs work, like rest of AIDE code... */
@@ -563,7 +544,7 @@ void xattrs2line(db_line *line) {
     }
 
     if ((xret == -1) && ((errno == ENOSYS) || (errno == ENOTSUP))) {
-        line->attr&=(~DB_XATTRS);
+        line->attr&=(~ATTR(attr_xattrs));
     } else if (xret == -1) {
         error(0, "listxattrs failed for %s:%s\n", line->fullpath, strerror(errno));
     } else if (xret) {
@@ -609,11 +590,11 @@ next_attr:
 void selinux2line(db_line *line) {
     char *cntx = NULL;
 
-    if (!(DB_SELINUX&line->attr))
+    if (!(ATTR(attr_selinux)&line->attr))
         return;
 
     if (lgetfilecon_raw(line->fullpath, &cntx) == -1) {
-        line->attr&=(~DB_SELINUX);
+        line->attr&=(~ATTR(attr_selinux));
         if ((errno != ENOATTR) && (errno != EOPNOTSUPP))
             error(0, "lgetfilecon_raw failed for %s:%s\n", line->fullpath, strerror(errno));
         return;
@@ -628,11 +609,11 @@ void selinux2line(db_line *line) {
 #ifdef WITH_E2FSATTRS
 void e2fsattrs2line(db_line* line) {
     unsigned long flags;
-    if (DB_E2FSATTRS&line->attr) {
+    if (ATTR(attr_e2fsattrs)&line->attr) {
         if (fgetflags(line->fullpath, &flags) == 0) {
             line->e2fsattrs=flags;
         } else {
-            line->attr&=(~DB_E2FSATTRS);
+            line->attr&=(~ATTR(attr_e2fsattrs));
             line->e2fsattrs=0;
         }
     } else {
@@ -646,7 +627,7 @@ void capabilities2line(db_line* line) {
     cap_t caps;
     char *txt_caps;
 
-    if (!(DB_CAPABILITIES&line->attr))
+    if (!(ATTR(attr_capabilities)&line->attr))
         return;
 
     caps = cap_get_file(line->fullpath);
@@ -657,13 +638,13 @@ void capabilities2line(db_line* line) {
 	cap_free(txt_caps);
 	cap_free(caps);
     } else {
-        line->attr&=(~DB_CAPABILITIES);
+        line->attr&=(~ATTR(attr_capabilities));
         line->capabilities=NULL;
     }
 }
 #endif
 
 void no_hash(db_line* line) {
-  line->attr&=~DB_HASHES;
+  line->attr&=~get_hashes();
 }
 

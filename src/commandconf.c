@@ -404,124 +404,6 @@ int db_input_wrapper(char* buf, int max_size, int db)
   return retval;
 }
 
-int check_db_order(DB_FIELD* d,int size, DB_FIELD a)
-{
-  int i;
-  for(i=0;i<size;i++){
-    if(d[i]==a)
-      return RETFAIL;
-  }
-  return RETOK;
-}
-
-int check_dboo(DB_FIELD a){
-  return check_db_order(conf->db_out_order,conf->db_out_size,a);
-}
-
-void update_db_out_order(DB_ATTR_TYPE attr)
-{
-  /* First we add those attributes that must be there */
-  if (check_dboo(db_linkname)==RETOK) {
-    conf->db_out_order[conf->db_out_size++]=db_linkname;
-  }
-  if (check_dboo(db_attr)==RETOK) {
-    conf->db_out_order[conf->db_out_size++]=db_attr;
-  }
-  if(check_dboo(db_perm)==RETOK){
-    conf->db_out_order[conf->db_out_size++]=db_perm;
-  }
-  if(check_dboo(db_inode)==RETOK){
-    conf->db_out_order[conf->db_out_size++]=db_inode;
-  }
-  if((attr&DB_BCOUNT) && (check_dboo(db_bcount)!=RETFAIL)){
-    conf->db_out_order[conf->db_out_size++]=db_bcount;
-  }
-  if((attr&DB_UID) && (check_dboo(db_uid)!=RETFAIL)){
-    conf->db_out_order[conf->db_out_size++]=db_uid;
-  }
-  if((attr&DB_GID) && (check_dboo(db_gid)!=RETFAIL)){
-    conf->db_out_order[conf->db_out_size++]=db_gid;
-  }
-  if((attr&DB_SIZE) && (check_dboo(db_size)!=RETFAIL)){
-    conf->db_out_order[conf->db_out_size++]=db_size;
-  }
-  if((attr&DB_SIZEG) && (check_dboo(db_size)!=RETFAIL)){
-    conf->db_out_order[conf->db_out_size++]=db_size;
-  }
-  if((attr&DB_ATIME) && (check_dboo(db_atime)!=RETFAIL)){
-    conf->db_out_order[conf->db_out_size++]=db_atime;
-  }
-  if((attr&DB_MTIME) && (check_dboo(db_mtime)!=RETFAIL)){
-    conf->db_out_order[conf->db_out_size++]=db_mtime;
-  }
-  if((attr&DB_CTIME) && (check_dboo(db_ctime)!=RETFAIL)){
-    conf->db_out_order[conf->db_out_size++]=db_ctime;
-  }
-  if((attr&DB_LNKCOUNT) && (check_dboo(db_lnkcount)!=RETFAIL)){
-    conf->db_out_order[conf->db_out_size++]=db_lnkcount;
-  }
-  if((attr&DB_MD5) && (check_dboo(db_md5)!=RETFAIL)){
-    conf->db_out_order[conf->db_out_size++]=db_md5;
-  }
-  if((attr&DB_SHA1) && (check_dboo(db_sha1)!=RETFAIL)){
-    conf->db_out_order[conf->db_out_size++]=db_sha1;
-  }
-  if((attr&DB_RMD160) && (check_dboo(db_rmd160)!=RETFAIL)){
-    conf->db_out_order[conf->db_out_size++]=db_rmd160;
-  }
-  if((attr&DB_TIGER) && (check_dboo(db_tiger)!=RETFAIL)){
-    conf->db_out_order[conf->db_out_size++]=db_tiger;
-  }
-  if((attr&DB_CRC32) && (check_dboo(db_crc32)!=RETFAIL)){
-    conf->db_out_order[conf->db_out_size++]=db_crc32;
-  }
-  if((attr&DB_HAVAL) && (check_dboo(db_haval)!=RETFAIL)){
-    conf->db_out_order[conf->db_out_size++]=db_haval;
-  }
-  /*
-#ifdef WITH_MHASH
-  */
-  if((attr&DB_GOST) && (check_dboo(db_gost)!=RETFAIL)){
-    conf->db_out_order[conf->db_out_size++]=db_gost;
-  }
-  if((attr&DB_WHIRLPOOL) && (check_dboo(db_whirlpool)!=RETFAIL)){
-    conf->db_out_order[conf->db_out_size++]=db_whirlpool;
-  }
-  if((attr&DB_CRC32B) && (check_dboo(db_crc32b)!=RETFAIL)){
-    conf->db_out_order[conf->db_out_size++]=db_crc32b;
-  }
-  /*
-#endif
-  */
-  if((attr&DB_SHA256) && (check_dboo(db_sha256)!=RETFAIL)){
-    conf->db_out_order[conf->db_out_size++]=db_sha256;
-  }
-  if((attr&DB_SHA512) && (check_dboo(db_sha512)!=RETFAIL)){
-    conf->db_out_order[conf->db_out_size++]=db_sha512;
-  }
-#ifdef WITH_ACL
-  if((attr&DB_ACL) && (check_dboo(db_acl)!=RETFAIL)){
-    conf->db_out_order[conf->db_out_size++]=db_acl;
-  }
-#endif
-  if((attr&DB_XATTRS) && (check_dboo(db_xattrs)!=RETFAIL)){
-    conf->db_out_order[conf->db_out_size++]=db_xattrs;
-  }
-  if((attr&DB_SELINUX) && (check_dboo(db_selinux)!=RETFAIL)){
-    conf->db_out_order[conf->db_out_size++]=db_selinux;
-  }
-  if((attr&DB_E2FSATTRS) && (check_dboo(db_e2fsattrs)!=RETFAIL)){
-    conf->db_out_order[conf->db_out_size++]=db_e2fsattrs;
-  }
-  if((attr&DB_CAPABILITIES) && (check_dboo(db_capabilities)!=RETFAIL)){
-    conf->db_out_order[conf->db_out_size++]=db_capabilities;
-  }
-  if((attr&DB_CHECKMASK) && (check_dboo(db_checkmask)!=RETFAIL)){
-    conf->db_out_order[conf->db_out_size++]=db_checkmask;
-  }
-}
-
-
 char* get_variable_value(char* var)
 {
   list* r=NULL;
@@ -570,7 +452,6 @@ void putbackvariable(char* var)
   free(tmp);
 
 }
-
 
 void do_define(char* name, char* value)
 {
@@ -733,9 +614,9 @@ bool add_rx_rule_to_tree(char* rx, RESTRICTION_TYPE restriction, DB_ATTR_TYPE at
         retval = false;
     }else {
         r->attr=attr;
-        update_db_out_order(r->attr);
+        conf->db_out_attrs |= attr;
 
-        if (attr&DB_CHECKINODE && attr&DB_CTIME) {
+        if (attr&ATTR(attr_checkinode) && attr&ATTR(attr_ctime)) {
             error(20,"Rule at line %li has c and I flags enabled at the same time. If same inode is found, flag c is ignored\n",conf_lineno);
         }
 

@@ -22,150 +22,7 @@
 #include "aide.h"
 #include <stdlib.h>
 #include "md.h"
-#include "error.h"
 #include <string.h>
-#ifdef WITH_MHASH
-#include <mhash.h>
-#endif
-#define HASH_HAVAL_LEN HASH_HAVAL256_LEN
-
-
-/*
-  It might be a good idea to construct a table, where these values are
-  stored. Only a speed issue.
-*/
-
-#ifdef WITH_GCRYPT
-DB_ATTR_TYPE hash_gcrypt2attr(int i) {
-  DB_ATTR_TYPE r=0;
-  switch (i) {
-  case GCRY_MD_MD5: {
-    r=DB_MD5;
-    break;
-  }
-  case GCRY_MD_SHA1: {
-    r=DB_SHA1;
-    break;
-  }
-  case GCRY_MD_RMD160: {
-    r=DB_RMD160;
-    break;
-  }
-  case GCRY_MD_TIGER: {
-    r=DB_TIGER;
-    break;
-  }
-  case GCRY_MD_GOSTR3411_94: {
-    r=DB_GOST;
-    break;
-  }
-  case GCRY_MD_HAVAL: {
-    r=DB_HAVAL;
-    break;
-  }
-  case GCRY_MD_SHA256: {
-    r=DB_SHA256;
-    break;
-  }
-  case GCRY_MD_SHA512: {
-    r=DB_SHA512;
-    break;
-  }
-  case GCRY_MD_CRC32: {
-    r=DB_CRC32;
-    break;
-  }
-  case GCRY_MD_WHIRLPOOL: {
-    r=DB_WHIRLPOOL;
-    break;
-  }
-  default:
-    break;
-  }
-  return r;
-}
-#endif
-
-#ifdef WITH_MHASH
-DB_ATTR_TYPE hash_mhash2attr(int i) {
-  DB_ATTR_TYPE r=0;
-  switch (i) {
-  case MHASH_CRC32: {
-    r=DB_CRC32;
-    break;
-  }
-  case MHASH_MD5: {
-    r=DB_MD5;
-    break;
-  }
-  case MHASH_SHA1: {
-    r=DB_SHA1;
-    break;
-  }
-  case MHASH_HAVAL: {   
-    r=DB_HAVAL;
-    break;
-  }
-  case MHASH_RMD160: {
-    r=DB_RMD160;
-    break;
-  }
-  case MHASH_TIGER: {
-    r=DB_TIGER;
-    break;
-  }
-  case MHASH_GOST: {
-    r=DB_GOST;
-    break;
-  }
-  case MHASH_CRC32B: {
-    r=DB_CRC32B;
-    break;
-  }
-  case MHASH_HAVAL224: {
-    break;
-  }
-  case MHASH_HAVAL192: {
-    break;
-  }
-  case MHASH_HAVAL160: {
-    break;
-  }
-  case MHASH_HAVAL128: {
-    break;
-  }
-  case MHASH_TIGER128: {
-    break;
-  }
-  case MHASH_TIGER160: {
-    break;
-  }
-  case MHASH_MD4: {
-    break;
-  }
-  case MHASH_SHA256: {
-    r=DB_SHA256;
-    break;
-  }
-  case MHASH_SHA512: {
-    r=DB_SHA512;
-    break;
-  }
-#ifdef HAVE_MHASH_WHIRLPOOL		 
-  case MHASH_WHIRLPOOL: {
-    r=DB_WHIRLPOOL;
-    break;
-  }
-#endif
-  case MHASH_ADLER32: {
-    break;
-  }
-  default:
-    break;
-  }
-  return r;
-}
-#endif
 
 /*
   Initialise md_container according its todo_attr field
@@ -173,7 +30,6 @@ DB_ATTR_TYPE hash_mhash2attr(int i) {
 
 int init_md(struct md_container* md) {
   
-  int i;
   /*    First we check the parameter..   */
 #ifdef _PARAMETER_CHECK_
   if (md==NULL) {
@@ -186,27 +42,25 @@ int init_md(struct md_container* md) {
   */
   md->calc_attr=0;
 #ifdef WITH_MHASH
-  error(255,"Mhash library initialization\n");
-  for(i=0;i<=HASH_MHASH_COUNT;i++) {
-    if (((hash_mhash2attr(i)&HASH_USE_MHASH)&md->todo_attr)!=0) {
-      DB_ATTR_TYPE h=hash_mhash2attr(i);
-      error(255,"inserting %llu\n",h);
-      md->mhash_mdh[i]=mhash_init(i);
-      if (md->mhash_mdh[i]!=MHASH_FAILED) {
-				md->calc_attr|=h;
-      } else {
-	/*
-	  Oops.. 
-	  We just don't calculate this.
-	 */
-
-				md->todo_attr&=~h;
-      }
-
-    } else {
-      md->mhash_mdh[i]=MHASH_FAILED;      
-    }
-  }
+   for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
+       DB_ATTR_TYPE h = ATTR(hashsums[i].attribute);
+       if (h&md->todo_attr) {
+if (algorithms[i] >= 0) {
+           md->mhash_mdh[i]=mhash_init(algorithms[i]);
+           if (md->mhash_mdh[i]!=MHASH_FAILED) {
+               md->calc_attr|=h;
+           } else {
+               error(2, "mhash_init for %s failed\n", attributes[hashsums[i].attribute].db_name);
+               md->todo_attr&=~h;
+           }
+} else {
+error(1, "'%s' hash algorithm not supported by mhash\n", attributes[hashsums[i].attribute].db_name);
+md->todo_attr&=~h;
+}
+       } else {
+           md->mhash_mdh[i]=MHASH_FAILED;
+       }
+   }
 #endif 
 #ifdef WITH_GCRYPT
   error(255,"Gcrypt library initialization\n");
@@ -220,18 +74,23 @@ int init_md(struct md_container* md) {
 		error(0,"gcrypt_md_open failed\n");
 		exit(IO_ERROR);
 	}
-  for(i=0;i<=HASH_GCRYPT_COUNT;i++) {
-    if (((hash_gcrypt2attr(i)&HASH_USE_GCRYPT)&md->todo_attr)!=0) {
-      DB_ATTR_TYPE h=hash_gcrypt2attr(i);
-      error(255,"inserting %llu\n",h);
-			if(gcry_md_enable(md->mdh,i)==GPG_ERR_NO_ERROR){
-				md->calc_attr|=h;
-			} else {
-				error(0,"gcry_md_enable %i failed",i);
-				md->todo_attr&=~h;
-			}
-		}
-	}
+
+   for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
+        DB_ATTR_TYPE h = ATTR(hashsums[i].attribute);
+            if (h&md->todo_attr) {
+if (algorithms[i] >= 0) {
+                if(gcry_md_enable(md->mdh,algorithms[i])==GPG_ERR_NO_ERROR){
+                    md->calc_attr|=h;
+                } else {
+                    error(2, "gcry_md_enable for %s failed\n", attributes[hashsums[i].attribute].db_name);
+                    md->todo_attr&=~h;
+                }
+} else {
+error(1, "'%s' hash algorithm not supported by gcrypt\n", attributes[hashsums[i].attribute].db_name);
+md->todo_attr&=~h;
+}
+            }
+  }
 #endif
   return RETOK;
 }
@@ -251,13 +110,11 @@ int update_md(struct md_container* md,void* data,ssize_t size) {
 #endif
 
 #ifdef WITH_MHASH
-  
-  for(int i=0;i<=HASH_MHASH_COUNT;i++) {
-    if (md->mhash_mdh[i]!=MHASH_FAILED) {
-      mhash (md->mhash_mdh[i], data, size);
-    }
+  for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
+      if(md->mhash_mdh[i] != MHASH_FAILED){
+          mhash(md->mhash_mdh[i], data, size);
+      }
   }
-  
 #endif /* WITH_MHASH */
 #ifdef WITH_GCRYPT
 	gcry_md_write(md->mdh, data, size);
@@ -278,62 +135,30 @@ int close_md(struct md_container* md) {
 #endif
   error(255,"close_md called \n");
 #ifdef WITH_MHASH
-  for(int i=0;i<=HASH_MHASH_COUNT;i++) {
-    if (md->mhash_mdh[i]!=MHASH_FAILED) {
-      mhash (md->mhash_mdh[i], NULL, 0);
-    }  
+  for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
+      if(md->mhash_mdh[i] != MHASH_FAILED){
+          mhash(md->mhash_mdh[i], NULL, 0);
+      }
   }
 #endif /* WITH_MHASH */
 #ifdef WITH_GCRYPT
   gcry_md_final(md->mdh); 
-  /* Let's flush the buffers */
 
-#define get_libgcrypt_hash(a,b,c,d) \
-  if(md->calc_attr&a&HASH_USE_GCRYPT){\
-		error(255,"Getting hash %i\n",b);\
-    memcpy(md->c,gcry_md_read(md->mdh,b),d);\
+  for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
+      if (algorithms[i] >=0 && md->calc_attr&ATTR(hashsums[i].attribute)) {
+          memcpy(md->hashsums[i],gcry_md_read(md->mdh, algorithms[i]), hashsums[i].length);
+      }
   }
 
-  get_libgcrypt_hash(DB_MD5,GCRY_MD_MD5,md5,HASH_MD5_LEN);
-  get_libgcrypt_hash(DB_SHA1,GCRY_MD_SHA1,sha1,HASH_SHA1_LEN);
-  get_libgcrypt_hash(DB_TIGER,GCRY_MD_TIGER,tiger,HASH_TIGER_LEN);
-  get_libgcrypt_hash(DB_RMD160,GCRY_MD_RMD160,rmd160,HASH_RMD160_LEN);
-  get_libgcrypt_hash(DB_GOST,GCRY_MD_GOSTR3411_94,gost,HASH_GOST_LEN);
-  get_libgcrypt_hash(DB_SHA256,GCRY_MD_SHA256,sha256,HASH_SHA256_LEN);
-  get_libgcrypt_hash(DB_SHA512,GCRY_MD_SHA512,sha512,HASH_SHA512_LEN);
-  get_libgcrypt_hash(DB_CRC32,GCRY_MD_CRC32,crc32,HASH_CRC32_LEN);
-  get_libgcrypt_hash(DB_WHIRLPOOL,GCRY_MD_WHIRLPOOL,whirlpool,HASH_WHIRLPOOL_LEN);
-  
-  /*.    There might be more hashes in the library. Add those here..   */
-  
   gcry_md_reset(md->mdh);
 #endif  
 
 #ifdef WITH_MHASH
-#define get_mhash_hash(b,c) \
-  if(md->mhash_mdh[b]!=MHASH_FAILED){ \
-    mhash_deinit(md->mhash_mdh[b],(void*)md->c); \
+  for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
+      if(md->mhash_mdh[i]!=MHASH_FAILED){
+          mhash_deinit(md->mhash_mdh[i],md->hashsums[i]);
+      }
   }
-  
-  get_mhash_hash(MHASH_MD5,md5);
-  get_mhash_hash(MHASH_SHA1,sha1);
-  get_mhash_hash(MHASH_TIGER,tiger);
-  get_mhash_hash(MHASH_RMD160,rmd160);
-  get_mhash_hash(MHASH_CRC32,crc32);
-  get_mhash_hash(MHASH_HAVAL,haval);
-  get_mhash_hash(MHASH_GOST,gost);
-  get_mhash_hash(MHASH_CRC32B,crc32b);
-  get_mhash_hash(MHASH_SHA256,sha256);
-  get_mhash_hash(MHASH_SHA512,sha512);
-#ifdef HAVE_MHASH_WHIRLPOOL
-  get_mhash_hash(MHASH_WHIRLPOOL,whirlpool);
-#endif
-  
-  /*
-    There might be more hashes in the library we want to use.
-    Add those here..
-  */
-  
 #endif
   return RETOK;
 }
@@ -352,29 +177,18 @@ void md2line(struct md_container* md,struct db_line* line) {
   }
 #endif
 
-#define copyhash(a,b,c)        \
-  if (line->attr&a) {          \
-    error(255,"Line has %llu\n",a); \
-    if (md->calc_attr&a) {     \
-      error(255,"copying %llu\n",a); \
-      line->b=(byte*)malloc(c);       \
-      memcpy(line->b,md->b,c); \
-    } else {                   \
-      line->attr&=~a;          \
-    }                          \
-  }
-  
-  
-  copyhash(DB_MD5,md5,HASH_MD5_LEN);
-  copyhash(DB_SHA1,sha1,HASH_SHA1_LEN);
-  copyhash(DB_RMD160,rmd160,HASH_RMD160_LEN);
-  copyhash(DB_TIGER,tiger,HASH_TIGER_LEN);
-  copyhash(DB_CRC32,crc32,HASH_CRC32_LEN);
-  copyhash(DB_HAVAL,haval,HASH_HAVAL_LEN);
-  copyhash(DB_GOST,gost,HASH_GOST_LEN);
-  copyhash(DB_CRC32B,crc32b,HASH_CRC32B_LEN);
+   for (int i = 0 ; i < num_hashes ; ++i) {
+       DB_ATTR_TYPE attr = ATTR(hashsums[i].attribute);
+       if (line->attr&attr) {
+           if (md->calc_attr&attr) {
+               line->hashsums[i] = malloc(hashsums[i].length);
+               memcpy(line->hashsums[i],md->hashsums[i],hashsums[i].length);
+           } else {
+               line->attr&=~attr;
+           }
+       } else {
+            line->hashsums[i] = NULL;
+        }
+   }
 
-  copyhash(DB_SHA256,sha256,HASH_SHA256_LEN);
-  copyhash(DB_SHA512,sha512,HASH_SHA512_LEN);
-  copyhash(DB_WHIRLPOOL,whirlpool,HASH_WHIRLPOOL_LEN);
 }

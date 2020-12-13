@@ -49,81 +49,7 @@
 db_line* db_char2line(char** ss,int db);
 long readoct(char* s,char* err);
 
-const char* db_names[db_unknown+1] = {
-   "name",
-   "lname",
-   "perm",
-   "uid",
-   "gid",
-   "size",
-   "atime",
-   "ctime",
-   "mtime",
-   "inode",
-   "bcount",
-   "lcount",
-   "md5",
-   "sha1",
-   "rmd160",
-   "tiger",
-   "crc32",
-   "haval",
-   "gost",
-   "crc32b",
-   "attr",
-   "acl",
-   "bsize",
-   "rdev",
-   "dev",
-   "checkmask",
-   "allownewfiles",
-   "allowrmfiles",
-   "sha256",
-   "sha512",
-   "whirlpool",
-   "selinux",
-   "xattrs",
-   "e2fsattrs",
-   "capabilities",
-   "unknown"} ;
 
-const int db_value[db_unknown+1] = {
-   db_filename,         /* "name",   */
-   db_linkname,         /* "lname",   */
-   db_perm,             /* "perm",    */
-   db_uid,              /* "uid",     */
-   db_gid,              /* "gid",     */
-   db_size,             /* "size",    */
-   db_atime,            /* "atime",   */
-   db_ctime,            /* "ctime",   */
-   db_mtime,            /* "mtime",   */
-   db_inode,            /* "inode",   */
-   db_bcount,           /* "bcount",  */
-   db_lnkcount,         /* "lcount",  */
-   db_md5,              /* "md5",     */
-   db_sha1,             /* "sha1",    */
-   db_rmd160,           /* "rmd160",  */
-   db_tiger,            /* "tiger",   */
-   db_crc32,            /* "crc32",   */
-   db_haval,            /* "haval",   */
-   db_gost,             /* "gost",    */
-   db_crc32b,           /* "crc32b",  */
-   db_attr,             /* attributes */
-   db_acl,              /* "acl"      */
-   db_bsize,            /* "bsize"    */
-   db_rdev,             /* "rdev"     */
-   db_dev,              /* "dev"      */
-   db_checkmask,        /* "checkmask" */
-   db_allownewfile,     /* "allownewfile" */
-   db_allowrmfile,      /* "allowrmfile" */
-   db_sha256,           /* "sha256",  */
-   db_sha512,           /* "sha512",  */
-   db_whirlpool,        /* "whirlpool", */
-   db_selinux,          /* "selinux", */
-   db_xattrs,           /* "xattrs",  */
-   db_e2fsattrs,        /* "e2fsattrs",  */
-   db_capabilities,     /* "capabilities", */
-   db_unknown };        /* "unknown"  */
 
 
 
@@ -255,7 +181,7 @@ db_line* db_readline(int db){
   url_t* db_url=NULL;
   FILE* db_filep=NULL;
   int* db_osize=0;
-  DB_FIELD** db_order=NULL;
+  ATTRIBUTE** db_order=NULL;
 
   switch (db) {
   case DB_DISK: {
@@ -299,7 +225,7 @@ db_line* db_readline(int db){
 	s=db_char2line(ss,db);
 
 	for(i=0;i<*db_osize;i++){
-	  if((*db_order)[i]!=db_unknown && 
+	  if((*db_order)[i]!=attr_unknown &&
 	     ss[(*db_order)[i]]!=NULL){
 	    free(ss[(*db_order)[i]]);
 	    ss[(*db_order)[i]]=NULL;
@@ -359,20 +285,20 @@ static char *db_readchar(char *s)
   return strdup(s);
 }
 
-#define WARN_ONCE(x) case db_ ## x : {                                  \
-      static int warn_once_ ## x = 0;                                   \
-      if (! warn_once_ ## x )                                           \
-        error(0,_("Hash %s uses MHASH, which is not enabled.\n"),       \
-              #x );                                                     \
-      warn_once_ ## x = 1;                                              \
-    } break
+
+#define CHAR2HASH(hash) \
+case attr_ ##hash : { \
+    line->hashsums[hash_ ##hash]=base64tobyte(ss[(*db_order)[i]], \
+        strlen(ss[(*db_order)[i]]), NULL); \
+  break; \
+}
 
 db_line* db_char2line(char** ss,int db){
 
   int i;
   db_line* line=(db_line*)malloc(sizeof(db_line)*1);
   int* db_osize=0;
-  DB_FIELD** db_order=NULL;
+  ATTRIBUTE** db_order=NULL;
 
   switch (db) {
   case DB_OLD: {
@@ -387,20 +313,6 @@ db_line* db_char2line(char** ss,int db){
   }
   }
 
-
-  line->md5=NULL;
-  line->sha1=NULL;
-  line->rmd160=NULL;
-  line->tiger=NULL;
-
-  line->crc32=NULL; /* MHASH stuff.. */
-  line->crc32b=NULL;
-  line->haval=NULL;
-  line->gost=NULL;
-  line->whirlpool=NULL;
-  
-  line->sha256=NULL;
-  line->sha512=NULL;
   line->perm=0;
   line->uid=0;
   line->gid=0;
@@ -419,12 +331,17 @@ db_line* db_char2line(char** ss,int db){
   line->e2fsattrs=0;
   line->cntx=NULL;
   line->capabilities=NULL;
+
+  for (int i = 0 ; i < num_hashes ; ++i) {
+      line->hashsums[i]=NULL;
+  }
+
   
   line->attr=conf->attr; /* attributes from @@dbspec */
 
   for(i=0;i<*db_osize;i++){
     switch ((*db_order)[i]) {
-    case db_filename : {
+    case attr_filename : {
       if(ss[(*db_order)[i]]!=NULL){
 	decode_string(ss[(*db_order)[i]]);
 	line->fullpath=strdup(ss[(*db_order)[i]]);
@@ -435,106 +352,56 @@ db_line* db_char2line(char** ss,int db){
       }
       break;
     }
-    case db_linkname : {
+    case attr_linkname : {
       line->linkname = db_readchar(ss[(*db_order)[i]]);
       break;
     }
-    case db_mtime : {
+    case attr_mtime : {
       line->mtime=base64totime_t(ss[(*db_order)[i]]);
       break;
     }
-    case db_bcount : {
+    case attr_bcount : {
       line->bcount=readlonglong(ss[(*db_order)[i]],"bcount");
       break;
     }
-    case db_atime : {
+    case attr_atime : {
       line->atime=base64totime_t(ss[(*db_order)[i]]);
       break;
     }
-    case db_ctime : {
+    case attr_ctime : {
       line->ctime=base64totime_t(ss[(*db_order)[i]]);
       break;
     }
-    case db_inode : {
+    case attr_inode : {
       line->inode=readlong(ss[(*db_order)[i]],"inode");
       break;
     }
 
-    case db_uid : {
+    case attr_uid : {
       line->uid=readlong(ss[(*db_order)[i]],"uid");
       break;
     }
-    case db_gid : {
+    case attr_gid : {
       line->gid=readlong(ss[(*db_order)[i]],"gid");
       break;
     }
-    case db_size : {
+    case attr_size : {
       line->size=readlonglong(ss[(*db_order)[i]],"size");
       break;
     }
-    case db_md5 : {
-      line->md5=base64tobyte(ss[(*db_order)[i]],
-			     strlen(ss[(*db_order)[i]]), NULL);
-      break;
-    }
-    case db_sha1 : {
-      line->sha1=base64tobyte(ss[(*db_order)[i]],
-			      strlen(ss[(*db_order)[i]]), NULL);
-      break;
-    }
-    case db_rmd160 : {
-      line->rmd160=base64tobyte(ss[(*db_order)[i]],
-				strlen(ss[(*db_order)[i]]), NULL);
-      break;
-    }
-    case db_tiger : {
-      line->tiger=base64tobyte(ss[(*db_order)[i]],
-			       strlen(ss[(*db_order)[i]]), NULL);
-      break;
-    }
-    case db_crc32 : {
-      line->crc32=base64tobyte(ss[(*db_order)[i]],
-			       strlen(ss[(*db_order)[i]]), NULL);
-      break;
-    }
-    case db_haval : {
-      line->haval=base64tobyte(ss[(*db_order)[i]],
-			       strlen(ss[(*db_order)[i]]), NULL);
-      break;
-    }
-#ifdef WITH_MHASH
-    case db_gost : {
-      line->gost=base64tobyte(ss[(*db_order)[i]],
-			       strlen(ss[(*db_order)[i]]), NULL);
-      break;
-    }
-    case db_crc32b : {
-      line->crc32b=base64tobyte(ss[(*db_order)[i]],
-			       strlen(ss[(*db_order)[i]]), NULL);
-      break;
-    }
-    case db_whirlpool : {
-      line->whirlpool=base64tobyte(ss[(*db_order)[i]],
-                                   strlen(ss[(*db_order)[i]]), NULL);
-      break;
-    }
-#else
-      WARN_ONCE(gost);
-      WARN_ONCE(crc32b);
-      WARN_ONCE(whirlpool);
-#endif
-    case db_sha256 : {
-      line->sha256=base64tobyte(ss[(*db_order)[i]],
-                                strlen(ss[(*db_order)[i]]), NULL);
-      break;
-    }
-    case db_sha512 : {
-      line->sha512=base64tobyte(ss[(*db_order)[i]],
-                                strlen(ss[(*db_order)[i]]), NULL);
-      break;
-    }
+    CHAR2HASH(md5)
+    CHAR2HASH(sha256)
+    CHAR2HASH(sha512)
+    CHAR2HASH(sha1)
+    CHAR2HASH(rmd160)
+    CHAR2HASH(tiger)
+    CHAR2HASH(crc32)
+    CHAR2HASH(crc32b)
+    CHAR2HASH(haval)
+    CHAR2HASH(whirlpool)
+    CHAR2HASH(gostr3411_94)
 #ifdef WITH_POSIX_ACL
-    case db_acl : {
+    case attr_acl : {
       char *tval = NULL;
       
       tval = strtok(ss[(*db_order)[i]], ",");
@@ -558,7 +425,7 @@ db_line* db_char2line(char** ss,int db){
       break;
     }
 #endif
-      case db_xattrs : {
+      case attr_xattrs : {
         size_t num = 0;
         char *tval = NULL;
         
@@ -589,7 +456,7 @@ db_line* db_char2line(char** ss,int db){
         break;
       }
 
-      case db_selinux : {
+      case attr_selinux : {
         byte  *val = NULL;
         
         val = base64tobyte(ss[(*db_order)[i]], strlen(ss[(*db_order)[i]]),NULL);
@@ -597,35 +464,34 @@ db_line* db_char2line(char** ss,int db){
         break;
       }
       
-    case db_perm : {
+    case attr_perm : {
       line->perm=readoct(ss[(*db_order)[i]],"permissions");
       break;
     }
     
-    case db_lnkcount : {
+    case attr_linkcount : {
       line->nlink=readlong(ss[(*db_order)[i]],"nlink");
       break;
     }
 
-    case db_attr : {
+    case attr_attr : {
       line->attr=readlonglong(ss[(*db_order)[i]],"attr");
       break;
     }
     
-    case db_e2fsattrs : {
+    case attr_e2fsattrs : {
       line->e2fsattrs=readlong(ss[(*db_order)[i]],"e2fsattrs");
       break;
     }
 
-    case db_capabilities : {
+    case attr_capabilities : {
       byte  *val = NULL;
 
       val = base64tobyte(ss[(*db_order)[i]], strlen(ss[(*db_order)[i]]),NULL);
       line->capabilities = (char *)val;
       break;
     }
-
-    case db_unknown : {
+    case attr_unknown : {
       /* Unknown fields are ignored. */
       break;
     }
@@ -791,25 +657,14 @@ void free_db_line(db_line* dl)
   
 #define checked_free(x) do { free(x); x=NULL; } while (0)
 
-  checked_free(dl->md5);
-  checked_free(dl->sha1);
-  checked_free(dl->rmd160);
-  checked_free(dl->tiger);
+  for (int i = 0 ; i < num_hashes ; ++i) {
+      checked_free(dl->hashsums[i]);
+  }
+
   dl->filename=NULL;
   checked_free(dl->fullpath);
   checked_free(dl->linkname);
   
-#ifdef WITH_MHASH
-  checked_free(dl->crc32);
-  checked_free(dl->crc32b);
-  checked_free(dl->gost);
-  checked_free(dl->haval);
-#endif
-  
-  checked_free(dl->sha256);
-  checked_free(dl->sha512);
-  checked_free(dl->whirlpool);
-
   if (dl->acl)
   {
 #ifdef WITH_ACL

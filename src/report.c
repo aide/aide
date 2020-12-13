@@ -63,79 +63,46 @@ int added_entries_reported, removed_entries_reported, changed_entries_reported =
 
 const char* report_top_format = "\n\n---------------------------------------------------\n%s:\n---------------------------------------------------\n";
 
-const DB_ATTR_TYPE summary_attributes[] = { DB_FTYPE, DB_LINKNAME, DB_SIZE|DB_SIZEG, DB_BCOUNT, DB_PERM, DB_UID, DB_GID, DB_ATIME, DB_MTIME, DB_CTIME, DB_INODE, DB_LNKCOUNT, DB_HASHES
+const ATTRIBUTE report_attrs_order[] = {
+    attr_ftype,
+    attr_linkname,
+    attr_size,
+    attr_bcount,
+    attr_perm,
+    attr_uid,
+    attr_gid,
+    attr_atime,
+    attr_mtime,
+    attr_ctime,
+    attr_inode,
+    attr_linkcount,
+    attr_allhashsums,
 #ifdef WITH_ACL
-        , DB_ACL
+   attr_acl,
 #endif
 #ifdef WITH_XATTR
-        , DB_XATTRS
+   attr_xattrs,
 #endif
 #ifdef WITH_SELINUX
-        , DB_SELINUX
+   attr_selinux,
 #endif
 #ifdef WITH_E2FSATTRS
-        , DB_E2FSATTRS
+   attr_e2fsattrs,
 #endif
 #ifdef WITH_CAPABILITIES
-        , DB_CAPABILITIES
+   attr_capabilities,
 #endif
 };
 
-const char summary_char[] = { '!' ,'l', '>', 'b', 'p', 'u', 'g', 'a', 'm', 'c', 'i', 'n', 'D'
-#ifdef WITH_ACL
-    , 'A'
-#endif
-#ifdef WITH_XATTR
-    , 'X'
-#endif
-#ifdef WITH_SELINUX
-    , 'S'
-#endif
-#ifdef WITH_E2FSATTRS
-    , 'E'
-#endif
-#ifdef WITH_CAPABILITIES
-    , 'C'
-#endif
-};
+int report_attrs_order_length = sizeof(report_attrs_order)/sizeof(ATTRIBUTE);
 
-const DB_ATTR_TYPE details_attributes[] = { DB_FTYPE, DB_LINKNAME, DB_SIZE, DB_SIZEG, DB_BCOUNT, DB_PERM, DB_UID, DB_GID, DB_ATIME, DB_MTIME, DB_CTIME, DB_INODE, DB_LNKCOUNT, DB_MD5, DB_SHA1, DB_RMD160, DB_TIGER, DB_SHA256, DB_SHA512
-    , DB_CRC32, DB_HAVAL, DB_GOST, DB_CRC32B, DB_WHIRLPOOL
-#ifdef WITH_ACL
-        , DB_ACL
-#endif
-#ifdef WITH_XATTR
-        , DB_XATTRS
-#endif
-#ifdef WITH_SELINUX
-        , DB_SELINUX
-#endif
-#ifdef WITH_E2FSATTRS
-        , DB_E2FSATTRS
-#endif
-#ifdef WITH_CAPABILITIES
-        , DB_CAPABILITIES
-#endif
-};
-
-const char* details_string[] = { _("File type") , _("Lname"), _("Size"), _("Size (>)"), _("Bcount"), _("Perm"), _("Uid"), _("Gid"), _("Atime"), _("Mtime"), _("Ctime"), _("Inode"), _("Linkcount"), _("MD5"), _("SHA1"), _("RMD160"), _("TIGER"), _("SHA256"), _("SHA512")
-    , _("CRC32"), _("HAVAL"), _("GOST"), _("CRC32B"), _("WHIRLPOOL")
-#ifdef WITH_ACL
-    , _("ACL")
-#endif
-#ifdef WITH_XATTR
-    , _("XAttrs")
-#endif
-#ifdef WITH_SELINUX
-    , _("SELinux")
-#endif
-#ifdef WITH_E2FSATTRS
-    , _("E2FSAttrs")
-#endif
-#ifdef WITH_CAPABILITIES
-    , _("Caps")
-#endif
-};
+DB_ATTR_TYPE get_attrs(ATTRIBUTE attr) {
+    switch(attr) {
+        case attr_size: return ATTR(attr_size)|ATTR(attr_sizeg);
+        case attr_allhashsums: return get_hashes();
+        default: return ATTR(attr);
+    }
+}
 
 #ifdef WITH_E2FSATTRS
     /* flag->character mappings taken from lib/e2p/pf.c (git commit c46b57b)
@@ -533,14 +500,6 @@ l = strlen(s)+1; \
 *values[0] = malloc(l * sizeof (char)); \
 snprintf(*values[0], l, "%s",s);
 
-#define easy_md(a,b,c) \
-} else if (a&attr) { \
-    if (r->base16) { \
-        *values[0] = byte_to_base16(line->b, c); \
-    } else { \
-        *values[0] = encode_base64(line->b, c); \
-    }
-
 #define easy_number(a,b,c) \
 } else if (a&attr) { \
     l = 2+floor(line->b?log10(line->b):0); \
@@ -556,55 +515,56 @@ snprintf(*values[0], l, "%s",s);
         *values = NULL;
         return 0;
 #ifdef WITH_ACL
-    } else if (DB_ACL&attr) {
+    } else if (ATTR(attr_acl)&attr) {
         return acl2array(line->acl, values);
 #endif
 #ifdef WITH_XATTR
-    } else if (DB_XATTRS&attr) {
+    } else if (ATTR(attr_xattrs)&attr) {
         return xattrs2array(line->xattrs, values);
 #endif
     } else {
         int l;
         *values = malloc(1 * sizeof (char*));
-        if (DB_FTYPE&attr) {
+        if (ATTR(attr_ftype)&attr) {
             easy_string(get_file_type_string(line->perm))
-        } else if (DB_LINKNAME&attr) {
+        } else if (ATTR(attr_linkname)&attr) {
             easy_string(line->linkname)
-        easy_number((DB_SIZE|DB_SIZEG),size,"%lli")
-        } else if (DB_PERM&attr) {
+        easy_number((ATTR(attr_size)|ATTR(attr_sizeg)),size,"%lli")
+        } else if (ATTR(attr_perm)&attr) {
             *values[0] = perm_to_char(line->perm);
-        easy_time(DB_ATIME,atime)
-        easy_time(DB_MTIME,mtime)
-        easy_time(DB_CTIME,ctime)
-        easy_number(DB_BCOUNT,bcount,"%lli")
-        easy_number(DB_UID,uid,"%li")
-        easy_number(DB_GID,gid,"%li")
-        easy_number(DB_INODE,inode,"%li")
-        easy_number(DB_LNKCOUNT,nlink,"%li")
-        easy_md(DB_MD5,md5,HASH_MD5_LEN)
-        easy_md(DB_SHA1,sha1,HASH_SHA1_LEN)
-        easy_md(DB_RMD160,rmd160,HASH_RMD160_LEN)
-        easy_md(DB_TIGER,tiger,HASH_TIGER_LEN)
-        easy_md(DB_SHA256,sha256,HASH_SHA256_LEN)
-        easy_md(DB_SHA512,sha512,HASH_SHA512_LEN)
-        easy_md(DB_CRC32,crc32,HASH_CRC32_LEN)
-        easy_md(DB_HAVAL,haval,HASH_HAVAL256_LEN)
-        easy_md(DB_GOST,gost,HASH_GOST_LEN)
-        easy_md(DB_CRC32B,crc32b,HASH_CRC32B_LEN)
-        easy_md(DB_WHIRLPOOL,whirlpool,HASH_WHIRLPOOL_LEN)
+        easy_time(ATTR(attr_atime),atime)
+        easy_time(ATTR(attr_mtime),mtime)
+        easy_time(ATTR(attr_ctime),ctime)
+        easy_number(ATTR(attr_bcount),bcount,"%lli")
+        easy_number(ATTR(attr_uid),uid,"%li")
+        easy_number(ATTR(attr_gid),gid,"%li")
+        easy_number(ATTR(attr_inode),inode,"%li")
+        easy_number(ATTR(attr_linkcount),nlink,"%li")
 #ifdef WITH_SELINUX
-        } else if (DB_SELINUX&attr) {
+        } else if (ATTR(attr_selinux)&attr) {
             easy_string(line->cntx)
 #endif
 #ifdef WITH_E2FSATTRS
-        } else if (DB_E2FSATTRS&attr) {
+        } else if (ATTR(attr_e2fsattrs)&attr) {
             *values[0]=e2fsattrs2string(line->e2fsattrs, 0, r->ignore_e2fsattrs);
 #endif
 #ifdef WITH_CAPABILITIES
-        } else if (DB_CAPABILITIES&attr) {
+        } else if (ATTR(attr_capabilities)&attr) {
             easy_string(line->capabilities)
 #endif
         } else {
+
+  for (int i = 0 ; i < num_hashes ; ++i) {
+    if (ATTR(hashsums[i].attribute)&attr) {
+        if (r->base16) {
+            *values[0] = byte_to_base16(line->hashsums[i], hashsums[i].length);
+        } else {
+            *values[0] = encode_base64(line->hashsums[i], hashsums[i].length);
+        }
+        return 1;
+      }
+  }
+
             easy_string("unknown attribute")
         }
         return 1;
@@ -623,55 +583,55 @@ if ((conf->action&(DO_COMPARE|DO_DIFF) || (conf->action&DO_INIT && r->detailed_i
         if (r->level >= REPORT_LEVEL_LIST_ENTRIES) {
             if (!(node->changed_attrs) || ~(r->ignore_changed_attrs)&(node->changed_attrs
 #ifdef WITH_E2FSATTRS
-                & (~DB_E2FSATTRS | (node->changed_attrs&DB_E2FSATTRS && ~(r->ignore_e2fsattrs)&(node->old_data->e2fsattrs^node->new_data->e2fsattrs)?DB_E2FSATTRS:0))
+                & (~ATTR(attr_e2fsattrs) | (node->changed_attrs&ATTR(attr_e2fsattrs) && ~(r->ignore_e2fsattrs)&(node->old_data->e2fsattrs^node->new_data->e2fsattrs)?ATTR(attr_e2fsattrs):0))
 #endif
             )) {
 
     if(r->summarize_changes) {
         int i;
-        int length = sizeof(summary_attributes)/sizeof(DB_ATTR_TYPE);
-        char* summary = malloc ((length+1) * sizeof (char));
+        char* summary = malloc ((report_attrs_order_length+1) * sizeof (char));
         if (node->checked&(NODE_ADDED|NODE_REMOVED)) {
             summary[0]=get_file_type_char(((node->checked&NODE_REMOVED)?node->old_data:node->new_data)->perm);
-            for(i=1;i<length;i++){
+            for(i=1;i<report_attrs_order_length;i++){
                 summary[i]=(node->checked&NODE_ADDED)?'+':'-';
             }
         } else if (node->checked&NODE_CHANGED) {
-            for(i=0;i<length;i++) {
+            for(i=0;i<report_attrs_order_length;i++) {
                 char c, u, a, d, g, s;
-                c = summary_char[i];
+                DB_ATTR_TYPE attrs = get_attrs(report_attrs_order[i]);
+                c = attributes[report_attrs_order[i]].summary_char;
                 d = '-'; a = '+'; g = ':'; u = '.'; s = ' ';
                 switch (i) {
                     case 0:
                         summary[i]=get_file_type_char((node->new_data)->perm);
                         continue;
                     case 2:
-                        if (summary_attributes[i]&(node->changed_attrs&(~(r->ignore_removed_attrs))) && (node->old_data)->size > (node->new_data)->size) {
+                        if (attrs&(node->changed_attrs&(~(r->ignore_removed_attrs))) && (node->old_data)->size > (node->new_data)->size) {
                             c = '<';
                         }
                         u = '=';
                         break;
                 }
-                if (summary_attributes[i]&node->changed_attrs&(r->force_attrs|(~(r->ignore_changed_attrs)))) {
+                if (attrs&node->changed_attrs&(r->force_attrs|(~(r->ignore_changed_attrs)))) {
                     summary[i]=c;
-                } else if (summary_attributes[i]&((node->old_data)->attr&~((node->new_data)->attr)&(r->force_attrs|~(r->ignore_removed_attrs)))) {
+                } else if (attrs&((node->old_data)->attr&~((node->new_data)->attr)&(r->force_attrs|~(r->ignore_removed_attrs)))) {
                     summary[i]=d;
-                } else if (summary_attributes[i]&~((node->old_data)->attr)&(node->new_data)->attr&(r->force_attrs|~(r->ignore_added_attrs))) {
+                } else if (attrs&~((node->old_data)->attr)&(node->new_data)->attr&(r->force_attrs|~(r->ignore_added_attrs))) {
                     summary[i]=a;
-                } else if (summary_attributes[i]& (
+                } else if (attrs& (
                              (((node->old_data)->attr&~((node->new_data)->attr)&r->ignore_removed_attrs))|
                             (~((node->old_data)->attr)&(node->new_data)->attr&r->ignore_added_attrs)|
                              (((node->old_data)->attr&(node->new_data)->attr)&r->ignore_changed_attrs)
                             ) ) {
                     summary[i]=g;
-                } else if (summary_attributes[i]&((node->old_data)->attr&(node->new_data)->attr)) {
+                } else if (attrs&((node->old_data)->attr&(node->new_data)->attr)) {
                     summary[i]=u;
                 } else {
                     summary[i]=s;
                 }
             }
         }
-        summary[length]='\0';
+        summary[report_attrs_order_length]='\0';
         report_printf(r, "\n%s: %s", summary, ((node->checked&NODE_REMOVED)?node->old_data:node->new_data)->filename);
         free(summary); summary=NULL;
     } else {
@@ -691,13 +651,44 @@ if ((conf->action&(DO_COMPARE|DO_DIFF) || (conf->action&DO_INIT && r->detailed_i
     }
 }
 
-static void print_dbline_attributes(REPORT_LEVEL report_level, db_line* oline, db_line* nline, DB_ATTR_TYPE attrs, bool force) {
+static void print_attribute(REPORT_LEVEL report_level, db_line* oline, db_line* nline,
+        DB_ATTR_TYPE attr, report_t *r, const char* name,
+        DB_ATTR_TYPE report_attrs, DB_ATTR_TYPE added_attrs, DB_ATTR_TYPE removed_attrs) {
     char **ovalue, **nvalue;
-    int onumber, nnumber, olen, nlen, i, j, k, c;
-    int length = sizeof(details_attributes)/sizeof(DB_ATTR_TYPE);
+    int onumber, nnumber, olen, nlen, i, k, c;
     int p = (width_details-(width_details%2?13:14))/2;
 
+        if ( (attr&report_attrs && r->level >= report_level)
+          || (report_attrs && attr&(added_attrs|removed_attrs) && r->level >= REPORT_LEVEL_ADDED_REMOVED_ATTRIBUTES) ) {
 
+            onumber=get_attribute_values(attr, oline, &ovalue, r);
+            nnumber=get_attribute_values(attr, nline, &nvalue, r);
+
+            i = 0;
+            while (i<onumber || i<nnumber) {
+                olen = i<onumber?strlen(ovalue[i]):0;
+                nlen = i<nnumber?strlen(nvalue[i]):0;
+                k = 0;
+                while (olen-p*k >= 0 || nlen-p*k >= 0) {
+                    c = k*(p-1);
+                    if (!onumber) {
+                        report_printf(r," %s%-*s%c %-*c  %.*s\n", width_details%2?"":" ", MAX_WIDTH_DETAILS_STRING, (i+k)?"":name, (i+k)?' ':':', p, ' ', p-1, nlen-c>0?&nvalue[i][c]:"");
+                    } else if (!nnumber) {
+                        report_printf(r," %s%-*s%c %.*s\n", width_details%2?"":" ", MAX_WIDTH_DETAILS_STRING, (i+k)?"":name, (i+k)?' ':':', p-1, olen-c>0?&ovalue[i][c]:"");
+                    } else {
+                        report_printf(r," %s%-*s%c %-*.*s| %.*s\n", width_details%2?"":" ", MAX_WIDTH_DETAILS_STRING, (i+k)?"":name, (i+k)?' ':':', p, p-1, olen-c>0?&ovalue[i][c]:"", p-1, nlen-c>0?&nvalue[i][c]:"");
+                    }
+                    k++;
+                }
+                ++i;
+            }
+            for(i=0; i < onumber; ++i) { free(ovalue[i]); ovalue[i]=NULL; } free(ovalue); ovalue=NULL;
+            for(i=0; i < nnumber; ++i) { free(nvalue[i]); nvalue[i]=NULL; } free(nvalue); nvalue=NULL;
+        }
+}
+
+
+static void print_dbline_attributes(REPORT_LEVEL report_level, db_line* oline, db_line* nline, DB_ATTR_TYPE attrs, bool force) {
     DB_ATTR_TYPE report_attrs, added_attrs, removed_attrs, changed_attrs, forced_attrs;
     list* l = NULL;
 
@@ -713,7 +704,7 @@ static void print_dbline_attributes(REPORT_LEVEL report_level, db_line* oline, d
 
         changed_attrs = ~(r->ignore_changed_attrs)&(attrs
 #ifdef WITH_E2FSATTRS
-        & (~DB_E2FSATTRS | (attrs&DB_E2FSATTRS && ~(r->ignore_e2fsattrs)&(oline->e2fsattrs^nline->e2fsattrs)?DB_E2FSATTRS:0))
+        & (~ATTR(attr_e2fsattrs) | (attrs&ATTR(attr_e2fsattrs) && ~(r->ignore_e2fsattrs)&(oline->e2fsattrs^nline->e2fsattrs)?ATTR(attr_e2fsattrs):0))
 #endif
 );
         forced_attrs = (oline && nline)?r->force_attrs:attrs;
@@ -728,35 +719,26 @@ static void print_dbline_attributes(REPORT_LEVEL report_level, db_line* oline, d
             report_printf(r, "%s\n", (nline==NULL?oline:nline)->filename);
         }
 
-    for (j=0; j < length; ++j) {
-        if ( (details_attributes[j]&report_attrs && r->level >= report_level)
-          || (report_attrs && details_attributes[j]&(added_attrs|removed_attrs) && r->level >= REPORT_LEVEL_ADDED_REMOVED_ATTRIBUTES) ) {
-            onumber=get_attribute_values(details_attributes[j], oline, &ovalue, r);
-            nnumber=get_attribute_values(details_attributes[j], nline, &nvalue, r);
-
-            i = 0;
-            while (i<onumber || i<nnumber) {
-                olen = i<onumber?strlen(ovalue[i]):0;
-                nlen = i<nnumber?strlen(nvalue[i]):0;
-                k = 0;
-                while (olen-p*k >= 0 || nlen-p*k >= 0) {
-                    c = k*(p-1);
-                    if (!onumber) {
-                        report_printf(r," %s%-9s%c %-*c  %.*s\n", width_details%2?"":" ", (i+k)?"":details_string[j], (i+k)?' ':':', p, ' ', p-1, nlen-c>0?&nvalue[i][c]:"");
-                    } else if (!nnumber) {
-                        report_printf(r," %s%-9s%c %.*s\n", width_details%2?"":" ", (i+k)?"":details_string[j], (i+k)?' ':':', p-1, olen-c>0?&ovalue[i][c]:"");
-                    } else {
-                        report_printf(r," %s%-9s%c %-*.*s| %.*s\n", width_details%2?"":" ", (i+k)?"":details_string[j], (i+k)?' ':':', p, p-1, olen-c>0?&ovalue[i][c]:"", p-1, nlen-c>0?&nvalue[i][c]:"");
-                    }
-                    k++;
+    for (int j=0; j < report_attrs_order_length; ++j) {
+        switch(report_attrs_order[j]) {
+            case attr_allhashsums:
+                for (int i = 0 ; i < num_hashes ; ++i) {
+                    print_attribute(report_level, oline, nline, ATTR(hashsums[i].attribute), r, attributes[hashsums[i].attribute].details_string, report_attrs, added_attrs, removed_attrs);
                 }
-                ++i;
-            }
-            for(i=0; i < onumber; ++i) { free(ovalue[i]); ovalue[i]=NULL; } free(ovalue); ovalue=NULL;
-            for(i=0; i < nnumber; ++i) { free(nvalue[i]); nvalue[i]=NULL; } free(nvalue); nvalue=NULL;
+                break;
+            case attr_size:
+                print_attribute(report_level, oline, nline, ATTR(attr_size), r, attributes[attr_size].details_string, report_attrs, added_attrs, removed_attrs);
+                print_attribute(report_level, oline, nline, ATTR(attr_sizeg), r, attributes[attr_sizeg].details_string, report_attrs, added_attrs, removed_attrs);
+                break;
+            default:
+                print_attribute(report_level, oline, nline, ATTR(report_attrs_order[j]), r, attributes[report_attrs_order[j]].details_string, report_attrs, added_attrs, removed_attrs);
+                break;
         }
     }
+
+
     }
+
     }
 
 }
@@ -811,7 +793,7 @@ static void terse_report(seltree* node) {
                 DB_ATTR_TYPE changed_attrs = (node->changed_attrs)&~(r->ignore_changed_attrs);
                 if (changed_attrs
 #ifdef WITH_E2FSATTRS
-                    &~DB_E2FSATTRS || (changed_attrs&DB_E2FSATTRS && ~(r->ignore_e2fsattrs)&(node->old_data->e2fsattrs^node->new_data->e2fsattrs))
+                    &~ATTR(attr_e2fsattrs) || (changed_attrs&ATTR(attr_e2fsattrs) && ~(r->ignore_e2fsattrs)&(node->old_data->e2fsattrs^node->new_data->e2fsattrs))
 #endif
                 ) {
                     r->nchg++;

@@ -40,8 +40,6 @@ void db_close();
 
 void free_db_line(db_line* dl);
 
-extern const char* db_names[];
-extern const int db_value[];
 
 #define DB_OLD            (1<<0)
 #define DB_WRITE          (1<<1)

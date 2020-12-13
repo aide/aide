@@ -172,7 +172,8 @@ int db_file_read_spec(int db){
   
   int i=0;
   int* db_osize=0;
-  DB_FIELD** db_order=NULL;
+  ATTRIBUTE** db_order=NULL;
+  DB_ATTR_TYPE seen_attrs = 0LLU;
 
   switch (db) {
   case DB_OLD: {
@@ -189,46 +190,36 @@ int db_file_read_spec(int db){
   }
   }
 
-  *db_order=(DB_FIELD*) malloc(1*sizeof(DB_FIELD));
+  *db_order = malloc(1*sizeof(ATTRIBUTE));
   
   while ((i=db_scan())!=TNEWLINE){
     switch (i) {
       
     case TID : {
-      int l;
-      
-
-      /* Yes... we do not check if realloc returns nonnull */
-
-      *db_order=(DB_FIELD*)
-	realloc((void*)*db_order,
-		((*db_osize)+1)*sizeof(DB_FIELD));
-      
-      if(*db_order==NULL){
-	return RETFAIL;
+      DB_ATTR_TYPE l;
+      *db_order = realloc(*db_order, ((*db_osize)+1)*sizeof(ATTRIBUTE));
+      if(*db_order == NULL) {
+          return RETFAIL;
       }
-      
-      (*db_order)[*db_osize]=db_unknown;
-      
-      for (l=0;l<db_unknown;l++){
-	
-	if (strcmp(db_names[l],dbtext)==0) {
-	  
-	  if (check_db_order(*db_order, *db_osize,
-			     db_value[l])==RETFAIL) {
-	    error(0,"Field %s redefined in @@dbspec\n",dbtext);
-	    (*db_order)[*db_osize]=db_unknown;
-	  } else {
-	    (*db_order)[*db_osize]=db_value[l];
-	  }
-	  (*db_osize)++;
-	  break;
-	}
+      (*db_order)[*db_osize]=attr_unknown;
+      for (l=0;l<num_attrs;l++){
+          if (attributes[l].db_name && strcmp(attributes[l].db_name,dbtext)==0) {
+              if (ATTR(l)&seen_attrs) {
+                  error(0,"Field %s redefined in @@dbspec\n",dbtext);
+                  (*db_order)[*db_osize]=attr_unknown;
+              } else {
+                  (*db_order)[*db_osize]=l;
+                  seen_attrs |= ATTR(l);
+              }
+              (*db_osize)++;
+              break;
+          }
       }
 
-      if(l==db_unknown){
-	error(0,"Unknown field %s in database\n",dbtext);
-	(*db_osize)++;
+      if(l==attr_unknown){
+          error(0,"Unknown field %s in database\n",dbtext);
+          (*db_order)[*db_osize]=attr_unknown;
+          (*db_osize)++;
       }
       break;
     }
@@ -250,15 +241,15 @@ int db_file_read_spec(int db){
   conf->attr=-1;
 
   for (i=0;i<*db_osize;i++) {
-    if ((*db_order)[i]==db_attr) {
+    if ((*db_order)[i]==attr_attr) {
       conf->attr=1;
     }
   }
   if (conf->attr==DB_ATTR_UNDEF) {
     conf->attr=0;
     error(0,"Database does not have attr field.\nComparison may be incorrect\nGenerating attr-field from dbspec\nIt might be a good Idea to regenerate databases. Sorry.\n");
-    for(i=0;i<conf->db_in_size;i++) {
-      conf->attr|=1<<(*db_order)[i];
+    for(i=0;i<*db_osize;i++) {
+      conf->attr|=1LL<<(*db_order)[i];
     }
   }
   return RETOK;
@@ -280,7 +271,7 @@ char** db_readline_file(int db){
   char** oldmdstr=NULL;
 #endif
   int* db_osize=0;
-  DB_FIELD** db_order=NULL;
+  ATTRIBUTE** db_order=NULL;
   FILE* db_filep=NULL;
   url_t* db_url=NULL;
 
@@ -411,11 +402,11 @@ char** db_readline_file(int db){
     db_buff(db,NULL);
   }
 
-  s=(char**)malloc(sizeof(char*)*db_unknown);
+  s=(char**)malloc(sizeof(char*)*num_attrs);
 
   /* We NEED this to avoid Bus errors on Suns */
-  for(i=0;i<db_unknown;i++){
-    s[i]=NULL;
+  for(ATTRIBUTE a=0; a<num_attrs; a++){
+    s[a]=NULL;
   }
   
   for(i=0;i<*db_osize;i++){
@@ -427,14 +418,14 @@ char** db_readline_file(int db){
       break;
     }
     case TNAME : {
-      if ((*db_order)[i]!=db_unknown) {
+      if ((*db_order)[i]!=attr_unknown) {
 	s[*db_order[i]]=(char*)strdup(dbtext);
       }
       break;
     }
     
     case TID : {
-      if ((*db_order)[i]!=db_unknown) {
+      if ((*db_order)[i]!=attr_unknown) {
 	s[(*db_order)[i]]=(char*)strdup(dbtext);
       }
       break;
@@ -718,8 +709,6 @@ int db_writeoct(long i, FILE* file,int a)
 
 int db_writespec_file(db_config* dbconf)
 {
-  int i=0;
-  int j=0;
   int retval=1;
   struct tm* st;
   time_t tim=time(&tim);
@@ -775,16 +764,13 @@ int db_writespec_file(db_config* dbconf)
   if(retval==0){
     return RETFAIL;
   }
-  for(i=0;i<dbconf->db_out_size;i++){
-    for(j=0;j<db_unknown;j++){
-      if((int)db_value[j]==(int)dbconf->db_out_order[i]){
-	retval=dofprintf("%s ",db_names[j]);
-	if(retval==0){
-	  return RETFAIL;
-	}
-	break;
+  for (ATTRIBUTE i = 0 ; i < num_attrs ; ++i) {
+      if (attributes[i].db_name && attributes[i].attr&conf->db_out_attrs) {
+          retval=dofprintf("%s ", attributes[i].db_name);
+          if(retval==0){
+              return RETFAIL;
+          }
       }
-    }
   }
   retval=dofprintf("\n");
   if(retval==0){
@@ -830,155 +816,94 @@ int db_writeacl(acl_type* acl,FILE* file,int a)
 }
 #endif
 
+
+#define WRITE_HASHSUM(x) \
+case attr_ ##x : { \
+    db_write_byte_base64(line->hashsums[hash_ ##x], \
+        hashsums[hash_ ##x].length, \
+        dbconf->db_out, i, \
+        ATTR(attr_ ##x), line->attr); \
+    break; \
+}
+
 int db_writeline_file(db_line* line,db_config* dbconf, url_t* url){
-  int i;
 
   (void)url;
-  
-  for(i=0;i<dbconf->db_out_size;i++){
-    switch (dbconf->db_out_order[i]) {
-    case db_filename : {
+
+  for (ATTRIBUTE i = 0 ; i < num_attrs ; ++i) {
+    if (attributes[i].db_name && ATTR(i)&conf->db_out_attrs) {
+    switch (i) {
+    case attr_filename : {
       db_writechar(line->filename,dbconf->db_out,i);
       break;
     }
-    case db_linkname : {
+    case attr_linkname : {
       db_writechar(line->linkname,dbconf->db_out,i);
       break;
     }
-    case db_bcount : {
+    case attr_bcount : {
       db_writelonglong(line->bcount,dbconf->db_out,i);
       break;
     }
 
-    case db_mtime : {
+    case attr_mtime : {
       db_write_time_base64(line->mtime,dbconf->db_out,i);
       break;
     }
-    case db_atime : {
+    case attr_atime : {
       db_write_time_base64(line->atime,dbconf->db_out,i);
       break;
     }
-    case db_ctime : {
+    case attr_ctime : {
       db_write_time_base64(line->ctime,dbconf->db_out,i);
       break;
     }
-    case db_inode : {
+    case attr_inode : {
       db_writelong(line->inode,dbconf->db_out,i);
       break;
     }
-    case db_lnkcount : {
+    case attr_linkcount : {
       db_writelong(line->nlink,dbconf->db_out,i);
       break;
     }
-    case db_uid : {
+    case attr_uid : {
       db_writelong(line->uid,dbconf->db_out,i);
       break;
     }
-    case db_gid : {
+    case attr_gid : {
       db_writelong(line->gid,dbconf->db_out,i);
       break;
     }
-    case db_size : {
+    case attr_size : {
       db_writelonglong(line->size,dbconf->db_out,i);
       break;
     }
-    case db_md5 : {
-      db_write_byte_base64(line->md5,
-			   HASH_MD5_LEN,
-			   dbconf->db_out,i,
-			   DB_MD5,line->attr);
-	
-      break;
-    }
-    case db_sha1 : {
-      db_write_byte_base64(line->sha1,
-			   HASH_SHA1_LEN,
-			   dbconf->db_out,i,
-			   DB_SHA1,line->attr);
-
-      break;
-    }
-    case db_rmd160 : {
-      db_write_byte_base64(line->rmd160,
-			   HASH_RMD160_LEN,
-			   dbconf->db_out,i,
-			   DB_RMD160,line->attr);
-      break;
-    }
-    case db_tiger : {
-      db_write_byte_base64(line->tiger,
-			   HASH_TIGER_LEN,
-			   dbconf->db_out,i,
-			   DB_TIGER,line->attr);
-      break;
-    }
-    case db_perm : {
+    case attr_perm : {
       db_writeoct(line->perm,dbconf->db_out,i);
       break;
     }
-    case db_crc32 : {
-      db_write_byte_base64(line->crc32,
-			   HASH_CRC32_LEN,
-			   dbconf->db_out,i,
-			   DB_CRC32,line->attr);
-      break;
-    }
-    case db_crc32b : {
-      db_write_byte_base64(line->crc32b,
-			   HASH_CRC32B_LEN,
-			   dbconf->db_out,i,
-			   DB_CRC32B,line->attr);
-      break;
-    }
-    case db_haval : {
-      db_write_byte_base64(line->haval,
-			   HASH_HAVAL256_LEN,
-			   dbconf->db_out,i,
-			   DB_HAVAL,line->attr);
-      break;
-    }
-    case db_gost : {
-      db_write_byte_base64(line->gost ,
-			   HASH_GOST_LEN,
-			   dbconf->db_out,i,
-			   DB_GOST,line->attr);
-      break;
-    }
-    case db_sha256 : {
-      db_write_byte_base64(line->sha256,
-			   HASH_SHA256_LEN,
-			   dbconf->db_out,i,
-			   DB_SHA256,line->attr);
-
-      break;
-    }
-    case db_sha512 : {
-      db_write_byte_base64(line->sha512,
-			   HASH_SHA512_LEN,
-			   dbconf->db_out,i,
-			   DB_SHA512,line->attr);
-
-      break;
-    }
-    case db_whirlpool : {
-      db_write_byte_base64(line->whirlpool,
-			   HASH_WHIRLPOOL_LEN,
-			   dbconf->db_out,i,
-			   DB_WHIRLPOOL,line->attr);
-
-      break;
-    }
-    case db_attr : {
+    WRITE_HASHSUM(md5)
+    WRITE_HASHSUM(sha1)
+    WRITE_HASHSUM(rmd160)
+    WRITE_HASHSUM(tiger)
+    WRITE_HASHSUM(crc32)
+    WRITE_HASHSUM(crc32b)
+    WRITE_HASHSUM(haval)
+    WRITE_HASHSUM(gostr3411_94)
+    WRITE_HASHSUM(sha256)
+    WRITE_HASHSUM(sha512)
+    WRITE_HASHSUM(whirlpool)
+    case attr_attr : {
       db_writelonglong(line->attr, dbconf->db_out,i);
       break;
     }
 #ifdef WITH_ACL
-    case db_acl : {
+    case attr_acl : {
       db_writeacl(line->acl,dbconf->db_out,i);
       break;
     }
 #endif
-    case db_xattrs : {
+    case attr_xattrs : {
         xattr_node *xattr = NULL;
         size_t num = 0;
         
@@ -1003,34 +928,31 @@ int db_writeline_file(db_line* line,db_config* dbconf, url_t* url){
         }
       break;
     }
-    case db_selinux : {
+    case attr_selinux : {
 	db_write_byte_base64((byte*)line->cntx, 0, dbconf->db_out, i, 1, 1);
       break;
     }
 #ifdef WITH_E2FSATTRS
-    case db_e2fsattrs : {
+    case attr_e2fsattrs : {
       db_writelong(line->e2fsattrs,dbconf->db_out,i);
       break;
     }
 #endif
 #ifdef WITH_CAPABILITIES
-    case db_capabilities : {
+    case attr_capabilities : {
       db_write_byte_base64((byte*)line->capabilities, 0, dbconf->db_out, i, 1, 1);
       break;
     }
 #endif
-    case db_checkmask : {
-      db_writeoct(line->attr,dbconf->db_out,i);
-      break;
-    }
     default : {
-      error(0,"Not implemented in db_writeline_file %i\n",
-	    dbconf->db_out_order[i]);
+      error(0,"Not implemented in db_writeline_file %i\n", i);
       return RETFAIL;
     }
     
     }
     
+  }
+
   }
 
   dofprintf("\n");

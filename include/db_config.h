@@ -99,53 +99,6 @@ typedef struct xattrs_type
 
 #include "url.h"
 
-typedef enum { 
-   db_filename=0, 		/* "name",   */ 
-   db_linkname, 		/* "lname",   */
-   db_perm, 			/* "perm",    */
-   db_uid, 			/* "uid",     */
-   db_gid,			/* "gid",     */
-   db_size, 			/* "size",    */
-   db_atime, 			/* "atime",   */
-   db_ctime, 			/* "ctime",   */
-   db_mtime, 			/* "mtime",   */
-   db_inode,			/* "inode",   */
-   db_bcount, 			/* "bcount",  */
-   db_lnkcount, 		/* "lcount",  */
-   db_md5, 			/* "md5",     */
-   db_sha1, 			/* "sha1",    */
-   db_rmd160,			/* "rmd160",  */
-   db_tiger, 			/* "tiger",   */
-   db_crc32, 			/* "crc32",   */
-   db_haval,			/* "haval",   */
-   db_gost, 			/* "gost",    */
-   db_crc32b, 			/* "crc32b",  */
-   db_attr,                     /* attributes */
-   db_acl,                      /* access control list */
-   db_bsize,                    /* "bsize"    */
-   db_rdev,                     /* "rdev"     */
-   db_dev,                      /* "dev"      */
-   db_checkmask,                /* "checkmask"*/
-   db_allownewfile,		/* "allownewfile  */
-   db_allowrmfile,		/* "allowrmfile"  */
-   db_sha256, 			/* "sha256",      */
-   db_sha512, 			/* "sha512",      */
-   db_whirlpool,		/* "whirlpool",   */
-   db_selinux, 			/* "selinux",     */
-   db_xattrs, 			/* "xattrs",      */
-   db_e2fsattrs,                /* "e2fsattrs"    */
-   db_capabilities,             /* "capabilities" */
-   db_unknown } DB_FIELD; 	/* "unknown"  */
-
-/* db_unknown must be last because it is used to determine size of
-   DB_FILED */
-
-#define DB_HASHES    (DB_MD5|DB_SHA1|DB_RMD160|DB_TIGER|DB_CRC32|DB_HAVAL| \
-		      DB_GOST|DB_CRC32B|DB_SHA256|DB_SHA512|DB_WHIRLPOOL)
-
-extern const char* db_names[db_unknown+1];
-extern const int db_value[db_unknown+1];
-
 /* TIMEBUFSIZE should be exactly ceil(sizeof(time_t)*8*ln(2)/ln(10))
  * Now it is ceil(sizeof(time_t)*2.5)
  * And of course we add one for end of string char
@@ -175,20 +128,10 @@ extern const int db_value[db_unknown+1];
 
 #include "seltree.h"
 
+#include "hashsum.h"
+
 typedef struct db_line {
-  byte* md5;
-  byte* sha1;
-  byte* rmd160;
-  byte* tiger;
-
-  byte* sha256;
-  byte* sha512;
-
-  byte* crc32; /* MHASH only */
-  byte* haval;
-  byte* gost;
-  byte* crc32b;
-  byte* whirlpool;
+  byte* hashsums[num_hashes];
 
   acl_type* acl;
   /* Something here.. */
@@ -253,13 +196,12 @@ typedef struct db_config {
 #endif
 
   int db_in_size;
-  DB_FIELD* db_in_order;
+  ATTRIBUTE* db_in_order;
   
   int db_new_size;
-  DB_FIELD* db_new_order;
+  ATTRIBUTE* db_new_order;
 
-  int db_out_size;
-  DB_FIELD* db_out_order;
+  DB_ATTR_TYPE db_out_attrs;
   
   char* config_file;
   char* config_version;

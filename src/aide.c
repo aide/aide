@@ -317,9 +317,8 @@ static void setdefaults_before_config()
   conf->old_dbnewmdstr=NULL;
   conf->old_dboldmdstr=NULL;
   
-  conf->db_out_order=(DB_FIELD*)malloc(sizeof(DB_FIELD)*db_unknown);
-  conf->db_out_size=1;
-  conf->db_out_order[0]=db_filename;
+  conf->db_out_attrs = ATTR(attr_filename)|ATTR(attr_attr)|ATTR(attr_perm)|ATTR(attr_inode);
+
   conf->symlinks_found=0;
   conf->db_in_size=0;
   conf->db_in_order=NULL;
@@ -338,14 +337,7 @@ static void setdefaults_before_config()
   conf->line_db_in=NULL;
   conf->line_db_out=NULL;
 
-  conf->db_attrs = 0;
-#if defined(WITH_MHASH) || defined(WITH_GCRYPT)
-  conf->db_attrs |= DB_MD5|DB_TIGER|DB_HAVAL|DB_CRC32|DB_SHA1|DB_RMD160|DB_SHA256|DB_SHA512;
-  conf->db_attrs |= DB_GOST;
-#if defined(HAVE_MHASH_WHIRLPOOL) || defined(WITH_GCRYPT)
-  conf->db_attrs |= DB_WHIRLPOOL;
-#endif
-#endif
+  conf->db_attrs = get_hashes();
   
 #ifdef WITH_ZLIB
   conf->db_gzin=0;
@@ -373,81 +365,38 @@ static void setdefaults_before_config()
 
   conf->start_time=time(&(conf->start_time));
 
-  do_groupdef("ANF",DB_NEWFILE);
-  do_groupdef("ARF",DB_RMFILE);
-  do_groupdef("p",DB_PERM);
-  do_groupdef("i",DB_INODE);
-  do_groupdef("I",DB_CHECKINODE);
-  do_groupdef("n",DB_LNKCOUNT);
-  do_groupdef("u",DB_UID);
-  do_groupdef("g",DB_GID);
-  do_groupdef("l",DB_LINKNAME);
-  do_groupdef("s",DB_SIZE);
-  do_groupdef("S",DB_SIZEG);
-  do_groupdef("b",DB_BCOUNT);
-  do_groupdef("m",DB_MTIME);
-  do_groupdef("c",DB_CTIME);
-  do_groupdef("a",DB_ATIME);
-#if defined(WITH_MHASH) || defined(WITH_GCRYPT)
-  do_groupdef("md5",DB_MD5);
-  do_groupdef("tiger",DB_TIGER);
-  do_groupdef("haval",DB_HAVAL);
-  do_groupdef("crc32",DB_CRC32);
-  do_groupdef("sha1",DB_SHA1);
-  do_groupdef("rmd160",DB_RMD160);
-  do_groupdef("sha256",DB_SHA256);
-  do_groupdef("sha512",DB_SHA512);
-#endif
-#ifdef WITH_ACL
-  do_groupdef("acl",DB_ACL);
-#endif
-#ifdef WITH_XATTR
-  do_groupdef("xattrs",DB_XATTRS);
-#endif
-#ifdef WITH_SELINUX
-  do_groupdef("selinux",DB_SELINUX);
-#endif
-#if defined(WITH_MHASH) || defined(WITH_GCRYPT)
-  do_groupdef("gost",DB_GOST);
-  do_groupdef("whirlpool",DB_WHIRLPOOL);
-#endif
-  do_groupdef("ftype",DB_FTYPE);
-#ifdef WITH_E2FSATTRS
-  do_groupdef("e2fsattrs",DB_E2FSATTRS);
-#endif
-#ifdef WITH_CAPABILITIES
-  do_groupdef("caps",DB_CAPABILITIES);
-#endif
+  for (ATTRIBUTE i = 0 ; i < num_attrs ; ++i) {
+      if (attributes[i].config_name) {
+          do_groupdef(attributes[i].config_name, attributes[i].attr);
+      }
+  }
 
   X=0LLU;
 #ifdef WITH_ACL
-  X|=DB_ACL;
+  X|=ATTR(attr_acl);
 #endif
 #ifdef WITH_SELINUX
-  X|=DB_SELINUX;
+  X|=ATTR(attr_selinux);
 #endif
 #ifdef WITH_XATTR
-  X|=DB_XATTRS;
+  X|=ATTR(attr_xattrs);
 #endif
 #ifdef WITH_E2FSATTRS
-  X|=DB_E2FSATTRS;
+  X|=ATTR(attr_e2fsattrs);
 #endif
 #ifdef WITH_CAPABILITIES
-  X|=DB_CAPABILITIES;
+  X|=ATTR(attr_capabilities);
 #endif
 
+  DB_ATTR_TYPE common_attrs = ATTR(attr_perm)|ATTR(attr_ftype)|ATTR(attr_inode)|ATTR(attr_linkcount)|ATTR(attr_uid)|ATTR(attr_gid);
 
-  do_groupdef("R",DB_PERM|DB_FTYPE|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID|DB_SIZE|
-          DB_LINKNAME|DB_MTIME|DB_CTIME
+  do_groupdef("R",common_attrs|ATTR(attr_size)|ATTR(attr_linkname)|ATTR(attr_mtime)|ATTR(attr_ctime)
 #if defined(WITH_MHASH) || defined(WITH_GCRYPT)
-          |DB_MD5
+          |ATTR(attr_md5)
 #endif
           |X);
-
-  do_groupdef("L",DB_PERM|DB_FTYPE|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID|DB_LINKNAME|X);
-
-  do_groupdef(">",DB_PERM|DB_FTYPE|DB_INODE|DB_LNKCOUNT|DB_UID|DB_GID|DB_SIZEG|
-		  DB_LINKNAME|X);
+  do_groupdef("L",common_attrs|ATTR(attr_linkname)|X);
+  do_groupdef(">",common_attrs|ATTR(attr_sizeg)|ATTR(attr_linkname)|X);
   do_groupdef("X",X);
   do_groupdef("E",0);
 
@@ -588,9 +537,6 @@ int main(int argc,char**argv)
       if(db_init(DB_WRITE)==RETFAIL) {
 	exit(IO_ERROR);
       }
-      /* FIXME db_out_order info should be taken from tree/config */ 
-      /* update_db_out_order(-1); OOPS. It was allready done by append_rxlist
-	 :) */
       if(db_writespec(conf)==RETFAIL){
 	error(0,_("Error while writing database. Exiting..\n"));
 	exit(IO_ERROR);

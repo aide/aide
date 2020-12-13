@@ -66,7 +66,6 @@ void do_rootprefix(char*);
 
 void do_report_ignore_e2fsattrs(char*);
 
-int check_db_order(DB_FIELD*,int, DB_FIELD);
 
 void* get_db_key(void);
 void* get_conf_key(void);

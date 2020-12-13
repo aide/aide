@@ -77,7 +77,7 @@ typedef struct {
     char summary_char;
 } attributes_t;
 
-#define MAX_WIDTH_DETAILS_STRING 9
+#define MAX_WIDTH_DETAILS_STRING 10
 
 extern attributes_t attributes[];
 extern DB_ATTR_TYPE num_attrs;

@@ -656,7 +656,7 @@ static void print_attribute(REPORT_LEVEL report_level, db_line* oline, db_line* 
         DB_ATTR_TYPE report_attrs, DB_ATTR_TYPE added_attrs, DB_ATTR_TYPE removed_attrs) {
     char **ovalue, **nvalue;
     int onumber, nnumber, olen, nlen, i, k, c;
-    int p = (width_details-(width_details%2?13:14))/2;
+    int p = (width_details-(4 + MAX_WIDTH_DETAILS_STRING))/2;
 
         if ( (attr&report_attrs && r->level >= report_level)
           || (report_attrs && attr&(added_attrs|removed_attrs) && r->level >= REPORT_LEVEL_ADDED_REMOVED_ATTRIBUTES) ) {
@@ -672,11 +672,11 @@ static void print_attribute(REPORT_LEVEL report_level, db_line* oline, db_line* 
                 while (olen-p*k >= 0 || nlen-p*k >= 0) {
                     c = k*(p-1);
                     if (!onumber) {
-                        report_printf(r," %s%-*s%c %-*c  %.*s\n", width_details%2?"":" ", MAX_WIDTH_DETAILS_STRING, (i+k)?"":name, (i+k)?' ':':', p, ' ', p-1, nlen-c>0?&nvalue[i][c]:"");
+                        report_printf(r," %-*s%c %-*c  %.*s\n", MAX_WIDTH_DETAILS_STRING, (i+k)?"":name, (i+k)?' ':':', p, ' ', p-1, nlen-c>0?&nvalue[i][c]:"");
                     } else if (!nnumber) {
-                        report_printf(r," %s%-*s%c %.*s\n", width_details%2?"":" ", MAX_WIDTH_DETAILS_STRING, (i+k)?"":name, (i+k)?' ':':', p-1, olen-c>0?&ovalue[i][c]:"");
+                        report_printf(r," %-*s%c %.*s\n", MAX_WIDTH_DETAILS_STRING, (i+k)?"":name, (i+k)?' ':':', p-1, olen-c>0?&ovalue[i][c]:"");
                     } else {
-                        report_printf(r," %s%-*s%c %-*.*s| %.*s\n", width_details%2?"":" ", MAX_WIDTH_DETAILS_STRING, (i+k)?"":name, (i+k)?' ':':', p, p-1, olen-c>0?&ovalue[i][c]:"", p-1, nlen-c>0?&nvalue[i][c]:"");
+                        report_printf(r," %-*s%c %-*.*s| %.*s\n", MAX_WIDTH_DETAILS_STRING, (i+k)?"":name, (i+k)?' ':':', p, p-1, olen-c>0?&ovalue[i][c]:"", p-1, nlen-c>0?&nvalue[i][c]:"");
                     }
                     k++;
                 }

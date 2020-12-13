@@ -80,8 +80,7 @@ man_MANS = doc/aide.1 doc/aide.conf.5
 
 EXTRA_DIST = $(man_MANS) Todo doc/manual.html \
 	contrib/bzip2.sh contrib/gpg2_check.sh contrib/gpg2_update.sh \
-	contrib/gpg_check.sh contrib/gpg_update.sh contrib/sshaide.sh \
-	contrib/aide-attributes.sh
+	contrib/gpg_check.sh contrib/gpg_update.sh contrib/sshaide.sh
 
 src/conf_yacc.c: src/conf_yacc.y
 	$(YACC) $(AM_YFLAGS) -o $@ -p conf $<

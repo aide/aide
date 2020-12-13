@@ -63,7 +63,8 @@ attributes_t attributes[] = {
     { ATTR(attr_ftype),          "ftype",        "File type",   NULL,           '!'   },
     { ATTR(attr_e2fsattrs),      "e2fsattrs",    "E2FSAttrs",   "e2fsattrs",    'E'   },
     { ATTR(attr_capabilities),   "caps",         "Caps",        "capabilities", 'C'   },
-
+    { ATTR(attr_stribog256),     "stribog256",   "STRIBOG256" ,  "stribog256",  '\0'  },
+    { ATTR(attr_stribog512),     "stribog512",   "STRIBOG512" ,  "stribog512",  '\0'  },
 };
 
 DB_ATTR_TYPE num_attrs = sizeof(attributes)/sizeof(attributes_t);

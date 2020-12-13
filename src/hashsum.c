@@ -40,6 +40,8 @@ hashsum_t hashsums[] = {
     { attr_haval,           32 },
     { attr_whirlpool,       64 },
     { attr_gostr3411_94,    32 },
+    { attr_stribog256,      32 },
+    { attr_stribog512,      64 },
 };
 
 #ifdef WITH_MHASH
@@ -59,6 +61,8 @@ int algorithms[] = { /* order must match hashsums array */
   -1,
 #endif
   MHASH_GOST,
+  -1, /* stribog256 not available */
+  -1, /* stribog512 not available */
 };
 #endif
 
@@ -75,6 +79,8 @@ int algorithms[] = { /* order must match hashsums array */
   -1, /* GCRY_MD_HAVAL is not (yet) implemented */
   GCRY_MD_WHIRLPOOL,
   GCRY_MD_GOSTR3411_94,
+  GCRY_MD_STRIBOG256,
+  GCRY_MD_STRIBOG512,
 };
 #endif
 

@@ -400,6 +400,8 @@ db_line* db_char2line(char** ss,int db){
     CHAR2HASH(haval)
     CHAR2HASH(whirlpool)
     CHAR2HASH(gostr3411_94)
+    CHAR2HASH(stribog256)
+    CHAR2HASH(stribog512)
 #ifdef WITH_POSIX_ACL
     case attr_acl : {
       char *tval = NULL;

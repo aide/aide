@@ -66,6 +66,8 @@ typedef enum {
    attr_ftype,
    attr_e2fsattrs,
    attr_capabilities,
+   attr_stribog256,
+   attr_stribog512,
    attr_unknown
 } ATTRIBUTE;
 

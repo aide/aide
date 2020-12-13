@@ -96,6 +96,8 @@ report_url=stdout
 #The following are available if you have mhash support enabled:
 #gost:		gost checksum
 #whirlpool:	whirlpool checksum
+#stribog256:	GOST R 34.11-2012, 256 bit checksum (gcrypt only)
+#stribog512:	GOST R 34.11-2012, 512 bit checksum (gcrypt only)
 #The following are available and added to the default groups R, L and >
 #only when explicitly enabled using configure:
 #acl:		access control list

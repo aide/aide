@@ -487,6 +487,8 @@ Input is read from filedescriptor \fBnumber\fR or output is written to
 .IP "crc32:	crc32 checksum"
 .IP "gost: GOST R 34.11-94 checksum"
 .IP "whirlpool: whirlpool checksum"
+.IP "stribog256: GOST R 34.11-2012, 256 bit checksum (gcrypt library only)"
+.IP "stribog512: GOST R 34.11-2012, 512 bit checksum (gcrypt library only)"
 .IP "R:	p+ftype+i+l+n+u+g+s+m+c+md5+X"
 .IP "L:	p+ftype+i+l+n+u+g+X"
 .IP "E:	Empty group"

@@ -40,6 +40,8 @@ typedef enum {
     hash_haval,
     hash_whirlpool,
     hash_gostr3411_94,
+    hash_stribog256,
+    hash_stribog512,
     num_hashes,
 } HASHSUM;
 

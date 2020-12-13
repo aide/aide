@@ -890,6 +890,8 @@ int db_writeline_file(db_line* line,db_config* dbconf, url_t* url){
     WRITE_HASHSUM(crc32b)
     WRITE_HASHSUM(haval)
     WRITE_HASHSUM(gostr3411_94)
+    WRITE_HASHSUM(stribog256)
+    WRITE_HASHSUM(stribog512)
     WRITE_HASHSUM(sha256)
     WRITE_HASHSUM(sha512)
     WRITE_HASHSUM(whirlpool)

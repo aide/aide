@@ -520,7 +520,7 @@ but are ignored in the report.
 This adds all files on your machine to the database. This one line
 is a fully qualified configuration file.
 .IP
-.B "!/dev"
+.B "!/dev$"
 .LP
 This ignores the /dev directory structure.
 .IP

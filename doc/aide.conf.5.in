@@ -300,7 +300,7 @@ Negative selection line:
 .fi
 
 Files and directories matching the regular expression are ignored and not added
-to the database.
+to the database. The children of matching directories are also ignored.
 
 .RE
 

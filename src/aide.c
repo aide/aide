@@ -301,22 +301,6 @@ static void setdefaults_before_config()
 #ifdef WITH_ACL
   conf->no_acl_on_symlinks=0; /* zero means don't do ACLs on symlinks */
 #endif
-  
-#ifdef WITH_MHASH
-  conf->do_configmd=0;
-  conf->confmd=NULL;
-  conf->confhmactype=CONFIGHMACTYPE;
-  conf->old_confmdstr=NULL;
-  conf->dbhmactype=DBHMACTYPE;
-  conf->dbnewmd=NULL;
-  conf->dboldmd=NULL;
-#endif
-  
-  conf->do_dbnewmd=0;
-  conf->do_dboldmd=0;
-  conf->old_dbnewmdstr=NULL;
-  conf->old_dboldmdstr=NULL;
-  
   conf->db_out_attrs = ATTR(attr_filename)|ATTR(attr_attr)|ATTR(attr_perm)|ATTR(attr_inode);
 
   conf->symlinks_found=0;
@@ -500,38 +484,6 @@ int main(int argc,char**argv)
           exit(INVALID_ARGUMENT_ERROR);
       }
   }
-#ifdef WITH_MHASH
-  byte* dig=NULL;
-  char* digstr=NULL;
-  if(conf->config_check&&FORCECONFIGMD){
-    error(0,"Can't give config checksum when compiled with --enable-forced_configmd\n");
-    exit(INVALID_ARGUMENT_ERROR);
-  }
-  
-  if((conf->do_configmd||conf->config_check)&& conf->confmd!=0){
-    /* The patch automatically adds a newline so will also have to add it. */
-    if(newlinelastinconfig==0){
-      mhash(conf->confmd,"\n",1);
-    };
-    mhash(conf->confmd, NULL,0);
-    dig=(byte*)malloc(sizeof(byte)*mhash_get_block_size(conf->confhmactype));
-    mhash_deinit(conf->confmd,(void*)dig);
-    digstr=encode_base64(dig,mhash_get_block_size(conf->confhmactype));
-
-    if(!conf->config_check||FORCECONFIGMD){
-      if(strncmp(digstr,conf->old_confmdstr,strlen(digstr))!=0){
-	/* FIXME Don't use error and add configurability */
-	error(0,_("Config checksum mismatch\n"));
-	exit(INVALID_ARGUMENT_ERROR);
-      }
-    }
-  } else {
-    if(FORCECONFIGMD){
-      error(0,_("Config checksum not found. Exiting..\n"));
-      exit(INVALID_ARGUMENT_ERROR);
-    }
-  }
-#endif
   if (!conf->config_check) {
     if(conf->action&DO_INIT){
       if(db_init(DB_WRITE)==RETFAIL) {
@@ -560,24 +512,7 @@ int main(int argc,char**argv)
     
     exit(gen_report(conf->tree));
     
-  }else {
-#ifdef WITH_MHASH
-    if(conf->confmd){
-      error(0,"Config checked. Use the following to patch your config file.\n");
-      error(0,"0a1\n");
-      if(newlinelastinconfig==1){
-	error(0,"> @@begin_config %s\n%lia%li\n> @@end_config\n",digstr,conf_lineno-1,conf_lineno+1);
-      }else {
-	error(0,"> @@begin_config %s\n%lia%li\n> @@end_config\n",digstr,conf_lineno,conf_lineno+2);
-      }
-      free(dig);
-      free(digstr);
-    }
-#endif
   }
   return RETOK;
 }
-const char* aide_key_3=CONFHMACKEY_03;
-const char* db_key_3=DBHMACKEY_03;
-
 // vi: ts=8 sw=8

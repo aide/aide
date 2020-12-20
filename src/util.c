@@ -517,6 +517,3 @@ int syslog_facility_lookup(char *s)
 	error(0,"Syslog facility \"%s\" is unknown, using default\n",s);
 	return(AIDE_SYSLOG_FACILITY);
 }
-
-const char* aide_key_2=CONFHMACKEY_02;
-const char* db_key_2=DBHMACKEY_02;

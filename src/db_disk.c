@@ -413,6 +413,3 @@ int db_disk_init ()
   backup/restore software. Hence the functions db_writespec_disk,
   db_writeline_disk and db_close_disk aren't declared.
  */
-
-const char *aide_key_6 = CONFHMACKEY_06;
-const char *db_key_6 = DBHMACKEY_06;

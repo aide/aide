@@ -1045,7 +1045,4 @@ int gen_report(seltree* node) {
     return conf->action&(DO_COMPARE|DO_DIFF) ? (added_entries_reported)*1+(removed_entries_reported!=0)*2+(changed_entries_reported!=0)*4 : 0;
 }
 
-const char* aide_key_9=CONFHMACKEY_09;
-const char* db_key_9=DBHMACKEY_09;
-
 // vi: ts=8 sw=8

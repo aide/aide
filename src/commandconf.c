@@ -168,76 +168,20 @@ int conf_input_wrapper(char* buf, int max_size, FILE* in)
   int retval=0;
 
   /* FIXME Add support for gzipped config. :) */
-#ifdef WITH_MHASH
-  int c=0;
-  /* Read a character at a time until we are doing md */
-  if(conf->do_configmd){
-    retval=fread(buf,1,max_size,in);
-  }else {
-    c=fgetc(in);
-    retval= (c==EOF) ? 0 : (buf[0] = c,1);
-  }
-#else
   retval=fread(buf,1,max_size,in);
-#endif 
 
-#ifdef WITH_MHASH    
-  char* tmp=NULL;
-  void* key=NULL;
-  int keylen=0;
-  if(conf->do_configmd||conf->config_check){
-    if(((conf->do_configmd==1)&&conf->config_check)||!conf->confmd){
-      if(conf->do_configmd==1){
-	conf->do_configmd+=1;
-      }
-      if((key=get_conf_key())!=NULL){
-	keylen=get_conf_key_len();
-	
-	if( (conf->confmd=
-	     mhash_hmac_init(conf->confhmactype,
-			     key,
-			     keylen,
-			     mhash_get_hash_pblock(conf->confhmactype)))==
-	    MHASH_FAILED){
-	  error(0, "mhash_hmac_init() failed for %i for config check. Aborting\n",
-		conf->confhmactype);
-	  exit(EXIT_FAILURE);
-	}
-      } else {
-	conf->do_configmd=0;
-	return retval;
-      }
-    }
-    /* FIXME This does not handle the case that @@end_config is on 
-       buffer boundary. */
-    if((tmp=strnstr(buf,"@@end_config",retval))!=NULL){
-      /* We have end of config don't feed the last line to mhash */
-      mhash(conf->confmd,(void*)buf,tmp-buf);
-    } else {
-      mhash(conf->confmd,(void*)buf,retval);
-    }
-  }
-#endif
   return retval;
 }
 
 int db_input_wrapper(char* buf, int max_size, int db)
 {
   int retval=0;
-  int c=0;
-  int err=0;
-  int* domd=NULL;
 #ifdef WITH_CURL
   url_t* db_url=NULL;
 #endif
-#ifdef WITH_MHASH
-  char* tmp=NULL;
-  MHASH* md=NULL;
-  void* key=NULL;
-  int keylen;
-#endif
   FILE* db_filep=NULL;
 #ifdef WITH_ZLIB
+  int c=0;
   gzFile* db_gzp=NULL;
 #endif
   struct md_container *mdc;
@@ -246,14 +190,7 @@ int db_input_wrapper(char* buf, int max_size, int db)
 #ifdef WITH_CURL
     db_url=conf->db_in_url;
 #endif
-    
-    domd=&(conf->do_dboldmd);
-#ifdef WITH_MHASH
-    md=&(conf->dboldmd);
-#endif
-    
     db_filep=conf->db_in;
-    
 #ifdef WITH_ZLIB
     db_gzp=&(conf->db_gzin);
 #endif
@@ -263,14 +200,7 @@ int db_input_wrapper(char* buf, int max_size, int db)
 #ifdef WITH_CURL
     db_url=conf->db_new_url;
 #endif
-    
-    domd=&(conf->do_dbnewmd);
-#ifdef WITH_MHASH
-    md=&(conf->dbnewmd);
-#endif
-    
     db_filep=conf->db_new;
-    
 #ifdef WITH_ZLIB
     db_gzp=&(conf->db_gznew);
 #endif
@@ -292,37 +222,12 @@ int db_input_wrapper(char* buf, int max_size, int db)
   default:
 #endif /* WITH CURL */
 
-
-  /* Read a character at a time until we are doing md */
 #ifdef WITH_ZLIB
-  if((*db_gzp==NULL)&&(*domd)){
-    retval=fread(buf,1,max_size,db_filep);
-  }
-  if((*db_gzp!=NULL)&&(*domd)){
-    if(gzeof(*db_gzp)){
-      retval=0;
-      buf[0]='\0';
-    }else {
-      if((retval=gzread(*db_gzp,buf,max_size))<0){
-	error(0,_("gzread() failed: gzerr=%s!\n"),gzerror(*db_gzp,&err));
-	retval=0;
-	buf[0]='\0';
-      } else {
-	/* gzread returns 0 even if uncompressed bytes were read*/
-	error(240,"nread=%d,strlen(buf)=%lu,errno=%s,gzerr=%s\n",
-              retval,(unsigned long)strnlen((char*)buf, max_size),
-              strerror(errno),gzerror(*db_gzp,&err));
-	if(retval==0){
-	  retval=strnlen((char*)buf, max_size);
-	}
-      }
-    }
-  }
-  if((*db_gzp!=NULL)&&!(*domd)){
+  if (*db_gzp!=NULL) {
     c=gzgetc(*db_gzp);
     retval= (c==EOF) ? 0 : (buf[0] = c,1);
   }
-  if((*db_gzp==NULL)&&!(*domd)){
+  if (*db_gzp==NULL) {
     c=fgetc(db_filep);
     if(c==(unsigned char)'\037'){
       c=fgetc(db_filep);
@@ -347,56 +252,13 @@ int db_input_wrapper(char* buf, int max_size, int db)
   }
 
 #else /* WITH_ZLIB */
-#ifdef WITH_MHASH
-  if(*domd){
-    retval=fread(buf,1,max_size,db_filep);
-  }else {
-    c=fgetc(db_filep);
-    retval= (c==EOF) ? 0 : (buf[0] = c,1);
-  }
-#else /* WITH_MHASH */
   retval=fread(buf,1,max_size,db_filep);
-#endif /* WITH_MHASH */ 
 #endif /* WITH_ZLIB */
 
   if ((mdc = (db == DB_OLD ? conf->mdc_in : conf->mdc_out))) {
       update_md(mdc, buf, retval);
   }
 
-#ifdef WITH_MHASH    
-  if(*domd){
-    if(!*md){
-      if((key=get_db_key())!=NULL){
-	keylen=get_db_key_len();
-	
-	if( (*md=
-	     mhash_hmac_init(conf->dbhmactype,
-			     key,
-			     keylen,
-			     mhash_get_hash_pblock(conf->dbhmactype)))==
-	    MHASH_FAILED){
-	  error(0, "mhash_hmac_init() failed for db check. Aborting\n");
-	  exit(EXIT_FAILURE);
-	}
-      } else {
-	*domd=0;
-      }
-    }
-    /* FIXME This does not handle the case that @@end_config is on 
-       buffer boundary. */
-    if (*domd!=0) {
-      if((tmp=strnstr(buf,"@@end_db",retval))!=NULL){
-	/* We have end of db don't feed the last line to mhash */
-	mhash(*md,(void*)buf,tmp-buf);
-	/* We don't want to come here again after the *md has been deinited 
-	   by db_readline_file() */
-	*domd=0;
-      } else {
-	mhash(*md,(void*)buf,retval);
-      }
-    }
-  }
-#endif
 
 #ifdef WITH_CURL
   }
@@ -827,130 +689,3 @@ void do_report_ignore_e2fsattrs(char* val) {
     }
 }
 #endif
-
-const char* aide_key_7=CONFHMACKEY_07;
-const char* db_key_7=DBHMACKEY_07;
-
-void* get_conf_key(void) {
-  void* r;
-  char* m=(char*)malloc(strlen(aide_key_1)+
-			strlen(aide_key_2)+
-			strlen(aide_key_3)+
-			strlen(aide_key_4)+
-			strlen(aide_key_5)+
-			strlen(aide_key_6)+
-			strlen(aide_key_7)+
-			strlen(aide_key_8)+
-			strlen(aide_key_9)+
-			strlen(aide_key_0)+1);
-  m[0]=0;
-  strcat(m,aide_key_0);
-  strcat(m,aide_key_1);
-  strcat(m,aide_key_2);
-  strcat(m,aide_key_3);
-  strcat(m,aide_key_4);
-  strcat(m,aide_key_5);
-  strcat(m,aide_key_6);
-  strcat(m,aide_key_7);
-  strcat(m,aide_key_8);
-  strcat(m,aide_key_9);
-  
-  r=decode_base64(m,strlen(m),NULL);
-
-  memset(m,0,strlen(m));
-  free(m);
-  return r;
-}
-
-size_t get_conf_key_len(void) {
-  size_t len=0;
-  char* m=(char*)malloc(strlen(aide_key_1)+
-			strlen(aide_key_2)+
-			strlen(aide_key_3)+
-			strlen(aide_key_4)+
-			strlen(aide_key_5)+
-			strlen(aide_key_6)+
-			strlen(aide_key_7)+
-			strlen(aide_key_8)+
-			strlen(aide_key_9)+
-			strlen(aide_key_0)+1);
-  m[0]=0;
-  strcat(m,aide_key_0);
-  strcat(m,aide_key_1);
-  strcat(m,aide_key_2);
-  strcat(m,aide_key_3);
-  strcat(m,aide_key_4);
-  strcat(m,aide_key_5);
-  strcat(m,aide_key_6);
-  strcat(m,aide_key_7);
-  strcat(m,aide_key_8);
-  strcat(m,aide_key_9);
-  
-  len=length_base64(m,strlen(m));
-
-  memset(m,0,strlen(m));
-  free(m);
-  return len;
-}
-
-void* get_db_key(void) {
-  void* r;
-  char* m=(char*)malloc(strlen(db_key_1)+
-			strlen(db_key_2)+
-			strlen(db_key_3)+
-			strlen(db_key_4)+
-			strlen(db_key_5)+
-			strlen(db_key_6)+
-			strlen(db_key_7)+
-			strlen(db_key_8)+
-			strlen(db_key_9)+
-			strlen(db_key_0)+1);
-  m[0]=0;
-  strcat(m,db_key_0);
-  strcat(m,db_key_1);
-  strcat(m,db_key_2);
-  strcat(m,db_key_3);
-  strcat(m,db_key_4);
-  strcat(m,db_key_5);
-  strcat(m,db_key_6);
-  strcat(m,db_key_7);
-  strcat(m,db_key_8);
-  strcat(m,db_key_9);
-  
-  r=decode_base64(m,strlen(m),NULL);
-  
-  memset(m,0,strlen(m));
-  free(m);
-  return r;
-}
-
-size_t get_db_key_len(void) {
-  size_t len=0;
-  char* m=(char*)malloc(strlen(db_key_1)+
-			strlen(db_key_2)+
-			strlen(db_key_3)+
-			strlen(db_key_4)+
-			strlen(db_key_5)+
-			strlen(db_key_6)+
-			strlen(db_key_7)+
-			strlen(db_key_8)+
-			strlen(db_key_9)+
-			strlen(db_key_0)+1);
-  m[0]=0;
-  strcat(m,db_key_0);
-  strcat(m,db_key_1);
-  strcat(m,db_key_2);
-  strcat(m,db_key_3);
-  strcat(m,db_key_4);
-  strcat(m,db_key_5);
-  strcat(m,db_key_6);
-  strcat(m,db_key_7);
-  strcat(m,db_key_8);
-  strcat(m,db_key_9);
-  
-  len=length_base64(m,strlen(m));
-  
-  memset(m,0,strlen(m));
-  free(m);
-  return len;
-}

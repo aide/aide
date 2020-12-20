@@ -241,16 +241,6 @@ int var_in_conflval=0;
   return (TDBSPEC);
 }
 
-^[\ \t]*"\@\@begin_config" {
-  error(230,"%li:@@begin_config",conf_lineno);
-  BEGIN CONFVALHUNT;
-  return (TBEGIN_CONFIG);
-}
-
-^[\ \t]*"\@\@end_config" {
-  return (TEND_CONFIG);
-}
-
 ^[\ \t]*"\@\@include" {
   BEGIN INCLUDE;
 }
@@ -512,8 +502,6 @@ int firstnotempty(char* s){
 
 }
 
-const char* aide_key_4=CONFHMACKEY_04;
-const char* db_key_4=DBHMACKEY_04;
 
 void includehandler(void) { 
   /* got the include file name */

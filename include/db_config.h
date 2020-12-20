@@ -206,22 +206,6 @@ typedef struct db_config {
   char* config_file;
   char* config_version;
 
- 
-  int do_dbnewmd;
-  int do_dboldmd; 
-#ifdef WITH_MHASH
-  int do_configmd;
-  MHASH confmd;
-  hashid confhmactype;
-  char* old_confmdstr;
-
-  hashid dbhmactype;
-  MHASH dbnewmd;
-  MHASH dboldmd;
-#endif
-  char* old_dbnewmdstr;
-  char* old_dboldmdstr;
-
   int verbose_level;
   int database_add_metadata;
   int report_detailed_init;

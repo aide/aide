@@ -67,34 +67,4 @@ void do_rootprefix(char*);
 void do_report_ignore_e2fsattrs(char*);
 
 
-void* get_db_key(void);
-void* get_conf_key(void);
-size_t get_db_key_len(void);
-size_t get_conf_key_len(void);
-
-
-
-extern const char* aide_key_1;
-extern const char* aide_key_2;
-extern const char* aide_key_3;
-extern const char* aide_key_4;
-extern const char* aide_key_5;
-extern const char* aide_key_6;
-extern const char* aide_key_7;
-extern const char* aide_key_8;
-extern const char* aide_key_9;
-extern const char* aide_key_0;
-
-extern const char* db_key_1;
-extern const char* db_key_2;
-extern const char* db_key_3;
-extern const char* db_key_4;
-extern const char* db_key_5;
-extern const char* db_key_6;
-extern const char* db_key_7;
-extern const char* db_key_8;
-extern const char* db_key_9;
-extern const char* db_key_0;
-
-
 #endif

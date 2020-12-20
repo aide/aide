@@ -81,8 +81,6 @@ int db_at_hand=0;
 %option noinput
 %option nounput
 
-%Start MDVALHUNT
-
 %%
 
 ^"\037\213" {
@@ -97,18 +95,8 @@ int db_at_hand=0;
   return (TBEGIN_DB);
 }
 
-^"@@end_db " {
-  BEGIN MDVALHUNT;
-  return (TEND_DB);
-}
-
-<MDVALHUNT>({C})+ {
-  BEGIN 0;
-  return (TSTRING);
-}
-
 ^"@@end_db" {
-  return (TEND_DBNOMD);
+  return (TEND_DB);
 }
 
 "@@"({L}+) {

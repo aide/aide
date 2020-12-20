@@ -70,11 +70,8 @@ extern long conf_lineno;
 %token TELSE
 %token TENDIF
 %token TINCLUDE
-%token TBEGIN_CONFIG
-%token TEND_CONFIG
 %token TBEGIN_DB
 %token TEND_DB
-%token TEND_DBNOMD
 %token TID
 %token <s> TSTRING
 %token '='
@@ -143,7 +140,7 @@ line : rule | definestmt | undefstmt
        | groupdef | db_in | db_out | db_new | db_attrs | verbose | report_level | report_detailed_init | config_version
        | database_add_metadata | report | gzipdbout | root_prefix | report_base16 | report_quiet
        | report_attrs | report_ignore_e2fsattrs | warn_dead_symlinks | grouped
-       | summarize_changes | acl_no_symlink_follow | beginconfigstmt | endconfigstmt
+       | summarize_changes | acl_no_symlink_follow
        | TEOF {
             newlinelastinconfig=1;
 	    YYACCEPT;
@@ -257,17 +254,6 @@ db_attrs : TDATABASE_ATTRS expr {
   conf->db_attrs=$2;
 } ;
 
-beginconfigstmt : TBEGIN_CONFIG TSTRING {
-#ifdef WITH_MHASH
-  conf->do_configmd=1;
-  conf->old_confmdstr=strdup($2);
-#endif
-} ;
-
-endconfigstmt : TEND_CONFIG {
-  YYACCEPT;
-} ;
-
 acl_no_symlink_follow : TACLNOSYMLINKFOLLOW TTRUE { 
 #ifdef WITH_ACL
   conf->no_acl_on_symlinks=1;
@@ -379,7 +365,3 @@ void conferror(const char *msg){
   error(0,"%li:%s:%s\n",conf_lineno-1,msg,conftext);
 
 }
-
-const char* aide_key_1=CONFHMACKEY_01;
-const char* db_key_1=DBHMACKEY_01;
-

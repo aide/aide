@@ -191,6 +191,3 @@ void* be_init(int inout,url_t* u,int iszipped)
   return NULL;
 
 }
-
-const char* aide_key_8=CONFHMACKEY_08;
-const char* db_key_8=DBHMACKEY_08;

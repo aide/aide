@@ -146,11 +146,6 @@ int dofprintf( const char* s,...)
       update_md(conf->mdc_out,temp ,retval);
   }
 
-#ifdef WITH_MHASH
-  if(conf->do_dbnewmd)
-    mhash(conf->dbnewmd,(void*)temp,retval);
-#endif
-
 #ifdef WITH_ZLIB
   if(conf->gzip_dbout){
     retval=gzwrite(conf->db_gzout,temp,retval);
@@ -265,11 +260,6 @@ char** db_readline_file(int db){
   int token=0;
   int gotbegin_db=0;
   int gotend_db=0;
-  int* domd=NULL;
-#ifdef WITH_MHASH
-  MHASH* md=NULL;
-  char** oldmdstr=NULL;
-#endif
   int* db_osize=0;
   ATTRIBUTE** db_order=NULL;
   FILE* db_filep=NULL;
@@ -277,12 +267,6 @@ char** db_readline_file(int db){
 
   switch (db) {
   case DB_OLD: {
-#ifdef WITH_MHASH
-    md=&(conf->dboldmd);
-    oldmdstr=&(conf->old_dboldmdstr);
-#endif
-    domd=&(conf->do_dboldmd);
-    
     db_osize=&(conf->db_in_size);
     db_order=&(conf->db_in_order);
     db_filep=conf->db_in;
@@ -291,12 +275,6 @@ char** db_readline_file(int db){
     break;
   }
   case DB_NEW: {
-#ifdef WITH_MHASH
-    md=&(conf->dbnewmd);
-    oldmdstr=&(conf->old_dbnewmdstr);
-#endif
-    domd=&(conf->do_dbnewmd);
-    
     db_osize=&(conf->db_new_size);
     db_order=&(conf->db_new_order);
     db_filep=conf->db_new;
@@ -323,7 +301,6 @@ char** db_readline_file(int db){
       }
       case TNEWLINE: {
 	if(gotbegin_db){
-	  *domd=1;
 	  token=db_scan();
 	  continue;
 	}else {
@@ -343,12 +320,6 @@ char** db_readline_file(int db){
       }
       }
     }
-
-    if(FORCEDBMD&&!gotbegin_db){
-      error(0,"Database %i does not have checksum!\n",db);
-      return NULL;
-    }
-
     if (token!=TDBSPEC) {
       /*
        * error.. must be a @@dbspec line
@@ -405,8 +376,8 @@ char** db_readline_file(int db){
   s=(char**)malloc(sizeof(char*)*num_attrs);
 
   /* We NEED this to avoid Bus errors on Suns */
-  for(ATTRIBUTE a=0; a<num_attrs; a++){
-    s[a]=NULL;
+  for(ATTRIBUTE j=0; j<num_attrs; j++){
+    s[j]=NULL;
   }
   
   for(i=0;i<*db_osize;i++){
@@ -461,49 +432,6 @@ char** db_readline_file(int db){
 
     case TEND_DB : {
       gotend_db=1;
-      token=db_scan();
-      if(token!=TSTRING){
-	error(0,_("Corrupt db. Checksum garbled\n"));
-	abort();
-      } else { /* FIXME: this probably isn't right */
-#ifdef WITH_MHASH
-	if(*md){
-	  byte* dig=NULL;
-	  char* digstr=NULL;
-	  
-	  *oldmdstr=strdup(dbtext);
-	  
-	  mhash(*md,NULL,0);
-	  dig=(byte*)
-	    malloc(sizeof(byte)*mhash_get_block_size(conf->dbhmactype));
-	  mhash_deinit(*md,(void*)dig);
-	  digstr=encode_base64(dig,mhash_get_block_size(conf->dbhmactype));
-	  if(strncmp(digstr,*oldmdstr,strlen(digstr))!=0){
-	    error(0,_("Db checksum mismatch for db:%i\n"),db);
-	    abort();
-	  }
-	}
-        else
-        {
-	  error(0,"@@end_db found without @@begin_db in db:%i\n",db);
-	  abort();
-	}
-#endif
-      }
-      token=db_scan();
-      if(token!=TNEWLINE){
-	error(0,_("Corrupt db. Checksum garbled\n"));
-	abort();
-      }	
-      break;
-    }
-
-    case TEND_DBNOMD : {
-      gotend_db=1;
-      if(FORCEDBMD){
-        error(0,"Database %i does not have checksum!\n",db);
-	abort();
-      }
       break;
     }
 
@@ -718,27 +646,6 @@ int db_writespec_file(db_config* dbconf)
   if(retval==0){
     return RETFAIL;
   }
-
-#ifdef WITH_MHASH
-  void*key=NULL;
-  int keylen=0;
-  /* From hereon everything must MD'd before write to db */
-  if((key=get_db_key())!=NULL){
-    keylen=get_db_key_len();
-    dbconf->do_dbnewmd=1;
-    if( (dbconf->dbnewmd=
-	 mhash_hmac_init(dbconf->dbhmactype,
-			 key,
-			 keylen,
-			 mhash_get_hash_pblock(dbconf->dbhmactype)))==
-	MHASH_FAILED){
-      error(0, "mhash_hmac_init() failed for db write. Aborting\n");
-      abort();
-    }
-  }
-  
-  
-#endif
 
   if(dbconf->database_add_metadata) {
       retval=dofprintf(
@@ -966,31 +873,13 @@ int db_writeline_file(db_line* line,db_config* dbconf, url_t* url){
 
 int db_close_file(db_config* dbconf){
   
-#ifdef WITH_MHASH
-  byte* dig=NULL;
-  char* digstr=NULL;
-
   if(dbconf->db_out
 #ifdef WITH_ZLIB
      || dbconf->db_gzout
 #endif
      ){
-
-    /* Let's write @@end_db <checksum> */
-    if (dbconf->dbnewmd!=NULL) {
-      mhash(dbconf->dbnewmd, NULL ,0);
-      dig=(byte*)malloc(sizeof(byte)*mhash_get_block_size(dbconf->dbhmactype));
-      mhash_deinit(dbconf->dbnewmd,(void*)dig);
-      digstr=encode_base64(dig,mhash_get_block_size(dbconf->dbhmactype));
-      dbconf->do_dbnewmd=0;
-      dofprintf("@@end_db %s\n",digstr);
-      free(dig);
-      free(digstr);
-    } else {
       dofprintf("@@end_db\n");
-    }
   }
-#endif
 
 #ifndef WITH_ZLIB
   if(fclose(dbconf->db_out)){

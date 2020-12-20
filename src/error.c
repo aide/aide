@@ -50,6 +50,3 @@ void error(int errorlevel,char* error_msg,...)
 
   return;
 }
-
-const char* aide_key_0=CONFHMACKEY_00;
-const char* db_key_0=DBHMACKEY_00;

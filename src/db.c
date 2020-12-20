@@ -295,7 +295,6 @@ case attr_ ##hash : { \
 
 db_line* db_char2line(char** ss,int db){
 
-  int i;
   db_line* line=(db_line*)malloc(sizeof(db_line)*1);
   int* db_osize=0;
   ATTRIBUTE** db_order=NULL;
@@ -339,7 +338,7 @@ db_line* db_char2line(char** ss,int db){
   
   line->attr=conf->attr; /* attributes from @@dbspec */
 
-  for(i=0;i<*db_osize;i++){
+  for(int i=0;i<*db_osize;i++){
     switch ((*db_order)[i]) {
     case attr_filename : {
       if(ss[(*db_order)[i]]!=NULL){
@@ -681,5 +680,3 @@ void free_db_line(db_line* dl)
   checked_free(dl->xattrs);
   checked_free(dl->cntx);
 }
-const char* aide_key_5=CONFHMACKEY_05;
-const char* db_key_5=DBHMACKEY_05;

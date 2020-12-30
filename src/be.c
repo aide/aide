@@ -26,9 +26,8 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <errno.h>
-#include "db_config.h"
 #include "db_file.h"
-#include "error.h"
+#include "log.h"
 #include "util.h"
 #ifdef WITH_CURL
 #include "fopen.h"
@@ -40,8 +39,7 @@
 /*for locale support*/
 
 
-void* be_init(int inout,url_t* u,int iszipped)
-{
+void* be_init(bool readonly, url_t* u, bool iszipped, int linenumber, char* filename, char* linebuf) {
   FILE* fh=NULL;
   long a=0;
   char* err=NULL;
@@ -50,60 +48,59 @@ void* be_init(int inout,url_t* u,int iszipped)
   struct flock fl;
 #endif
 
-  if (u==NULL) {
-    return NULL;
-  }
-
   switch (u->type) {
   case url_file : {
     u->value = expand_tilde(u->value);
-    error(200,_("Opening file \"%s\" for %s\n"),u->value,inout?"r":"w+");
+    log_msg(LOG_LEVEL_DEBUG, "open (%s, gzip: %s) file '%s'", readonly?"read-only":"read/write", btoa(iszipped), u->value);
 #if HAVE_FCNTL && HAVE_FTRUNCATE
-    fd=open(u->value,inout?O_RDONLY:O_CREAT|O_RDWR,0666);
+    fd=open(u->value,readonly?O_RDONLY:O_CREAT|O_RDWR,0666);
 #else
-    fd=open(u->value,inout?O_RDONLY:O_CREAT|O_RDWR|O_TRUNC,0666);
+    fd=open(u->value,readonly?O_RDONLY:O_CREAT|O_RDWR|O_TRUNC,0666);
 #endif
-    error(255,"Opened file \"%s\" with fd=%i\n",u->value,fd);
     if(fd==-1) {
-      error(0,_("Couldn't open file %s for %s"),u->value,
-	    inout?"reading\n":"writing\n");
+        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, open (%s) failed for file '%s': %s, readonly?"read-only":"read/write", u->value, strerror(errno));
       return NULL;
+    } else {
+        log_msg(LOG_LEVEL_DEBUG, "opened file '%s' with fd=%i",u->value,fd);
     }
 #if HAVE_FCNTL && HAVE_FTRUNCATE
-    if(!inout) {
+    if(!readonly) {
      if (strncmp(u->value, "/dev/null", strlen("/dev/null"))) {
       fl.l_type = F_WRLCK;
       fl.l_whence = SEEK_SET;
       fl.l_start = 0;
       fl.l_len = 0;
+      log_msg(LOG_LEVEL_DEBUG, "try to get lock for file '%s'", u->value);
       if (fcntl(fd, F_SETLK, &fl) == -1) {
-	if (fcntl(fd, F_SETLK, &fl) == -1)
-	  error(0,_("File %s is locked by another process.\n"),u->value);
-	else
-	  error(0,_("Cannot get lock for file %s"),u->value);
-	return NULL;
+          log_msg(LOG_LEVEL_ERROR, "cannot get lock for file '%s': %s", u->value, strerror(errno));
+          return NULL;
+      } else {
+          log_msg(LOG_LEVEL_DEBUG, "successfully got lock for file '%s'", u->value);
       }
-      if(ftruncate(fd,0)==-1)
-	error(0,_("Error truncating file %s"),u->value);
-
+      if(ftruncate(fd,0)==-1) {
+          log_msg(LOG_LEVEL_ERROR,_("ftruncate failed for file %s: %s"),u->value, strerror(errno));
+          return NULL;
+      } else {
+          log_msg(LOG_LEVEL_DEBUG, "successfully truncated file '%s' to size 0", u->value);
+     }
+        } else {
+          log_msg(LOG_LEVEL_DEBUG, "skip lock for '/dev/null'");
      }
     }
 #endif
 #ifdef WITH_ZLIB
-    if(iszipped && !inout){
+    if(iszipped && !readonly){
       gzFile gzfh = gzdopen(fd,"wb9");
       if(gzfh==NULL){
-	error(0,_("Couldn't open file %s for %s"),u->value,
-	      inout?"reading\n":"writing\n");
+        log_msg(LOG_LEVEL_ERROR, _("gzdopen (%s) failed for file %s"), readonly?"read-only":"read/write", u->value);
       }
     return gzfh;
     }
     else{
 #endif
-      fh=fdopen(fd,inout?"r":"w+");
+      fh=fdopen(fd,readonly?"r":"w+");
       if(fh==NULL){
-	error(0,_("Couldn't open file %s for %s"),u->value,
-	      inout?"reading\n":"writing\n");
+          log_msg(LOG_LEVEL_ERROR, _("fdopen (%s) failed for file '%s': %s"), readonly?"read-only":"read/write", u->value, strerror(errno));
       }
     return fh;
 #ifdef WITH_ZLIB
@@ -149,21 +146,21 @@ void* be_init(int inout,url_t* u,int iszipped)
   case url_fd : {
     a=strtol(u->value,&err,10);
     if(*err!='\0'||errno==ERANGE){
-      error(0,"Illegal file descriptor value:%s\n",u->value);
+      log_msg(LOG_LEVEL_ERROR,"illegal file descriptor value:%s",u->value);
     }
 #ifdef WITH_ZLIB
-    if(iszipped && !inout){
+    if(iszipped && !readonly){
       gzFile gzfh = gzdopen(a,"w");
       if(fh==NULL){
-	error(0,"Couldn't reopen file descriptor %li\n",a);
+	log_msg(LOG_LEVEL_ERROR,"couldn't reopen file descriptor %li",a);
       }
       return gzfh;
     }
     else{
 #endif
-      fh=fdopen(a,inout?"r":"w");
+      fh=fdopen(a,readonly?"r":"w");
       if(fh==NULL){
-	error(0,"Couldn't reopen file descriptor %li\n",a);
+	log_msg(LOG_LEVEL_ERROR,"couldn't reopen file descriptor %li",a);
       }
       return fh;
 #ifdef WITH_ZLIB
@@ -175,15 +172,15 @@ void* be_init(int inout,url_t* u,int iszipped)
   case url_https:
   case url_ftp:
     {
-      error(200,_("Opening curl \"%s\" for %s\n"),u->value,inout?"r":"w+");
+      log_msg(LOG_LEVEL_DEBUG,_("opening curl '%s' for %s"),u->value,readonly?"r":"w+");
       if (iszipped) {
 	return NULL;
       }
-      return url_fopen(u->value,inout?"r":"w+");
+      return url_fopen(u->value,readonly?"r":"w+");
     }
 #endif /* WITH CURL */
   default:{
-    error(0,"Unsupported backend: %i", u->type);
+    log_msg(LOG_LEVEL_ERROR, "unsupported backend: %i", u->type);
     return NULL;
   }    
   }

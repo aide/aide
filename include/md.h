@@ -64,7 +64,7 @@ typedef struct md_container {
 
 } md_container;
 
-int init_md(struct md_container*);
+int init_md(struct md_container*, const char*);
 int update_md(struct md_container*,void*,ssize_t);
 int close_md(struct md_container*);
 void md2line(struct md_container*,struct db_line*);

@@ -35,7 +35,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "base64.h"
-#include "error.h"
+#include "log.h"
 /*for locale support*/
 #include "locale-aide.h"
 /*for locale support*/
@@ -95,10 +95,9 @@ char* encode_base64(byte* src,size_t ssize)
   unsigned long triple;
   byte *inb;
   
-  error(235, "encode base64");
   /* Exit on empty input */
   if (!ssize||src==NULL){
-    error(240,"\n");
+    log_msg(LOG_LEVEL_DEBUG,"encode base64: empty string");
     return NULL;
   }
   outbuf = (char *)malloc(sizeof(char)*B64_BUF);
@@ -109,7 +108,7 @@ char* encode_base64(byte* src,size_t ssize)
   triple = 0;
   pos = 0;
   left = ssize;
-  error(235, ", data length: %d\n", left);
+  log_msg(LOG_LEVEL_TRACE, "encode base64:, data length: %d", left);
   /*
    * Process entire inbuf.
    */
@@ -183,10 +182,11 @@ byte* decode_base64(char* src,size_t ssize, size_t *ret_len)
   int pos;
   unsigned long triple;
 
-  error(235, "decode base64\n");
   /* Exit on empty input */
-  if (!ssize||src==NULL)
+  if (!ssize||src==NULL) {
+    log_msg(LOG_LEVEL_DEBUG, "decode base64: empty string");
     return NULL;
+  }
 
 
   /* Initialize working pointers */
@@ -207,8 +207,7 @@ byte* decode_base64(char* src,size_t ssize, size_t *ret_len)
       switch(i)
 	{
 	case FAIL:
-	  error(3, "decode_base64: Illegal character: %c\n", *inb);
-	  error(230, "decode_base64: Illegal line:\n%s\n", src);
+	  log_msg(LOG_LEVEL_WARNING, "decode_base64: illegal character: '%c' in '%s'", *inb, src);
 	  free(outbuf);
 	  return NULL;
 	  break;
@@ -263,10 +262,11 @@ size_t length_base64(char* src,size_t ssize)
   size_t pos;
   unsigned long triple;
 
-  error(235, "decode base64\n");
   /* Exit on empty input */
-  if (!ssize||src==NULL)
+  if (!ssize||src==NULL) {
+    log_msg(LOG_LEVEL_DEBUG,"length_base64: empty string");
     return 0;
+  }
 
 
 
@@ -287,8 +287,7 @@ size_t length_base64(char* src,size_t ssize)
       switch(i)
 	{
 	case FAIL:
-	  error(3, "length_base64: Illegal character: %c\n", *inb);
-	  error(230, "length_base64: Illegal line:\n%s\n", src);
+	  log_msg(LOG_LEVEL_DEBUG, "length_base64: illegal string: '%s'", src);
 	  return 0; 
 	  break;
 	case SKIP:

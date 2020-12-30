@@ -23,14 +23,21 @@
 #define _DB_H_INCLUDED
 
 #include <stdio.h>
+#include <stdbool.h>
 #include "db_config.h"
 
+typedef enum {
+    DB_TYPE_IN,
+    DB_TYPE_OUT,
+    DB_TYPE_NEW,
+} DB_TYPE;
+
 byte* base64tobyte(char*, int, size_t *);
-time_t base64totime_t(char*);
+time_t base64totime_t(char*, database*, const char*);
 
-int db_init(int);
+int db_init(database*, bool, bool);
 
-db_line* db_readline(int);
+db_line* db_readline(database*);
 
 int db_writespec(db_config*);
 
@@ -39,7 +46,6 @@ int db_writeline(db_line*,db_config*);
 void db_close();
 
 void free_db_line(db_line* dl);
-
 
 #define DB_OLD            (1<<0)
 #define DB_WRITE          (1<<1)

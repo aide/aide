@@ -1,22 +1,16 @@
-SC	[\\'"netbgr\ @#]
-C	[a-zA-Z0-9ˆ‰¸ﬂÂ÷ƒ‹≈_\\=$%£@&/!\^\~;:.,\?\{\}\(\)\[\]\<\>\-\+\*\|\'\`]
-
-E	[\ ]*"="[\ ]*
+C	[^\n\t ]
 
 L	[a-zA-Zˆ‰¸ﬂÂ÷ƒ‹≈0-9_%]
-D	[0-9]
-
-PC	\\[^\n]
-
-EX      [" "\t]*
+G	[a-zA-Z0-9]
+E	[\ ]*"="[\ ]*
 
 %{
 
 #define YYDEBUG 1
 
 /*
- * Copyright (C) 1999-2002,2004-2006,2010-2013,2015,2016,2019 Rami Lehti, Pablo
- * Virolainen, Richard van den Berg, Hannes von Haugwitz
+ * Copyright (C) 1999-2002,2004-2006,2010-2013,2015,2016,2019,2020 Rami Lehti,
+ * Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -35,436 +29,446 @@ EX      [" "\t]*
 
 #include "aide.h"
 #include <string.h>
+#include <stdlib.h>
 #include "gen_list.h"
+#include "util.h"
 #include "conf_yacc.h"
 #include "list.h"
+#include "errorcodes.h"
 #include "symboltable.h"
 #include "commandconf.h"
 
-void includehandler(void) ;
-void conf_put_token(const char*);
+#include "conf_ast.h"
 
-int firstnotempty(char* s);
+#define LOG_LEX_TOKEN(log_level, token, text) \
+    log_msg(log_level, "%s:%d: \u2502 " #token " (text: '%s')", conf_filename, conf_linenumber, text);
 
-typedef struct conf_buffer_type {
-  char* buff;
-  char* pos;
-} conf_buffer_type;
+#define LOG_CONFIG_LINE(log_level, msg) \
+     log_msg(log_level, "%s:%d: %s (line: '%s')", conf_filename, conf_linenumber, msg, conf_linebuf);
 
-list* l_symt=NULL;
-list* conf_buffer=NULL;
-int condition=0;
-int varbol=0;
+#define DEPRECATION_WARNING(deprecated_option, new_option) \
+     log_msg(LOG_LEVEL_WARNING, "%s:%d: Using '%s' is DEPRECATED. Update your config and use '%s' instead (line: '%s')", conf_filename, conf_linenumber, deprecated_option, new_option ,conf_linebuf); \
 
-long conf_lineno=1;
-int newlinelastinconfig=0;
+int conf_linenumber = 0;
+char *conf_filename;
+char *conf_linebuf;
 
-#define MAX_INCLUDE_DEPTH 10
-YY_BUFFER_STATE include_stack[MAX_INCLUDE_DEPTH];
-int include_stack_ptr = 0;
+LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
 
 #define YY_INPUT(buf,result,max_size) \
-        if( ((result=conf_input_wrapper(buf,max_size,yyin)) == 0) \
+        if( ((result=conf_input_wrapper(buf,max_size,confin)) == 0) \
             && ferror(yyin) ) \
           YY_FATAL_ERROR( "input in flex scanner failed" );
 
-int var_in_conflval=0;
-
 %}
 
-%option noinput
+%option noinput nounput
 
-%Start A EXPR DEFSTMT DEFSTMT2 IFDEFSTMT INCLUDE EXPREQUHUNT VARSUB CONFVALHUNT IFHOSTSTMT E2FSATTRS
+%x CONFIG DEFSTMT EXPR EXPREQUHUNT PATH STRING STRINGEQHUNT STRINGHUNT
 
 %%
-
-"#"[^\n]* {
+<INITIAL>^[\t\ ]*"#"[^\n]*"\n" {
+            conf_linebuf = strndup(conftext, confleng-1); /* not to be freed, needed for logging */
+            ++conf_linenumber;
+            LOG_CONFIG_LINE(lex_log_level, "- skip comment line")
+           }
+<INITIAL>^"\n" {
+            conf_linebuf = checked_strdup(""); /* not to be freed, needed for logging */
+            ++conf_linenumber;
+            LOG_CONFIG_LINE(lex_log_level, "- skip empty line")
+           }
+<INITIAL>^[^\n]* {
+            conf_linebuf = strndup(conftext, confleng); /* not to be freed, needed for logging */
+            ++conf_linenumber;
+            log_msg(lex_log_level,"%s:%d: \u252c '%s'", conf_filename, conf_linenumber, conf_linebuf);
+            yyless(0);
+            BEGIN(CONFIG);
+           }
+<CONFIG>"#"[^\n]* { /* inline comment */
+  LOG_LEX_TOKEN(lex_log_level, skip inline comment, conftext)
  }
 
-
-^[^\n]*"\@\@\{"({L}+)"}"[^\n]* {
-  
-  putbackvariable(conftext);
-
-  error(230,"%li:Variable substitution\n",conf_lineno+1);
-  
-}
-
-
-
-^[\ \t]*"=/"({C}|{PC})* {
-  conflval.s=strdup(conftext+1+firstnotempty(conftext));
-  BEGIN(EXPR);
+<CONFIG>"=/" {
+  LOG_LEX_TOKEN(lex_log_level, TEQURXRULE, "=")
+  yyless(strchr(conftext,'/')-conftext);
+  BEGIN(PATH);
   return (TEQURXRULE);
 }
 
-^[\ \t]*"/"({C}|{PC})* {
-  conflval.s=strdup(conftext+firstnotempty(conftext));
-  error(230,"%li:Selrule\n",conf_lineno);
-  BEGIN(EXPR);
-  return (TSELRXRULE );
+<CONFIG>"/" {
+  LOG_LEX_TOKEN(lex_log_level, TSELRXRULE, "")
+  yyless(strchr(conftext,'/')-conftext);
+  BEGIN(PATH);
+  return (TSELRXRULE);
 }
 
-^[\ \t]*"!/"({C}|{PC})* {  
-  conflval.s=strdup(conftext+1+firstnotempty(conftext));
-  error(230,"%li:Negrule\n",conf_lineno);
-  return (TNEGRXRULE );
+<CONFIG>"!/" {
+  LOG_LEX_TOKEN(lex_log_level, TNEGRXRULE, "!")
+  yyless(strchr(conftext,'/')-conftext);
+  BEGIN(PATH);
+  return (TNEGRXRULE);
 }
 
-^[\ \t]*({L})+ {
-  conflval.s=strdup(conftext+firstnotempty(conftext));
-  error(230,"%li:Equrule\n",conf_lineno);
-  BEGIN(EXPREQUHUNT);
-  return (TSTRING);
-}
-
-<EXPREQUHUNT>[\ \t]*"="[\ \t]* {
+<EXPREQUHUNT>{E} {
+  LOG_LEX_TOKEN(lex_log_level, '=', conftext)
   BEGIN(EXPR);
   return('=');
 }
 
-<EXPR>, {
-  return (',');
+<EXPR>({L}|">")+ {
+  LOG_LEX_TOKEN(lex_log_level, TEXPR, conftext)
+  conflval.s=checked_strdup(conftext);
+  return (TEXPR);
 }
 
-<EXPR>[\ \t]*({L}|{D}|">")+ {
-  conflval.s=strdup(conftext+firstnotempty(conftext));
-  return (TSTRING);
-}
-
-<EXPR>[\ \t]*\n {
-  conf_lineno++;
-  return (TNEWLINE);
-  BEGIN 0;
-}
-
-<EXPR>\+ {
+<EXPR>\+ { /* attribute operator */
+  LOG_LEX_TOKEN(lex_log_level, '+', conftext)
   return ('+');
 }
 
-<EXPR>\- {
+<EXPR>\- { /* attribute operator */
+  LOG_LEX_TOKEN(lex_log_level, '-', conftext)
   return ('-');
 }
 
+<EXPR>, { /* restriction seperator */
+  LOG_LEX_TOKEN(lex_log_level, ',', conftext)
+  return (',');
+}
+
 <DEFSTMT>({L})+ {
-  error(230," %s",conftext);
-  conflval.s=strdup(conftext);
-  BEGIN (DEFSTMT2);
-  return (TSTRING);
+  LOG_LEX_TOKEN(lex_log_level, TVARIABLE, conftext)
+  conflval.s=checked_strdup(conftext);
+  BEGIN(STRINGHUNT);
+  return (TVARIABLE);
 }
 
-<DEFSTMT2>({C})+ {
-  error(230," %s",conftext);
-  conflval.s=strdup(conftext);
-  return (TSTRING);
-}
-
-<DEFSTMT2>[\ \t]*"\n" { 
-  error(230,"\n");
-  conf_lineno++;
-  BEGIN 0;
-  return (TNEWLINE);
-}
-
-^[\ \t]*"\@\@define" {
-  error(230,"%li:@@define",conf_lineno);
+<CONFIG>"\@\@define" {
+  LOG_LEX_TOKEN(lex_log_level, TDEFINE, conftext)
   BEGIN DEFSTMT;
   return (TDEFINE);
 }
 
-^[\ \t]*"\@\@undef" {
-  error(230,"%li:@@undef",conf_lineno);
-  BEGIN IFDEFSTMT;
-  return (TUNDEF);
+<CONFIG>"\@\@undef" {
+  LOG_LEX_TOKEN(lex_log_level, TUNDEFINE, conftext)
+  BEGIN DEFSTMT;
+  return (TUNDEFINE);
 }
 
-
-^[\ \t]*"\@\@ifndef" {
-  error(230,"%li:@@ifndef",conf_lineno);
-  BEGIN IFDEFSTMT;
-  return (TIFNDEF);
-}
-
-^[\ \t]*"\@\@ifdef" {
-  error(230,"%li:@@ifdef",conf_lineno);
-  BEGIN IFDEFSTMT;
+<CONFIG>"\@\@ifdef" {
+  LOG_LEX_TOKEN(lex_log_level, TIFDEF, conftext)
+  BEGIN(STRINGHUNT);
   return (TIFDEF);
 }
 
-^[\ \t]*"\@\@else" {
-  error(230,"%li:@@else\n",conf_lineno);
-  BEGIN 0;
+<CONFIG>"\@\@ifndef" {
+  LOG_LEX_TOKEN(lex_log_level, TIFNDEF, conftext)
+  BEGIN(STRINGHUNT);
+  return (TIFNDEF);
+}
+
+<CONFIG>"\@\@else" {
+  LOG_LEX_TOKEN(lex_log_level, TELSE, conftext)
+  BEGIN CONFIG;
   return (TELSE);
 }
 
-^[\ \t]*"\@\@endif" {
-  error(230,"%li:@@endif\n",conf_lineno);
-  BEGIN 0;
+<CONFIG>"\@\@endif" {
+  LOG_LEX_TOKEN(lex_log_level, TENDIF, conftext)
+  BEGIN CONFIG;
   return (TENDIF);
 }
 
-^"\@\@begin_db" {
-  error(230,"%li:@@begin_db",conf_lineno);
-  BEGIN 0;
-  return (TBEGIN_DB);
-}
-
-<IFDEFSTMT>({L})+ {
-  error(230," %s\n",conftext);
-  conflval.s=strdup(conftext);
-  BEGIN 0;
-  return (TSTRING);
-}
-
-^[\ \t]*"\@\@ifhost" {
-  error(230,"%li:@@ifhost",conf_lineno);
-  BEGIN IFHOSTSTMT;
+<CONFIG>"\@\@ifhost" {
+  LOG_LEX_TOKEN(lex_log_level, TIFHOST, conftext)
+  BEGIN(STRINGHUNT);
   return (TIFHOST);
 }
 
-^[\ \t]*"\@\@ifnhost" {
-  error(230,"%li:@@ifnhost",conf_lineno);
-  BEGIN IFHOSTSTMT;
+<CONFIG>"\@\@ifnhost" {
+  LOG_LEX_TOKEN(lex_log_level, TIFNHOST, conftext)
+  BEGIN(STRINGHUNT);
   return (TIFNHOST);
 }
 
-<IFHOSTSTMT>({L}|"-")+ {
-  error(230," %s\n",conftext);
-  conflval.s=strdup(conftext);
-  BEGIN 0;
+<CONFIG>"\@\@include" {
+  LOG_LEX_TOKEN(lex_log_level, TINCLUDE, conftext)
+  BEGIN(STRINGHUNT);
+  return (TINCLUDE);
+}
+
+<CONFIG,DEFSTMT,EXPR>[\t\ ]+ {
+    LOG_LEX_TOKEN(LOG_LEVEL_DEBUG, skip tab(s)/whitespace(s), conftext)
+}
+
+<CONFIG>"database_in" {
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (DATABASE_IN_OPTION), conftext)
+  conflval.option = DATABASE_IN_OPTION;
+  BEGIN (STRINGEQHUNT);
+  return (CONFIGOPTION);
+}
+
+<CONFIG>"database" {
+  DEPRECATION_WARNING("database", "database_in")
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (DATABASE_IN_OPTION), conftext)
+  conflval.option = DATABASE_IN_OPTION;
+  BEGIN (STRINGEQHUNT);
+  return (CONFIGOPTION);
+}
+
+<CONFIG>"database_out" {
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (DATABASE_OUT_OPTION), conftext)
+  conflval.option = DATABASE_OUT_OPTION;
+  BEGIN (STRINGEQHUNT);
+  return (CONFIGOPTION);
+}
+
+<CONFIG>"database_new" {
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (DATABASE_NEW_OPTION), conftext)
+  conflval.option = DATABASE_NEW_OPTION;
+  BEGIN (STRINGEQHUNT);
+  return (CONFIGOPTION);
+}
+
+<CONFIG>"database_attrs" {
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (DATABASE_ATTRIBUTES_OPTION), conftext)
+  conflval.option = DATABASE_ATTRIBUTES_OPTION;
+  BEGIN (EXPREQUHUNT);
+  return (CONFIGOPTION);
+}
+
+<CONFIG>"warn_dead_symlinks" {
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (WARN_DEAD_SYMLINKS_OPTION), conftext)
+  conflval.option = WARN_DEAD_SYMLINKS_OPTION;
+  BEGIN (STRINGEQHUNT);
+  return (CONFIGOPTION);
+}
+
+<CONFIG>"grouped" {
+  DEPRECATION_WARNING("grouped", "report_grouped")
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (REPORT_GROUPED_OPTION), conftext)
+  conflval.option = REPORT_GROUPED_OPTION;
+  BEGIN (STRINGEQHUNT);
+  return (CONFIGOPTION);
+}
+
+<CONFIG>"report_grouped" {
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (REPORT_GROUPED_OPTION), conftext)
+  conflval.option = REPORT_GROUPED_OPTION;
+  BEGIN (STRINGEQHUNT);
+  return (CONFIGOPTION);
+}
+
+<CONFIG>"summarize_changes" {
+  DEPRECATION_WARNING("summarize_changes", "report_summarize_changes")
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (REPORT_SUMMARIZE_CHANGES_OPTION), conftext)
+  conflval.option = REPORT_SUMMARIZE_CHANGES_OPTION;
+  BEGIN (STRINGEQHUNT);
+  return (CONFIGOPTION);
+}
+
+<CONFIG>"report_summarize_changes" {
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (REPORT_SUMMARIZE_CHANGES_OPTION), conftext)
+  conflval.option = REPORT_SUMMARIZE_CHANGES_OPTION;
+  BEGIN (STRINGEQHUNT);
+  return (CONFIGOPTION);
+}
+<CONFIG>"acl_no_symlink_follow" {
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (ACL_NO_SYMLINK_FOLLOW_OPTION), conftext)
+  conflval.option = ACL_NO_SYMLINK_FOLLOW_OPTION;
+  BEGIN (STRINGEQHUNT);
+  return (CONFIGOPTION);
+}
+
+<CONFIG>"report_level" {
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (REPORT_LEVEL_OPTION), conftext)
+  conflval.option = REPORT_LEVEL_OPTION;
+  BEGIN (STRINGEQHUNT);
+  return (CONFIGOPTION);
+}
+
+<CONFIG>"report_ignore_added_attrs" {
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (REPORT_IGNORE_ADDED_ATTRS_OPTION), conftext)
+  conflval.option = REPORT_IGNORE_ADDED_ATTRS_OPTION;
+  BEGIN (EXPREQUHUNT);
+  return (CONFIGOPTION);
+}
+
+<CONFIG>"report_ignore_removed_attrs" {
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (REPORT_IGNORE_REMOVED_ATTRS_OPTION), conftext)
+  conflval.option = REPORT_IGNORE_REMOVED_ATTRS_OPTION;
+  BEGIN (EXPREQUHUNT);
+  return (CONFIGOPTION);
+}
+
+<CONFIG>"report_ignore_changed_attrs" {
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (REPORT_IGNORE_CHANGED_ATTRS_OPTION), conftext)
+  conflval.option = REPORT_IGNORE_CHANGED_ATTRS_OPTION;
+  BEGIN (EXPREQUHUNT);
+  return (CONFIGOPTION);
+}
+
+<CONFIG>"report_force_attrs" {
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (REPORT_FORCE_ATTRS_OPTION), conftext)
+  conflval.option = REPORT_FORCE_ATTRS_OPTION;
+  BEGIN (EXPREQUHUNT);
+  return (CONFIGOPTION);
+}
+
+<CONFIG>"verbose" {
+  log_msg(LOG_LEVEL_ERROR, "%s:%d: 'verbose' option is no longer supported, use 'log_level' and 'report_level' options instead (see man aide.conf for details) (line: '%s')", conf_filename, conf_linenumber, conf_linebuf);
+  exit(INVALID_CONFIGURELINE_ERROR);
+}
+
+<CONFIG>"log_level" {
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (LOG_LEVEL_OPTION), conftext)
+  conflval.option = LOG_LEVEL_OPTION;
+  BEGIN(STRINGEQHUNT);
+  return (CONFIGOPTION);
+}
+
+<CONFIG>"database_add_metadata" {
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (DATABASE_ADD_METADATA_OPTION), conftext)
+  conflval.option = DATABASE_ADD_METADATA_OPTION;
+  BEGIN (STRINGEQHUNT);
+  return (CONFIGOPTION);
+}
+
+<CONFIG>"report_url" {
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (REPORT_URL_OPTION), conftext)
+  conflval.option = REPORT_URL_OPTION;
+  BEGIN (STRINGEQHUNT);
+  return (CONFIGOPTION);
+}
+
+<CONFIG>"report_detailed_init" {
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (REPORT_DETAILED_INIT_OPTION), conftext)
+  conflval.option = REPORT_DETAILED_INIT_OPTION;
+  BEGIN (STRINGEQHUNT);
+  return (CONFIGOPTION);
+}
+
+<CONFIG>"report_base16" {
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (REPORT_BASE16_OPTION), conftext)
+  conflval.option = REPORT_BASE16_OPTION;
+  BEGIN (STRINGEQHUNT);
+  return (CONFIGOPTION);
+}
+
+<CONFIG>"report_quiet" {
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (REPORT_QUIET_OPTION), conftext)
+  conflval.option = REPORT_QUIET_OPTION;
+  BEGIN (STRINGEQHUNT);
+  return (CONFIGOPTION);
+}
+
+<CONFIG>"report_ignore_e2fsattrs" {
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (REPORT_IGNORE_E2FSATTRS_OPTION), conftext)
+  conflval.option = REPORT_IGNORE_E2FSATTRS_OPTION;
+  BEGIN (STRINGEQHUNT);
+  return (CONFIGOPTION);
+}
+
+<CONFIG>"gzip_dbout" {
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (DATABASE_GZIP_OPTION), conftext)
+  conflval.option = DATABASE_GZIP_OPTION;
+  BEGIN (STRINGEQHUNT);
+  return (CONFIGOPTION);
+}
+
+<CONFIG>"root_prefix" {
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (ROOT_PREFIX_OPTION), conftext)
+  conflval.option = ROOT_PREFIX_OPTION;
+  BEGIN (STRINGEQHUNT);
+  return (CONFIGOPTION);
+}
+
+<CONFIG>"config_version" {
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (CONFIG_VERSION), conftext)
+  conflval.option = CONFIG_VERSION;
+  BEGIN (STRINGEQHUNT);
+  return (CONFIGOPTION);
+}
+
+<CONFIG>({G})+ { /* group definition */
+  conflval.s=checked_strdup(conftext);
+  LOG_LEX_TOKEN(lex_log_level, TGROUP, conftext)
+  BEGIN(EXPREQUHUNT);
+  return (TGROUP);
+}
+
+<CONFIG>({L})+ { /* group definition, deprecated group names */
+  log_msg(LOG_LEVEL_WARNING, "%s:%d: special characters in group names are DEPRECATED. Update your config and only use alphanumeric characters (A-Za-z0-9) (line: '%s')", conf_filename, conf_linenumber, conf_linebuf); \
+  conflval.s=checked_strdup(conftext);
+  LOG_LEX_TOKEN(lex_log_level, TGROUP, conftext)
+  BEGIN(EXPREQUHUNT);
+  return (TGROUP);
+}
+
+<STRINGEQHUNT>{E} {
+  LOG_LEX_TOKEN(lex_log_level, '=', conftext)
+  BEGIN(STRING);
+  return('=');
+}
+
+<STRING,PATH>"@@{"({L}+)"}" {
+  size_t length = strlen(conftext)-4;
+  conflval.s=checked_malloc(length);
+  strncpy(conflval.s, conftext+3, length);
+  conflval.s[length] = '\0';
+  LOG_LEX_TOKEN(lex_log_level, TVARIABLE, conflval.s)
+  return (TVARIABLE);
+}
+
+<STRING,PATH>[^@\\ \t\n]+ {
+  LOG_LEX_TOKEN(lex_log_level, TSTRING, conftext)
+  conflval.s=checked_strdup(conftext);
   return (TSTRING);
 }
 
-^[\ \t]*"\@\@db_spec" {
-  conf_put_token("\n@@db_spec");
-  error(230,"%li:@@db_spec",conf_lineno);
-  return (TDBSPEC);
+<STRING,PATH>\\[\\@ ] {
+  LOG_LEX_TOKEN(lex_log_level, (escaped) TSTRING, conftext)
+  conflval.s=strdup(conftext+1);
+  return (TSTRING);
 }
 
-^[\ \t]*"\@\@include" {
-  BEGIN INCLUDE;
+<STRING,PATH>[\\@] {
+  LOG_LEX_TOKEN(lex_log_level, (single-character) TSTRING, conftext)
+  conflval.s=strdup(conftext);
+  return (TSTRING);
 }
 
-<INCLUDE>[^ \t\n]+ {
-  includehandler();
+<STRING>[\ \t]+ {
+  LOG_LEX_TOKEN(LOG_LEVEL_DEBUG, skip tab(s)/whitespace(s), conftext)
+  BEGIN(CONFIG);
+}
+
+<PATH>[\ \t]+ {
+  LOG_LEX_TOKEN(LOG_LEVEL_DEBUG, skip tab(s)/whitespace(s), conftext)
+  BEGIN(EXPR);
+}
+
+<STRINGHUNT>[\ \t]+ {
+  LOG_LEX_TOKEN(LOG_LEVEL_DEBUG, skip tab(s)/whitespace(s), conftext)
+  BEGIN(STRING);
+}
+
+<STRINGHUNT>[^\ \t\n] {
+  LOG_LEX_TOKEN(LOG_LEVEL_DEBUG, found string -> unput, conftext)
+  yyless(0);
+  BEGIN(STRING);
+}
+
+<CONFIG,DEFSTMT,EXPR,EXPREQUHUNT,PATH,STRING,STRINGEQHUNT,STRINGHUNT>[\t\ ]*"\n" {
+  log_msg(lex_log_level,"%s:%d: \u2534 TNEWLINE (text: '\\n')", conf_filename, conf_linenumber);
   BEGIN 0;
-  error(230,"%li:@@include\n",conf_lineno);
   return (TNEWLINE);
 }
 
-<<EOF>> {
-        if (yy_hold_char=='\n'){
-            newlinelastinconfig=1;
-        }else {
-            newlinelastinconfig=0;
-        }
-        if ( --include_stack_ptr < 0 )
-            {
-            yyterminate();
-            }
-
-        else
-            {
-
-            if (confin != stdin ) {
-              fclose(confin);
-              }
-
-            conf_delete_buffer( YY_CURRENT_BUFFER );
-            conf_switch_to_buffer(
-                 include_stack[include_stack_ptr] );
-            }
+<*>. {
+     log_msg(LOG_LEVEL_ERROR,"%s:%d: unexpected character: '%c' (line: '%s')", conf_filename, conf_linenumber, *conftext, conf_linebuf);
+     exit(INVALID_CONFIGURELINE_ERROR);
 }
-
-
-[\t\ ]+ {}
-
-"\n" { 
-  conf_lineno++;
-  BEGIN 0;
-  return (TNEWLINE);
- }
-
-^[\t\ ]*"database"{E} {
-  error(230,"%li:database =\n",conf_lineno);
-  BEGIN CONFVALHUNT;
-  return (TDATABASE);
-} 
-
-^[\t\ ]*"database_out"{E}  {
-  error(230,"%li:database_out =\n",conf_lineno);
-  BEGIN CONFVALHUNT;
-  return (TDATABASE_OUT);
-}
-
-^[\t\ ]*"database_new"{E}  {
-  error(230,"%li:database_new =\n",conf_lineno);
-  BEGIN CONFVALHUNT;
-  return (TDATABASE_NEW);
-}
-
-^[\t\ ]*"database_attrs"{E} {
-  error(230,"%li:database_attrs =\n",conf_lineno);
-  BEGIN EXPR;
-  return (TDATABASE_ATTRS);
-}
-
-^[\t\ ]*"warn_dead_symlinks"{E} {
-  error(230,"%li:warn_dead_symlinks =\n",conf_lineno);
-  BEGIN CONFVALHUNT;
-  return (TWARNDEADSYMLINKS);
-}
-
-^[\t\ ]*"grouped"{E} {
-  error(2, "DEPRECATION WARNING, Using '%s' is deprecated. Update your config and use '%s' instead.\n", "grouped", "report_grouped");
-  error(230,"%li:grouped =\n",conf_lineno);
-  BEGIN CONFVALHUNT;
-  return (TGROUPED);
-}
-
-^[\t\ ]*"report_grouped"{E} {
-  error(230,"%li:report_grouped =\n",conf_lineno);
-  BEGIN CONFVALHUNT;
-  return (TGROUPED);
-}
-
-^[\t\ ]*"summarize_changes"{E} {
-  error(2, "DEPRECATION WARNING, Using '%s' is deprecated. Update your config and use '%s' instead.\n", "summarize_changes", "report_summarize_changes");
-  error(230,"%li:summarize_changes =\n",conf_lineno);
-  BEGIN CONFVALHUNT;
-  return (TSUMMARIZECHANGES);
-}
-
-^[\t\ ]*"report_summarize_changes"{E} {
-  error(230,"%li:report_summarize_changes =\n",conf_lineno);
-  BEGIN CONFVALHUNT;
-  return (TSUMMARIZECHANGES);
-}
-
-^[\t\ ]*"acl_no_symlink_follow"{E} {
-  error(230,"%li:acl_no_symlink_follow =\n",conf_lineno);
-  BEGIN CONFVALHUNT;
-  return (TACLNOSYMLINKFOLLOW);
-}
-
-
-^[\t\ ]*"verbose"{E} {
-  error(230,"%li:verbose =\n",conf_lineno);
-  return (TVERBOSE);  
-}
-
-^[\t\ ]*"report_level"{E} {
-  error(230,"%li:report_level =\n",conf_lineno);
-  BEGIN CONFVALHUNT;
-  return (TREPORTLEVEL);
-}
-
-^[\t\ ]*"report_ignore_added_attrs"{E} {
-  error(230,"%li:report_ignore_added_attrs =\n",conf_lineno);
-  BEGIN(EXPR);
-  return (TREPORTIGNOREADDEDATTRS);
-}
-^[\t\ ]*"report_ignore_removed_attrs"{E} {
-  error(230,"%li:report_ignore_removed_attrs =\n",conf_lineno);
-  BEGIN(EXPR);
-  return (TREPORTIGNOREREMOVEDATTRS);
-}
-^[\t\ ]*"report_ignore_changed_attrs"{E} {
-  error(230,"%li:report_ignore_changed_attrs =\n",conf_lineno);
-  BEGIN(EXPR);
-  return (TREPORTIGNORECHANGEDATTRS);
-}
-^[\t\ ]*"report_force_attrs"{E} {
-  error(230,"%li:report_force_attrs =\n",conf_lineno);
-  BEGIN(EXPR);
-  return (TREPORTFORCEATTRS);
-}
-
-^[\t\ ]*"database_add_metadata"{E} {
-  error(230,"%li:database_add_metadata =\n",conf_lineno);
-  BEGIN CONFVALHUNT;
-  return (TDATABASEADDMETADATA);
-}
-
-^[\t\ ]*"report_url"{E} {
-  error(230,"%li:report_url =\n",conf_lineno);
-  BEGIN CONFVALHUNT;
-  return (TREPORT_URL);  
-}
-
-^[\t\ ]*"report_detailed_init"{E} {
-  error(230,"%li:report_detailed_init =\n",conf_lineno);
-  BEGIN CONFVALHUNT;
-  return (TREPORTDETAILEDINIT);
-}
-
-^[\t\ ]*"report_base16"{E} {
-  error(230,"%li:report_base16 =\n",conf_lineno);
-  BEGIN CONFVALHUNT;
-  return (TREPORTBASE16);
-}
-
-^[\t\ ]*"report_quiet"{E} {
-  error(230,"%li:report_quiet =\n",conf_lineno);
-  BEGIN CONFVALHUNT;
-  return (TREPORTQUIET);
-}
-
-^[\t\ ]*"report_ignore_e2fsattrs"{E} {
-  error(230,"%li:report_ignore_e2fsattrs =\n",conf_lineno);
-  BEGIN E2FSATTRS;
-  return (TREPORTIGNOREE2FSATTRS);
-}
-
-<E2FSATTRS>([A-Za-z]+|"0") {
-  conflval.s=strdup(conftext);
-  BEGIN 0;
-  return (TSTRING);
-}
-
-^[\t\ ]*"gzip_dbout"{E} {
-  error(230,"%li:gzip_dbout =\n",conf_lineno);
-  BEGIN CONFVALHUNT;
-  return (TGZIPDBOUT);
-}
-
-^[\t\ ]*"root_prefix"{E}  {
-  error(230,"%li:root_prefix =\n",conf_lineno);
-  BEGIN CONFVALHUNT;
-  return (TROOT_PREFIX);
-}
-
-^[\ \t]*"config_version"{E} {
-  error(230,"%li:config_version =\n",conf_lineno);
-  BEGIN CONFVALHUNT;
-  return (TCONFIG_VERSION);
-}
-
-<CONFVALHUNT>("yes"|"true") {
-  BEGIN 0;
-  return (TTRUE);
-}
-
-<CONFVALHUNT>("no"|"false") {
-  BEGIN 0;
-  return (TFALSE);
-}
-
-<CONFVALHUNT>({C})+ {
-  conflval.s=strdup(conftext);
-  BEGIN 0;
-  return (TSTRING);
-}
-
-
-({L})+ {
-  conflval.s=strdup(conftext);
-  return (TSTRING);
-}
-
-
-[^\n] { return(conftext[0]); }
-
 
 %%
 
@@ -472,57 +476,34 @@ int confwrap(void){
   return 1;
 }
 
-void conf_put_token(const char* s){
-
-  int i=0;
-
-  for(i=strlen(s)-1;i>=0;i--){
-       unput(s[i]);
-       if(s[i]=='\n'){
-          conf_lineno--;
-       }
-  }
-  
+void conf_lex_string(const char * name, const char *string) {
+    log_msg(LOG_LEVEL_DEBUG, "parse string: '%s'", name);
+    conf_linenumber = 0;
+    conf_filename = strdup(name); /* not to be freed, needed for logging */
+    conf_scan_string(string);
 }
 
-int firstnotempty(char* s){
-  
-  int i=0;
+void conf_lex_file(const char * config) {
+    log_msg(LOG_LEVEL_DEBUG, "parse file: '%s'", config);
+    conf_linenumber = 0;
 
-  if (s==NULL) {
-    return i;
-  }
-
-
-  while( s[i]==' ' || s[i]=='\t') {
-    i++;
-  }
-
-  return i;
-
-}
-
-
-void includehandler(void) { 
-  /* got the include file name */
-  if ( include_stack_ptr >= MAX_INCLUDE_DEPTH )
-    {
-      error( 0, "Config includes nested too deeply\n" );
-      exit( 1 );
-    }
-
-  if (strcmp(conftext,"-")==0) {
-      confin = stdin;
+    if (strcmp(config,"-") == 0) {
+        conf_filename = strdup("(stdin)"); /* not to be freed, needed for logging */
+        confin = stdin;
     } else {
-      confin = fopen( conftext, "r" );
+        conf_filename = strdup(config);  /* not to be freed, needed for logging */
+        char *expanded_config = expand_tilde(strdup(config));
+        confin = fopen( expanded_config, "r" );
+        if (!confin) {
+            log_msg(LOG_LEVEL_ERROR,"cannot open config file '%s': %s", config, strerror(errno));
+            exit(IO_ERROR);
+        }
+        free(expanded_config);
+        expanded_config=NULL;
     }
-  if ( ! confin ) {
-    error(0,"Cannot open config file %s\n",conftext);
-    exit(IO_ERROR);
-  } else {
-    include_stack[include_stack_ptr++] = YY_CURRENT_BUFFER;
-    conf_switch_to_buffer(conf_create_buffer( confin, YY_BUF_SIZE ) );
-  }
-  
+    conf_switch_to_buffer(conf_create_buffer( confin, YY_BUF_SIZE ));
 }
 
+void conf_lex_delete_buffer() {
+    conf_delete_buffer( YY_CURRENT_BUFFER );
+}

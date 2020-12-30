@@ -36,6 +36,7 @@
 #include "db_config.h"
 #include "gen_list.h"
 #include "list.h"
+#include "url.h"
 #include "db.h"
 #include "be.h"
 #include "util.h"
@@ -96,10 +97,10 @@ const ATTRIBUTE report_attrs_order[] = {
 
 int report_attrs_order_length = sizeof(report_attrs_order)/sizeof(ATTRIBUTE);
 
-DB_ATTR_TYPE get_attrs(ATTRIBUTE attr) {
+static DB_ATTR_TYPE get_attrs(ATTRIBUTE attr) {
     switch(attr) {
+        case attr_allhashsums: return get_hashes(true);
         case attr_size: return ATTR(attr_size)|ATTR(attr_sizeg);
-        case attr_allhashsums: return get_hashes();
         default: return ATTR(attr);
     }
 }
@@ -193,31 +194,6 @@ static struct report_level report_level_array[] = {
  { REPORT_LEVEL_ADDED_REMOVED_ENTRIES, "added_removed_entries" },
  { 0, NULL }
 };
-
-static char get_file_type_char(mode_t mode) {
-    switch (mode & S_IFMT) {
-        case S_IFREG: return 'f';
-        case S_IFDIR: return 'd';
-#ifdef S_IFIFO
-        case S_IFIFO: return 'p';
-#endif
-        case S_IFLNK: return 'l';
-        case S_IFBLK: return 'b';
-        case S_IFCHR: return 'c';
-#ifdef S_IFSOCK
-        case S_IFSOCK: return 's';
-#endif
-#ifdef S_IFDOOR
-        case S_IFDOOR: return 'D';
-#endif
-#ifdef S_IFPORT
-        case S_IFPORT: return 'P';
-#endif
-        default: return '?';
-    }
-}
-
-
 
 #ifdef WITH_XATTR
 static size_t xstrnspn(const char *s1, size_t len, const char *srch)
@@ -382,7 +358,7 @@ if (!r->quiet || (r->nadd || r->nchg || r->nrem)) {
         default : {
     retval=vfprintf(r->fd, format, ap);
     if(retval==0) {
-        error(0, "unable to write to '%s", (r->url)->value);
+        log_msg(LOG_LEVEL_ERROR, "unable to write to '%s", (r->url)->value);
     }
             break;
         }
@@ -424,14 +400,46 @@ static int compare_report_t_by_report_level(const void *n1, const void *n2)
     return x2->level - x1->level;
 }
 
-int add_report_url(url_t* url) {
+void log_report_urls(LOG_LEVEL log_level) {
+    list* l = NULL;
+
+    for (l=conf->report_urls; l; l=l->next) {
+        report_t* r = l->data;
+
+        log_msg(log_level, " %s%s%s (%p)", get_url_type_string((r->url)->type), (r->url)->value?":":"", (r->url)->value?(r->url)->value:"", r);
+
+        log_msg(log_level, "   level: %s | base16: %s | quiet: %s | detailed_init: %s | summarize_changes: %s | grouped: %s", get_report_level_string(r->level), btoa(r->base16), btoa(r->quiet), btoa(r->detailed_init), btoa(r->summarize_changes), btoa(r->grouped));
+        char *str;
+        log_msg(log_level, "   ignore_added_attrs: '%s'", str = diff_attributes(0, r->ignore_added_attrs));
+        free(str);
+        log_msg(log_level, "   ignore_removed_attrs: '%s'", str = diff_attributes(0, r->ignore_removed_attrs));
+        free(str);
+        log_msg(log_level, "   ignore_changed_attrs: '%s'", str = diff_attributes(0, r->ignore_changed_attrs));
+        free(str);
+        log_msg(log_level, "   force_attrs: '%s'", str = diff_attributes(0, r->force_attrs));
+        free(str);
+#ifdef WITH_E2FSATTRS
+        log_msg(log_level, "   ignore_e2fsattrs: '%s'", str = e2fsattrs2string(r->ignore_e2fsattrs, 1, 0));
+        free(str);
+#endif
+    }
+}
+
+bool add_report_url(url_t* url, int linenumber, char* filename, char* linebuf) {
     list* report_urls=NULL;
     FILE* fh=NULL;
 
+    if(url==NULL) {
+        return false;
+    } else if (url->type==url_stdin) {
+        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, unsupported report URL-type: '%s', get_url_type_string(url->type))
+        return false;
+    }
+
     for(report_urls=conf->report_urls; report_urls ; report_urls=report_urls->next) {
         if (cmp_url((url_t*) report_urls->data, url)) {
-            error(1, _("report_url '%s' already defined, ignoring") ,url->value);
-            return RETOK;
+            LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_WARNING, report_url '%s' already defined (ignoring) ,url->value)
+            return true;
         }
     }
 
@@ -445,7 +453,7 @@ int add_report_url(url_t* url) {
         }
 #endif
         default : {
-            fh=be_init(0,url,0);
+            fh=be_init(0,url,0, linenumber, filename, linebuf);
             if(fh==NULL) {
                 return false;
             }
@@ -461,8 +469,8 @@ int add_report_url(url_t* url) {
     r->detailed_init = conf->report_detailed_init;
     r->base16 = conf->report_base16;
     r->quiet = conf->report_quiet;
-    r->summarize_changes = conf->summarize_changes;
-    r->grouped = conf->grouped;
+    r->summarize_changes = conf->report_summarize_changes;
+    r->grouped = conf->report_grouped;
 
     r->ignore_added_attrs = conf->report_ignore_added_attrs;
     r->ignore_removed_attrs = conf->report_ignore_removed_attrs;
@@ -479,7 +487,8 @@ int add_report_url(url_t* url) {
 #endif
 
     conf->report_urls=list_sorted_insert(conf->report_urls, (void*) r, compare_report_t_by_report_level);
-    return RETOK;
+    log_msg(LOG_LEVEL_DEBUG, _("added r(%p): url(value): %s, fd: %p, level: %d"), r, (r->url)->value, r->fd, r->level);
+    return true;
 
 }
 
@@ -871,10 +880,10 @@ static void print_report_header() {
     if(conf->action&(DO_COMPARE|DO_DIFF)) {
         print_report_summary_line(REPORT_LEVEL_MINIMAL);
         if(conf->action&(DO_INIT)) {
-            report(REPORT_LEVEL_SUMMARY,_("New AIDE database written to %s\n"),conf->db_out_url->value);
+            report(REPORT_LEVEL_SUMMARY,_("New AIDE database written to %s\n"),conf->database_out.url->value);
         }
     } else {
-        report(REPORT_LEVEL_MINIMAL,_(" initialized database at %s\n"),conf->db_out_url->value);
+        report(REPORT_LEVEL_MINIMAL,_(" initialized database at %s\n"),conf->database_out.url->value);
     }
 
     if(conf->config_version) {
@@ -946,13 +955,16 @@ static void print_report_header() {
 }
 
 static void print_report_databases() {
-    if (conf->line_db_in || conf->line_db_out) {
+    if (conf->database_in.db_line || conf->database_out.db_line || conf->database_new.db_line) {
         report(REPORT_LEVEL_DATABASE_ATTRIBUTES,(char*)report_top_format,_("The attributes of the (uncompressed) database(s)"));
-        if (conf->line_db_in) {
-            print_attributes_removed_node(REPORT_LEVEL_DATABASE_ATTRIBUTES, conf->line_db_in);
+        if (conf->database_in.db_line) {
+            print_dbline_attributes(REPORT_LEVEL_DATABASE_ATTRIBUTES, conf->database_in.db_line, NULL, (conf->database_in.db_line)->attr, true);
         }
-        if (conf->line_db_out) {
-            print_dbline_attributes(REPORT_LEVEL_DATABASE_ATTRIBUTES, conf->line_db_out, NULL, (conf->line_db_out)->attr, true);
+        if (conf->database_out.db_line) {
+            print_dbline_attributes(REPORT_LEVEL_DATABASE_ATTRIBUTES, conf->database_out.db_line, NULL, (conf->database_out.db_line)->attr, true);
+        }
+        if (conf->database_new.db_line) {
+            print_dbline_attributes(REPORT_LEVEL_DATABASE_ATTRIBUTES, conf->database_new.db_line, NULL, (conf->database_new.db_line)->attr, true);
         }
     }
 }

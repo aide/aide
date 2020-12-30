@@ -1,8 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999,2000,2001,2002,2019 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999,2000,2001,2002,2019,2020 Rami Lehti, Pablo Virolainen,
  * Hannes von Haugwitz
- * $Header$
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -21,8 +20,9 @@
  
 #ifndef _BE_H_INCLUDED
 #define _BE_H_INCLUDED
-#include "db_config.h"
+#include <stdbool.h>
+#include "url.h"
 
-void* be_init(int inout,url_t* u,int iszipped);
+void* be_init(bool ,url_t*, bool, int, char*, char*);
 
 #endif /* _BE_H_INCLUDED */

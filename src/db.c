@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include "db.h"
+#include "db_lex.h"
 #include "db_file.h"
 #include "db_disk.h"
 #include "md.h"
@@ -33,7 +34,7 @@
 #endif
 
 #include "db_config.h"
-#include "error.h"
+#include "log.h"
 #include "be.h"
 
 #ifdef WITH_MHASH
@@ -46,52 +47,66 @@
 #include "locale-aide.h"
 /*for locale support*/
 
-db_line* db_char2line(char** ss,int db);
-long readoct(char* s,char* err);
+db_line* db_char2line(char**, database*);
 
+static long readoct(char* s, database* db, char* field_name){
+  long i;
+  char* e;
+  i=strtol(s,&e,8);
+  if (e[0]!='\0') {
+      LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, could not read '%s' from database: strtol (base: 8) failed for '%s', field_name, s)
+  }
+  return i;
+}
 
-
-
-
-static long readlong(char* s,char* err){
+static long readlong(char* s, database* db, char* field_name){
   long i;
   char* e;
   i=strtol(s,&e,10);
   if (e[0]!='\0') {
-    error(0,_("Could not read %s from database"),err);
+      LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, could not read '%s' from database: strtol failed for '%s', field_name, s)
   }
   return i;
 }
 
-static long long readlonglong(char* s,char* err){
+static long long readlonglong(char* s, database* db, char* field_name){
   long long int i;
   char* e;
   i=strtoll(s,&e,10);
   if (e[0]!='\0') {
-    error(0,_("Could not read %s from database"),err);
+      LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, could not read '%s' from database: strtoll failed for '%s', field_name, s)
   }
   return i;
 }
 
-static struct md_container *init_db_attrs(URL_TYPE type) {
+static struct md_container *init_db_attrs(url_t *u) {
     struct md_container *mdc = NULL;
     if (conf->db_attrs) {
-        switch (type) {
+        switch (u->type) {
+            case url_stdin:
             case url_stdout:
             case url_stderr:
             case url_fd:
             case url_file:
-            #ifdef WITH_CURL
             case url_http:
             case url_https:
-            case url_ftp:
-            #endif /* WITH CURL */
+            case url_ftp: {
                 mdc = malloc(sizeof(struct md_container)); /* freed in close_db_attrs */
                 mdc->todo_attr = conf->db_attrs;
-                init_md(mdc);
+
+                int length = snprintf(NULL, 0, "%s:%s", get_url_type_string(u->type), u->value) + 1;
+                char *str = checked_malloc(length * sizeof(char));
+                snprintf(str, length, "%s:%s", get_url_type_string(u->type), u->value);
+                init_md(mdc, str);
+                free(str);
+
                 break;
-            default :
-                error(200,_("init_db_attrs(): Unknown url type.\n"));
+            }
+            /* unsupported database types */
+            case url_syslog: {
+                /* do nothing */
+                break;
+            }
         }
     }
     return mdc;
@@ -111,139 +126,46 @@ static db_line *close_db_attrs (struct md_container *mdc, char *url_value) {
     return line;
 }
 
-int db_init(int db)
-{
-  void* rv=NULL;
+int db_init(database* db, bool readonly, bool gzip) {
+  void* fp = NULL;
   
-  error(200,"db_init %i\n",db);
+  log_msg(LOG_LEVEL_TRACE,"db_init(): arguments: db=%p, gzip=%s", db, btoa(gzip));
   
-  switch(db) {
-
-  case DB_DISK: {
-    /*
-      Should we actually do something here?
-     */
-    return db_disk_init();
-  }
-
-
-  case DB_OLD: {
-    conf->mdc_in = init_db_attrs((conf->db_in_url)->type);
-    rv=be_init(1,conf->db_in_url,0);
-    if(rv==NULL) {
-      error(200,_("db_in is null\n"));      
+    db->mdc = init_db_attrs(db->url);
+    fp=be_init(readonly, db->url, gzip, db->linenumber, db->filename, db->linebuf);
+    if(fp==NULL) {
       return RETFAIL;
-    }
-    conf->db_in=rv;
-    error(200,_("db_in is nonnull\n"));
-    return RETOK;
-  }
-  case DB_WRITE: {    
+    } else {
 #ifdef WITH_ZLIB
-    conf->mdc_out = init_db_attrs((conf->db_out_url)->type);
-    if(conf->gzip_dbout){
-       rv=be_init(0,conf->db_out_url,conf->gzip_dbout);
-       conf->db_gzout=rv;
-    }
-    else{
+        if (gzip) {
+            db->gzp = fp;
+        } else {
 #endif
-      rv=be_init(0,conf->db_out_url,0);
-      conf->db_out=rv;
+            db->fp = fp;
 #ifdef WITH_ZLIB
-    }
+        }
 #endif
-    
-    if(rv==NULL){
-      error(200,_("db_out is null\n"));
-      return RETFAIL;
-    }
-    error(200,_("db_out is nonnull %s\n"),conf->db_out_url->value);
     return RETOK;
-  }
-  case DB_NEW: {
-    conf->mdc_out = init_db_attrs((conf->db_new_url)->type);
-    rv=be_init(1,conf->db_new_url,0);
-    if(rv==NULL) {
-      error(200,_("db_new is null\n"));      
-      return RETFAIL;
     }
-    conf->db_new=rv;
-    error(200,_("db_new is nonnull\n"));
-    return RETOK;
-  }
-  }
-  return RETFAIL;
 }
 
-db_line* db_readline(int db){
+db_line* db_readline(database* db){
   db_line* s=NULL;
-  int i=0;
-  url_t* db_url=NULL;
-  FILE* db_filep=NULL;
-  int* db_osize=0;
-  ATTRIBUTE** db_order=NULL;
 
-  switch (db) {
-  case DB_DISK: {
-    /*
-      Nothing else to be done?
-     */
-    s=db_readline_disk();
-    return s;
-  }
-  
-  case DB_OLD: {
-    db_url=conf->db_in_url;
-    db_filep=conf->db_in;
-    db_osize=&(conf->db_in_size);
-    db_order=&(conf->db_in_order);
-    break;
-  }
-  case DB_NEW: {
-    db_url=conf->db_new_url;
-    db_filep=conf->db_new;
-    db_osize=&(conf->db_new_size);
-    db_order=&(conf->db_new_order);
-    break;
-  }
-  }
-
-  switch (db_url->type) {
-#ifdef WITH_CURL
-  case url_http:
-  case url_https:
-  case url_ftp:
-#endif /* WITH CURL */
-  case url_stdin:
-  case url_fd:
-  case url_file: {
-    /* Should set errno */
-    /* Please FIXME */
-    if (db_filep!=NULL) {
+  if (db->fp != NULL) {
       char** ss=db_readline_file(db);
       if (ss!=NULL){
-	s=db_char2line(ss,db);
+          s=db_char2line(ss,db);
 
-	for(i=0;i<*db_osize;i++){
-	  if((*db_order)[i]!=attr_unknown &&
-	     ss[(*db_order)[i]]!=NULL){
-	    free(ss[(*db_order)[i]]);
-	    ss[(*db_order)[i]]=NULL;
-	  }
-	}
-	free(ss);
-	
+          for(int i=0;i<db->num_fields;i++){
+              if(db->fields[i]!=attr_unknown &&
+                      ss[db->fields[i]]!=NULL){
+                  free(ss[db->fields[i]]);
+                  ss[db->fields[i]]=NULL;
+              }
+          }
+          free(ss);
       }
-    }
-    
-    break;
-  }
-
-
-  default : {
-    error(0,_("db_readline():Url-type backend not implemented\n"));
-    return NULL;
-  }
   }
   
   return s;
@@ -288,29 +210,14 @@ static char *db_readchar(char *s)
 
 #define CHAR2HASH(hash) \
 case attr_ ##hash : { \
-    line->hashsums[hash_ ##hash]=base64tobyte(ss[(*db_order)[i]], \
-        strlen(ss[(*db_order)[i]]), NULL); \
+    line->hashsums[hash_ ##hash]=base64tobyte(ss[db->fields[i]], \
+        strlen(ss[db->fields[i]]), NULL); \
   break; \
 }
 
-db_line* db_char2line(char** ss,int db){
+db_line* db_char2line(char** ss, database* db){
 
   db_line* line=(db_line*)malloc(sizeof(db_line)*1);
-  int* db_osize=0;
-  ATTRIBUTE** db_order=NULL;
-
-  switch (db) {
-  case DB_OLD: {
-    db_osize=&(conf->db_in_size);
-    db_order=&(conf->db_in_order);
-    break;
-  }
-  case DB_NEW: {
-    db_osize=&(conf->db_new_size);
-    db_order=&(conf->db_new_order);
-    break;
-  }
-  }
 
   line->perm=0;
   line->uid=0;
@@ -338,54 +245,57 @@ db_line* db_char2line(char** ss,int db){
   
   line->attr=conf->attr; /* attributes from @@dbspec */
 
-  for(int i=0;i<*db_osize;i++){
-    switch ((*db_order)[i]) {
+  for(int i=0;i<db->num_fields;i++){
+
+    log_msg(LOG_LEVEL_TRACE, "db_char2line(): %d[%d]: '%s' (%p)", db->lineno, i, ss[i], ss[i]);
+
+    switch (db->fields[i]) {
     case attr_filename : {
-      if(ss[(*db_order)[i]]!=NULL){
-	decode_string(ss[(*db_order)[i]]);
-	line->fullpath=strdup(ss[(*db_order)[i]]);
+      if(ss[db->fields[i]]!=NULL){
+	decode_string(ss[db->fields[i]]);
+	line->fullpath=strdup(ss[db->fields[i]]);
 	line->filename=line->fullpath;
       } else {
-	error(0,"db_char2line():Error while reading database\n");
+        log_msg(LOG_LEVEL_ERROR, "db_char2line(): error while reading database");
 	exit(EXIT_FAILURE);
       }
       break;
     }
     case attr_linkname : {
-      line->linkname = db_readchar(ss[(*db_order)[i]]);
+      line->linkname = db_readchar(ss[db->fields[i]]);
       break;
     }
     case attr_mtime : {
-      line->mtime=base64totime_t(ss[(*db_order)[i]]);
+      line->mtime=base64totime_t(ss[db->fields[i]], db, "mtime");
       break;
     }
     case attr_bcount : {
-      line->bcount=readlonglong(ss[(*db_order)[i]],"bcount");
+      line->bcount=readlonglong(ss[db->fields[i]], db, "bcount");
       break;
     }
     case attr_atime : {
-      line->atime=base64totime_t(ss[(*db_order)[i]]);
+      line->atime=base64totime_t(ss[db->fields[i]], db, "atime");
       break;
     }
     case attr_ctime : {
-      line->ctime=base64totime_t(ss[(*db_order)[i]]);
+      line->ctime=base64totime_t(ss[db->fields[i]], db, "ctime");
       break;
     }
     case attr_inode : {
-      line->inode=readlong(ss[(*db_order)[i]],"inode");
+      line->inode=readlong(ss[db->fields[i]], db, "inode");
       break;
     }
 
     case attr_uid : {
-      line->uid=readlong(ss[(*db_order)[i]],"uid");
+      line->uid=readlong(ss[db->fields[i]], db, "uid");
       break;
     }
     case attr_gid : {
-      line->gid=readlong(ss[(*db_order)[i]],"gid");
+      line->gid=readlong(ss[db->fields[i]], db, "gid");
       break;
     }
     case attr_size : {
-      line->size=readlonglong(ss[(*db_order)[i]],"size");
+      line->size=readlonglong(ss[db->fields[i]], db, "size");
       break;
     }
     CHAR2HASH(md5)
@@ -401,11 +311,11 @@ db_line* db_char2line(char** ss,int db){
     CHAR2HASH(gostr3411_94)
     CHAR2HASH(stribog256)
     CHAR2HASH(stribog512)
-#ifdef WITH_POSIX_ACL
     case attr_acl : {
+#ifdef WITH_POSIX_ACL
       char *tval = NULL;
       
-      tval = strtok(ss[(*db_order)[i]], ",");
+      tval = strtok(ss[db->fields[i]], ",");
 
       line->acl = NULL;
 
@@ -423,15 +333,15 @@ db_line* db_char2line(char** ss,int db){
         line->acl->acl_d = (char *)base64tobyte(tval, strlen(tval), NULL);
       }
       /* else, it's broken... */
+#endif
       break;
     }
-#endif
       case attr_xattrs : {
         size_t num = 0;
         char *tval = NULL;
         
-        tval = strtok(ss[(*db_order)[i]], ",");
-        num = readlong(tval, "xattrs");
+        tval = strtok(ss[db->fields[i]], ",");
+        num = readlong(tval,  db, "xattrs");
         if (num)
         {
           line->xattrs = malloc(sizeof(xattrs_type));
@@ -460,46 +370,53 @@ db_line* db_char2line(char** ss,int db){
       case attr_selinux : {
         byte  *val = NULL;
         
-        val = base64tobyte(ss[(*db_order)[i]], strlen(ss[(*db_order)[i]]),NULL);
+        val = base64tobyte(ss[db->fields[i]], strlen(ss[db->fields[i]]),NULL);
         line->cntx = (char *)val;
         break;
       }
       
     case attr_perm : {
-      line->perm=readoct(ss[(*db_order)[i]],"permissions");
+      line->perm=readoct(ss[db->fields[i]], db, "permissions");
       break;
     }
     
     case attr_linkcount : {
-      line->nlink=readlong(ss[(*db_order)[i]],"nlink");
+      line->nlink=readlong(ss[db->fields[i]], db, "nlink");
       break;
     }
 
     case attr_attr : {
-      line->attr=readlonglong(ss[(*db_order)[i]],"attr");
+      line->attr=readlonglong(ss[db->fields[i]], db, "attr");
       break;
     }
     
     case attr_e2fsattrs : {
-      line->e2fsattrs=readlong(ss[(*db_order)[i]],"e2fsattrs");
+      line->e2fsattrs=readlong(ss[db->fields[i]], db, "e2fsattrs");
       break;
     }
 
     case attr_capabilities : {
       byte  *val = NULL;
 
-      val = base64tobyte(ss[(*db_order)[i]], strlen(ss[(*db_order)[i]]),NULL);
+      val = base64tobyte(ss[db->fields[i]], strlen(ss[db->fields[i]]),NULL);
       line->capabilities = (char *)val;
+      break;
+    }
+    case attr_bsize :
+    case attr_sizeg :
+    case attr_rdev :
+    case attr_dev :
+    case attr_ftype :
+    case attr_checkinode :
+    case attr_allhashsums :
+    case attr_allownewfile :
+    case attr_allowrmfile : {
+      /*  no db field */
       break;
     }
     case attr_unknown : {
       /* Unknown fields are ignored. */
       break;
-    }
-    
-    default : {
-      error(0,_("Not implemented in db_char2line %i \n"),(*db_order)[i]);
-      return NULL;
     }
     
     }
@@ -509,7 +426,7 @@ db_line* db_char2line(char** ss,int db){
   return line;
 }
 
-time_t base64totime_t(char* s){
+time_t base64totime_t(char* s, database* db, const char* field_name){
   
   byte* b=decode_base64(s,strlen(s),NULL);
   char* endp;
@@ -524,10 +441,11 @@ time_t base64totime_t(char* s){
     time_t t = strtol((char *)b,&endp,10);
     
     if (endp[0]!='\0') {
-      error(0,"Error converting base64\n");
+      LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, could not read '%s' from database: strtoll failed for '%s' (base64 encoded value: '%s'), field_name, b, s)
       free(b);
       return 0;
     }
+    log_msg(LOG_LEVEL_DEBUG, "base64totime_t: converted '%s': '%s' to %lld (base64 encoded value '%s')", field_name, b, (long long) t, s);
     free(b);
     return t;
   }
@@ -535,49 +453,18 @@ time_t base64totime_t(char* s){
   
 }
 
-long readoct(char* s,char* err){
-  long i;
-  char* e;
-  i=strtol(s,&e,8);
-  if (e[0]!='\0') {
-    error(0,_("Could not read %s from database. String %s \n"),err,s);
-  }
-  return i;
-}
-
 
 int db_writespec(db_config* dbconf)
 {
-  switch (dbconf->db_out_url->type) {
-  case url_stdout:
-  case url_stderr:
-  case url_fd:
-  case url_file: {
     if(
 #ifdef WITH_ZLIB
-       (dbconf->gzip_dbout && dbconf->db_gzout) ||
+       (dbconf->gzip_dbout && dbconf->database_out.gzp) ||
 #endif
-       (dbconf->db_out!=NULL)){
+       (dbconf->database_out.fp!=NULL)){
       if(db_writespec_file(dbconf)==RETOK){
 	return RETOK;
       }
     }
-    break;
-  }
-#ifdef WITH_CURL
-  case url_http:
-  case url_https:
-  case url_ftp:
-    {
-      
-      break;
-    }
-#endif /* WITH CURL */
-  default:{
-    error(0,_("Unknown output in db out.\n"));    
-    return RETFAIL;
-  }
-  }
   return RETFAIL;
 }
 
@@ -585,69 +472,54 @@ int db_writeline(db_line* line,db_config* dbconf){
 
   if (line==NULL||dbconf==NULL) return RETOK;
   
-  switch (dbconf->db_out_url->type) {
-#ifdef WITH_CURL
-  case url_http:
-  case url_https:
-  case url_ftp:
-#endif /* WITH CURL */
-  case url_stdout:
-  case url_stderr:
-  case url_fd:
-  case url_file: {
     if (
 #ifdef WITH_ZLIB
-       (dbconf->gzip_dbout && dbconf->db_gzout) ||
+       (dbconf->gzip_dbout && dbconf->database_out.gzp) ||
 #endif
-       (dbconf->db_out!=NULL)) {
-      if (db_writeline_file(line,dbconf,dbconf->db_out_url)==RETOK) {
+       (dbconf->database_out.fp!=NULL)) {
+      if (db_writeline_file(line,dbconf,dbconf->database_out.url)==RETOK) {
 	return RETOK;
       }
     }
-    return RETFAIL;
-    break;
-  }
-  default : {
-    error(0,_("Unknown output in db out.\n"));    
-    return RETFAIL;
-  } 
-  }
   return RETFAIL;
 }
 
 void db_close() {
-  switch (conf->db_out_url->type) {
+  switch (conf->database_out.url->type) {
+  case url_stdin:
   case url_stdout:
   case url_stderr:
   case url_fd:
   case url_file: {
     if (
 #ifdef WITH_ZLIB
-       (conf->gzip_dbout && conf->db_gzout) ||
+       (conf->gzip_dbout && conf->database_out.gzp) ||
 #endif
-       (conf->db_out!=NULL)) {
+       (conf->database_out.fp!=NULL)) {
         db_close_file(conf);
     }
     break;
   }
-#ifdef WITH_CURL
   case url_http:
   case url_https:
   case url_ftp:
     {
-        if (conf->db_out!=NULL) {
-            url_fclose(conf->db_out);
+#ifdef WITH_CURL
+        if (conf->database_out.fp!=NULL) {
+            url_fclose(conf->database_out.fp);
         }
+#endif /* WITH CURL */
       break;
     }
-#endif /* WITH CURL */
-  default : {
-    error(0,_("db_close():Unknown output in db out.\n"));    
-  } 
+  /* unsupported database types */
+  case url_syslog: {
+    /* do nothing */
+    break;
   }
-  conf->line_db_in = close_db_attrs(conf->mdc_in, (conf->db_in_url)->value);
-  conf->line_db_out = close_db_attrs(conf->mdc_out, (conf->action&DO_DIFF
-          ? conf->db_new_url : conf->db_out_url)->value);
+  }
+  conf->database_in.db_line = close_db_attrs(conf->database_in.mdc, conf->database_in.url->value);
+  conf->database_out.db_line = close_db_attrs(conf->database_out.mdc, conf->database_out.url->value);
+  conf->database_new.db_line = close_db_attrs(conf->database_new.mdc, conf->database_new.url->value);
 }
 
 void free_db_line(db_line* dl)

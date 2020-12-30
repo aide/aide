@@ -84,10 +84,10 @@ int algorithms[] = { /* order must match hashsums array */
 };
 #endif
 
-DB_ATTR_TYPE get_hashes() {
+DB_ATTR_TYPE get_hashes(bool include_unsupported) {
     DB_ATTR_TYPE attr = 0LLU;
     for (int i = 0; i < num_hashes; ++i) {
-        if (algorithms[i] >= 0) {
+        if (include_unsupported || algorithms[i] >= 0) {
             attr |= ATTR(hashsums[i].attribute);
         }
     }

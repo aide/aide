@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2005,2006,2010 Rami Lehti,Pablo Virolainen,
+ * Copyright (C) 1999-2002,2005,2006,2010,2020 Rami Lehti,Pablo Virolainen,
  * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -19,12 +19,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "aide.h"
 #include <stdlib.h>
 #include "list.h"
-#include "error.h"
-/*for locale support*/
-#include "locale-aide.h"
+#include "log.h"
+#include "util.h"
 /*for locale support*/
 
 /* list
@@ -49,17 +47,9 @@
 list* list_sorted_insert(list* listp, void* data, int (*compare) (const void*, const void*)) {
     list* newitem=NULL;
     list* curitem=NULL;
-    newitem=(list*)malloc(sizeof(list));
-    if (newitem==NULL) {
-        error(0,"Not enough memory to add a new item to list.\n");
-        exit(EXIT_FAILURE);
-    }
+    newitem = checked_malloc(sizeof(list));
     if (listp==NULL){
-        list_header* header=(list_header*)malloc(sizeof(list_header));
-        if (header==NULL){
-            error(0,"Not enough memory for list header allocation\n");
-            exit(EXIT_FAILURE);
-        }
+        list_header* header = checked_malloc(sizeof(list_header));
         newitem->data=data;
         newitem->header=header;
         newitem->next=NULL;
@@ -118,20 +108,10 @@ list* list_sorted_insert(list* listp, void* data, int (*compare) (const void*, c
 list* list_append(list* listp,void*data)
 {
   list* newitem=NULL;
-  newitem=(list*)malloc(sizeof(list));
-
-  if (newitem==NULL) {
-    error(0,"Not enough memory to add a new item to list.\n");
-    exit(EXIT_FAILURE);
-  }
+  newitem = checked_malloc(sizeof(list));
   
   if(listp==NULL){
-    list_header* header=(list_header*)malloc(sizeof(list_header));
-    
-    if (header==NULL){
-      error(0,"Not enough memory for list header allocation\n");
-      exit(EXIT_FAILURE);
-    }
+    list_header* header = checked_malloc(sizeof(list_header));
     
     newitem->data=data;
     newitem->header=header;
@@ -144,7 +124,7 @@ list* list_append(list* listp,void*data)
     return newitem;
   }else {
     
-    /* We have nonempthy list.
+    /* We have nonempty list.
      * add to last
      */
     
@@ -172,7 +152,7 @@ list* list_delete_item(list* item){
 
 
   if (item==NULL) {
-    error(200,"Tried to remove from empthy list\n");
+      log_msg(LOG_LEVEL_DEBUG, "tried to remove from empty list");
     return item;
   }
   

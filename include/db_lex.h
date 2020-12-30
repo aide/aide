@@ -1,8 +1,8 @@
-/* aide, Advanced Intrusion Detection Environment
+/*
+ * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006,2019,2020 Rami Lehti, Pablo Virolainen, Mike
- * Markley, Richard van den Berg, Hannes von Haugwitz
- * $Header$
+ * Copyright (C) 1999-2002,2006,2020 Rami Lehti, Pablo Virolainen, Richard
+ * van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -19,34 +19,31 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "aide.h"
+#ifndef _DB_LEX_H_INCLUDED_
+#define _DB_LEX_H_INCLUDED_
 
-#include <string.h>
+#include "url.h"
 #include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
+#include "db_config.h"
 
-#include "error.h"
+extern char* dbtext;
 
-void error(int errorlevel,char* error_msg,...)
-{
-  va_list ap;
+void db_lex_buffer(database*);
+void db_lex_delete_buffer(database*);
+int db_scan(void);
 
-  if(conf->verbose_level==-1){
-    if(5<errorlevel){
-      return;
-    }
-  }else{ 
-    if(conf->verbose_level<errorlevel){
-      return;
-    }
-  }  
+typedef enum {
+    TBEGIN_DB = 1,
+    TEND_DB,
+    TSTRING,
+    TPATH,
+    TDBSPEC,
+    TUNKNOWN,
+    TNEWLINE,
+    TEOF,
+} DB_TOKEN;
 
-  FILE* url = stderr;
+#define LOG_DB_FORMAT_LINE(log_level, format, ...) \
+    log_msg(log_level, "%s:%s:%li: " #format , get_url_type_string((db->url)->type), (db->url)->value, db->lineno, __VA_ARGS__);
 
-  va_start(ap, error_msg);
-  vfprintf(url, error_msg,ap);
-  va_end(ap);
-
-  return;
-}
+#endif

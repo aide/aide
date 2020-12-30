@@ -18,38 +18,39 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _HASHSUM_H_INCLUDED
-#define _HASHSUM_H_INCLUDED
+#include "url.h"
 
-#include "attributes.h"
-#include <stdbool.h>
+#include <string.h>
 
-typedef struct {
-    ATTRIBUTE attribute;
-    int length;
-} hashsum_t;
+struct url_type {
+    URL_TYPE type;
+    const char *string;
+};
 
-typedef enum {
-    hash_md5=0,
-    hash_sha1,
-    hash_sha256,
-    hash_sha512,
-    hash_rmd160,
-    hash_tiger,
-    hash_crc32,
-    hash_crc32b,
-    hash_haval,
-    hash_whirlpool,
-    hash_gostr3411_94,
-    hash_stribog256,
-    hash_stribog512,
-    num_hashes,
-} HASHSUM;
+static struct url_type url_type_array[] = {
+ { url_file, "file" },
+ { url_stdout, "stdout" },
+ { url_stdin, "stdin" },
+ { url_stderr, "stderr" },
+ { url_fd, "fd" },
+ { url_ftp, "ftp" },
+ { url_http, "http" },
+ { url_https, "https" },
+ { url_syslog, "syslog" },
+};
 
-extern hashsum_t hashsums[];
+int num_url_types = sizeof(url_type_array)/sizeof(struct url_type);
 
-extern int algorithms[];
+URL_TYPE get_url_type(char * str) {
 
-DB_ATTR_TYPE get_hashes(bool);
+    for (int i = 0; i < num_url_types; ++i) {
+        if (strcmp(str, url_type_array[i].string) == 0) {
+            return url_type_array[i].type;
+        }
+    }
+    return 0;
+}
 
-#endif /* _HASHSUM_H_INCLUDED */
+const char* get_url_type_string(URL_TYPE type) {
+    return url_type_array[type-1].string;
+}

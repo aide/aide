@@ -42,7 +42,8 @@
 
 #include "db_config.h"
 #include "do_md.h"
-#include "error.h"
+#include "log.h"
+#include "attributes.h"
 #include "list.h"
 /*for locale support*/
 #include "locale-aide.h"
@@ -193,7 +194,6 @@ void calc_md(struct stat* old_fs,db_line* line) {
   pid_t pid;
 #endif
 
-  error(255,"calc_md called\n");
 #ifdef _PARAMETER_CHECK_
   if (line==NULL) {
     abort();
@@ -209,10 +209,10 @@ void calc_md(struct stat* old_fs,db_line* line) {
   if (filedes==-1) {
     char* er=strerror(errno);
     if (er!=NULL) {
-      error(3,"do_md(): open() for %s failed: %s\n",
+      log_msg(LOG_LEVEL_WARNING, "hash calculation: open() failed for %s: %s",
 	    line->fullpath,er);
     } else {
-      error(3,"do_md(): open() for %s failed: %i\n",
+      log_msg(LOG_LEVEL_WARNING, "hash calculation: open() failed for %s: %i",
 	    line->fullpath,errno);
     }
     /*
@@ -224,14 +224,14 @@ void calc_md(struct stat* old_fs,db_line* line) {
   
   sres=fstat(filedes,&fs);
   if (sres != 0) {
-	error(1, "fsstat() for '%s' failed: %s\n", line->fullpath, strerror(errno));
+      log_msg(LOG_LEVEL_WARNING, "hash calculation: fstat() failed for '%s': %s", line->fullpath, strerror(errno));
   }
   if(!(line->attr&ATTR(attr_rdev)))
 	  fs.st_rdev=0;
   
 #ifdef HAVE_POSIX_FADVISE
   if (posix_fadvise(filedes,0,fs.st_size,POSIX_FADV_NOREUSE)!=0) {
-	error(255,"posix_fadvise error %s\n",strerror(errno));
+    log_msg(LOG_LEVEL_DEBUG, "hash calculation: posix_fadvise error for '%s': %s", line->fullpath, strerror(errno));
   }
 #endif
   if ((stat_diff=stat_cmp(&fs,old_fs))==RETOK) {
@@ -248,7 +248,7 @@ void calc_md(struct stat* old_fs,db_line* line) {
       close(filedes);
       pid = open_prelinked(line->fullpath, &filedes);
       if (pid == 0) {
-        error(0, "Error on starting prelink undo\n");
+        log_msg(LOG_LEVEL_WARNING, "hash calculation: error on starting prelink for '%s'", line->fullpath);
 	return;
       }
     }
@@ -262,7 +262,8 @@ void calc_md(struct stat* old_fs,db_line* line) {
     
     mdc.todo_attr=line->attr;
     
-    if (init_md(&mdc)==RETOK) {
+    if (init_md(&mdc, line->filename)==RETOK) {
+        log_msg(LOG_LEVEL_DEBUG," calculate hashes for '%s'", line->filename);
 #ifdef HAVE_MMAP
 #ifdef WITH_PRELINK
       if (pid == 0) {
@@ -292,14 +293,14 @@ void calc_md(struct stat* old_fs,db_line* line) {
 	   r_size-=MMAP_BLOCK_SIZE;
 	 }
 	 if ( buf == MAP_FAILED ) {
-	   error(0,"error mmap'ing %s: %s\n", line->fullpath,strerror(errno));
+	   log_msg(LOG_LEVEL_WARNING, "hash calculation: error mmap'ing '%s': %s", line->fullpath, strerror(errno));
 	   close(filedes);
 	   close_md(&mdc);
 	   return;
 	 }
 	 conf->catch_mmap=1;
 	 if (update_md(&mdc,buf,size)!=RETOK) {
-	   error(0,"Message digest failed during update\n");
+	   log_msg(LOG_LEVEL_WARNING, "hash calculation: update_md() failed for '%s'", line->fullpath);
 	   close(filedes);
 	   close_md(&mdc);
 	   munmap(buf,size);
@@ -323,7 +324,7 @@ void calc_md(struct stat* old_fs,db_line* line) {
 #endif
       while ((size=TEMP_FAILURE_RETRY(read(filedes,buf,READ_BLOCK_SIZE)))>0) {
 	if (update_md(&mdc,buf,size)!=RETOK) {
-	  error(0,"Message digest failed during update\n");
+	   log_msg(LOG_LEVEL_WARNING, "hash calculation: update_md() failed for '%s'", line->fullpath);
 	  close(filedes);
 	  close_md(&mdc);
 	  return;
@@ -336,7 +337,7 @@ void calc_md(struct stat* old_fs,db_line* line) {
         int status;
         (void) waitpid(pid, &status, 0);
         if (!WIFEXITED(status) || WEXITSTATUS(status)) {
-          error(0, "Error on exit of prelink child process\n");
+	     log_msg(LOG_LEVEL_WARNING, "hash calculation: error on exit of prelink child process for '%s'", line->fullpath);
 	  close(filedes);
 	  close_md(&mdc);
           return;
@@ -348,7 +349,7 @@ void calc_md(struct stat* old_fs,db_line* line) {
       md2line(&mdc,line);
 
     } else {
-      error(3,"Message digest initialization failed.\n");
+	  log_msg(LOG_LEVEL_WARNING, "hash calculation: init_md() failed for '%s'", line->fullpath);
       no_hash(line);
       close(filedes);
       return;
@@ -358,15 +359,15 @@ void calc_md(struct stat* old_fs,db_line* line) {
       Something just wasn't correct, so no hash calculated.
     */
     
-    error(5,"Entry %s was changed so that hash cannot be calculated for it\n"
-	  ,line->fullpath);
-
+      DB_ATTR_TYPE changed_attribures = 0ULL;
     for(ATTRIBUTE i=0;i<num_attrs;i++) {
       if (((1<<i)&stat_diff)!=0) {
-	error(5,"Attribute %s has been changed\n", attributes[i].db_name);
+          changed_attribures |= 1<<i;
       }
     }
-    
+    char *str;
+    log_msg(LOG_LEVEL_WARNING, "hash calculation: '%s' has been changed (changed attributes: %s), hash could not be calculated", line->fullpath, str = diff_attributes(0, changed_attribures));
+    free(str);
     no_hash(line);
     close(filedes);
     return;
@@ -448,12 +449,12 @@ void acl2line(db_line* line) {
       return;
     }
     if (acl_a == NULL)
-      error(0, "Tried to read access ACL on %s but failed with: %s\n",
+      log_msg(LOG_LEVEL_WARNING, "tried to read access ACL on %s but failed with: %s",
             line->fullpath, strerror(errno));
     if ((acl_d == NULL) && (errno != EACCES)) /* ignore DEFAULT on files */
     {
       acl_free(acl_a);
-      error(0, "Tried to read default ACL on %s but failed with: %s\n",
+      log_msg(LOG_LEVEL_WARNING, "tried to read default ACL on %s but failed with: %s",
             line->fullpath, strerror(errno));
     }
 
@@ -546,7 +547,7 @@ void xattrs2line(db_line *line) {
     if ((xret == -1) && ((errno == ENOSYS) || (errno == ENOTSUP))) {
         line->attr&=(~ATTR(attr_xattrs));
     } else if (xret == -1) {
-        error(0, "listxattrs failed for %s:%s\n", line->fullpath, strerror(errno));
+        log_msg(LOG_LEVEL_WARNING, "listxattrs failed for %s:%s", line->fullpath, strerror(errno));
     } else if (xret) {
         const char *attr = xatrs;
         static ssize_t asz = 1024;
@@ -574,7 +575,7 @@ void xattrs2line(db_line *line) {
             if (aret != -1)
                 xattr_add(xattrs, attr, val, aret);
             else if (errno != ENOATTR)
-                error(0, "getxattr failed for %s:%s\n", line->fullpath, strerror(errno));
+                log_msg(LOG_LEVEL_WARNING, "getxattr failed for %s:%s", line->fullpath, strerror(errno));
 
 next_attr:
             attr += len + 1;
@@ -596,7 +597,7 @@ void selinux2line(db_line *line) {
     if (lgetfilecon_raw(line->fullpath, &cntx) == -1) {
         line->attr&=(~ATTR(attr_selinux));
         if ((errno != ENOATTR) && (errno != EOPNOTSUPP))
-            error(0, "lgetfilecon_raw failed for %s:%s\n", line->fullpath, strerror(errno));
+            log_msg(LOG_LEVEL_WARNING, "lgetfilecon_raw failed for %s: %s", line->fullpath, strerror(errno));
         return;
     }
 
@@ -645,6 +646,6 @@ void capabilities2line(db_line* line) {
 #endif
 
 void no_hash(db_line* line) {
-  line->attr&=~get_hashes();
+  line->attr&=~get_hashes(true);
 }
 

@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2006 Rami Lehti, Pablo Virolainen, Richard
- * van den Berg
+ * Copyright (C) 1999-2002,2006,2020 Rami Lehti, Pablo Virolainen, Richard
+ * van den Berg, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -22,14 +22,12 @@
 #ifndef _CONF_LEX_H_INCLUDED_
 #define _CONF_LEX_H_INCLUDED_
 
-void conf_put_token(const char* s);
+extern int conf_linenumber;
+extern char *conf_filename;
+extern char *conf_linebuf;
 
-extern int conferror(const char*);
-
-extern int conflex(void);
-
-extern int confparse(void);
-
-extern void* conf_scan_string(char*);
+void conf_lex_string(const char *, const char *);
+void conf_lex_file(const char *);
+void conf_lex_delete_buffer();
 
 #endif

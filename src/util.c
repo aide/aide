@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2004-2006,2010,2011,2013,2016,2019 Rami Lehti, Pablo
- * Virolainen, Mike Markley, Richard van den Berg, Hannes von Haugwitz
+ * Copyright (C) 1999-2002,2004-2006,2010,2011,2013,2016,2019,2020 Rami Lehti,
+ * Pablo Virolainen, Mike Markley, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -19,12 +19,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "aide.h"
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <signal.h>
 #include <ctype.h>
 #include <syslog.h>
 /*for locale support*/
@@ -36,20 +34,33 @@
 #define MAXHOSTNAMELEN 256
 #endif
 
-#include "error.h"
+#include "log.h"
 #include "db_config.h"
 #include "util.h"
 
 #define URL_UNSAFE " <>\"#%{}|\\^~[]`@:\033'"
 #define ISPRINT(c) (isascii(c) && isprint(c))
 
-static const char* url_name[] = { 
-  "file", "stdin", "stdout", "stderr", "fd", "syslog", "https", "http", "ftp" };
+const char* btoa(bool b) {
+    return b?"true":"false";
+}
 
-static const int url_value[] = {
-  url_file, url_stdin, url_stdout,url_stderr,url_fd, url_syslog, url_https, url_http, url_ftp };
-
-const int url_ntypes=sizeof(url_value)/sizeof(URL_TYPE);
+void* checked_malloc(size_t size) {
+    void * p = malloc(size);
+    if (p == NULL) {
+        log_msg(LOG_LEVEL_ERROR, "malloc: failed to allocate %d bytes of memory", size);
+        exit(EXIT_FAILURE);
+    }
+    return p;
+}
+void* checked_strdup(const char *s) {
+    void * p = strdup(s);
+    if (p == NULL) {
+        log_msg(LOG_LEVEL_ERROR, "strdup: failed to allocate memory");
+        exit(EXIT_FAILURE);
+    }
+    return p;
+}
 
 int cmpurl(url_t* u1,url_t* u2)
 {
@@ -62,91 +73,6 @@ int cmpurl(url_t* u1,url_t* u2)
 
   return RETOK;
 };
-
-url_t* parse_url(char* val)
-{
-  url_t* u=NULL;
-  char* r=NULL;
-  char* val_copy=NULL;
-  int i=0;
-
-  if(val==NULL){
-    return NULL;
-  }
-  
-  u=(url_t*)malloc(sizeof(url_t));
-  
-  /* We don't want to modify the original hence strdup(val) */
-  val_copy=strdup(val);
-  for(r=val_copy;r[0]!=':'&&r[0]!='\0';r++);
-  
-  if(r[0]!='\0'){
-    r[0]='\0';
-    r++;
-  }
-  u->type=url_unknown;
-  for(i=0;i<url_ntypes;i++){
-    if(strcmp(val_copy,url_name[i])==0){
-      u->type=url_value[i];
-      break;
-    }
-  }
-  
-  switch (u->type) {
-  case url_file : {
-    if(r[0]=='/'&&(r+1)[0]=='/'&&(r+2)[0]=='/'){
-      u->value=strdup(r+2);
-      break;
-    }
-    if(r[0]=='/'&&(r+1)[0]=='/'&&(r+2)[0]!='/'){
-      char*hostname=(char*)malloc(sizeof(char)*MAXHOSTNAMELEN);
-      char* t=r+2;
-      r+=2;
-      for(i=0;r[0]!='/'&&r[0]!='\0';r++,i++);
-      if(r[0]=='\0'){
-	error(0,"Invalid file-URL,no path after hostname: file:%s\n",t);
-	return NULL;
-      }
-      u->value=strdup(r);
-      r[0]='\0';
-      if(gethostname(hostname,MAXHOSTNAMELEN)==-1){
-    strncpy(hostname,"localhost", 10);
-      }
-      if( (strcmp(t,"localhost")==0)||(strcmp(t,hostname)==0)){
-	free(hostname);
-	break;
-      } else {
-	error(0,"Invalid file-URL, cannot use hostname other than localhost or %s: file:%s\n",hostname,u->value);
-	free(hostname);
-	return NULL;
-      }
-      free(hostname);
-      break;
-    }
-    u->value=strdup(r);
-    
-    break;
-  }
-  case url_https :
-  case url_http :
-  case url_ftp : {
-    u->value=strdup(val);
-    break;
-  }
-  case url_unknown : {
-    error(0,"Unknown URL-type:%s\n",val_copy);
-    break;
-  }
-  default : {
-    u->value=strdup(r);
-    break;
-  }
-  }
-
-  free(val_copy);
-
-  return u;
-}
 
 /* Returns 1 if the string contains unsafe characters, 0 otherwise.  */
 int contains_unsafe (const char *s)
@@ -305,64 +231,37 @@ char* perm_to_char(mode_t perm)
   }
 #endif
 
-  error(240,"perm_to_char(): %i -> %s\n",perm,pc);
+  log_msg(LOG_LEVEL_TRACE, "perm_to_char: %i -> %s",perm,pc);
 
   return pc;
 }
 
-void init_sighandler()
-{
-  signal(SIGBUS,sig_handler);
-  signal(SIGTERM,sig_handler);
-  signal(SIGUSR1,sig_handler);
-  signal(SIGUSR2,sig_handler);
-  signal(SIGHUP,sig_handler);
-
-  return;
-}
-
-void sig_handler(int signum)
-{
-  switch(signum){
-  case SIGBUS  : 
-  case SIGSEGV :{
-    error(200,"Caught SIGBUS/SIGSEGV\n");
-    if(conf->catch_mmap==1){
-      error(4,"Caught SIGBUS/SEGV while mmapping. File was truncated while aide was running?\n");
-      conf->catch_mmap=0;
-    } else {
-      error(0,"Caught SIGBUS/SEGV. Exiting\n");
-      exit(EXIT_FAILURE);
+char get_file_type_char(mode_t mode) {
+    switch (mode & S_IFMT) {
+        case S_IFREG: return 'f';
+        case S_IFDIR: return 'd';
+#ifdef S_IFIFO
+        case S_IFIFO: return 'p';
+#endif
+        case S_IFLNK: return 'l';
+        case S_IFBLK: return 'b';
+        case S_IFCHR: return 'c';
+#ifdef S_IFSOCK
+        case S_IFSOCK: return 's';
+#endif
+#ifdef S_IFDOOR
+        case S_IFDOOR: return 'D';
+#endif
+#ifdef S_IFPORT
+        case S_IFPORT: return 'P';
+#endif
+        default: return '?';
     }
-    break;
-  }
-  case SIGHUP : {
-    error(4,"Caught SIGHUP\n");
-    break;
-  }
-  case SIGTERM : {
-    error(4,"Caught SIGTERM\nUse SIGKILL to terminate\n");
-    break;
-  }
-  case SIGUSR1 : {
-    error(4,"Setting output to debug level according to signal\n");
-    conf->verbose_level=220;
-    break;
-  }
-  case SIGUSR2 : {
-    error(4,"Setting output to normal level according to signal\n");
-    conf->verbose_level=5;
-    break;
-  }
-  }
-  error(220,"Caught signal %d\n",signum);
-  init_sighandler();
-
-  return;
 }
 
 char *expand_tilde(char *path) {
-    char *homedir, *full;
+    char *homedir = NULL;
+    char *full = NULL;
     size_t path_len, homedir_len, full_len;
 
     if (path != NULL) {
@@ -374,11 +273,12 @@ char *expand_tilde(char *path) {
                 full = malloc(sizeof(char) * (full_len+1));
                 strcpy(full, homedir);
                 strcat(full+homedir_len, path+sizeof(char));
+                log_msg(LOG_LEVEL_DEBUG, "expanded '~' in '%s' to '%s'", path, full);
                 free(path);
                 /* Don't free(homedir); because it is not safe on some platforms */
                 path = full;
             } else {
-                error(3, _("Variable name 'HOME' not found in environment. '~' cannot be expanded\n"));
+                log_msg(LOG_LEVEL_WARNING, _("Variable name 'HOME' not found in environment. '~' cannot be expanded"));
             }
         } else if (path[0] == '\\' && path[1] == '~') {
             path += sizeof(char);
@@ -514,6 +414,6 @@ int syslog_facility_lookup(char *s)
 		return(LOG_LOCAL7);
 #endif
 
-	error(0,"Syslog facility \"%s\" is unknown, using default\n",s);
+	log_msg(LOG_LEVEL_WARNING, "Syslog facility \"%s\" is unknown, using default",s);
 	return(AIDE_SYSLOG_FACILITY);
 }

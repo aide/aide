@@ -1,29 +1,11 @@
-C	[%!$&\'\(\)\*\+,\-./0-9;=?A-Za-z_]
-L	[a-zA-Zˆ‰Â÷ƒ≈0-9_]
+C	[^\n\t ]
 
 %{
 
-/*
-C	[a-zA-Z0-9ˆ‰Â÷ƒ≈\\\*=$%£&/!\^\~;:.,\?\{\}\(\)\[\]\<\>\-\+\*\|\'\`]
-*/
-/*
-"\ "\\*=$%£&/!\^~;:.,?\{\}\(\)\[\]\<\>-+*\|\'\`]
-typedef union {
-	char* s;
-	}  YYSTYPE;
-extern YYSTYPE yylval;
-
-
-"/"({C}|{PC})+ {
-  return (TNAME);
-}
-
-*/
-
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2005,2010,2013,2016,2019 Rami Lehti,Pablo Virolainen,
- * Richard van den Berg, Hannes von Haugwitz
+ * Copyright (C) 1999-2002,2005,2010,2013,2016,2019,2020 Rami Lehti,Pablo
+ * Virolainen, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -49,86 +31,96 @@ extern YYSTYPE yylval;
 
 #include "aide.h"
 #include "gen_list.h"
-#include "conf_yacc.h"
 #include <string.h>
-#include "error.h"
+#include "log.h"
 #include "commandconf.h"
+#include "db_lex.h"
 
-/* We need to define these here since we cannot include db.h*/
-#define DB_OLD       (1<<0)
-#define DB_WRITE     (1<<1)
-#define DB_NEW       (1<<2)
-#define NODE_ADDED   (1<<4)
-#define NODE_REMOVED (1<<5)
-#define NODE_CHANGED (1<<6)
+#include "db.h"
 
-long db_in_lineno=1;
-long db_new_lineno=1;
-long* db_lineno=&db_in_lineno;
-YY_BUFFER_STATE db_stack[2];
+database* db;
 
-int db_at_hand=0;
+LOG_LEVEL db_lex_log_level = LOG_LEVEL_DEBUG;
+
+#define LOG_AND_RETURN(token) \
+    LOG_DB_FORMAT_LINE(db_lex_log_level, db_lex: %s: '%s', #token, dbtext) \
+    return (token);
 
 #define YY_INPUT(buf,result,max_size) \
-        if( ((result=db_input_wrapper(buf,max_size,db_at_hand)) == 0) \
-            && ferror(yyin) ) \
+        if( ((result=db_input_wrapper(buf, max_size, db)) == 0) \
+            && ferror(dbin) ) \
           YY_FATAL_ERROR( "input in flex scanner failed" );
-
-
 
 %}
 
 %option noinput
 %option nounput
 
+%x DB
+
 %%
+<INITIAL>"#"[^\n]*"\n" {
+            (db->lineno)++;
+            LOG_DB_FORMAT_LINE(db_lex_log_level, db_lex: skip comment line: '%.*s', strlen(dbtext)-1, dbtext)
+           }
+<INITIAL>^[^\n]*"\n" {
+            (db->lineno)++;
+            LOG_DB_FORMAT_LINE(db_lex_log_level, db_lex: parse '%.*s', strlen(dbtext)-1, dbtext)
+            yyless(0);
+            BEGIN(DB);
+           }
+<INITIAL>^"\n" {
+            (db->lineno)++;
+            LOG_DB_FORMAT_LINE(db_lex_log_level, %s, "db_lex: skip empty line")
+           }
 
-^"\037\213" {
-  return (TGZIPHEADER);
+<DB>^"@@db_spec" {
+    LOG_AND_RETURN(TDBSPEC)
 }
 
-"@@db_spec" {
-  return (TDBSPEC);
+<DB>^"@@begin_db" {
+    LOG_AND_RETURN(TBEGIN_DB)
 }
 
-^"@@begin_db" {
-  return (TBEGIN_DB);
+
+<DB>^"@@end_db" {
+    LOG_AND_RETURN(TEND_DB)
 }
 
-^"@@end_db" {
-  return (TEND_DB);
+<DB>^"@@"({C}+) {
+    LOG_AND_RETURN(TUNKNOWN)
 }
 
-"@@"({L}+) {
-  return (TUNKNOWN);
+<DB>"#"[^\n]* { /* inline comment */
+    LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, db_lex: skip inline comment: '%s', dbtext)
 }
 
-"#"[^\n]*"\n" {
-  (*db_lineno)++;
+<DB>^"/"({C})* {
+    LOG_AND_RETURN(TPATH)
 }
 
-({C})+ {
-
- error(230," %s \n",yytext);
-
- return (TID);
+<DB>({C})+ {
+    LOG_AND_RETURN(TSTRING)
 }
 
-[" "\t] {}
-
-"\n" {
- (*db_lineno)++;
- return (TNEWLINE);
+<DB>[ \t] {
+    LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, db_lex: skip tab/whitespace: '%s', dbtext)
 }
 
-[^\n] {
- return (TERROR);
+<DB>"\n" {
+  LOG_DB_FORMAT_LINE(db_lex_log_level, db_lex: TNEWLINE: '\n', NULL)
+  BEGIN 0;
+  return (TNEWLINE);
 }
 
-<<EOF>> {
-	return (TEOF);
-	}
-	
+<*><<EOF>> {
+    LOG_DB_FORMAT_LINE(db_lex_log_level, db_lex: TEOF: '<<EOF>>', NULL)
+    return (TEOF);
+}
+
+<*>. {
+    LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, skip unexpected character: '%c', *dbtext)
+}
 
 %%
 
@@ -136,26 +128,16 @@ int dbwrap(){
   return 1;
 }
 
-void db_buff(int db, FILE* f)
+void db_lex_buffer(database* _database)
 {
-  int stack_pointer=0;
+  db = _database;
 
-  switch(db) {
-  case DB_OLD: {
-    stack_pointer=0;
-    db_at_hand=DB_OLD;
-    break;
+  if (db->fp != NULL) {
+    db->buffer_state = db_create_buffer(db->fp, YY_BUF_SIZE );
   }
-  case DB_NEW: {
-    stack_pointer=1;
-    db_at_hand=DB_NEW;
-    break;
-  }    
-  }
-  
-  if(f!=NULL){
-    db_stack[stack_pointer]=yy_create_buffer( f, YY_BUF_SIZE );
-  }  
-  yy_switch_to_buffer(db_stack[stack_pointer]);
+  db_switch_to_buffer(db->buffer_state);
+}
 
+void db_lex_delete_buffer(database* _database) {
+    db_delete_buffer(_database->buffer_state );
 }

@@ -86,4 +86,7 @@ extern DB_ATTR_TYPE num_attrs;
 
 /* memory for the returned string is obtained with malloc(3), and should be freed with free(3). */
 char *diff_attributes(DB_ATTR_TYPE, DB_ATTR_TYPE);
+
+/* memory for the returned string is obtained with malloc(3), and should be freed with free(3). */
+char *diff_database_attributes(DB_ATTR_TYPE, DB_ATTR_TYPE);
 #endif

@@ -22,13 +22,15 @@
 #include "aide.h"
 #include <stdlib.h>
 #include "md.h"
+#include "log.h"
+#include "errorcodes.h"
 #include <string.h>
 
 /*
   Initialise md_container according its todo_attr field
  */
 
-int init_md(struct md_container* md) {
+int init_md(struct md_container* md, const char *filename) {
   
   /*    First we check the parameter..   */
 #ifdef _PARAMETER_CHECK_
@@ -36,7 +38,6 @@ int init_md(struct md_container* md) {
     return RETFAIL;  
   }
 #endif
-  error(255,"init_md called\n");
   /*
     We don't have calculator for this yet :)
   */
@@ -45,53 +46,45 @@ int init_md(struct md_container* md) {
    for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
        DB_ATTR_TYPE h = ATTR(hashsums[i].attribute);
        if (h&md->todo_attr) {
-if (algorithms[i] >= 0) {
            md->mhash_mdh[i]=mhash_init(algorithms[i]);
            if (md->mhash_mdh[i]!=MHASH_FAILED) {
                md->calc_attr|=h;
            } else {
-               error(2, "mhash_init for %s failed\n", attributes[hashsums[i].attribute].db_name);
+               log_msg(LOG_LEVEL_WARNING,"%s: mhash_init (%s) failed for '%s'", filename, attributes[hashsums[i].attribute].db_name, filename);
                md->todo_attr&=~h;
            }
-} else {
-error(1, "'%s' hash algorithm not supported by mhash\n", attributes[hashsums[i].attribute].db_name);
-md->todo_attr&=~h;
-}
        } else {
            md->mhash_mdh[i]=MHASH_FAILED;
        }
    }
 #endif 
 #ifdef WITH_GCRYPT
-  error(255,"Gcrypt library initialization\n");
   	if(!gcry_check_version(GCRYPT_VERSION)) {
-		error(0,"libgcrypt version mismatch\n");
+		log_msg(LOG_LEVEL_ERROR,"libgcrypt version mismatch");
 		exit(VERSION_MISMATCH_ERROR);
 	}
 	gcry_control(GCRYCTL_DISABLE_SECMEM, 0);
 	gcry_control(GCRYCTL_INITIALIZATION_FINISHED, 0);
 	if(gcry_md_open(&md->mdh,0,0)!=GPG_ERR_NO_ERROR){
-		error(0,"gcrypt_md_open failed\n");
+		log_msg(LOG_LEVEL_ERROR,"gcrypt_md_open failed");
 		exit(IO_ERROR);
 	}
 
    for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
         DB_ATTR_TYPE h = ATTR(hashsums[i].attribute);
             if (h&md->todo_attr) {
-if (algorithms[i] >= 0) {
                 if(gcry_md_enable(md->mdh,algorithms[i])==GPG_ERR_NO_ERROR){
                     md->calc_attr|=h;
                 } else {
-                    error(2, "gcry_md_enable for %s failed\n", attributes[hashsums[i].attribute].db_name);
+                    log_msg(LOG_LEVEL_WARNING,"%s: gcry_md_enable (%s) failed for '%s'", filename, attributes[hashsums[i].attribute].db_name, filename);
                     md->todo_attr&=~h;
                 }
-} else {
-error(1, "'%s' hash algorithm not supported by gcrypt\n", attributes[hashsums[i].attribute].db_name);
-md->todo_attr&=~h;
-}
             }
   }
 #endif
+  char *str;
+  log_msg(LOG_LEVEL_DEBUG, " initialised md_container (%s) for '%s'", str = diff_attributes(0, md->calc_attr), filename);
+  free(str);
   return RETOK;
 }
 
@@ -101,7 +94,7 @@ md->todo_attr&=~h;
  */
 
 int update_md(struct md_container* md,void* data,ssize_t size) {
-  error(255,"update_md called\n");
+  log_msg(LOG_LEVEL_TRACE,"update_md(md=%p, data=%p, size=%i)", md, data, size);
 
 #ifdef _PARAMETER_CHECK_
   if (md==NULL||data==NULL) {
@@ -133,7 +126,7 @@ int close_md(struct md_container* md) {
     return RETFAIL;
   }
 #endif
-  error(255,"close_md called \n");
+  log_msg(LOG_LEVEL_DEBUG," free md_container");
 #ifdef WITH_MHASH
   for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
       if(md->mhash_mdh[i] != MHASH_FAILED){
@@ -145,7 +138,7 @@ int close_md(struct md_container* md) {
   gcry_md_final(md->mdh); 
 
   for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
-      if (algorithms[i] >=0 && md->calc_attr&ATTR(hashsums[i].attribute)) {
+      if (md->calc_attr&ATTR(hashsums[i].attribute)) {
           memcpy(md->hashsums[i],gcry_md_read(md->mdh, algorithms[i]), hashsums[i].length);
       }
   }
@@ -168,8 +161,6 @@ int close_md(struct md_container* md) {
  */
 
 void md2line(struct md_container* md,struct db_line* line) {
-  
-  error(255,"md2line \n");
   
 #ifdef _PARAMETER_CHECK_
   if (md==NULL||line==NULL) {

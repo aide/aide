@@ -21,50 +21,37 @@
 
 #ifndef _COMMANDCONF_H_INCLUDED
 #define _COMMANDCONF_H_INCLUDED
+#include "rx_rule.h"
 #include "list.h"
-#include "gen_list.h"
-#include "db_config.h"
+#include <stdio.h>
 #include <stdbool.h>
+#include "db_config.h"
+#include "db.h"
 
-extern long conf_lineno;
-extern int newlinelastinconfig;
-
-int commandconf(const char mode,const char* line);
+int parse_config(char *, char *, char *);
 
 int conf_input_wrapper(char* buf, int max_size, FILE* in);
-int db_input_wrapper(char* buf, int max_size, int db);
+int db_input_wrapper(char*, int, database*);
 
-bool add_rx_rule_to_tree(char*, RESTRICTION_TYPE, DB_ATTR_TYPE, int, seltree*);
+bool add_rx_rule_to_tree(char*, RESTRICTION_TYPE, DB_ATTR_TYPE, int, seltree*, int, char*, char*);
 
-void do_define(char*,char*);
+void do_define(char*,char*, int, char*, char*);
 
-void do_undefine(char*);
+void do_undefine(char*, int, char*, char*);
 
-int do_ifxdef(int,char*);
-
-int do_ifxhost(int,char*);
-
-void do_groupdef(char*,DB_ATTR_TYPE);
+DB_ATTR_TYPE do_groupdef(char*,DB_ATTR_TYPE);
 
 DB_ATTR_TYPE get_groupval(char*);
 
-void putbackvariable(char*);
+bool do_dbdef(DB_TYPE, char*, int, char*, char*);
 
-int handle_endif(int doit,int allow_else);
-
-void do_dbdef(int, char*);
-
-void do_verbdef(char*);
-
-void do_reportlevel(char *);
+bool do_reportlevel(char *, int, char*, char*);
 
 void do_replevdef(char*);
 
-void do_repurldef(char*);
+bool do_repurldef(char*, int, char*, char*);
 
-void do_rootprefix(char*);
+void do_rootprefix(char*, int, char*, char*);
 
-void do_report_ignore_e2fsattrs(char*);
-
-
+void do_report_ignore_e2fsattrs(char*, int, char*, char*);
 #endif

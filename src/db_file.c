@@ -27,13 +27,16 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include "attributes.h"
+
 #include <errno.h>
 
 #include "types.h"
 #include "base64.h"
+#include "db.h"
+#include "db_lex.h"
 #include "db_file.h"
 #include "gen_list.h"
-#include "conf_yacc.h"
 #include "util.h"
 #include "commandconf.h"
 /*for locale support*/
@@ -52,57 +55,6 @@
 
 #include "md.h"
 
-#ifdef WITH_ZLIB
-#define ZBUFSIZE 16384
-
-static int dofprintf( const char* s,...)
-#ifdef __GNUC__
-        __attribute__ ((format (printf, 1, 2)));
-#else
-        ;
-#endif
-
-/* FIXME get rid of this */
-void handle_gzipped_input(int out,gzFile* gzp){
-
-  int nread=0;
-  int err=0;
-  int* buf=malloc(ZBUFSIZE);
-  buf[0]='\0';
-  error(200,"handle_gzipped_input(),%d\n",out);
-  while(!gzeof(*gzp)){
-    if((nread=gzread(*gzp,buf,ZBUFSIZE))<0){
-      error(0,_("gzread() failed: gzerr=%s!\n"),gzerror(*gzp,&err));
-      exit(1);
-    } else {
-      int tmp = 0;
-      
-      /* gzread returns 0 even if uncompressed bytes were read */
-      if(nread==0){
-        tmp = strlen((char*)buf);
-      } else {
-        tmp = nread;
-      }
-      if (write(out, buf,nread) != tmp)
-      {
-        error(0,_("write() failed: %s\n"), strerror(errno));
-        exit(1);
-      }
-      
-      error(240,"nread=%d,strlen(buf)=%lu,errno=%s,gzerr=%s\n",
-	    nread,(unsigned long)strlen((char*)buf),strerror(errno),
-	    gzerror(*gzp,&err));
-      buf[0]='\0';
-    }
-  }
-  close(out);
-  error(240,"handle_gzipped_input() exiting\n");
-  exit(0);
-  /* NOT REACHED */
-  return;
-}
-#endif
-
 
 int dofflush(void)
 {
@@ -114,7 +66,7 @@ int dofflush(void)
     retval=Z_OK;
   }else {
 #endif
-    retval=fflush(conf->db_out); 
+    retval=fflush(conf->database_out.fp);
 #ifdef WITH_ZLIB
   }
 #endif
@@ -122,6 +74,11 @@ int dofflush(void)
   return retval;
 }
 
+int dofprintf(const char*, ...)
+#ifdef __GNUC__
+        __attribute__ ((format (printf, 1, 2)))
+#endif
+;
 int dofprintf( const char* s,...)
 {
   char buf[3];
@@ -133,26 +90,23 @@ int dofprintf( const char* s,...)
   retval=vsnprintf(buf,3,s,ap);
   va_end(ap);
   
-  temp=(char*)malloc(retval+2);
-  if(temp==NULL){
-    error(0,"Unable to alloc %i bytes\n",retval+2);
-    return -1;
-  }  
+  temp=(char*)checked_malloc(retval+2);
+
   va_start(ap,s);
   retval=vsnprintf(temp,retval+1,s,ap);
   va_end(ap);
   
-  if (conf->mdc_out) {
-      update_md(conf->mdc_out,temp ,retval);
+  if ((conf->database_out).mdc) {
+      update_md((conf->database_out).mdc,temp ,retval);
   }
 
 #ifdef WITH_ZLIB
   if(conf->gzip_dbout){
-    retval=gzwrite(conf->db_gzout,temp,retval);
+    retval=gzwrite((conf->database_out).gzp,temp,retval);
   }else{
 #endif
     /* writing is ok with fwrite with curl.. */
-    retval=fwrite(temp,1,retval,conf->db_out);
+    retval=fwrite(temp,1,retval,conf->database_out.fp);
 #ifdef WITH_ZLIB
   }
 #endif
@@ -163,331 +117,206 @@ int dofprintf( const char* s,...)
 
 
 
-int db_file_read_spec(int db){
-  
+static int db_file_read_spec(database* db){
   int i=0;
-  int* db_osize=0;
-  ATTRIBUTE** db_order=NULL;
+
   DB_ATTR_TYPE seen_attrs = 0LLU;
 
-  switch (db) {
-  case DB_OLD: {
-    db_osize=&(conf->db_in_size);
-    db_order=&(conf->db_in_order);
-    db_lineno=&db_in_lineno;
-    break;
-  }
-  case DB_NEW: {
-    db_osize=&(conf->db_new_size);
-    db_order=&(conf->db_new_order);
-    db_lineno=&db_new_lineno;
-    break;
-  }
-  }
-
-  *db_order = malloc(1*sizeof(ATTRIBUTE));
+  db->fields = malloc(1*sizeof(ATTRIBUTE));
   
   while ((i=db_scan())!=TNEWLINE){
+    LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, db_file_read_spec(): db_scan() returned token=%d, i);
+
     switch (i) {
       
-    case TID : {
-      DB_ATTR_TYPE l;
-      *db_order = realloc(*db_order, ((*db_osize)+1)*sizeof(ATTRIBUTE));
-      if(*db_order == NULL) {
+    case TSTRING : {
+      ATTRIBUTE l;
+      db->fields = realloc(db->fields, (db->num_fields+1)*sizeof(ATTRIBUTE));
+      if(db->fields == NULL) {
           return RETFAIL;
       }
-      (*db_order)[*db_osize]=attr_unknown;
+      db->fields[db->num_fields]=attr_unknown;
       for (l=0;l<num_attrs;l++){
           if (attributes[l].db_name && strcmp(attributes[l].db_name,dbtext)==0) {
               if (ATTR(l)&seen_attrs) {
-                  error(0,"Field %s redefined in @@dbspec\n",dbtext);
-                  (*db_order)[*db_osize]=attr_unknown;
+                  LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, @@dbspec: skip redefined field '%s' at position %i, dbtext, db->num_fields)
+                  db->fields[db->num_fields]=attr_unknown;
               } else {
-                  (*db_order)[*db_osize]=l;
+                  db->fields[db->num_fields]=l;
                   seen_attrs |= ATTR(l);
+                  LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, @@dpspec: define field '%s' at position %i, dbtext, db->num_fields)
               }
-              (*db_osize)++;
+              db->num_fields++;
               break;
           }
       }
 
       if(l==attr_unknown){
-          error(0,"Unknown field %s in database\n",dbtext);
-          (*db_order)[*db_osize]=attr_unknown;
-          (*db_osize)++;
+          LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, @@dbspec: skip unknown field '%s' at position %i, dbtext, db->num_fields);
+          db->fields[db->num_fields]=attr_unknown;
+          db->num_fields++;
       }
       break;
     }
-    
-    case TDBSPEC : {
-      error(0,"Only one @@dbspec in input database.\n");
-      return RETFAIL;
-      break;
-    }
-    
+
     default : {
-      error(0,"Aide internal error while reading input database.\n");
+      LOG_DB_FORMAT_LINE(LOG_LEVEL_ERROR, unexpeted token while reading dbspec: '%s', dbtext);
       return RETFAIL;
     }
     }
   }
 
   /* Lets generate attr from db_order if database does not have attr */
-  conf->attr=-1;
+  conf->attr=DB_ATTR_UNDEF;
 
-  for (i=0;i<*db_osize;i++) {
-    if ((*db_order)[i]==attr_attr) {
+  for (i=0;i<db->num_fields;i++) {
+    if (db->fields[i] == attr_attr) {
       conf->attr=1;
     }
   }
   if (conf->attr==DB_ATTR_UNDEF) {
     conf->attr=0;
-    error(0,"Database does not have attr field.\nComparison may be incorrect\nGenerating attr-field from dbspec\nIt might be a good Idea to regenerate databases. Sorry.\n");
-    for(i=0;i<*db_osize;i++) {
-      conf->attr|=1LL<<(*db_order)[i];
+    for(i=0;i<db->num_fields;i++) {
+      conf->attr|=1LL<<db->fields[i];
     }
+    char *str;
+    LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, missing attr field%c generated attr field from dbspec: %s (comparison may be incorrect), ',', str = diff_database_attributes(0, conf->attr))
+    free(str);
   }
   return RETOK;
 }
 
-char** db_readline_file(int db){
-  
+DB_TOKEN skip_line(database* db) {
+    DB_TOKEN token;
+    do {
+        token = db_scan();
+        LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, db_readline_file(): db_scan() returned a=%d, token);
+        LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, skip_line(): skip '%s', token==TNEWLINE?"\n":dbtext)
+    } while(token != TNEWLINE && token != TEOF);
+    return token;
+}
+
+char** db_readline_file(database* db) {
+  log_msg(LOG_LEVEL_TRACE, "db_readline_file(): arguments db=%p", db);
   char** s=NULL;
   
   int i=0;
-  int r;
   int a=0;
-  int token=0;
-  int gotbegin_db=0;
-  int gotend_db=0;
-  int* db_osize=0;
-  ATTRIBUTE** db_order=NULL;
-  FILE* db_filep=NULL;
-  url_t* db_url=NULL;
+  DB_TOKEN token;
+  bool found_enddb = false;;
 
-  switch (db) {
-  case DB_OLD: {
-    db_osize=&(conf->db_in_size);
-    db_order=&(conf->db_in_order);
-    db_filep=conf->db_in;
-    db_url=conf->db_in_url;
-    db_lineno=&db_in_lineno;
-    break;
+  do {
+  token = db_scan();
+  LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, db_readline_file(): db_scan() returned token=%d, token);
+  if (db->fields) {
+    switch (token) {
+        case TUNKNOWN: {
+          LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, unknown token '%s' found inside database (skip line), dbtext)
+          skip_line(db);
+          break;
+        }
+        case TDBSPEC:
+        case TBEGIN_DB: {
+          LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, additional '%s' found inside database (skip line), dbtext)
+          skip_line(db);
+          break;
+        }
+        case TEND_DB: {
+          LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, %s, "'@@end_db' found")
+          found_enddb = true;
+          break;
+        }
+        case TEOF:
+        case TNEWLINE: {
+            if (found_enddb) {
+                LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, %s, "stop reading database")
+                return s;
+            } else if (token == TEOF) {
+                LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, %s, "missing '@@end_db' in database")
+                return s;
+            }
+            if (s) {
+                if (i<db->num_fields-1) {
+                    LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, cutoff database line '%s' found (field '%s' (position: %d) is missing) (skip line), s[0], attributes[db->fields[i+1]].db_name, i+1);
+                    for(a=0;a<i;a++){
+                        free(s[db->fields[a]]);
+                        s[db->fields[a]] = NULL;
+                    }
+                    free(s);
+                    s = NULL;
+                } else {
+                    return s;
+                }
+            }
+            break;
+        }
+        case TPATH: {
+            i = 0;
+            s = checked_malloc(sizeof(char*)*num_attrs);
+            for(ATTRIBUTE j=0; j<num_attrs; j++){
+                s[j]=NULL;
+            }
+            s[i] = strdup(dbtext);
+            LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, '%s' set field '%s' (position %d): '%s', s[0], attributes[db->fields[i]].db_name, i, dbtext);
+            break;
+        }
+        case TSTRING: {
+            if (s) {
+                if (++i<db->num_fields) {
+                    if (db->fields[i] != attr_unknown) {
+                        LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, '%s' set field '%s' (position %d): '%s', s[0], attributes[db->fields[i]].db_name, i, dbtext);
+                        s[db->fields[i]] = strdup(dbtext);
+                    } else {
+                        LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, skip unknown field '%s' (position: %d): '%s', attributes[db->fields[i]].db_name, i, dbtext);
+                    }
+                } else {
+                    LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, expected newline or end of file (skip found string '%s'), dbtext);
+                }
+            } else {
+                LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, expected newline or end of file (skip found string '%s'), dbtext);
+            }
+            break;
+        }
+    }
+  } else {
+      if (token == TEOF) {
+          /* allow empty database */
+          LOG_DB_FORMAT_LINE(LOG_LEVEL_INFO, db_readline_file(): empty database file, NULL);
+          return s;
+      }
+      while (token != TBEGIN_DB) {
+          if (token == TEOF) {
+              LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, db_readline_file(): '@@begin_db' NOT found (stop reading database), NULL);
+              return s;
+          }
+          LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, db_readline_file(): skip '%s', dbtext);
+          token = db_scan();
+          LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, db_readline_file(): db_scan() returned token=%d, token);
+      }
+      LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, '@@begin_db' found, NULL)
+      token = db_scan();
+      LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, db_readline_file(): db_scan() returned token=%d, token);
+      if (token != TNEWLINE) {
+              LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, db_readline_file(): missing newline after '@@begin_db' (stop reading database), NULL);
+              return s;
+
+      } else {
+          token = db_scan();
+          LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, db_readline_file(): db_scan() returned token=%d, token);
+          if (token != TDBSPEC) {
+              LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, db_readline_file(): unexpected token '%s'%c expected '@@db_spec' (stop reading database), dbtext, 'c');
+              return s;
+          } else {
+              LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, '@@dbspec' found, NULL)
+              if (db_file_read_spec(db)!=0) {
+                  /* something went wrong */
+                  return s;
+              }
+          }
+      }
   }
-  case DB_NEW: {
-    db_osize=&(conf->db_new_size);
-    db_order=&(conf->db_new_order);
-    db_filep=conf->db_new;
-    db_url=conf->db_new_url;
-    db_lineno=&db_new_lineno;
-    break;
-  }
-  }
-  
-  if (*db_osize==0) {
-    db_buff(db,db_filep);
-    
-    token=db_scan();
-    while((token!=TDBSPEC && token!=TEOF)){
+  } while (token != TEOF);
 
-      switch(token){
-      case TUNKNOWN: {
-	continue;
-      }
-      case TBEGIN_DB: {
-	token=db_scan();
-	gotbegin_db=1;
-	continue;
-      }
-      case TNEWLINE: {
-	if(gotbegin_db){
-	  token=db_scan();
-	  continue;
-	}else {
-	  token=TEOF;
-	  break;
-	}
-      }
-      case TGZIPHEADER: {
-	error(0,"Gzipheader found inside uncompressed db!\n");
-	return NULL;
-      }
-      default: {
-	/* If it is anything else we quit */
-	/* Missing dbspec */
-	token=TEOF;
-	break;
-      }
-      }
-    }
-    if (token!=TDBSPEC) {
-      /*
-       * error.. must be a @@dbspec line
-       */
-      
-      switch (db_url->type) {
-      case url_file : {
-	error(0,"File database must have one db_spec specification\n");
-	break;
-      }
-
-      case url_stdin : {
-	error(0,"Pipe database must have one db_spec specification\n");
-	break;
-      }
-
-      case url_fd: {
-	error(0,"FD database must have one db_spec specification\n");
-	break;
-      }
-#ifdef WITH_CURL
-      case url_http:
-      case url_https:
-      case url_ftp: {
-	error(0,"CURL database must have one db_spec specification %i\n",token);
-	break;
-      }
-#endif
-	
-      default : {
-	error(0,"db_readline_file():Unknown or unsupported db in type.\n");
-	
-	break;
-      }
-      
-      }
-      return s;
-    }
-    
-    /*
-     * Here we read da spec
-     */
-    
-    if (db_file_read_spec(db)!=0) {
-      /* somethin went wrong */
-      return s;
-    }
-    
-  }else {
-    /* We need to switch the buffer cleanly*/
-    db_buff(db,NULL);
-  }
-
-  s=(char**)malloc(sizeof(char*)*num_attrs);
-
-  /* We NEED this to avoid Bus errors on Suns */
-  for(ATTRIBUTE j=0; j<num_attrs; j++){
-    s[j]=NULL;
-  }
-  
-  for(i=0;i<*db_osize;i++){
-    switch (r=db_scan()) {
-      
-    case TDBSPEC : {
-      
-      error(0,"Database file can have only one db_spec.\nTrying to continue on line %li\n",*db_lineno);      
-      break;
-    }
-    case TNAME : {
-      if ((*db_order)[i]!=attr_unknown) {
-	s[*db_order[i]]=(char*)strdup(dbtext);
-      }
-      break;
-    }
-    
-    case TID : {
-      if ((*db_order)[i]!=attr_unknown) {
-	s[(*db_order)[i]]=(char*)strdup(dbtext);
-      }
-      break;
-    }
-    
-    case TNEWLINE : {
-      
-      if (i==0) {
-	i--;
-	break;
-      }
-      if(gotend_db){
-	return NULL;
-      }
-      /*  */
-
-      error(0,"Not enough parameters in db:%li. Trying to continue.\n",
-	    *db_lineno);
-      for(a=0;a<i;a++){
-	free(s[(*db_order)[a]]);
-	s[(*db_order)[a]]=NULL;
-      }
-      i=0;
-      break;
-
-    }
-
-    case TBEGIN_DB : {
-      error(0,_("Corrupt db. Found @@begin_db inside db. Please check\n"));
-      return NULL;
-      break;
-    }
-
-    case TEND_DB : {
-      gotend_db=1;
-      break;
-    }
-
-    case TEOF : {
-      if(gotend_db){
-	return NULL;
-      }	
-      /* This can be the first token on a line */
-      if(i>0){
-	error(0,"Not enough parameters in db:%li\n",*db_lineno);
-      };
-      for(a=0;a<i;a++){
-	free(s[(*db_order)[a]]);
-      }
-      free(s);
-      return NULL;
-      break;
-    }
-    case TERROR : {
-      error(0,"There was an error in the database file on line:%li.\n",*db_lineno);
-      break;
-    }
-    
-    default : {
-      
-      error(0,"Not implemented in db_readline_file %i\n\"%s\"",r,dbtext);
-      
-      free(s);
-      s=NULL;
-      i=*db_osize;
-      break;
-    }
-    }
-    
-  }
-  
-
-  /*
-   * If we don't get newline after reading all cells we print an error
-   */
-  a=db_scan();
-
-  if (a!=TNEWLINE&&a!=TEOF) {
-    error(0,"Newline expected in database. Reading until end of line\n");
-    do {
-      
-      error(0,"Skipped value %s\n",dbtext);
-      
-      /*
-       * Null statement
-       */ 
-      a=db_scan();
-    }while(a!=TNEWLINE&&a!=TEOF);
-    
-  }
-  
   return s;
   
 }
@@ -556,6 +385,15 @@ static int db_writelonglong(long long i,FILE* file,int a)
 }
 
 
+int db_write_attr(DB_ATTR_TYPE i,FILE* file,int a)
+{
+    (void)file;
+    if(a) {
+        dofprintf(" ");
+    }
+    return dofprintf("%llu", i);
+}
+
 int db_write_byte_base64(byte*data,size_t len,FILE* file,int i,
                          DB_ATTR_TYPE th, DB_ATTR_TYPE attr )
 {
@@ -604,11 +442,8 @@ int db_write_time_base64(time_t i,FILE* file,int a)
   }
 
 
-  ptr=(char*)malloc(sizeof(char)*TIMEBUFSIZE);
-  if (ptr==NULL) {
-    error(0,"\nCannot allocate memory.\n");
-    abort();
-  }
+  ptr=(char*)checked_malloc(sizeof(char)*TIMEBUFSIZE);
+
   memset((void*)ptr,0,sizeof(char)*TIMEBUFSIZE);
 
   sprintf(ptr,"%li",i);
@@ -711,14 +546,6 @@ int db_writeacl(acl_type* acl,FILE* file,int a)
       dofprintf("0");
   }
 #endif
-#ifndef WITH_ACL
-  if(a) { /* compat. */
-    dofprintf(" ");
-  }
-  
-  dofprintf("0");
-#endif
-  
   return RETOK;
 }
 #endif
@@ -728,7 +555,7 @@ int db_writeacl(acl_type* acl,FILE* file,int a)
 case attr_ ##x : { \
     db_write_byte_base64(line->hashsums[hash_ ##x], \
         hashsums[hash_ ##x].length, \
-        dbconf->db_out, i, \
+        dbconf->database_out.fp, i, \
         ATTR(attr_ ##x), line->attr); \
     break; \
 }
@@ -741,52 +568,52 @@ int db_writeline_file(db_line* line,db_config* dbconf, url_t* url){
     if (attributes[i].db_name && ATTR(i)&conf->db_out_attrs) {
     switch (i) {
     case attr_filename : {
-      db_writechar(line->filename,dbconf->db_out,i);
+      db_writechar(line->filename,dbconf->database_out.fp,i);
       break;
     }
     case attr_linkname : {
-      db_writechar(line->linkname,dbconf->db_out,i);
+      db_writechar(line->linkname,dbconf->database_out.fp,i);
       break;
     }
     case attr_bcount : {
-      db_writelonglong(line->bcount,dbconf->db_out,i);
+      db_writelonglong(line->bcount,dbconf->database_out.fp,i);
       break;
     }
 
     case attr_mtime : {
-      db_write_time_base64(line->mtime,dbconf->db_out,i);
+      db_write_time_base64(line->mtime,dbconf->database_out.fp,i);
       break;
     }
     case attr_atime : {
-      db_write_time_base64(line->atime,dbconf->db_out,i);
+      db_write_time_base64(line->atime,dbconf->database_out.fp,i);
       break;
     }
     case attr_ctime : {
-      db_write_time_base64(line->ctime,dbconf->db_out,i);
+      db_write_time_base64(line->ctime,dbconf->database_out.fp,i);
       break;
     }
     case attr_inode : {
-      db_writelong(line->inode,dbconf->db_out,i);
+      db_writelong(line->inode,dbconf->database_out.fp,i);
       break;
     }
     case attr_linkcount : {
-      db_writelong(line->nlink,dbconf->db_out,i);
+      db_writelong(line->nlink,dbconf->database_out.fp,i);
       break;
     }
     case attr_uid : {
-      db_writelong(line->uid,dbconf->db_out,i);
+      db_writelong(line->uid,dbconf->database_out.fp,i);
       break;
     }
     case attr_gid : {
-      db_writelong(line->gid,dbconf->db_out,i);
+      db_writelong(line->gid,dbconf->database_out.fp,i);
       break;
     }
     case attr_size : {
-      db_writelonglong(line->size,dbconf->db_out,i);
+      db_writelonglong(line->size,dbconf->database_out.fp,i);
       break;
     }
     case attr_perm : {
-      db_writeoct(line->perm,dbconf->db_out,i);
+      db_writeoct(line->perm,dbconf->database_out.fp,i);
       break;
     }
     WRITE_HASHSUM(md5)
@@ -803,12 +630,12 @@ int db_writeline_file(db_line* line,db_config* dbconf, url_t* url){
     WRITE_HASHSUM(sha512)
     WRITE_HASHSUM(whirlpool)
     case attr_attr : {
-      db_writelonglong(line->attr, dbconf->db_out,i);
+      db_write_attr(line->attr, dbconf->database_out.fp,i);
       break;
     }
 #ifdef WITH_ACL
     case attr_acl : {
-      db_writeacl(line->acl,dbconf->db_out,i);
+      db_writeacl(line->acl,dbconf->database_out.fp,i);
       break;
     }
 #endif
@@ -818,19 +645,19 @@ int db_writeline_file(db_line* line,db_config* dbconf, url_t* url){
         
         if (!line->xattrs)
         {
-          db_writelong(0, dbconf->db_out, i);
+          db_writelong(0, dbconf->database_out.fp, i);
           break;
         }
         
-        db_writelong(line->xattrs->num, dbconf->db_out, i);
+        db_writelong(line->xattrs->num, dbconf->database_out.fp, i);
         
         xattr = line->xattrs->ents;
         while (num < line->xattrs->num)
         {
           dofprintf(",");
-          db_writechar(xattr->key, dbconf->db_out, 0);
+          db_writechar(xattr->key, dbconf->database_out.fp, 0);
           dofprintf(",");
-          db_write_byte_base64(xattr->val, xattr->vsz, dbconf->db_out, 0, 1, 1);
+          db_write_byte_base64(xattr->val, xattr->vsz, dbconf->database_out.fp, 0, 1, 1);
           
           ++xattr;
           ++num;
@@ -838,23 +665,23 @@ int db_writeline_file(db_line* line,db_config* dbconf, url_t* url){
       break;
     }
     case attr_selinux : {
-	db_write_byte_base64((byte*)line->cntx, 0, dbconf->db_out, i, 1, 1);
+	db_write_byte_base64((byte*)line->cntx, 0, dbconf->database_out.fp, i, 1, 1);
       break;
     }
 #ifdef WITH_E2FSATTRS
     case attr_e2fsattrs : {
-      db_writelong(line->e2fsattrs,dbconf->db_out,i);
+      db_writelong(line->e2fsattrs,dbconf->database_out.fp,i);
       break;
     }
 #endif
 #ifdef WITH_CAPABILITIES
     case attr_capabilities : {
-      db_write_byte_base64((byte*)line->capabilities, 0, dbconf->db_out, i, 1, 1);
+      db_write_byte_base64((byte*)line->capabilities, 0, dbconf->database_out.fp, i, 1, 1);
       break;
     }
 #endif
     default : {
-      error(0,"Not implemented in db_writeline_file %i\n", i);
+      log_msg(LOG_LEVEL_ERROR,"not implemented in db_writeline_file %i", i);
       return RETFAIL;
     }
     
@@ -873,30 +700,27 @@ int db_writeline_file(db_line* line,db_config* dbconf, url_t* url){
 
 int db_close_file(db_config* dbconf){
   
-  if(dbconf->db_out
+  if(dbconf->database_out.fp
 #ifdef WITH_ZLIB
-     || dbconf->db_gzout
+     || dbconf->database_out.gzp
 #endif
      ){
       dofprintf("@@end_db\n");
   }
 
-#ifndef WITH_ZLIB
-  if(fclose(dbconf->db_out)){
-    error(0,"Unable to close database:%s\n",strerror(errno));
-    return RETFAIL;
-  }
-#else
+#ifdef WITH_ZLIB
   if(dbconf->gzip_dbout){
-    if(gzclose(dbconf->db_gzout)){
-      error(0,"Unable to close gzdatabase:%s\n",strerror(errno));
+    if(gzclose(dbconf->database_out.gzp)){
+      log_msg(LOG_LEVEL_ERROR,"unable to gzclose database '%s:%s': %s", get_url_type_string((dbconf->database_out.url)->type), (dbconf->database_out.url)->value, strerror(errno));
       return RETFAIL;
     }
   }else {
-    if(fclose(dbconf->db_out)){
-      error(0,"Unable to close database:%s\n",strerror(errno));
+#endif
+    if(fclose(dbconf->database_out.fp)){
+      log_msg(LOG_LEVEL_ERROR,"unable to close database '%s:%s': %s", get_url_type_string((dbconf->database_out.url)->type), (dbconf->database_out.url)->value, strerror(errno));
       return RETFAIL;
     }
+#ifdef WITH_ZLIB
   }
 #endif
 

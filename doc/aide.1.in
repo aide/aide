@@ -26,6 +26,8 @@ Compares two databases. They must be defined in config file with
 database=<url> and database_new=<url>.
 .IP "--config-check, -D"
 Stops after reading in the configuration file. Any errors will be reported.
+To change the log level in this mode please use the \fB--log-level\fR
+command line parameter.
 .SH PARAMETERS
 .IP "--config=\fBconfigfile\fR , -c \fBconfigfile\fR"
 Configuration is read from file \fBconfigfile\fR instead of "./aide.conf". Use '-' for stdin.
@@ -55,10 +57,11 @@ here.
 These \fBconfigparameters\fR are handled after the reading of the
 configuration file. See aide.conf (5) for more details on what to put
 here.
+.IP --log-level=\fBlog_level\fR,-L\fBlog_level\fR
+The log level to use (see aide.conf (5) for available log levels and more details).
+This overwrites the log_level value set in any configuration file.
 .IP --verbose=\fBverbosity_level\fR,-V\fBverbosity_level\fR
-Controls how verbose \fBaide\fP is. Value must [0-255]. The default is
-5. With no argument Value is set to 20. This parameter overrides the
-value set in a configuration file.
+Removed in AIDE v0.17, use \fBlog_level\fR and \fBreport_level\fR config options instead (see aide.conf (5) for details).
 .IP "--version,-v"
 \fBaide\fP prints out its version number
 .IP "--help,-h"
@@ -83,13 +86,17 @@ conditions:
 .IP "14 Error writing error"
 .IP "15 Invalid argument error"
 .IP "16 Unimplemented function error"
-.IP "17 Invalid configureline error"
+.IP "17 Configuration error"
 .IP "18 IO error"
 .IP "19 Version mismatch error"
 .PP
-.SH NOTES
+.SH SIGNAL HANDLING
 Please note that due to mmap issues, aide cannot be terminated with
 SIGTERM. Use SIGKILL to terminate.
+
+SIGUSR1 toggles the log_level between current and debug level.
+.PP
+.SH NOTES
 
 The checksums in the database and in the output are by default base64
 encoded (see also report_base16 option).

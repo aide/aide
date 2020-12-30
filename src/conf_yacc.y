@@ -1,6 +1,9 @@
-%{ 
+%code requires {
+#include "conf_ast.h"
+}
+%{
 
-/*	
+/*
  * Copyright (C) 1999-2006,2010-2013,2015,2016,2019,2020 Rami Lehti, Pablo
  * Virolainen, Richard van den Berg, Hannes von Haugwitz
  * $Header$
@@ -20,12 +23,14 @@
  */
 
 #include "aide.h"
+#include "attributes.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
 #include <string.h>
 #include "list.h"
+#include "conf_lex.h"
 #include "gen_list.h"
 #include "db.h"
 #include "db_config.h"
@@ -33,36 +38,30 @@
 #include "util.h"
 #include "commandconf.h"
 
+#include "seltree.h"
+
 DB_ATTR_TYPE retval=0;
+
+#include "conf_ast.h"
 extern int conflex();
-void conferror(const char*);
-
-#define rule(regex, restriction, attributes, rule_type) \
-    decode_string(regex); \
-    if (!add_rx_rule_to_tree(regex, restriction, attributes, rule_type, conf->tree)) { \
-        YYABORT; \
-    }
-
-#define report_attrs_option(option, value) \
-   conf->option=value;
-
-extern char *conftext;
-extern long conf_lineno;
-
+void conferror(ast**, const char *);
 
 %}
 %union {
   char* s;
-  DB_ATTR_TYPE i;
-  RESTRICTION_TYPE r;
+
+  config_option option;
+
+  ast* ast;
+
+  if_condition* if_cond;
+  attribute_expression* attr_expr;
+  restriction_expression* rs_expr;
+  string_expression* string_expr;
 }
 
-
-%start lines
-
-
 %token TDEFINE
-%token TUNDEF
+%token TUNDEFINE
 %token TIFDEF
 %token TIFNDEF
 %token TIFNHOST
@@ -70,41 +69,12 @@ extern long conf_lineno;
 %token TELSE
 %token TENDIF
 %token TINCLUDE
-%token TBEGIN_DB
-%token TEND_DB
-%token TID
+%token <s> TGROUP
 %token <s> TSTRING
-%token '='
+%token <s> TEXPR
+%token <s> TVARIABLE
 
-%token TACLNOSYMLINKFOLLOW
-%token TWARNDEADSYMLINKS
-%token TGROUPED
-%token TSUMMARIZECHANGES
 %token TNEWLINE
-%token TVERBOSE
-%token TDATABASEADDMETADATA
-%token TREPORTLEVEL
-%token TREPORTDETAILEDINIT
-%token TREPORTBASE16
-%token TREPORTQUIET
-%token TREPORTIGNOREADDEDATTRS
-%token TREPORTIGNOREREMOVEDATTRS
-%token TREPORTIGNORECHANGEDATTRS
-%token TREPORTFORCEATTRS
-%token TREPORTIGNOREE2FSATTRS
-%token TCONFIG_FILE
-%token TDATABASE
-%token TDATABASE_OUT
-%token TDATABASE_NEW
-%token TDATABASE_ATTRS
-%token TREPORT_URL
-%token TGZIPDBOUT
-%token TROOT_PREFIX
-%token TUMASK
-%token TTRUE
-%token TFALSE
-
-%token TCONFIG_VERSION
 
 /* File rule */
 
@@ -112,256 +82,84 @@ extern long conf_lineno;
 %token <s> TEQURXRULE
 %token <s> TNEGRXRULE
 
-/* predefs */
+%token <option> CONFIGOPTION
 
-%token <i> TL
-%token <i> TR
+%type <ast> statements statement config_statement include_statement if_statement define_statement undefine_statement group_statement rule_statement
 
-/* For db_lex */
-%token TGZIPHEADER
-%token TDBSPEC
-%token TUNKNOWN
-%token TNAME
-%token TERROR
-%token TEOF
+%type <if_cond> if_condition
+%type <attr_expr> attribute_expression
+%type <rs_expr> restriction_expression
+%type <string_expr> string_expression string_fragment
 
-%type  <r> restriction
-%type  <i> expr
-%type  <i> primary
+%start config
 
-%left '+' '-'
+%parse-param {ast** config_ast}
 
 %%
 
-lines : lines line | ;
+config : %empty  /* empty input */
+       | statements { *config_ast = $1; }
 
-line : rule | definestmt | undefstmt
-       | ifdefstmt | ifndefstmt | ifhoststmt | ifnhoststmt
-       | groupdef | db_in | db_out | db_new | db_attrs | verbose | report_level | report_detailed_init | config_version
-       | database_add_metadata | report | gzipdbout | root_prefix | report_base16 | report_quiet
-       | report_attrs | report_ignore_e2fsattrs | warn_dead_symlinks | grouped
-       | summarize_changes | acl_no_symlink_follow
-       | TEOF {
-            newlinelastinconfig=1;
-	    YYACCEPT;
-          }
-       | TNEWLINE 
-       | TDBSPEC {
-          error(220,"Got @@dbspec.Stopping\n");
-	  YYACCEPT;
-          }
-       | TBEGIN_DB {
-	  error(220,"Got @@begin_db. Stopping\n");
-	  YYACCEPT;
-          }
-       | TEND_DB {
-	  conferror("Error while reading configuration");
-          }
-       | error {
-	  conferror("Error while reading configuration");
-	  YYABORT;
-          } ;
+statements : statement TNEWLINE statements {
+               ast *temp = $1;
+               temp->next = $3;
+               $$ = $1; }
+               | statement TNEWLINE { $$ = $1; }
+               | statement {
+                    log_msg(LOG_LEVEL_ERROR, "%s:%d: syntax error: unexpected token or end of file, expected newline (line: '%s')", conf_filename, conf_linenumber, conf_linebuf);
+                    YYABORT;
+               }
 
+statement: config_statement
+         | include_statement
+         | if_statement
+         | define_statement | undefine_statement
+         | group_statement
+         | rule_statement
 
-rule : TSELRXRULE expr TNEWLINE { rule($1, RESTRICTION_NULL, $2, AIDE_SELECTIVE_RULE) }
-     | TEQURXRULE expr TNEWLINE { rule($1, RESTRICTION_NULL, $2, AIDE_EQUAL_RULE) }
-     | TNEGRXRULE TNEWLINE { rule($1, RESTRICTION_NULL, 0, AIDE_NEGATIVE_RULE) }
-     | TSELRXRULE restriction expr TNEWLINE { rule($1, $2, $3, AIDE_SELECTIVE_RULE) }
-     | TEQURXRULE restriction expr TNEWLINE { rule($1, $2, $3, AIDE_EQUAL_RULE) }
-     | TNEGRXRULE restriction TNEWLINE { rule($1, $2, 0, AIDE_NEGATIVE_RULE) };
+attribute_expression: attribute_expression '+' TEXPR { $$ = new_attribute_expression(ATTR_OP_PLUS, $1, $3); }
+                    | attribute_expression '-' TEXPR { $$ = new_attribute_expression(ATTR_OP_MINUS, $1, $3); }
+                    | TEXPR { $$ = new_attribute_expression(ATTR_OP_GROUP, NULL, $1); }
 
+restriction_expression: restriction_expression ',' TEXPR { $$ = new_restriction_expression($1, $3); }
+                      | TEXPR { $$ = new_restriction_expression(NULL, $1); }
 
-restriction : restriction ',' restriction { $$ =$1  | $3 ; }
-    | TSTRING {
-       if((retval=get_restrictionval($1)) != RESTRICTION_NULL) {
-            $$=retval;
-       } else {
-            conf_lineno++;
-            conferror("Error in restriction");
-            YYABORT;
-       }
-    };
+define_statement: TDEFINE TVARIABLE { $$ = new_define_statement($2, NULL); }
+                | TDEFINE TVARIABLE string_expression { $$ = new_define_statement($2, $3); }
 
-expr :  expr '+' expr { $$ =$1  | $3 ; } |
-        expr '-' expr { $$ =$1  & (~$3 ); } |
-	primary { $$ =$1 ;} ;
+string_expression: string_fragment string_expression { $$ = new_string_concat($1, $2); }
+                 | string_fragment { $$ = $1; }
+string_fragment: TSTRING { $$ = new_string($1); }
+               | TVARIABLE { $$ = new_variable($1); }
 
-primary : TSTRING { if((retval=get_groupval($1)) != DB_ATTR_UNDEF) {
-	    $$=retval;
-	  }
-	  else {
-		  conf_lineno++; // Hack
-	    conferror("Error in expression");
-	    YYABORT;
-	  }
-	  } ;
+undefine_statement: TUNDEFINE TVARIABLE { $$ = new_undefine_statement($2); }
 
-definestmt : TDEFINE TSTRING TSTRING { do_define($2,$3); };
+config_statement: CONFIGOPTION '=' string_expression { $$ = new_string_option_statement($1, $3); }
+                | CONFIGOPTION '=' attribute_expression { $$ = new_attribute_option_statement($1, $3); }
 
-undefstmt : TUNDEF TSTRING { do_undefine($2); } ;
+group_statement: TGROUP '=' attribute_expression { $$ = new_group_statement($1, $3); }
 
-ifdefstmt : TIFDEF TSTRING { 
-  if(do_ifxdef(1,$2)==-1){
-    error(0,"ifdef error\n");
-    YYABORT; 
-  };
- } ifstmtlist ;
+include_statement: TINCLUDE string_expression { $$ = new_include_statement($2); }
 
-ifndefstmt : TIFNDEF TSTRING { 
-  if(do_ifxdef(0,$2)==-1){
-    error(0,"ifndef error\n");
-    YYABORT; 
-  };
- } ifstmtlist { error(220,"Ifndef statement ended\n");}  ;
+if_statement: if_condition TNEWLINE statements TENDIF { $$ = new_if_statement($1, $3, NULL); }
+            | if_condition TNEWLINE statements TELSE TNEWLINE statements TENDIF { $$ = new_if_statement($1, $3, $6); }
 
-ifhoststmt : TIFHOST TSTRING { 
-  if(do_ifxhost(1,$2)==-1){
-    error(0,"ifhost error\n");
-    YYABORT;
-  };
- } ifstmtlist ;
+if_condition: TIFDEF string_expression { $$=new_if_condition(new_string_bool_expression(BOOL_OP_DEFINED, $2)); }
+            | TIFNDEF string_expression { $$=new_if_condition(new_bool_expression(BOOL_OP_NOT, new_string_bool_expression(BOOL_OP_DEFINED, $2), NULL)); }
+            | TIFHOST string_expression { $$=new_if_condition(new_string_bool_expression(BOOL_OP_HOSTNAME, $2)); }
+            | TIFNHOST string_expression { $$=new_if_condition(new_bool_expression(BOOL_OP_NOT, new_string_bool_expression(BOOL_OP_HOSTNAME, $2), NULL)); }
 
-ifnhoststmt : TIFNHOST TSTRING { 
-  if(do_ifxhost(0,$2)==-1){
-    error(0,"ifnhost error\n");
-    YYABORT; 
-  };
- } ifstmtlist ;
-
-ifstmtlist : lines TENDIF { error(220,"Endif stmt matched\n");} |
-             lines TELSE lines TENDIF {error(220,"Endifelse stmt matched\n");} ;
-
-groupdef : TSTRING '=' expr { do_groupdef($1,$3); } ;
-
-db_in : TDATABASE TSTRING { do_dbdef(DB_OLD,$2); };
-
-db_out : TDATABASE_OUT TSTRING { do_dbdef(DB_WRITE,$2); };
-
-db_new : TDATABASE_NEW TSTRING { do_dbdef(DB_NEW,$2); };
-
-verbose : TVERBOSE TSTRING { do_verbdef($2); };
-
-report_level : TREPORTLEVEL TSTRING { do_reportlevel($2); };
-
-report : TREPORT_URL TSTRING { do_repurldef($2); } ;
-
-db_attrs : TDATABASE_ATTRS expr {
-  DB_ATTR_TYPE attr;
-  if((attr = $2&(~get_hashes()))){
-    error(0, "%li: invalid attribute(s) in database_attrs: %llx\n", conf_lineno-1, attr);
-    YYABORT;
-  }
-  conf->db_attrs=$2;
-} ;
-
-acl_no_symlink_follow : TACLNOSYMLINKFOLLOW TTRUE { 
-#ifdef WITH_ACL
-  conf->no_acl_on_symlinks=1;
-#else
-  error(0,"ACL-support not compiled in.\n");
-#endif
-} ;
-
-acl_no_symlink_follow : TACLNOSYMLINKFOLLOW TFALSE { 
-#ifdef WITH_ACL
-  conf->no_acl_on_symlinks=0;
-#else
-  error(0,"ACL-support not compiled in.\n");
-#endif
-} ;
-
-warn_dead_symlinks : TWARNDEADSYMLINKS TTRUE {
-  conf->warn_dead_symlinks=1;
-} ;
-
-warn_dead_symlinks : TWARNDEADSYMLINKS TFALSE {
-  conf->warn_dead_symlinks=0;
-} ;
-
-database_add_metadata : TDATABASEADDMETADATA TTRUE {
-  conf->database_add_metadata=1;
-} ;
-
-database_add_metadata : TDATABASEADDMETADATA TFALSE {
-  conf->database_add_metadata=0;
-} ;
-
-report_detailed_init : TREPORTDETAILEDINIT TTRUE {
-  conf->report_detailed_init=1;
-} ;
-
-report_detailed_init : TREPORTDETAILEDINIT TFALSE {
-  conf->report_detailed_init=0;
-} ;
-
-report_attrs : TREPORTIGNOREADDEDATTRS expr TNEWLINE { report_attrs_option(report_ignore_added_attrs, $2); };
-             | TREPORTIGNOREREMOVEDATTRS expr TNEWLINE { report_attrs_option(report_ignore_removed_attrs, $2); };
-             | TREPORTIGNORECHANGEDATTRS expr TNEWLINE { report_attrs_option(report_ignore_changed_attrs, $2); };
-             | TREPORTFORCEATTRS expr TNEWLINE { report_attrs_option(report_force_attrs, $2); };
-
-report_ignore_e2fsattrs : TREPORTIGNOREE2FSATTRS TSTRING {
-#ifdef WITH_E2FSATTRS
-  do_report_ignore_e2fsattrs($2);
-#else
-  error(0,"e2fsattrs-support not compiled in.\n");
-#endif
-} ;
-
-report_base16 : TREPORTBASE16 TTRUE {
-  conf->report_base16=1;
-} ;
-
-report_base16 : TREPORTBASE16 TFALSE {
-  conf->report_base16=0;
-} ;
-
-report_quiet : TREPORTQUIET TTRUE {
-  conf->report_quiet=1;
-} ;
-
-report_quiet : TREPORTQUIET TFALSE {
-  conf->report_quiet=0;
-} ;
-
-grouped : TGROUPED TTRUE {
-  conf->grouped=1;
-} ;
-
-root_prefix : TROOT_PREFIX TSTRING { do_rootprefix($2); };
-
-grouped : TGROUPED TFALSE {
-  conf->grouped=0;
-} ;
-
-summarize_changes : TSUMMARIZECHANGES TTRUE {
-  conf->summarize_changes=1;
-} ;
-
-summarize_changes : TSUMMARIZECHANGES TFALSE {
-  conf->summarize_changes=0;
-} ;
-
-gzipdbout : TGZIPDBOUT TTRUE { 
-#ifdef WITH_ZLIB
-conf->gzip_dbout=1; 
-#else 
- error(0,"Gzip-support not compiled in.\n");
-#endif
-} |
-            TGZIPDBOUT TFALSE { 
-#ifdef WITH_ZLIB
-conf->gzip_dbout=0; 
-#endif
-} ;
-
-config_version : TCONFIG_VERSION TSTRING {
-  conf->config_version=strdup($2);
-} ;
+rule_statement: TSELRXRULE string_expression attribute_expression { $$ = new_rule_statement(AIDE_SELECTIVE_RULE, $2, NULL, $3); }
+              | TEQURXRULE string_expression attribute_expression { $$ = new_rule_statement(AIDE_EQUAL_RULE, $2, NULL, $3); }
+              | TNEGRXRULE string_expression { $$ = new_rule_statement(AIDE_NEGATIVE_RULE, $2, NULL, NULL); }
+              | TSELRXRULE string_expression restriction_expression attribute_expression { $$ = new_rule_statement(AIDE_SELECTIVE_RULE, $2, $3, $4); }
+              | TEQURXRULE string_expression restriction_expression attribute_expression { $$ = new_rule_statement(AIDE_EQUAL_RULE, $2, $3, $4); }
+              | TNEGRXRULE string_expression restriction_expression { $$ = new_rule_statement(AIDE_NEGATIVE_RULE, $2, $3, NULL); }
 
 %%
 
-
-void conferror(const char *msg){
-  error(0,"%li:%s:%s\n",conf_lineno-1,msg,conftext);
-
+void conferror(
+    ast** config_ast  __attribute__((unused)),
+    const char *msg){
+  log_msg(LOG_LEVEL_ERROR, "%s:%d: %s (line: '%s')", conf_filename, conf_linenumber, msg, conf_linebuf);
 }

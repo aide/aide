@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #include "attributes.h"
 
@@ -69,17 +70,17 @@ attributes_t attributes[] = {
 
 DB_ATTR_TYPE num_attrs = sizeof(attributes)/sizeof(attributes_t);
 
-static int get_diff_attrs_string(DB_ATTR_TYPE a, DB_ATTR_TYPE b, char *str) {
+static int get_diff_attrs_string(DB_ATTR_TYPE a, DB_ATTR_TYPE b, char *str, bool db) {
     int n = 0;
     for (ATTRIBUTE i = 0; i < num_attrs; ++i) {
-        if (attributes[i].config_name) {
+        if (db?attributes[i].db_name:attributes[i].config_name) {
             if (((1LLU<<i)&a) ^ ((1LLU<<i)&b)) {
                 if (n || a != 0) {
                     if (str) { str[n] = ((1LLU<<i)&b)?'+':'-'; }
                     n++;
                 }
-                if (str) { sprintf(&str[n], "%s", attributes[i].config_name); }
-                n += strlen(attributes[i].config_name);
+                if (str) { sprintf(&str[n], "%s", db?attributes[i].db_name:attributes[i].config_name); }
+                n += strlen(db?attributes[i].db_name:attributes[i].config_name);
             }
         }
     }
@@ -90,8 +91,16 @@ static int get_diff_attrs_string(DB_ATTR_TYPE a, DB_ATTR_TYPE b, char *str) {
 
 char *diff_attributes(DB_ATTR_TYPE a, DB_ATTR_TYPE b) {
     char *str = NULL;
-    int n = get_diff_attrs_string(a, b, str);
+    int n = get_diff_attrs_string(a, b, str, false);
     str = malloc(n);
-    get_diff_attrs_string(a, b, str);
+    get_diff_attrs_string(a, b, str, false);
+    return str;
+}
+
+char *diff_database_attributes(DB_ATTR_TYPE a, DB_ATTR_TYPE b) {
+    char *str = NULL;
+    int n = get_diff_attrs_string(a, b, str, true);
+    str = malloc(n);
+    get_diff_attrs_string(a, b, str, true);
     return str;
 }

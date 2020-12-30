@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2006,2013 Rami Lehti, Pablo Virolainen, Richard
+ * Copyright (C) 1999-2002,2006,2013,2020 Rami Lehti, Pablo Virolainen, Richard
  * van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -22,8 +22,9 @@
 #ifndef _UTIL_H_INCLUDED
 #define _UTIL_H_INCLUDED
 #include <string.h>
+#include <stdbool.h>
 #include <sys/types.h>
-#include "db_config.h"
+#include "url.h"
 
 #define HEXD2ASC(x) (((x) < 10) ? ((x) + '0') : ((x) - 10 + 'A'))
 
@@ -38,9 +39,12 @@
 #  define stricmp(a,b)   strcasecmp( (a), (b) )
 #endif
 
-int cmpurl(url_t*, url_t*);
+const char* btoa(bool);
 
-url_t* parse_url(char*);
+void* checked_malloc(size_t);
+void* checked_strdup(const char *);
+
+int cmpurl(url_t*, url_t*);
 
 int contains_unsafe(const char*);
 
@@ -49,10 +53,7 @@ void decode_string(char*);
 char* encode_string(const char*);
 
 char* perm_to_char(mode_t perm);
-
-void sig_handler(int signal);
-
-void init_sighandler(void);
+char get_file_type_char(mode_t);
 
 char *expand_tilde(char * path);
 

@@ -23,37 +23,46 @@
 #include <string.h>
 
 #include "seltree.h"
-#include "error.h"
+#include "log.h"
 
 #define PARTIAL_RULE_MATCH       (-1)
 #define NO_RULE_MATCH            (0)
 #define RESTRICTED_RULE_MATCH    (1)
 #define RULE_MATCH               (2)
 
+void log_tree(LOG_LEVEL log_level, seltree* tree, int depth) {
 
-void print_tree(seltree* tree) {
+    list* r;
+    rx_rule* rxc;
 
-  list* r;
-  rx_rule* rxc;
-  error(220,"tree: \"%s\"\n",tree->path);
+    log_msg(log_level, "%-*s %s:", depth, depth?"\u251d":"\u250c", tree->path, tree);
 
-  for(r=tree->sel_rx_lst;r!=NULL;r=r->next) {
-       rxc=r->data;
-       error(220,"\t%s\n",rxc->rx);
-  }
-  for(r=tree->equ_rx_lst;r!=NULL;r=r->next) {
+    char *attr_str, *rs_str;
+
+    for(r=tree->equ_rx_lst;r!=NULL;r=r->next) {
         rxc=r->data;
-        error(220,"=\t%s\n",rxc->rx);
-  }
+        log_msg(log_level, "%-*s  '=%s %s %s' (%s:%d: '%s')", depth+2, "\u2502", rxc->rx, rs_str = get_restriction_string(rxc->restriction), attr_str = diff_attributes(0, rxc->attr), rxc->config_filename, rxc->config_linenumber, rxc->config_line);
+        free(rs_str);
+        free(attr_str);
+    }
+    for(r=tree->sel_rx_lst;r!=NULL;r=r->next) {
+        rxc=r->data;
+        log_msg(log_level, "%-*s  '%s %s %s' (%s:%d: '%s')", depth+2, "\u2502", rxc->rx, rs_str = get_restriction_string(rxc->restriction), attr_str = diff_attributes(0, rxc->attr), rxc->config_filename, rxc->config_linenumber, rxc->config_line);
+        free(rs_str);
+        free(attr_str);
+    }
+    for(r=tree->neg_rx_lst;r!=NULL;r=r->next) {
+        rxc=r->data;
+        log_msg(log_level, "%-*s  '!%s %s' (%s:%d: '%s')", depth+2, "\u2502", rxc->rx, rs_str = get_restriction_string(rxc->restriction), rxc->config_filename, rxc->config_linenumber, rxc->config_line);
+        free(rs_str);
+    }
 
-  for(r=tree->neg_rx_lst;r!=NULL;r=r->next) {
-         rxc=r->data;
-         error(220,"!\t%s\n",rxc->rx);
-  }
-
-  for(r=tree->childs;r!=NULL;r=r->next) {
-       print_tree(r->data);
-  }
+    for(r=tree->childs;r!=NULL;r=r->next) {
+        log_tree(log_level, r->data, depth+2);
+    }
+    if (depth == 0) {
+        log_msg(log_level, "%s", "\u2514");
+    }
 }
 
 /*
@@ -239,14 +248,17 @@ seltree* new_seltree_node(
   }else {
     node->parent=NULL;
   }
+  log_msg(LOG_LEVEL_DEBUG, "new node '%s' (%p, parent: %p)", node->path, node, node->parent);
   return node;
 }
 
 seltree *init_tree() {
-    return new_seltree_node(NULL,"/",0,NULL);
+    seltree* node = new_seltree_node(NULL,"/",0,NULL);
+    log_msg(LOG_LEVEL_DEBUG, "added new node '%s' (%p) for '%s' (reason: root node)", node->path, node, "/");
+    return node;
 }
 
-rx_rule * add_rx_to_tree(char * rx, RESTRICTION_TYPE restriction, int rule_type, seltree *tree, char *node_path, const char **pcre_error, int *pcre_erroffset) {
+rx_rule * add_rx_to_tree(char * rx, RESTRICTION_TYPE restriction, int rule_type, seltree *tree, const char **pcre_error, int *pcre_erroffset) {
     rx_rule* r = NULL;
     seltree *curnode = NULL;
     char *rxtok = NULL;
@@ -256,7 +268,12 @@ rx_rule * add_rx_to_tree(char * rx, RESTRICTION_TYPE restriction, int rule_type,
     r->rx=rx;
     r->restriction = restriction;
 
-    if((r->crx=pcre_compile(r->rx, PCRE_ANCHORED, pcre_error, pcre_erroffset, NULL)) == NULL) {
+    r->config_filename = NULL;
+    r->config_line = NULL;
+    r->config_linenumber = -1;
+    r->attr = 0;
+
+    if((r->crx=pcre_compile(r->rx, PCRE_ANCHORED|PCRE_UTF8, pcre_error, pcre_erroffset, NULL)) == NULL) {
         free(r);
         return NULL;
     } else {
@@ -265,10 +282,9 @@ rx_rule * add_rx_to_tree(char * rx, RESTRICTION_TYPE restriction, int rule_type,
 
         if(curnode == NULL){
             curnode=new_seltree_node(tree,rxtok,1,r);
+            log_msg(LOG_LEVEL_DEBUG, "added new node '%s' (%p) for '%s' (reason: new rule '%s')", curnode->path, curnode, rxtok, r->rx);
         }
-        if (node_path) {
-            node_path = curnode->path;
-        }
+        r->node = curnode;
         switch (rule_type){
             case AIDE_NEGATIVE_RULE:{
                 curnode->neg_rx_lst=list_append(curnode->neg_rx_lst,(void*)r);
@@ -288,27 +304,36 @@ rx_rule * add_rx_to_tree(char * rx, RESTRICTION_TYPE restriction, int rule_type,
     return r;
 }
 
-static int check_list_for_match(list* rxrlist,char* text,DB_ATTR_TYPE* attr, RESTRICTION_TYPE file_type)
+#define LOG_MATCH(log_level, border, format, ...) \
+    log_msg(log_level, "%s %*c'%s' " #format " of %s (%s:%d: '%s')", border, depth+2, ' ', text, __VA_ARGS__, get_rule_type_long_string(rule_type), rx->config_filename, rx->config_linenumber, rx->config_line);
+
+static int check_list_for_match(list* rxrlist,char* text,DB_ATTR_TYPE* attr, RESTRICTION_TYPE file_type, int rule_type, int depth)
 {
   list* r=NULL;
   int retval=NO_RULE_MATCH;
   int pcre_retval;
   pcre_extra *pcre_extra = NULL;
+  char *rs_str = NULL;
   for(r=rxrlist;r;r=r->next){
       rx_rule *rx = (rx_rule*)r->data;
       pcre_retval=pcre_exec((pcre*)rx->crx, pcre_extra, text, strlen(text), 0, PCRE_PARTIAL_SOFT, NULL, 0);
       if (pcre_retval >= 0) {
           if (!rx->restriction || file_type&rx->restriction) {
-              if (retval != RULE_MATCH && retval != RESTRICTED_RULE_MATCH) { /* no match before */
                   *attr=rx->attr;
                   retval = rx->restriction?RESTRICTED_RULE_MATCH:RULE_MATCH;
+                  LOG_MATCH(LOG_LEVEL_RULE, "\u251d", matches regex '%s' and restriction '%s', rx->rx, rs_str = get_restriction_string(rx->restriction))
+                  free(rs_str);
                   break;
-              }
           } else {
+              LOG_MATCH(LOG_LEVEL_RULE, "\u2502", does not match restriction '%s', rs_str = get_restriction_string(rx->restriction))
+              free(rs_str);
               retval=PARTIAL_RULE_MATCH;
           }
       } else if (pcre_retval == PCRE_ERROR_PARTIAL) {
+          LOG_MATCH(LOG_LEVEL_RULE, "\u2502", partially matches regex '%s', rx->rx)
           retval=PARTIAL_RULE_MATCH;
+      } else {
+          LOG_MATCH(LOG_LEVEL_RULE, "\u2502", does not match regex '%s', rx->rx)
       }
   }
   return retval;
@@ -344,20 +369,27 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
       retval|=16;
 
       if (node->equ_rx_lst) {
-          switch (check_list_for_match(node->equ_rx_lst, text, attr, file_type)) {
+          log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': check equal list", depth, ' ', node->path);
+          switch (check_list_for_match(node->equ_rx_lst, text, attr, file_type, AIDE_EQUAL_RULE, depth)) {
               case RESTRICTED_RULE_MATCH:
               case RULE_MATCH: {
+                          log_msg(LOG_LEVEL_RULE, "\u2502 %*cequal match for '%s' (node: '%s')", depth, ' ', text, node->path);
                           retval|=2|4;
                           break;
                       }
               case PARTIAL_RULE_MATCH: {
                            if(file_type&RESTRICTION_FT_DIR && get_seltree_node(node,text)==NULL) {
-                               new_seltree_node(node,text,0,NULL);
+                               seltree *new_node = new_seltree_node(node,text,0,NULL);
+                               log_msg(LOG_LEVEL_DEBUG, "added new node '%s' (%p) for '%s' (reason: partial equal match for directory)", new_node->path, new_node, text);
                            }
                            break;
                        }
           }
+      } else {
+          log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': skip equal list (reason: list is empty)", depth, ' ', node->path);
       }
+  } else {
+      log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s' skip equal list (reason: not on top level)", depth, ' ', node->path);
   }
   /* We'll use retval to pass information on whether to recurse
    * the dir or not */
@@ -365,44 +397,57 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
   /* If 4 and 8 are not set, we will check for matches */
   if(!(retval&(4|8))){
       if (node->sel_rx_lst) {
-          switch (check_list_for_match(node->sel_rx_lst, text, attr, file_type)) {
+          log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': check selective list", depth, ' ', node->path);
+          switch (check_list_for_match(node->sel_rx_lst, text, attr, file_type, AIDE_SELECTIVE_RULE, depth)) {
               case RESTRICTED_RULE_MATCH:
               case RULE_MATCH: {
+                          log_msg(LOG_LEVEL_RULE, "\u2502 %*cselective match for '%s' (node: '%s')", depth, ' ', text, node->path);
                           retval|=1|8;
                           break;
                       }
               case PARTIAL_RULE_MATCH: {
                            if(file_type&RESTRICTION_FT_DIR && get_seltree_node(node,text)==NULL) {
-                               new_seltree_node(node,text,0,NULL);
+                               seltree *new_node = new_seltree_node(node,text,0,NULL);
+                               log_msg(LOG_LEVEL_DEBUG, "added new node '%s', (%p) for '%s' (reason: partial selective match for directory)", new_node->path, new_node, text);
                            }
                            break;
                        }
           }
+      } else {
+          log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': skip selective list (reason: list is empty)", depth, ' ', node->path);
       }
+  } else {
+      log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': skip selective list (reason: previous positive match)", depth, ' ', node->path);
   }
 
   /* Now let's check the ancestors */
-  retval=check_node_for_match(node->parent, text, file_type, retval,attr, depth+2);
+  retval=check_node_for_match(node->parent, text, file_type, retval, attr, depth+2);
 
   /* Negative regexps are the strongest so they are checked last */
   /* If this file is to be added */
-  if(retval){
+  if(retval&(1|2)){
       if (node->neg_rx_lst) {
-          switch (check_list_for_match(node->neg_rx_lst, text, attr, file_type)) {
+          log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': check negative list (reason: previous positive match)", depth, ' ', node->path);
+          switch (check_list_for_match(node->neg_rx_lst, text, attr, file_type, AIDE_NEGATIVE_RULE, depth)) {
               case RESTRICTED_RULE_MATCH: {
                   if(file_type&RESTRICTION_FT_DIR && get_seltree_node(node,text)==NULL) {
-                      new_seltree_node(node,text,0,NULL);
+                      seltree *new_node = new_seltree_node(node,text,0,NULL);
+                      log_msg(LOG_LEVEL_DEBUG, "added new node '%s' (%p) for '%s' (reason: restricted negative match for directory)", new_node->path, new_node, text);
                   }
 
               }
               // fall through
               case RULE_MATCH: {
+                  log_msg(LOG_LEVEL_RULE, "\u2502 %*cnegative match for '%s' (node: '%s')", depth, ' ', text, node->path);
                   retval=0;
                   break;
               }
           }
       } else {
+          log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': skip negative list (reason: list is empty)", depth, ' ', node->path);
       }
+  } else {
+      log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': skip negative list (reason: no previous positive match)", depth, ' ', node->path);
   }
   /* Now we discard the info whether a match was made or not *
    * and just return 0,1 or 2 */
@@ -413,6 +458,7 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
 }
 
 int check_seltree(seltree *tree, char *filename, RESTRICTION_TYPE file_type, DB_ATTR_TYPE *attr) {
+  log_msg(LOG_LEVEL_RULE, "\u2502 check '%s'", filename);
   char * tmp=NULL;
   char * parentname=NULL;
   seltree* pnode=NULL;
@@ -431,13 +477,22 @@ int check_seltree(seltree *tree, char *filename, RESTRICTION_TYPE file_type, DB_
   }
 
   pnode=get_seltree_node(tree,parentname);
+  log_msg(LOG_LEVEL_DEBUG, "got parent node '%s' (%p) for parentname '%s'", pnode->path, pnode, parentname);
   free(parentname);
 
   retval = check_node_for_match(pnode, filename, file_type, 0,attr, 0);
+
   if (retval) {
+    char *str;
+    log_msg(LOG_LEVEL_RULE, "\u2534 ADD '%s' to the tree (attr: '%s')", filename, str = diff_attributes(0, *attr));
+    free(str);
+
     if(get_seltree_node(tree,filename)==NULL) {
-        new_seltree_node(tree,filename,0,NULL);
+        seltree *new_node = new_seltree_node(tree,filename,0,NULL);
+        log_msg(LOG_LEVEL_DEBUG, "added new node '%s', (%p) for '%s' (reason: full match)", new_node->path, new_node, filename);
     }
+  } else {
+    log_msg(LOG_LEVEL_RULE, "\u2534 do NOT add '%s' to the tree", filename);
   }
   return retval;
 }

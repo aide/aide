@@ -22,6 +22,10 @@
 
 #include "rx_rule.h"
 
+static const char restriction_char[] = { 'f', 'd', 'p', 'l', 'b', 'c', 's', 'D', 'P'};
+
+static int num_restrictions = sizeof(restriction_char)/sizeof(char);
+
 RESTRICTION_TYPE get_file_type(mode_t mode) {
     switch (mode & S_IFMT) {
         case S_IFREG: return RESTRICTION_FT_REG;
@@ -56,4 +60,54 @@ RESTRICTION_TYPE get_restrictionval(char* ch) {
     else if (strcmp(ch, "D") == 0) { return RESTRICTION_FT_DOOR; }
     else if (strcmp(ch, "P") == 0) { return RESTRICTION_FT_PORT; }
     else { return RESTRICTION_NULL; }
+}
+
+static int generate_restriction_string(RESTRICTION_TYPE rs, char *str) {
+    int n = 0;
+    if (rs == RESTRICTION_NULL) {
+        char *no_restriction_string = "(none)";
+        size_t length = strlen(no_restriction_string);
+        if (str) { strncpy(str, no_restriction_string, length+1); }
+        n = length + 1;
+    } else {
+        for (int i = 0; i < num_restrictions; ++i) {
+            if ((1LLU<<i)&rs) {
+                if (n) {
+                    if (str) { str[n] = ','; }
+                    n++;
+                }
+                if (str) { str[n] = restriction_char[i]; }
+                n ++;
+            }
+        }
+        if (str) { str[n] = '\0'; }
+        n++;
+    }
+    return n;
+}
+
+char *get_restriction_string(RESTRICTION_TYPE rs) {
+    char *str = NULL;
+    int n = generate_restriction_string(rs, str);
+    str = malloc(n);
+    generate_restriction_string(rs, str);
+    return str;
+}
+
+char* get_rule_type_long_string(AIDE_RULE_TYPE rule_type) {
+    switch (rule_type) {
+        case AIDE_SELECTIVE_RULE: return "selective rule";
+        case AIDE_EQUAL_RULE: return "equal rule";
+        case AIDE_NEGATIVE_RULE: return "negative rule";
+    }
+    return NULL;
+}
+
+char* get_rule_type_char(AIDE_RULE_TYPE rule_type) {
+    switch (rule_type) {
+        case AIDE_SELECTIVE_RULE: return "";
+        case AIDE_EQUAL_RULE: return "=";
+        case AIDE_NEGATIVE_RULE: return "!";
+    }
+    return NULL;
 }

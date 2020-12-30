@@ -23,7 +23,7 @@
 #define _URL_H_INCLUDED
 
 typedef enum {
-  url_file,
+  url_file = 1,
   url_stdout,
   url_stdin,
   url_stderr,
@@ -32,7 +32,6 @@ typedef enum {
   url_http,
   url_https,
   url_syslog,
-  url_unknown
 } URL_TYPE;
 
 typedef struct url_t {
@@ -42,6 +41,8 @@ typedef struct url_t {
   void* data; /* We might want to pass some list's to multiwriter */ 
 } url_t;
 
+URL_TYPE get_url_type(char *);
 
+const char* get_url_type_string(URL_TYPE);
 
 #endif

@@ -39,9 +39,11 @@
 #include "commandconf.h"
 #include "report.h"
 #include "db_config.h"
-#include "db_file.h"
+#include "db_disk.h"
+#include "db.h"
 #include "do_md.h"
-#include "error.h"
+#include "log.h"
+#include "errorcodes.h"
 #include "gen_list.h"
 #include "getopt.h"
 #include "list.h"
@@ -51,6 +53,8 @@
 #include "locale-aide.h"
 /*for locale support*/
 db_config* conf;
+char* before = NULL;
+char* after = NULL;
 
 #ifndef MAXHOSTNAMELEN
 #define MAXHOSTNAMELEN 256
@@ -75,11 +79,54 @@ static void usage(int exitvalue)
 	    "  -l [REGEX]\t--limit=[REGEX]\t\tLimit command to entries matching [REGEX]\n"
 	    "  -B \"OPTION\"\t--before=\"OPTION\"\tBefore configuration file is read define OPTION\n"
 	    "  -A \"OPTION\"\t--after=\"OPTION\"\tAfter configuration file is read define OPTION\n"
-	    "  -V[level]\t--verbose=[level]\tSet debug message level to [level]\n"
+	    "  -L [level]\t--log-level=[level]\tSet log message level to [level]\n"
 	    "\n")
 	  );
   
   exit(exitvalue);
+}
+
+static void sig_handler(int);
+
+static void init_sighandler()
+{
+  signal(SIGBUS,sig_handler);
+  signal(SIGTERM,sig_handler);
+  signal(SIGUSR1,sig_handler);
+  signal(SIGHUP,sig_handler);
+
+  return;
+}
+
+static void sig_handler(int signum)
+{
+  switch(signum){
+  case SIGBUS  : {
+    if(conf->catch_mmap==1){
+      log_msg(LOG_LEVEL_NOTICE, "Caught SIGBUS while mmapping. File was truncated while aide was running?");
+      conf->catch_mmap=0;
+    } else {
+      log_msg(LOG_LEVEL_ERROR, "Caught SIGBUS. Exiting");
+      exit(EXIT_FAILURE);
+    }
+    break;
+  }
+  case SIGHUP : {
+    log_msg(LOG_LEVEL_INFO, "Caught SIGHUP");
+    break;
+  }
+  case SIGTERM : {
+    log_msg(LOG_LEVEL_INFO, "Caught SIGTERM. Use SIGKILL to terminate");
+    break;
+  }
+  case SIGUSR1 : {
+    log_msg(LOG_LEVEL_INFO, "Caught SIGUSR1, toggle debug level: set log level to %s", get_log_level_name(toogle_log_level(LOG_LEVEL_DEBUG)));
+    break;
+  }
+  }
+  init_sighandler();
+
+  return;
 }
 
 static void print_version(void)
@@ -90,10 +137,41 @@ static void print_version(void)
   exit(0);
 }
 
-static int read_param(int argc,char**argv)
+static char *append_line_to_config(char *config, char *line) {
+    size_t line_length = strlen(line);
+    if (config == NULL) {
+        config = checked_malloc((line_length+2)*sizeof(char));
+        strcpy(config,line);
+        strcat(config,"\n");
+    } else {
+        char *tmp = checked_malloc(sizeof(char) *(strlen(config)+line_length+2));
+        strcpy(tmp,config);
+        strcat(tmp,line);
+        strcat(tmp,"\n");
+        free(config);
+        config=tmp;
+    }
+    return config;
+}
+
+#define INVALID_ARGUMENT(option, format, ...) \
+        fprintf(stderr, "%s: (%s): " #format "\n", argv[0], option, __VA_ARGS__); \
+        exit(INVALID_ARGUMENT_ERROR);
+
+#define ACTION_CASE(longopt, option, _action) \
+      case option: { \
+            if(conf->action==0){ \
+                conf->action=_action; \
+            } else { \
+                INVALID_ARGUMENT(longopt, %s, "cannot have multiple commands on a single commandline") \
+                exit(INVALID_ARGUMENT_ERROR); \
+            } \
+            break; \
+        }
+
+static void read_param(int argc,char**argv)
 {
   int option = -1;
-  char* err=NULL;
   int i=0;
   
 
@@ -111,12 +189,13 @@ static int read_param(int argc,char**argv)
     { "update", no_argument, NULL, 'u'},
     { "config-check", no_argument, NULL, 'D'},
     { "limit", required_argument, NULL, 'l'},
+    { "log-level", required_argument, NULL, 'L'},
     { "compare", no_argument, NULL, 'E'},
     { NULL,0,NULL,0 }
   };
 
   while(1){
-    option = getopt_long(argc, argv, "hV::vc:l:B:A:riCuDE", options, &i);
+    option = getopt_long(argc, argv, "hL:V::vc:l:B:A:riCuDE", options, &i);
     if(option==-1)
       break;
     switch(option)
@@ -130,156 +209,81 @@ static int read_param(int argc,char**argv)
 	break;
       }
       case 'V':{
-	if(optarg!=NULL){
-	  conf->verbose_level=strtol(optarg,&err,10);
-	  if(*err!='\0' || conf->verbose_level>255 || conf->verbose_level<0 || 
-	     errno==ERANGE){
-	    error(0, _("Illegal verbosity level:%s\n"),optarg);
-	    exit(INVALID_ARGUMENT_ERROR);
-	  }
-	  error(230,_("Setting verbosity to %s\n"),optarg);
-	}else{
-	  conf->verbose_level=20;
-	}
+        INVALID_ARGUMENT("--verbose", %s, "option no longer supported, use 'log_level' and 'report_level' options instead (see man aide.conf for details)")
 	break;
       }
       case 'c':{
-	if(optarg!=NULL){
 	  conf->config_file=optarg;
-	}else{
-	  error(0,_("No config-file name given!\n"));
-	  exit(INVALID_ARGUMENT_ERROR);
-	}
+      log_msg(LOG_LEVEL_INFO,_("(--config): set config file to '%s'"), conf->config_file);
 	break;
       }
       case 'B': {
-	if (optarg!=NULL) {
-	  int errorno=commandconf('B',optarg);
-	  if (errorno!=0){
-	    error(0,_("Configuration error in before statement:%s\n"),optarg);
-	    exit(INVALID_CONFIGURELINE_ERROR);
-	  }
-	} else {
-	  error(0,_("-B must have a parameter\n"));
-	  exit(INVALID_ARGUMENT_ERROR);
-	}
+        before = append_line_to_config(before, optarg);
+        log_msg(LOG_LEVEL_INFO,_("(--before): append '%s' to before config"), optarg);
 	break;
       }
       case 'A': {
-	if (optarg!=NULL) {
-	  int errorno=commandconf('A',optarg);
-	  if (errorno!=0){
-	    error(0,_("Configuration error in after statement:%s\n"),optarg);
-	    exit(INVALID_CONFIGURELINE_ERROR);
-	  }
-	} else {
-	  error(0,_("-A must have a parameter\n"));
-	  exit(INVALID_ARGUMENT_ERROR);
-	}
+        after = append_line_to_config(after, optarg);
+        log_msg(LOG_LEVEL_INFO,_("(--after): append '%s' to after config"), optarg);
 	break;
       }
       case 'l': {
-            if (optarg!=NULL) {
                 const char* pcre_error;
                 int pcre_erroffset;
                 conf->limit=malloc(strlen(optarg)+1);
                 strcpy(conf->limit,optarg);
                 if((conf->limit_crx=pcre_compile(conf->limit, PCRE_ANCHORED, &pcre_error, &pcre_erroffset, NULL)) == NULL) {
-                    error(0,_("Error in limit regexp '%s' at %i: %s\n"), conf->limit, pcre_erroffset, pcre_error);
-                    exit(INVALID_ARGUMENT_ERROR);
+                    INVALID_ARGUMENT("--limit", error in regular expression '%s' at %i: %s, conf->limit, pcre_erroffset, pcre_error)
                 }
-                error(200,_("Limit set to '%s'\n"), conf->limit);
-            } else {
-                error(0,_("-l must have an argument\n"));
-                exit(INVALID_ARGUMENT_ERROR);
-            }
+                log_msg(LOG_LEVEL_INFO,_("(--limit): set limit to '%s'"), conf->limit);
             break;
       }
+      case 'L':{
+            LOG_LEVEL level = get_log_level_from_string(optarg);
+            if (level == LOG_LEVEL_UNSET) {
+                INVALID_ARGUMENT("--log-level", invalid log level '%s' (see man aide.conf for details), optarg)
+            } else {
+                set_log_level(level);
+                log_msg(LOG_LEVEL_INFO,"(--log-level): set log level to '%s'", optarg);
+            }
+           break;
+               }
       case 'r': {
-       error(0,_("option '%s' is no longer supported, use 'report_url' config option (see man 5 aide.conf for details)\n"), argv[optind-1]);
-       exit(INVALID_ARGUMENT_ERROR);
+       INVALID_ARGUMENT("--report", %s, "option no longer supported, use 'report_url' config option instead (see man aide.conf for detail)")
        break;
       }
-      case 'i': {
-	if(conf->action==0){
-	  conf->action=DO_INIT;
-	}else {
-	  error(0,
-		_("Cannot have multiple commands on a single commandline.\n"));
-	  exit(INVALID_ARGUMENT_ERROR);
-	};
-	break;
-      }
-      case 'C': {
-	if(conf->action==0){
-	  conf->action=DO_COMPARE;
-	}else {
-	  error(0,
-		_("Cannot have multiple commands on a single commandline.\n"));
-	  exit(INVALID_ARGUMENT_ERROR);
-	};
-	break;
-      }
-      case 'u': {
-	if(conf->action==0){
-	  conf->action=DO_INIT|DO_COMPARE;
-	}else {
-	  error(0,
-		_("Cannot have multiple commands on a single commandline.\n"));
-	  exit(INVALID_ARGUMENT_ERROR);
-	};
-	break;
-      }
-      case 'E': {
-	if(conf->action==0){
-	  conf->action=DO_DIFF;
-	}else {
-	  error(0,
-		_("Cannot have multiple commands on a single commandline.\n"));
-	  exit(INVALID_ARGUMENT_ERROR);
-	};
-	break;
-      }
+      ACTION_CASE("--init", 'i', DO_INIT)
+      ACTION_CASE("--check", 'C', DO_COMPARE)
+      ACTION_CASE("--update", 'u', DO_INIT|DO_COMPARE)
+      ACTION_CASE("--compare", 'E', DO_DIFF)
       case 'D': {
-	conf->config_check=1;
-	break;
-      }
-      default:
-	error(0,_("Unknown option given. Exiting\n"));
+            conf->config_check=1;
+            log_msg(LOG_LEVEL_INFO,"(--config-check): enable config check");
+            break;
+        }
+      default: /* '?' */
 	  exit(INVALID_ARGUMENT_ERROR);
       }
   }
 
   if(optind<argc){
-    error(0,_("Extra parameters given\n"));
+    fprintf(stderr, "%s: extra parameter: '%s'\n", argv[0], argv[optind]);
     exit(INVALID_ARGUMENT_ERROR);
   }
-  return RETOK;
 }
 
 static void setdefaults_before_config()
 {
-  char* s=(char*)malloc(sizeof(char)*MAXHOSTNAMELEN+1);
   DB_ATTR_TYPE X;
 
-  /*
-    Set up the hostname
-  */
   conf=(db_config*)malloc(sizeof(db_config));
   conf->defsyms=NULL;
-  
-  if (gethostname(s,MAXHOSTNAMELEN)==-1) {
-    error(0,_("Couldn't get hostname"));
-    free(s);
-  } else {
-    s=(char*)realloc((void*)s,strlen(s)+1);
-    do_define("HOSTNAME",s);
-  }
-  
+
   /* Setting some defaults */
+
+  log_msg(LOG_LEVEL_INFO, "initialise rule tree");
   conf->tree=init_tree();
   conf->config_check=0;
-  conf->verbose_level=-1;
   conf->database_add_metadata=1;
   conf->report_detailed_init=0;
   conf->report_base16=0;
@@ -304,30 +308,56 @@ static void setdefaults_before_config()
   conf->db_out_attrs = ATTR(attr_filename)|ATTR(attr_attr)|ATTR(attr_perm)|ATTR(attr_inode);
 
   conf->symlinks_found=0;
-  conf->db_in_size=0;
-  conf->db_in_order=NULL;
-  conf->db_in_url=NULL;
-  conf->db_in=NULL;
-  conf->db_new_size=0;
-  conf->db_new_order=NULL;
-  conf->db_new_url=NULL;
-  conf->db_new=NULL;
-  conf->db_out_url=NULL;
-  conf->db_out=NULL;
 
-  conf->mdc_in=NULL;
-  conf->mdc_out=NULL;
+  conf->database_in.url = NULL;
+  conf->database_in.filename=NULL;
+  conf->database_in.linenumber=0;
+  conf->database_in.linebuf=NULL;
+  conf->database_in.fp=NULL;
+#ifdef WITH_ZLIB
+  conf->database_in.gzp = NULL;
+#endif
+  conf->database_in.lineno = 0;
+  conf->database_in.fields = NULL;
+  conf->database_in.num_fields = 0;
+  conf->database_in.buffer_state = NULL;
+  conf->database_in.mdc = NULL;
+  conf->database_in.db_line = NULL;
 
-  conf->line_db_in=NULL;
-  conf->line_db_out=NULL;
+  conf->database_out.url = NULL;
+  conf->database_out.filename=NULL;
+  conf->database_out.linenumber=0;
+  conf->database_out.linebuf=NULL;
+  conf->database_out.fp=NULL;
+#ifdef WITH_ZLIB
+  conf->database_out.gzp = NULL;
+#endif
+  conf->database_out.lineno = 0;
+  conf->database_out.fields = NULL;
+  conf->database_out.num_fields = 0;
+  conf->database_out.buffer_state = NULL;
+  conf->database_out.mdc = NULL;
+  conf->database_out.db_line = NULL;
 
-  conf->db_attrs = get_hashes();
+  conf->database_new.url = NULL;
+  conf->database_new.filename=NULL;
+  conf->database_new.linenumber=0;
+  conf->database_new.linebuf=NULL;
+  conf->database_new.fp=NULL;
+#ifdef WITH_ZLIB
+  conf->database_new.gzp = NULL;
+#endif
+  conf->database_new.lineno = 0;
+  conf->database_new.fields = NULL;
+  conf->database_new.num_fields = 0;
+  conf->database_new.buffer_state = NULL;
+  conf->database_new.mdc = NULL;
+  conf->database_new.db_line = NULL;
+
+  conf->db_attrs = get_hashes(false);
   
 #ifdef WITH_ZLIB
-  conf->db_gzin=0;
-  conf->db_gznew=0;
   conf->gzip_dbout=0;
-  conf->db_gzout=0;
 #endif
 
   conf->action=0;
@@ -335,11 +365,11 @@ static void setdefaults_before_config()
 
   conf->warn_dead_symlinks=0;
 
-  conf->grouped=1;
+  conf->report_grouped=1;
 
-  conf->summarize_changes=1;
+  conf->report_summarize_changes=1;
 
-  conf->root_prefix="";
+  conf->root_prefix=NULL;
   conf->root_prefix_length=0;
 
   conf->limit=NULL;
@@ -348,6 +378,8 @@ static void setdefaults_before_config()
   conf->groupsyms=NULL;
 
   conf->start_time=time(&(conf->start_time));
+
+  log_msg(LOG_LEVEL_INFO, "define default group definitions");
 
   for (ATTRIBUTE i = 0 ; i < num_attrs ; ++i) {
       if (attributes[i].config_name) {
@@ -388,36 +420,31 @@ static void setdefaults_before_config()
 
 static void setdefaults_after_config()
 {
-  if(conf->db_in_url==NULL){
-    url_t* u=NULL;
-    u=(url_t*)malloc(sizeof(url_t));
-    u->type=url_file;
-    u->value=DEFAULT_DB;
-    conf->db_in_url=u;
+  int linenumber=1;
+
+  if(conf->database_in.url==NULL){
+    do_dbdef(DB_TYPE_IN, "file:"DEFAULT_DB_OUT, linenumber++, "(default)",  NULL);
   }
-  if(conf->db_out_url==NULL){
-    url_t* u=NULL;
-    u=(url_t*)malloc(sizeof(url_t));
-    u->type=url_file;
-    u->value=DEFAULT_DB_OUT;
-    conf->db_out_url=u;
+  if(conf->database_out.url==NULL){
+    do_dbdef(DB_TYPE_OUT, "file:"DEFAULT_DB_OUT, linenumber++, "(default)",  NULL);
+  }
+
+  if(conf->root_prefix==NULL){
+    do_rootprefix("" , linenumber++, "(default)",  NULL);
   }
 
   if(conf->report_urls==NULL){
-    url_t* u = malloc(sizeof(url_t)); /* not to be freed, needed for reporting */
-    u->type=url_stdout;
-    u->value=NULL;
-    add_report_url(u);
+    do_repurldef("stdout" , linenumber++, "(default)",  NULL);
   }
 
   if(conf->action==0){
     conf->action=DO_COMPARE;
   }
-  if(conf->verbose_level==-1){
-    conf->verbose_level=5;
-  }
-}
 
+  if (is_log_level_unset()) {
+          set_log_level(LOG_LEVEL_WARNING);
+  };
+}
 
 int main(int argc,char**argv)
 {
@@ -433,85 +460,102 @@ int main(int argc,char**argv)
 
   setdefaults_before_config();
 
-  if(read_param(argc,argv)==RETFAIL){
-    error(0, _("Invalid argument\n") );
-    exit(INVALID_ARGUMENT_ERROR);
-  }
-  
-  errorno=commandconf('C',conf->config_file);
+  log_msg(LOG_LEVEL_INFO, "read command line parameters");
+  read_param(argc,argv);
 
-  errorno=commandconf('D',"");
+  /* get hostname */
+  conf->hostname = malloc(sizeof(char) * MAXHOSTNAMELEN + 1);
+  if (gethostname(conf->hostname,MAXHOSTNAMELEN) == -1) {
+      log_msg(LOG_LEVEL_WARNING,"gethostname failed: %s", strerror(errno));
+      free(conf->hostname);
+      conf->hostname = NULL;
+  } else {
+      log_msg(LOG_LEVEL_DEBUG, "hostname: '%s'", conf->hostname);
+  }
+
+  log_msg(LOG_LEVEL_INFO, "parse configuration");
+  errorno=parse_config(before, conf->config_file, after);
   if (errorno==RETFAIL){
-    error(0,_("Configuration error\n"));
     exit(INVALID_CONFIGURELINE_ERROR);
   }
+  free (before);
+  free (after);
 
   setdefaults_after_config();
-  
-  print_tree(conf->tree);
-  
+
+  log_msg(LOG_LEVEL_CONFIG, "report_urls:");
+  log_report_urls(LOG_LEVEL_CONFIG);
+
+  log_msg(LOG_LEVEL_RULE, "rule tree:");
+  log_tree(LOG_LEVEL_RULE, conf->tree, 0);
   
   /* Let's do some sanity checks for the config */
-  if(cmpurl(conf->db_in_url,conf->db_out_url)==RETOK){
-    error(4,_("WARNING:Input and output database urls are the same.\n"));
+  if(cmpurl(conf->database_in.url,conf->database_out.url)==RETOK){
+      log_msg(LOG_LEVEL_NOTICE, "input and output database URLs are the same: '%s'", (conf->database_in.url)->value);
     if((conf->action&DO_INIT)&&(conf->action&DO_COMPARE)){
-      error(0,_("Input and output database urls cannot be the same "
-	    "when doing database update\n"));
+      log_msg(LOG_LEVEL_ERROR,_("input and output database urls cannot be the same "
+	    "when doing database update"));
       exit(INVALID_ARGUMENT_ERROR);
     }
     if(conf->action&DO_DIFF){
-      error(0,_("Both input databases cannot be the same "
-		"when doing database compare\n"));
+      log_msg(LOG_LEVEL_ERROR,_("both input databases cannot be the same "
+		"when doing database compare"));
       exit(INVALID_ARGUMENT_ERROR);
     }
   };
-  if((conf->action&DO_DIFF)&&(!(conf->db_new_url)||!(conf->db_in_url))){
-    error(0,_("Must have both input databases defined for "
-	      "database compare.\n"));
+  if((conf->action&DO_DIFF)&&(!(conf->database_new.url)||!(conf->database_in.url))){
+    log_msg(LOG_LEVEL_ERROR,_("must have both input databases defined for "
+	      "database compare"));
     exit(INVALID_ARGUMENT_ERROR);
   }
+  if (!conf->config_check) {
   if (conf->action&(DO_INIT|DO_COMPARE) && conf->root_prefix_length > 0) {
       DIR *dir;
       if((dir = opendir(conf->root_prefix)) != NULL) {
           closedir(dir);
       } else {
-          char* er=strerror(errno);
-          if (er!=NULL) {
-              error(0,"opendir() for root prefix %s failed: %s\n", conf->root_prefix,er);
-          } else {
-              error(0,"opendir() for root prefix %s failed: %i\n", conf->root_prefix,errno);
-          }
-          exit(INVALID_ARGUMENT_ERROR);
+          log_msg(LOG_LEVEL_ERROR,"opendir() for root_prefix %s failed: %s", conf->root_prefix, strerror(errno));
+          exit(INVALID_CONFIGURELINE_ERROR);
       }
   }
-  if (!conf->config_check) {
     if(conf->action&DO_INIT){
-      if(db_init(DB_WRITE)==RETFAIL) {
+      if(db_init(&(conf->database_out), false,
+#ifdef WITH_ZLIB
+        conf->gzip_dbout
+#else
+        false
+#endif
+       ) == RETFAIL) {
 	exit(IO_ERROR);
       }
       if(db_writespec(conf)==RETFAIL){
-	error(0,_("Error while writing database. Exiting..\n"));
+	log_msg(LOG_LEVEL_ERROR,_("Error while writing database. Exiting.."));
 	exit(IO_ERROR);
       }
     }
     if((conf->action&DO_INIT)||(conf->action&DO_COMPARE)){
-      if(db_init(DB_DISK)==RETFAIL)
+      if(db_disk_init()==RETFAIL)
 	exit(IO_ERROR);
     }
     if((conf->action&DO_COMPARE)||(conf->action&DO_DIFF)){
-      if(db_init(DB_OLD)==RETFAIL)
+      if(db_init(&(conf->database_in), true, false)==RETFAIL)
 	exit(IO_ERROR);
     }
     if(conf->action&DO_DIFF){
-      if(db_init(DB_NEW)==RETFAIL)
+      if(db_init(&(conf->database_new), true, false)==RETFAIL)
 	exit(IO_ERROR);
     }
       
     populate_tree(conf->tree);
     db_close();
-    
-    exit(gen_report(conf->tree));
-    
+
+    log_msg(LOG_LEVEL_INFO, "generate reports");
+
+    int exitcode = gen_report(conf->tree);
+
+    log_msg(LOG_LEVEL_INFO, "exit AIDE with exit code '%d'", exitcode);
+
+    exit(exitcode);
   }
   return RETOK;
 }

@@ -116,8 +116,6 @@ void add_child (db_line * fil)
 	int i;
 	struct seltree *new_r;
 
-	error (255, "Adding child %s\n", fil->filename);
-
 	new_r = get_seltree_node (r, fil->filename);
 	if (new_r != NULL) {
 		if (S_ISDIR (fil->perm_o)) {
@@ -128,6 +126,8 @@ void add_child (db_line * fil)
 		}
 		return;
 	}
+
+	log_msg(LOG_LEVEL_DEBUG, "add child '%s' to %s", fil->filename, r->path);
 
 	new_r = malloc (sizeof (seltree));
 
@@ -141,6 +141,7 @@ void add_child (db_line * fil)
 	new_r->equ_rx_lst = NULL;
 	new_r->parent = r;
 	new_r->checked = 0;
+	new_r->changed_attrs=0;
 	new_r->new_data = NULL;
 	new_r->old_data = NULL;
 	if (S_ISDIR (fil->perm_o)) {
@@ -158,9 +159,9 @@ static int get_file_status(char *filename, struct stat *fs) {
     if(sres == -1){
         char* er = strerror(errno);
         if (er == NULL) {
-            error(0,"get_file_status: lstat() failed for %s. strerror() failed for %i\n", filename, errno);
+            log_msg(LOG_LEVEL_WARNING, "get_file_status: lstat() failed for %s. strerror() failed with %i", filename, errno);
         } else {
-            error(0,"get_file_status: lstat() failed for %s: %s\n", filename, er);
+            log_msg(LOG_LEVEL_WARNING, "get_file_status: lstat() failed for %s: %s", filename, er);
         }
     }
     return sres;
@@ -187,16 +188,12 @@ db_line *db_readline_disk ()
 		strcat (fullname, "/");
 		if (!get_file_status(fullname, &fs)) {
 		add = check_rxtree (&fullname[conf->root_prefix_length], conf->tree, &attr, fs.st_mode);
-		error (240, "%s match=%d, tree=%p, attr=%llu\n", &fullname[conf->root_prefix_length], add,
-					 conf->tree, attr);
 
 		if (add > 0) {
+            log_msg(LOG_LEVEL_DEBUG, "get file atttributes '%s'", &fullname[conf->root_prefix_length]);
 			fil = get_file_attrs (fullname, attr, &fs);
 
-			error (240, "%s attr=%llu\n", &fullname[conf->root_prefix_length], attr);
-
 			if (fil != NULL) {
-				error (240, "%s attr=%llu\n", fil->filename, fil->attr);
 				return fil;
 			}
         }
@@ -236,17 +233,12 @@ recursion:
 		    goto recursion;
 		}
 		add = check_rxtree (&fullname[conf->root_prefix_length], conf->tree, &attr, fs.st_mode);
-		error (240, "%s match=%d, tree=%p, attr=%llu\n", &fullname[conf->root_prefix_length], add,
-					 conf->tree, attr);
 
 		if (add > 0) {
+            log_msg(LOG_LEVEL_DEBUG, "get file atttributes '%s'", &fullname[conf->root_prefix_length]);
 			fil = get_file_attrs (fullname, attr, &fs);
 
-			error (240, "%s attr=%llu\n", &fullname[conf->root_prefix_length], attr);
-
-			if (fil != NULL) {
-				error (240, "%s attr=%llu\n", fil->filename, fil->attr);
-			} else {
+			if (fil == NULL) {
 				/*
 				   Something went wrong during read process -> 
 				   Let's try next one.
@@ -295,7 +287,7 @@ recursion:
 			return NULL;
 		}
 
-		error (255, "r->childs %p, r->parent %p, r->checked %i\n", r->childs,
+		log_msg(LOG_LEVEL_TRACE, "r->childs %p, r->parent %p, r->checked %i", r->childs,
 					 r->parent, r->checked);
 
 		if ((0 == (r->checked & NODE_CHECKED)) && r->childs != NULL) {
@@ -314,12 +306,12 @@ recursion:
 
 				rr = (seltree *) l->data;
 
-				error (255, "rr->checked %i\n", rr->checked);
+				log_msg(LOG_LEVEL_TRACE, "rr->checked %i", rr->checked);
 				rr->checked |= NODE_TRAVERSE;
 
 				r = rr;
 
-				error (255, "r->childs %p, r->parent %p,r->checked %i\n",
+				log_msg (LOG_LEVEL_TRACE, "r->childs %p, r->parent %p,r->checked %i",
 							 r->childs, r->parent, r->checked);
 				fullname=malloc((conf->root_prefix_length+strlen(r->path)+1)*sizeof(char));
 				strncpy(fullname, conf->root_prefix, conf->root_prefix_length+1);
@@ -348,20 +340,20 @@ recursion:
 						   The only way a nonexistent dirnode can have children is by 
 						   having rules referring to them.
 						 */
-						error (10,
-									 "There are rules referring to non-existent directory %s\n", fullname);
+						log_msg (LOG_LEVEL_NOTICE,
+									 "There are rules referring to non-existent directory %s", fullname);
 					} else if (errno != ENOTDIR) {
 						/* We print the message unless it is "Not a directory". */
 						char *er = strerror (errno);
 						if (er != NULL) {
-							error (3, "open_dir(): %s: %s\n", er, fullname);
+							log_msg(LOG_LEVEL_WARNING, "open_dir() failed for %s: %s", fullname, er);
 						} else {
-							error (3, "open_dir(): %i: %s\n", errno, fullname);
+							log_msg(LOG_LEVEL_WARNING, "open_dir(): failed for %s: %i", fullname, errno);
 						}
 					}
 					r->checked |= NODE_TRAVERSE | NODE_CHECKED;
 					r = r->parent;
-					error (255, "dropping back to parent\n");
+					log_msg(LOG_LEVEL_TRACE, "dropping back to parent");
 				}
 				free(fullname);
 			} else {
@@ -371,7 +363,7 @@ recursion:
 				if (r == NULL) {
 					return NULL;
 				}
-				error (255, "dropping back to parent\n");
+				log_msg(LOG_LEVEL_TRACE, "dropping back to parent");
 			}
 			goto recursion;
 		}

@@ -39,13 +39,14 @@
 #include "seltree.h"
 #include "db.h"
 #include "db_config.h"
+#include "db_disk.h"
+#include "db_lex.h"
 #include "commandconf.h"
-#include "error.h"
+#include "log.h"
+#include "util.h"
 /*for locale support*/
 #include "locale-aide.h"
 /*for locale support*/
-
-#define CLOCK_SKEW 5
 
 #ifdef WITH_MHASH
 #include <mhash.h>
@@ -70,7 +71,7 @@ static int has_str_changed(char* old,char* new) {
 }
 
 static int has_md_changed(byte* old,byte* new,int len) {
-    error(255,"Debug, has_md_changed %p %p\n",old,new);
+    log_msg(LOG_LEVEL_TRACE," has_md_changed %p %p",old,new);
     return (((old!=NULL && new!=NULL) &&
                 (bytecmp(old,new,len)!=0)) ||
             ((old!=NULL && new==NULL) ||
@@ -212,7 +213,7 @@ static DB_ATTR_TYPE get_changed_attributes(db_line* l1,db_line* l2) {
 #ifdef WITH_CAPABILITIES
     easy_function_compare(ATTR(attr_capabilities),capabilities,has_str_changed);
 #endif
-    error(255,"Debug, changed attributes for entry %s [%llx %llx]: %llx\n", l1->filename,l1->attr,l2->attr,ret);
+
     return ret;
 }
 
@@ -307,6 +308,7 @@ void strip_dbline(db_line* line)
           checked_free(line->hashsums[i]);
       }
   }
+
 #ifdef WITH_ACL
   if(!(attr&ATTR(attr_acl))){
     if (line->acl)
@@ -344,16 +346,12 @@ void strip_dbline(db_line* line)
 static void add_file_to_tree(seltree* tree,db_line* file,int db)
 {
   seltree* node=NULL;
-  DB_ATTR_TYPE localignorelist=0;
 
   node=get_seltree_node(tree,file->filename);
 
   if(!node){
     node=new_seltree_node(tree,file->filename,0,NULL);
-  }
-  
-  if(file==NULL){
-    error(0, "add_file_to_tree was called with NULL db_line\n");
+    log_msg(LOG_LEVEL_DEBUG, "added new node '%s' (%p) for '%s' (reason: new entry)", node->path, node, file->filename);
   }
 
   /* add note to this node which db has modified it */
@@ -363,10 +361,12 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db)
 
   switch (db) {
   case DB_OLD: {
+    log_msg(LOG_LEVEL_DEBUG, "add old entry '%s' (%c) to node '%s' (%p) as old data", file->filename, get_file_type_char(file->perm), node->path, node);
     node->old_data=file;
     break;
   }
   case DB_NEW: {
+    log_msg(LOG_LEVEL_DEBUG, "add new entry '%s' (%c) to node '%s' (%p) as new data", file->filename, get_file_type_char(file->perm), node->path, node);
     node->new_data=file;
     break;
   }
@@ -374,7 +374,9 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db)
     node->new_data=file;
     if(conf->action&DO_INIT) {
         node->checked|=NODE_FREE;
+        log_msg(LOG_LEVEL_DEBUG, "add old entry '%s' (%c) to node (%p) as new data (entry does not match limit but keep it for database_out)", file->filename, get_file_type_char(file->perm), node);
     } else {
+        log_msg(LOG_LEVEL_DEBUG, "drop old entry '%s' (entry does not match limit)", file->filename);
         free_db_line(node->new_data);
         free(node->new_data);
         node->new_data=NULL;
@@ -385,11 +387,13 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db)
 
   if((node->checked&DB_OLD)&&(node->checked&DB_NEW)){
     node->changed_attrs=get_changed_attributes(node->old_data,node->new_data);
+    char *str;
+    str = node->changed_attrs?diff_attributes(0, node->changed_attrs):NULL;
+    log_msg(LOG_LEVEL_DEBUG,"changed attributes for entry '%s': %s", (node->old_data)->filename, str?str:"(none)");
+    free(str);
     /* Free the data if same else leave as is for report_tree */
     if(node->changed_attrs==RETOK){
-      /* FIXME this messes up the tree on SunOS. Don't know why. Fix
-	 needed badly otherwise we leak memory like hell. */
-
+      log_msg(LOG_LEVEL_DEBUG, "free old data (node '%s' is unchanged)", node->path);
       node->changed_attrs=0;
 
       free_db_line(node->old_data);
@@ -398,8 +402,10 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db)
 
       /* Free new data if not needed for write_tree */
       if(conf->action&DO_INIT) {
+          log_msg(LOG_LEVEL_DEBUG, "keep new data (node '%s' is unchanged, but keep it for database_out)", node->path);
           node->checked|=NODE_FREE;
       } else {
+          log_msg(LOG_LEVEL_DEBUG, "free new data (node '%s' is unchanged)", node->path);
           free_db_line(node->new_data);
           free(node->new_data);
           node->new_data=NULL;
@@ -414,6 +420,7 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db)
    */
   if( (node->old_data!=NULL || node->new_data!=NULL) &&
     (file->attr & ATTR(attr_checkinode))) {
+    log_msg(LOG_LEVEL_DEBUG, "'%s' has check inode group set, checking for moved file", file->filename);
     /* Check if file was moved (same inode, different name in the other DB)*/
     db_line *oldData;
     db_line *newData;
@@ -421,65 +428,73 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db)
 
     moved_node=get_seltree_inode(tree,file,db==DB_OLD?DB_NEW:DB_OLD);
     if(!(moved_node == NULL || moved_node == node)) {
-        /* There's mo match for inode or it matches the node with the same name.
-         * In first case we don't have a match to compare with.
-         * In the second - we already compared those files. */
       if(db == DB_NEW) {
         newData = node->new_data;
         oldData = moved_node->old_data;
+        log_msg(LOG_LEVEL_DEBUG, "checking old data of node '%s' with new data of '%s'", moved_node->path, node->path);
       } else {
         newData = moved_node->new_data;
         oldData = node->old_data;
+        log_msg(LOG_LEVEL_DEBUG, "checking old data of node '%s' with new data of '%s'", node->path, moved_node->path);
       }
 
       DB_ATTR_TYPE move_attr = ATTR(attr_allownewfile)|ATTR(attr_allowrmfile)|ATTR(attr_checkinode);
 
       if((oldData->attr^newData->attr)&(~move_attr)) {
-         error(220,"Ignoring moved entry (\"%s\" [%llx] => \"%s\" [%llx]) due to different attributes: %llx\n",
-                 oldData->filename, oldData->attr, newData->filename, newData->attr, localignorelist);
+         char *str;
+         log_msg(LOG_LEVEL_DEBUG, "ignoring moved entry ('%s' => '%s') due to different attributes: %s",
+                 oldData->filename, newData->filename, str = diff_attributes(oldData->attr&(~move_attr), newData->attr&(~move_attr)));
+         free(str);
      } else {
          /* Free the data if same else leave as is for report_tree */
          if ((get_changed_attributes(oldData, newData)&~(ATTR(attr_ctime))) == RETOK) {
              node->checked |= db==DB_NEW ? NODE_MOVED_IN : NODE_MOVED_OUT;
              moved_node->checked |= db==DB_NEW ? NODE_MOVED_OUT : NODE_MOVED_IN;
-             error(220,_("Entry was moved: %s [%llx] => %s [%llx]\n"),
-                     oldData->filename , oldData->attr, newData->filename, newData->attr);
+             log_msg(LOG_LEVEL_DEBUG,_("  entry has been moved: '%s' => '%s'"), oldData->filename, newData->filename);
          } else {
-             error(220,"Ignoring moved entry (\"%s\" => \"%s\") because the entries mismatch\n",
+             log_msg(LOG_LEVEL_DEBUG,"  ignoring moved entry ('%s' => '%s') because the entries mismatch\n",
                      oldData->filename, newData->filename);
          }
       }
+    } else {
+        /* There's mo match for inode or it matches the node with the same name.
+         * In first case we don't have a match to compare with.
+         * In the second - we already compared those files. */
+        log_msg(LOG_LEVEL_DEBUG, "no moved file found for '%s'", file->filename);
     }
   }
   if( (db == DB_NEW) &&
       (node->new_data!=NULL) &&
       (file->attr & ATTR(attr_allownewfile)) ){
 	 node->checked|=NODE_ALLOW_NEW;
+     log_msg(LOG_LEVEL_DEBUG,_(" mark node '%s' as NODE_ALLOW_NEW (reason: entry '%s' has ANF attribute set)"), node->path, file->filename);
   }
   if( (db == DB_OLD) &&
       (node->old_data!=NULL) &&
       (file->attr & ATTR(attr_allowrmfile)) ){
 	  node->checked|=NODE_ALLOW_RM;
+     log_msg(LOG_LEVEL_DEBUG,_(" mark node '%s' as NODE_ALLOW_RM (reason: entry '%s' has ARF attribute set)"), node->path, file->filename);
   }
 }
 
 int check_rxtree(char* filename,seltree* tree,DB_ATTR_TYPE* attr, mode_t perm)
 {
+  log_msg(LOG_LEVEL_RULE, "\u252c process '%s' (filetype: %c)", filename, get_file_type_char(perm));
   int retval=0;
 
   if(conf->limit!=NULL) {
       retval=pcre_exec(conf->limit_crx, NULL, filename, strlen(filename), 0, PCRE_PARTIAL_SOFT, NULL, 0);
       if (retval >= 0) {
-          error(220, "check_rxtree: %s does match limit: %s\n", filename, conf->limit);
+          log_msg(LOG_LEVEL_DEBUG, "\u2502 '%s' does match limit '%s'", filename, conf->limit);
       } else if (retval == PCRE_ERROR_PARTIAL) {
-          error(220, "check_rxtree: %s does PARTIAL match limit: %s\n", filename, conf->limit);
           if(S_ISDIR(perm) && get_seltree_node(tree,filename)==NULL){
-              error(220, "check_rxtree: creating new seltree node for '%s'\n", filename);
-              new_seltree_node(tree,filename,0,NULL);
+              seltree* node = new_seltree_node(tree,filename,0,NULL);
+              log_msg(LOG_LEVEL_DEBUG, "added new node '%s' (%p) for '%s' (reason: partial limit match)", node->path, node, filename);
           }
+          log_msg(LOG_LEVEL_RULE, "\u2534 skip '%s' (reason: partial limit match, limit: '%s')", filename, conf->limit);
           return -1;
       } else {
-          error(220, "check_rxtree: %s does NOT match limit: %s\n", filename, conf->limit);
+          log_msg(LOG_LEVEL_RULE, "\u2534 skip '%s' (reason: no limit match, limit '%s')", filename, conf->limit);
           return -2;
       }
   }
@@ -493,6 +508,10 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct stat *fs)
   db_line* line=NULL;
   time_t cur_time;
 
+  char *str;
+  log_msg(LOG_LEVEL_DEBUG, " requested attributes: %s", str = diff_attributes(0, attr));
+  free(str);
+
   if(!(attr&ATTR(attr_rdev))) {
     fs->st_rdev=0;
   }
@@ -502,22 +521,17 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct stat *fs)
   cur_time=time(NULL);
   
   if (cur_time==(time_t)-1) {
-    char* er=strerror(errno);
-    if (er==NULL) {
-      error(0,_("Can not get current time. strerror failed for %i\n"),errno);
-    } else {
-      error(0,_("Can not get current time with reason %s\n"),er);
-    }
+    log_msg(LOG_LEVEL_WARNING, "can't get current time: %s", strerror(errno));
   } else {
     
     if(fs->st_atime>cur_time){
-      error(CLOCK_SKEW,_("%s atime in future\n"),filename);
+      log_msg(LOG_LEVEL_NOTICE,_("%s atime in future"),filename);
     }
     if(fs->st_mtime>cur_time){
-      error(CLOCK_SKEW,_("%s mtime in future\n"),filename);
+      log_msg(LOG_LEVEL_NOTICE,_("%s mtime in future"),filename);
     }
     if(fs->st_ctime>cur_time){
-      error(CLOCK_SKEW,_("%s ctime in future\n"),filename);
+      log_msg(LOG_LEVEL_NOTICE,_("%s ctime in future"),filename);
     }
   }
   
@@ -580,7 +594,7 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct stat *fs)
     capabilities2line(line);
 #endif
 
-  if (line->attr&get_hashes() && S_ISREG(fs->st_mode)) {
+  if (line->attr&get_hashes(true) && S_ISREG(fs->st_mode)) {
     calc_md(fs,line);
   } else {
     /*
@@ -589,7 +603,13 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct stat *fs)
     */
     no_hash(line);
   }
-  
+
+  log_msg(LOG_LEVEL_DEBUG, " returned attributes: %llu (%s)", line->attr, str = diff_attributes(0, line->attr));
+  free(str);
+      if (~attr|line->attr) {
+          log_msg(LOG_LEVEL_DEBUG, " requested and returned attributes are not equal: %s", str = diff_attributes(attr, line->attr));
+          free(str);
+      }
   return line;
 }
 
@@ -616,7 +636,6 @@ void populate_tree(seltree* tree)
   db_line* new=NULL;
   int initdbwarningprinted=0;
   DB_ATTR_TYPE attr=0;
-  seltree* node=NULL;
   
   /* With this we avoid unnecessary checking of removed files. */
   if(conf->action&DO_INIT){
@@ -624,17 +643,9 @@ void populate_tree(seltree* tree)
   }
   
     if(conf->action&DO_DIFF){
-      while((new=db_readline(DB_NEW)) != NULL){
-	/* FIXME add support config checking at this stage 
-	   config check = add only those files that match config rxs
-	   make this configurable
-	   Only configurability is not implemented.
-	*/
-	/* This is needed because check_rxtree assumes there is a parent
-	   for the node for old->filename */
-	if((node=get_seltree_node(tree,new->filename))==NULL){
-	  node=new_seltree_node(tree,new->filename,0,NULL);
-	}
+        log_msg(LOG_LEVEL_INFO, "read new entries from database: %s:%s", get_url_type_string((conf->database_new.url)->type), (conf->database_new.url)->value);
+      db_lex_buffer(&(conf->database_new));
+      while((new=db_readline(&(conf->database_new))) != NULL){
 	if((add=check_rxtree(new->filename,tree,&attr, new->perm))>0){
 	  add_file_to_tree(tree,new,DB_NEW);
 	} else {
@@ -643,22 +654,21 @@ void populate_tree(seltree* tree)
           new=NULL;
 	}
       }
+      db_lex_delete_buffer(&(conf->database_new));
     }
     
     if((conf->action&DO_INIT)||(conf->action&DO_COMPARE)){
       /* FIXME  */
       new=NULL;
-      while((new=db_readline(DB_DISK)) != NULL) {
+      log_msg(LOG_LEVEL_INFO, "read new entries from disk (root: '%s', limit: '%s')", conf->root_prefix, conf->limit?conf->limit:"(none)");
+      while((new=db_readline_disk()) != NULL) {
 	    add_file_to_tree(tree,new,DB_NEW);
       }
     }
     if((conf->action&DO_COMPARE)||(conf->action&DO_DIFF)){
-            while((old=db_readline(DB_OLD)) != NULL) {
-                /* This is needed because check_rxtree assumes there is a parent
-                   for the node for old->filename */
-                if((node=get_seltree_node(tree,old->filename))==NULL){
-                    node=new_seltree_node(tree,old->filename,0,NULL);
-                }
+        log_msg(LOG_LEVEL_INFO, "read old entries from database: %s:%s", get_url_type_string((conf->database_in.url)->type), (conf->database_in.url)->value);
+        db_lex_buffer(&(conf->database_in));
+            while((old=db_readline(&(conf->database_in))) != NULL) {
                 add=check_rxtree(old->filename,tree,&attr, old->perm);
                 if(add > 0) {
                     add_file_to_tree(tree,old,DB_OLD);
@@ -666,7 +676,7 @@ void populate_tree(seltree* tree)
                     add_file_to_tree(tree,old,DB_OLD|DB_NEW);
                 }else{
                     if(!initdbwarningprinted){
-                        error(3,_("WARNING: old database entry '%s' has no matching rule, run --init or --update (this warning is only shown once)\n"), old->filename);
+                        log_msg(LOG_LEVEL_WARNING, _("%s:%s: old database entry '%s' has no matching rule, run --init or --update (this warning is only shown once)"), get_url_type_string((conf->database_in.url)->type), (conf->database_in.url)->value, old->filename);
                         initdbwarningprinted=1;
                     }
                     free_db_line(old);
@@ -674,8 +684,10 @@ void populate_tree(seltree* tree)
                     old=NULL;
                 }
             }
+            db_lex_delete_buffer(&(conf->database_in));
     }
     if(conf->action&DO_INIT) {
+        log_msg(LOG_LEVEL_INFO, "write new entries to database: %s:%s", get_url_type_string((conf->database_out.url)->type), (conf->database_out.url)->value);
         write_tree(tree);
     }
 }
@@ -695,7 +707,7 @@ void hsymlnk(db_line* line) {
       int sres;
       sres=stat(line->fullpath,&fs);
       if (sres!=0 && sres!=EACCES) {
-	error(4,"Dead symlink detected at %s\n",line->fullpath);
+	log_msg(LOG_LEVEL_WARNING,"Dead symlink detected at %s",line->fullpath);
       }
       if(!(line->attr&ATTR(attr_rdev))) {
 	fs.st_rdev=0;
@@ -707,7 +719,7 @@ void hsymlnk(db_line* line) {
     */
     line->linkname=(char*)malloc(_POSIX_PATH_MAX+1);
     if(line->linkname==NULL){
-      error(0,_("malloc failed in hsymlnk()\n"));
+      log_msg(LOG_LEVEL_ERROR,_("malloc failed in hsymlnk()"));
       abort();
     }
     

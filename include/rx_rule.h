@@ -44,10 +44,26 @@ typedef struct rx_rule {
   pcre* crx; /* Compiled regexp */
   DB_ATTR_TYPE attr; /* Which attributes to save */
   seltree *node;
+  char *config_filename;
+  int config_linenumber;
+  char *config_line;
   RESTRICTION_TYPE restriction;
 } rx_rule;
 
 RESTRICTION_TYPE get_restrictionval(char*);
 
 RESTRICTION_TYPE get_file_type(mode_t mode);
+
+typedef enum {
+    AIDE_NEGATIVE_RULE=-1,
+    AIDE_EQUAL_RULE=0,
+    AIDE_SELECTIVE_RULE=1,
+} AIDE_RULE_TYPE;
+
+char* get_rule_type_long_string(AIDE_RULE_TYPE);
+char* get_rule_type_char(AIDE_RULE_TYPE);
+
+/* memory for the returned string is obtained with malloc(3), and should be freed with free(3). */
+char *get_restriction_string(RESTRICTION_TYPE);
+
 #endif /* RX_RULE_H_INCLUDED */

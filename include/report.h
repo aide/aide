@@ -22,6 +22,7 @@
 #ifndef _REPORT_H_INCLUDED
 #define _REPORT_H_INCLUDED
 #include "list.h"
+#include "log.h"
 #include "url.h"
 #include "seltree.h"
 
@@ -36,9 +37,11 @@ typedef enum { /* preserve order */
     REPORT_LEVEL_ADDED_REMOVED_ENTRIES = 7,
 } REPORT_LEVEL;
 
-int add_report_url(url_t* url);
+bool add_report_url(url_t* url, int, char*, char*);
 
 REPORT_LEVEL get_report_level(char *);
+
+void log_report_urls(LOG_LEVEL);
 
 /*
  * gen_report()

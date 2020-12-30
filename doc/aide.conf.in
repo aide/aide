@@ -42,8 +42,8 @@
 @@endif
 
 # The location of the database to be read.
-#database=file:aide.db
-database=file:@@{TOPDIR}/doc/aide.db
+#database_in=file:aide.db
+database_in=file:@@{TOPDIR}/doc/aide.db
 
 # The location of the database to be written.
 #database_out=sql:host:port:database:login_name:passwd:table
@@ -53,8 +53,8 @@ database_out=file:aide.db.new
 # Whether to gzip the output to database
 # gzip_dbout=no
 
-#verbose=5
-verbose=20
+#log_level=warning
+log_level=info
 
 #report_url=stdout
 #other possibilities

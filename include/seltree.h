@@ -24,10 +24,7 @@
 #include "attributes.h"
 #include "seltree_struct.h"
 #include "rx_rule.h"
-
-#define AIDE_NEGATIVE_RULE -1
-#define AIDE_EQUAL_RULE 0
-#define AIDE_SELECTIVE_RULE 1
+#include "log.h"
 
 seltree* init_tree();
 
@@ -35,13 +32,13 @@ seltree* new_seltree_node(seltree*, char*, int, rx_rule*);
 
 seltree* get_seltree_node(seltree* ,char*);
 
-rx_rule * add_rx_to_tree(char *, RESTRICTION_TYPE, int, seltree *, char *, const char **, int *);
+rx_rule * add_rx_to_tree(char *, RESTRICTION_TYPE, int, seltree *, const char **, int *);
 
 int check_seltree(seltree *, char *, RESTRICTION_TYPE, DB_ATTR_TYPE *);
 
 int treedepth(seltree *);
 
-void print_tree(seltree *);
+void log_tree(LOG_LEVEL, seltree *, int);
 
 char* strgetndirname(char* ,int);
 #endif /* _SELTREE_H_INCLUDED*/

@@ -21,8 +21,9 @@
  
 #ifndef _DB_CONFIG_H_INCLUDED
 #define _DB_CONFIG_H_INCLUDED
-#include "aide.h"
+#include "config.h"
 #include "attributes.h"
+#include "report.h"
 #include "types.h"
 #include <unistd.h>
 #include <stdio.h>
@@ -31,7 +32,6 @@
 #define E2O(n) (1<<n)
 
 #include "list.h"
-#include "report.h"
 
 #ifdef WITH_POSIX_ACL /* POSIX acl works for Sun ACL, AIUI but anyway... */
 #include <sys/acl.h>
@@ -165,48 +165,49 @@ typedef struct db_line {
 
 } db_line;
 
+typedef struct database {
+    url_t* url;
+
+    char *filename;
+    int linenumber;
+    char *linebuf;
+
+    void *fp;
+#ifdef WITH_ZLIB
+    gzFile gzp;
+#endif
+
+    long lineno;
+    ATTRIBUTE* fields;
+    int num_fields;
+    void *buffer_state;
+    struct md_container *mdc;
+    struct db_line *db_line;
+
+} database;
+
 typedef struct db_config {
-  
-  url_t* db_in_url;
-  void* db_in;
-  
-  url_t* db_new_url;
-  void* db_new;
-  
-  url_t* db_out_url;
-  void* db_out;
-  
+  char *hostname;
+
+  database database_in;
+  database database_out;
+  database database_new;
+
   int config_check;
-
-  struct md_container *mdc_in;
-  struct md_container *mdc_out;
-
-  struct db_line *line_db_in;
-  struct db_line *line_db_out;
 
   DB_ATTR_TYPE db_attrs;
 
 #ifdef WITH_ZLIB
-  gzFile db_gzin;
-  gzFile db_gznew;
-  gzFile db_gzout;
   /* Is dbout gzipped or not */
   int gzip_dbout;
   
 #endif
-
-  int db_in_size;
-  ATTRIBUTE* db_in_order;
-  
-  int db_new_size;
-  ATTRIBUTE* db_new_order;
 
   DB_ATTR_TYPE db_out_attrs;
   
   char* config_file;
   char* config_version;
 
-  int verbose_level;
   int database_add_metadata;
   int report_detailed_init;
   int report_base16;
@@ -246,9 +247,9 @@ typedef struct db_config {
 #endif
   int warn_dead_symlinks;
 
-  int grouped;
+  int report_grouped;
 
-  int summarize_changes;
+  int report_summarize_changes;
 
   char* root_prefix;
   int root_prefix_length;

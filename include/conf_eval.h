@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2020 Hannes von Haugwitz
+ * Copyright (C) 2019,2020 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -18,38 +18,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _HASHSUM_H_INCLUDED
-#define _HASHSUM_H_INCLUDED
+#ifndef _CONF_EVAL_H_INCLUDED
+#define _CONF_EVAL_H_INCLUDED
 
-#include "attributes.h"
-#include <stdbool.h>
+#include "conf_ast.h"
 
-typedef struct {
-    ATTRIBUTE attribute;
-    int length;
-} hashsum_t;
+void eval_config(ast*);
 
-typedef enum {
-    hash_md5=0,
-    hash_sha1,
-    hash_sha256,
-    hash_sha512,
-    hash_rmd160,
-    hash_tiger,
-    hash_crc32,
-    hash_crc32b,
-    hash_haval,
-    hash_whirlpool,
-    hash_gostr3411_94,
-    hash_stribog256,
-    hash_stribog512,
-    num_hashes,
-} HASHSUM;
-
-extern hashsum_t hashsums[];
-
-extern int algorithms[];
-
-DB_ATTR_TYPE get_hashes(bool);
-
-#endif /* _HASHSUM_H_INCLUDED */
+#endif

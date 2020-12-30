@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2006 Rami Lehti, Pablo Virolainen, Richard
- * van den Berg
+ * Copyright (C) 1999-2002,2006,2020 Rami Lehti, Pablo Virolainen, Richard
+ * van den Berg, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -22,17 +22,9 @@
 #ifndef _DB_FILE_H_INCLUDED
 #define _DB_FILE_H_INCLUDED
 
-#include "db.h"
+#include "db_config.h"
 
-extern void db_buff(int, FILE*);
-extern int db_scan(void); /* Rumaa.... */
-extern char* dbtext; /* Todella rumaa... */
-extern long* db_lineno;
-extern long db_in_lineno;
-extern long db_new_lineno;
-
-
-char** db_readline_file(int);
+char** db_readline_file(database*);
 int db_writespec_file(db_config*);
 int db_writeline_file(db_line* line,db_config* conf,url_t* url);
 int db_close_file(db_config* conf);

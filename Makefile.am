@@ -29,29 +29,32 @@ aide_SOURCES = src/aide.c include/aide.h \
 	include/commandconf.h src/commandconf.c \
 	include/attributes.h src/attributes.c \
 	include/report.h src/report.c \
+	include/conf_ast.h src/conf_ast.c \
+	include/conf_eval.h src/conf_eval.c \
 	include/conf_lex.h src/conf_lex.l  \
 	src/conf_yacc.h src/conf_yacc.y \
 	include/db.h src/db.c \
 	include/db_config.h \
 	include/db_disk.h src/db_disk.c \
 	include/db_file.h src/db_file.c \
-	src/db_lex.l \
+	include/db_lex.h src/db_lex.l \
 	include/db_list.h src/db_list.c \
 	include/do_md.h src/do_md.c \
-	include/error.h src/error.c \
+	include/errorcodes.h \
 	include/gen_list.h src/gen_list.c \
 	src/getopt1.c \
 	include/getopt.h src/getopt.c \
 	include/hashsum.h src/hashsum.c \
 	include/rx_rule.h src/rx_rule.c \
 	include/list.h src/list.c \
+	include/log.h src/log.c \
 	include/locale-aide.h \
 	include/md.h src/md.c \
 	include/seltree_struct.h \
 	include/seltree.h src/seltree.c \
 	include/symboltable.h src/symboltable.c \
 	include/types.h \
-	include/url.h \
+	include/url.h src/url.c\
 	include/util.h src/util.c
 if USE_CURL
 aide_SOURCES += include/fopen.h src/fopen.c
@@ -83,7 +86,7 @@ EXTRA_DIST = $(man_MANS) Todo doc/manual.html \
 	contrib/gpg_check.sh contrib/gpg_update.sh contrib/sshaide.sh
 
 src/conf_yacc.c: src/conf_yacc.y
-	$(YACC) $(AM_YFLAGS) -o $@ -p conf $<
+	$(YACC) $(AM_YFLAGS) -Wno-yacc -Wall -Werror -o $@ -p conf $<
 
 src/conf_lex.c: src/conf_lex.l src/conf_yacc.c
 	$(LEX) $(AM_LFLAGS) -o$@ -Pconf $<

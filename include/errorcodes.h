@@ -19,30 +19,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _ERROR_H_INCLUDED
-#define  _ERROR_H_INCLUDED
+#ifndef _ERRORCODES_H_INCLUDED
+#define  _ERRORCODES_H_INCLUDED
 
-#include <stdio.h>
-#include <stdarg.h>
-#include "config.h"
-#include "url.h"
-
-/* Exitcodes */
 #define ERROR_WRITING_ERROR 14
 #define INVALID_ARGUMENT_ERROR 15
 #define UNIMPLEMENTED_FUNCTION_ERROR 16
 #define INVALID_CONFIGURELINE_ERROR 17
 #define IO_ERROR 18
 #define VERSION_MISMATCH_ERROR 19
-
-/* Errorcodes */
 #define HASH_ALGO_ERROR 30
-
-void error(int errorlevel, char* error_msg,...)
-#ifdef __GNUC__
-        __attribute__ ((format (printf, 2, 3)));
-#else
- ;
-#endif
 
 #endif

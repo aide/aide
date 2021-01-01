@@ -223,6 +223,7 @@ seltree* new_seltree_node(
   node->checked=0;
   node->new_data=NULL;
   node->old_data=NULL;
+  node->changed_attrs = 0;
 
   if(tree!=NULL){
     tmprxtok = strrxtok(path);
@@ -474,6 +475,9 @@ int check_seltree(seltree *tree, char *filename, RESTRICTION_TYPE file_type, DB_
   int retval = 0;
 
   parentname=strdup(filename);
+
+  do {
+
   tmp=strrchr(parentname,'/');
   if(tmp!=parentname){
     *tmp='\0';
@@ -486,7 +490,11 @@ int check_seltree(seltree *tree, char *filename, RESTRICTION_TYPE file_type, DB_
   }
 
   pnode=get_seltree_node(tree,parentname);
+
+  } while (pnode == NULL);
+
   log_msg(LOG_LEVEL_DEBUG, "got parent node '%s' (%p) for parentname '%s'", pnode->path, pnode, parentname);
+
   free(parentname);
 
   retval = check_node_for_match(pnode, filename, file_type, 0,attr, 0);

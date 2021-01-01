@@ -713,7 +713,7 @@ static void print_dbline_attributes(REPORT_LEVEL report_level, db_line* oline, d
 
         changed_attrs = ~(r->ignore_changed_attrs)&(attrs
 #ifdef WITH_E2FSATTRS
-        & (~ATTR(attr_e2fsattrs) | (attrs&ATTR(attr_e2fsattrs) && ~(r->ignore_e2fsattrs)&(oline->e2fsattrs^nline->e2fsattrs)?ATTR(attr_e2fsattrs):0))
+        & (~ATTR(attr_e2fsattrs) | ( (attrs&ATTR(attr_e2fsattrs) && oline != NULL && nline != NULL && ~(r->ignore_e2fsattrs)&(oline->e2fsattrs^nline->e2fsattrs)) ? ATTR(attr_e2fsattrs) : 0 ) )
 #endif
 );
         forced_attrs = (oline && nline)?r->force_attrs:attrs;

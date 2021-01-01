@@ -258,7 +258,7 @@ seltree *init_tree() {
     return node;
 }
 
-rx_rule * add_rx_to_tree(char * rx, RESTRICTION_TYPE restriction, int rule_type, seltree *tree, const char **pcre_error, int *pcre_erroffset) {
+rx_rule * add_rx_to_tree(char * rx, RESTRICTION_TYPE restriction, int rule_type, seltree *tree, const char **rule_error, int *rule_erroffset) {
     rx_rule* r = NULL;
     seltree *curnode = NULL;
     char *rxtok = NULL;
@@ -273,12 +273,21 @@ rx_rule * add_rx_to_tree(char * rx, RESTRICTION_TYPE restriction, int rule_type,
     r->config_linenumber = -1;
     r->attr = 0;
 
-    if((r->crx=pcre_compile(r->rx, PCRE_ANCHORED|PCRE_UTF8, pcre_error, pcre_erroffset, NULL)) == NULL) {
+    if((r->crx=pcre_compile(r->rx, PCRE_ANCHORED|PCRE_UTF8, rule_error, rule_erroffset, NULL)) == NULL) {
         free(r);
         return NULL;
     } else {
         rxtok=strrxtok(r->rx);
         curnode=get_seltree_node(tree,rxtok);
+
+        for(size_t i=1;i < strlen(rxtok); ++i){
+            if (rxtok[i] == '/' && rxtok[i-1] == '/') {
+                *rule_error = "invalid double slash" ;
+                *rule_erroffset = i;
+                free(r);
+                return NULL;
+            }
+        }
 
         if(curnode == NULL){
             curnode=new_seltree_node(tree,rxtok,1,r);

@@ -299,11 +299,11 @@ bool add_rx_rule_to_tree(char* rx, RESTRICTION_TYPE restriction, DB_ATTR_TYPE at
     char *attr_str = NULL;
     char *rs_str = NULL;
 
-    const char* pcre_error;
-    int         pcre_erroffset;
+    const char* rule_error;
+    int         rule_erroffset;
 
-    if ((r = add_rx_to_tree(rx, restriction, type, tree, &pcre_error, &pcre_erroffset)) == NULL) {
-        log_msg(LOG_LEVEL_ERROR, "%s:%d:%i: error in regex '%s': %s (line: '%s')", filename, linenumber, pcre_erroffset, rx, pcre_error, linebuf);
+    if ((r = add_rx_to_tree(rx, restriction, type, tree, &rule_error, &rule_erroffset)) == NULL) {
+        log_msg(LOG_LEVEL_ERROR, "%s:%d:%i: error in rule '%s': %s (line: '%s')", filename, linenumber, rule_erroffset, rx, rule_error, linebuf);
         retval = false;
     }else {
         r->config_linenumber = linenumber;

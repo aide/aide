@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2006,2009-2012,2015,2016,2019,2020 Rami Lehti,
+ * Copyright (C) 1999-2006,2009-2012,2015,2016,2019-2021 Rami Lehti,
  * Pablo Virolainen, Mike Markley, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -447,9 +447,13 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db)
          free(str);
      } else {
          /* Free the data if same else leave as is for report_tree */
-         if ((get_changed_attributes(oldData, newData)&~(ATTR(attr_ctime))) == RETOK) {
+         DB_ATTR_TYPE changed_attr_moved_file = get_changed_attributes(oldData, newData);
+         if ((changed_attr_moved_file&~(ATTR(attr_ctime))) == RETOK) {
              node->checked |= db==DB_NEW ? NODE_MOVED_IN : NODE_MOVED_OUT;
              moved_node->checked |= db==DB_NEW ? NODE_MOVED_OUT : NODE_MOVED_IN;
+             if (changed_attr_moved_file & (ATTR(attr_ctime))) {
+                log_msg(LOG_LEVEL_DEBUG,_("  ctime is ignored, due to filename change: '%s' => '%s'"), oldData->filename, newData->filename);
+             }
              log_msg(LOG_LEVEL_DEBUG,_("  entry has been moved: '%s' => '%s'"), oldData->filename, newData->filename);
          } else {
              log_msg(LOG_LEVEL_DEBUG,"  ignoring moved entry ('%s' => '%s') because the entries mismatch\n",

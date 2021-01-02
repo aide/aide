@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2006,2010,2011,2013,2015,2016,2019,2020 Rami Lehti, Pablo
+ * Copyright (C) 1999-2006,2010,2011,2013,2015,2016,2019-2021 Rami Lehti, Pablo
  * Virolainen, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -324,12 +324,6 @@ bool add_rx_rule_to_tree(char* rx, RESTRICTION_TYPE restriction, DB_ATTR_TYPE at
         LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, add %s '%s%s %s %s' to node '%s', get_rule_type_long_string(type), get_rule_type_char(type), r->rx, rs_str = get_restriction_string(r->restriction), attr_str = diff_attributes(0, r->attr),  (r->node)->path)
         free(rs_str);
         free(attr_str);
-
-        if (attr&ATTR(attr_checkinode) && attr&ATTR(attr_ctime)) {
-            LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_NOTICE, %s '%s%s %s %s' has c and I flags enabled at the same time. If same inode is found%c flag c is ignored, get_rule_type_long_string(type), get_rule_type_char(type), r->rx, rs_str = get_restriction_string(r->restriction), attr_str = diff_attributes(0, r->attr), ',');
-            free(rs_str);
-            free(attr_str);
-        }
 
         retval = true;
     }

@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  * vi: ts=2 sw=2
  *
- * Copyright (C) 1999-2006,2010,2011,2016,2019 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2006,2010,2011,2016,2019-2021 Rami Lehti, Pablo Virolainen,
  * Richard van den Berg, Mike Markley, Hannes von Haugwitz
  * $Header$
  *
@@ -340,7 +340,7 @@ recursion:
 						   The only way a nonexistent dirnode can have children is by 
 						   having rules referring to them.
 						 */
-						log_msg (LOG_LEVEL_NOTICE,
+						log_msg (LOG_LEVEL_RULE,
 									 "There are rules referring to non-existent directory %s", fullname);
 					} else if (errno != ENOTDIR) {
 						/* We print the message unless it is "Not a directory". */

@@ -424,7 +424,7 @@ static void setdefaults_after_config()
   int linenumber=1;
 
   if(conf->database_in.url==NULL){
-    do_dbdef(DB_TYPE_IN, "file:"DEFAULT_DB_OUT, linenumber++, "(default)",  NULL);
+    do_dbdef(DB_TYPE_IN, "file:"DEFAULT_DB, linenumber++, "(default)",  NULL);
   }
   if(conf->database_out.url==NULL){
     do_dbdef(DB_TYPE_OUT, "file:"DEFAULT_DB_OUT, linenumber++, "(default)",  NULL);

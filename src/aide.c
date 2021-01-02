@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2006,2010-2013,2015,2016,2019,2020 Rami Lehti, Pablo
+ * Copyright (C) 1999-2006,2010-2013,2015,2016,2019-2021 Rami Lehti, Pablo
  * Virolainen, Mike Markley, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -131,9 +131,29 @@ static void sig_handler(int signum)
 
 static void print_version(void)
 {
-  fprintf(stderr,
+  fprintf(stdout,
 	  "Aide " AIDEVERSION "\n\n"
 	  "Compiled with the following options:\n\n" AIDECOMPILEOPTIONS "\n");
+
+  fprintf(stdout, "Default config values:\n");
+  fprintf(stdout, "config file: %s\n", CONFIG_FILE),
+  fprintf(stdout, "database_in: %s\n", "file:"DEFAULT_DB),
+  fprintf(stdout, "database_out: %s\n", "file:"DEFAULT_DB_OUT),
+
+  fprintf(stdout, "\aAvailable hashsum groups:\n");
+  DB_ATTR_TYPE available_hashsums = get_hashes(false);
+  for (int i = 0; i < num_hashes; ++i) {
+      fprintf(stdout, "%s: %s\n", attributes[hashsums[i].attribute].config_name, ATTR(hashsums[i].attribute)&available_hashsums?"yes":"no");
+  }
+
+  fprintf(stdout, "\nDefault compound groups:\n");
+  char* predefined_groups[] = { "R", "L", ">", "H", "X" };
+  for (unsigned long i = 0 ; i < sizeof(predefined_groups)/sizeof(char*); ++i) {
+      char* str;
+      fprintf(stdout, "%s: %s\n", predefined_groups[i], str = diff_attributes(0, get_groupval(predefined_groups[i])));
+      free(str);
+  }
+
   exit(0);
 }
 

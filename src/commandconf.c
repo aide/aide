@@ -268,7 +268,7 @@ void do_define(char* name, char* value, int linenumber, char* filename, char* li
     conf->defsyms=list_append(conf->defsyms,(void*)s);
   }
   else {
-    LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_NOTICE, define '%s' with value '%s' (previous value: '%s'), name, value, ((symba*)l->data)->value)
+    LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_NOTICE, redefine '%s' with value '%s' (previous value: '%s'), name, value, ((symba*)l->data)->value)
     free(((symba*)l->data)->value);
     ((symba*)l->data)->value=NULL;
     ((symba*)l->data)->value=value;

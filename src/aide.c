@@ -413,6 +413,7 @@ static void setdefaults_before_config()
           |X);
   do_groupdef("L",common_attrs|ATTR(attr_linkname)|X);
   do_groupdef(">",common_attrs|ATTR(attr_sizeg)|ATTR(attr_linkname)|X);
+  do_groupdef("H",get_hashes(false));
   do_groupdef("X",X);
   do_groupdef("E",0);
 

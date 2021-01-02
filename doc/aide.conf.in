@@ -66,44 +66,8 @@ report_url=stdout
 
 # @@{TOPDIR} is replaced with @abs_top_srcdir@ when
 # read by aide. 
-#p:		permissions
-#ftype:	file type
-#i:		inode
-#n:		number of links
-#l:		link name
-#u:		user
-#g:		group
-#s:		size
-#b:		block count
-#m:		mtime
-#a:		atime
-#c:		ctime
-#S:		check for growing size
-#I:		ignore changed filename
-#md5:		md5 checksum
-#sha1:		sha1 checksum
-#sha256:	sha256 checksum
-#sha512:	sha512 checksum
-#rmd160:	rmd160 checksum
-#tiger:		tiger checksum
-#haval:		haval checksum
-#crc32:		crc32 checksum
-#crc32b:	crc32b checksum
-#R:		p+ftype+i+l+n+u+g+s+m+c+md5
-#L:		p+ftype+i+l+n+u+g
-#E:		Empty group
-#>:		Growing file p+ftype+l+u+g+i+n+S
-#The following are available if you have mhash support enabled:
-#gost:		gost checksum
-#whirlpool:	whirlpool checksum
-#stribog256:	GOST R 34.11-2012, 256 bit checksum (gcrypt only)
-#stribog512:	GOST R 34.11-2012, 512 bit checksum (gcrypt only)
-#The following are available and added to the default groups R, L and >
-#only when explicitly enabled using configure:
-#acl:		access control list
-#selinux	SELinux security context
-#xattrs:	extended file attributes
-#e2fsattrs:	file attributes on a second extended file system
+
+# see aide.conf (5) for predefined default groups
 
 # Rule definition
 All=R+a+sha1+rmd160+sha256+sha512+tiger@aideextragroups@

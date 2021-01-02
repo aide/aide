@@ -538,6 +538,7 @@ Input is read from filedescriptor \fBnumber\fR or output is written to
 .IP "E:	Empty group"
 .IP "X:	acl+selinux+xattrs+e2fsattrs+caps (if groups are explicitly enabled)"
 .IP ">:	Growing file p+ftype+l+u+g+i+n+S+X"
+.IP "H:	all compiled in hashsums"
 .LP
 .LP
 The following are available only when explicitly enabled using configure

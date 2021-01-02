@@ -51,7 +51,7 @@ attributes_t attributes[] = {
     { ATTR(attr_bsize),          NULL,           NULL,          NULL,           '\0'  },
     { ATTR(attr_rdev),           NULL,           NULL ,         NULL,           '\0'  },
     { ATTR(attr_dev),            NULL,           NULL ,         NULL,           '\0'  },
-    { ATTR(attr_allhashsums),    NULL,           NULL,          NULL,           'H'   },
+    { ATTR(attr_allhashsums),    NULL,           NULL,          NULL,           'H'   }, /* "H" is also default compound group for all compiled in hashsums */
     { ATTR(attr_sizeg),          "S",            "Size (>)",    NULL,           '\0'  },
     { ATTR(attr_checkinode),     "I",            NULL,          NULL,           '\0'  },
     { ATTR(attr_allownewfile),   "ANF",          NULL,          NULL,           '\0'  },

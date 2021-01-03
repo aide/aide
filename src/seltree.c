@@ -372,6 +372,8 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
       return retval;
   }
 
+  if (node->equ_rx_lst || node->sel_rx_lst || node->neg_rx_lst) {
+
   /* if this call is not recursive we check the equals list and we set top *
    * and retval so we know following calls are recursive */
   if(!(retval&16)){
@@ -458,6 +460,12 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
   } else {
       log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': skip negative list (reason: no previous positive match)", depth, ' ', node->path);
   }
+
+  } else {
+    log_msg(LOG_LEVEL_DEBUG, "\u2502 %*cskip node '%s' (reason: no regex rules)", depth, ' ', node->path);
+    retval = check_node_for_match(node->parent, text, file_type, (retval|16)&~32, attr, depth);
+  }
+
   /* Now we discard the info whether a match was made or not *
    * and just return 0,1 or 2 */
   if(!(retval&32)){

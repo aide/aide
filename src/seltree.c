@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006,2009-2011,2015,2016,2019,2020 Rami Lehti,
+ * Copyright (C) 1999-2006,2009-2011,2015,2016,2019-2021 Rami Lehti,
  * Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -363,10 +363,10 @@ static int check_list_for_match(list* rxrlist,char* text,DB_ATTR_TYPE* attr, RES
  * 4,  matched deeper on equ rule
  * 8,  matched deeper on sel rule
  *16,  this is a recursed call
+ *32,  top-level call
  */
 static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file_type, int retval, DB_ATTR_TYPE *attr, int depth)
 {
-  int top=0;
 
   if(node==NULL){
       return retval;
@@ -375,7 +375,6 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
   /* if this call is not recursive we check the equals list and we set top *
    * and retval so we know following calls are recursive */
   if(!(retval&16)){
-      top=1;
       retval|=16;
 
       if (node->equ_rx_lst) {
@@ -431,7 +430,7 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
   }
 
   /* Now let's check the ancestors */
-  retval=check_node_for_match(node->parent, text, file_type, retval, attr, depth+2);
+  retval=check_node_for_match(node->parent, text, file_type, retval&~32, attr, depth+2);
 
   /* Negative regexps are the strongest so they are checked last */
   /* If this file is to be added */
@@ -461,7 +460,7 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
   }
   /* Now we discard the info whether a match was made or not *
    * and just return 0,1 or 2 */
-  if(top){
+  if(!(retval&32)){
       retval&=3;
   }
   return retval;
@@ -490,6 +489,9 @@ int check_seltree(seltree *tree, char *filename, RESTRICTION_TYPE file_type, DB_
   }
 
   pnode=get_seltree_node(tree,parentname);
+  if (pnode == NULL) {
+    retval |= 16;
+  }
 
   } while (pnode == NULL);
 
@@ -497,7 +499,7 @@ int check_seltree(seltree *tree, char *filename, RESTRICTION_TYPE file_type, DB_
 
   free(parentname);
 
-  retval = check_node_for_match(pnode, filename, file_type, 0,attr, 0);
+  retval = check_node_for_match(pnode, filename, file_type, retval|32 ,attr, 0);
 
   if (retval) {
     char *str;

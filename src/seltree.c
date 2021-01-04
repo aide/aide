@@ -317,7 +317,7 @@ rx_rule * add_rx_to_tree(char * rx, RESTRICTION_TYPE restriction, int rule_type,
 #define LOG_MATCH(log_level, border, format, ...) \
     log_msg(log_level, "%s %*c'%s' " #format " of %s (%s:%d: '%s')", border, depth+2, ' ', text, __VA_ARGS__, get_rule_type_long_string(rule_type), rx->config_filename, rx->config_linenumber, rx->config_line);
 
-static int check_list_for_match(list* rxrlist,char* text,DB_ATTR_TYPE* attr, RESTRICTION_TYPE file_type, int rule_type, int depth)
+static int check_list_for_match(list* rxrlist,char* text,DB_ATTR_TYPE* attr, RESTRICTION_TYPE file_type, int rule_type, int depth, bool unrestricted_only)
 {
   list* r=NULL;
   int retval=NO_RULE_MATCH;
@@ -326,6 +326,9 @@ static int check_list_for_match(list* rxrlist,char* text,DB_ATTR_TYPE* attr, RES
   char *rs_str = NULL;
   for(r=rxrlist;r;r=r->next){
       rx_rule *rx = (rx_rule*)r->data;
+
+      if (!(unrestricted_only && rx->restriction)) {
+
       pcre_retval=pcre_exec((pcre*)rx->crx, pcre_extra, text, strlen(text), 0, PCRE_PARTIAL_SOFT, NULL, 0);
       if (pcre_retval >= 0) {
           if (!rx->restriction || file_type&rx->restriction) {
@@ -344,6 +347,11 @@ static int check_list_for_match(list* rxrlist,char* text,DB_ATTR_TYPE* attr, RES
           retval=PARTIAL_RULE_MATCH;
       } else {
           LOG_MATCH(LOG_LEVEL_RULE, "\u2502", does not match regex '%s', rx->rx)
+      }
+
+      } else {
+          log_msg(LOG_LEVEL_RULE, "\u2502 %*cskip restricted '%s' rule as requested (%s:%d: '%s')", depth+2, ' ', rs_str = get_restriction_string(rx->restriction), rx->config_filename, rx->config_linenumber, rx->config_line);
+          free(rs_str);
       }
   }
   return retval;
@@ -381,7 +389,7 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
 
       if (node->equ_rx_lst) {
           log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': check equal list", depth, ' ', node->path);
-          switch (check_list_for_match(node->equ_rx_lst, text, attr, file_type, AIDE_EQUAL_RULE, depth)) {
+          switch (check_list_for_match(node->equ_rx_lst, text, attr, file_type, AIDE_EQUAL_RULE, depth, false)) {
               case RESTRICTED_RULE_MATCH:
               case RULE_MATCH: {
                           log_msg(LOG_LEVEL_RULE, "\u2502 %*cequal match for '%s' (node: '%s')", depth, ' ', text, node->path);
@@ -409,7 +417,7 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
   if(!(retval&(4|8))){
       if (node->sel_rx_lst) {
           log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': check selective list", depth, ' ', node->path);
-          switch (check_list_for_match(node->sel_rx_lst, text, attr, file_type, AIDE_SELECTIVE_RULE, depth)) {
+          switch (check_list_for_match(node->sel_rx_lst, text, attr, file_type, AIDE_SELECTIVE_RULE, depth, false)) {
               case RESTRICTED_RULE_MATCH:
               case RULE_MATCH: {
                           log_msg(LOG_LEVEL_RULE, "\u2502 %*cselective match for '%s' (node: '%s')", depth, ' ', text, node->path);
@@ -439,7 +447,29 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
   if(retval&(1|2)){
       if (node->neg_rx_lst) {
           log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': check negative list (reason: previous positive match)", depth, ' ', node->path);
-          switch (check_list_for_match(node->neg_rx_lst, text, attr, file_type, AIDE_NEGATIVE_RULE, depth)) {
+
+          char* parentname=strdup(text);
+          do {
+              char *tmp=strrchr(parentname,'/');
+              if(tmp != parentname){
+                  *tmp='\0';
+              } else {
+                  parentname[1]='\0';
+              }
+              if (strcmp(parentname,node->path) > 0) {
+                  log_msg(LOG_LEVEL_RULE, "\u2502 %*ccheck parent directory '%s' (unrestricted rules only)", depth+2, ' ', parentname);
+                  if (check_list_for_match(node->neg_rx_lst, parentname, attr, RESTRICTION_FT_DIR, AIDE_NEGATIVE_RULE, depth+4, true) == RULE_MATCH) {
+                      log_msg(LOG_LEVEL_RULE, "\u2502 %*cnegative match for parent directory '%s'", depth, ' ', parentname);
+                      retval=0;;
+                      break;
+                  }
+              }
+          } while (strcmp(parentname,node->path) > 0);
+          free(parentname);
+
+          if (retval) {
+          log_msg(LOG_LEVEL_RULE, "\u2502 %*ccheck file '%s'", depth+2, ' ', text);
+          switch (check_list_for_match(node->neg_rx_lst, text, attr, file_type, AIDE_NEGATIVE_RULE, depth+2, false)) {
               case RESTRICTED_RULE_MATCH: {
                   if(file_type&RESTRICTION_FT_DIR && get_seltree_node(node,text)==NULL) {
                       seltree *new_node = new_seltree_node(node,text,0,NULL);
@@ -453,6 +483,9 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
                   retval=0;
                   break;
               }
+          }
+          } else {
+            log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': skip checking file '%s' (reason: negative match for a parent directory)", depth, ' ', node->path, text);
           }
       } else {
           log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': skip negative list (reason: list is empty)", depth, ' ', node->path);

@@ -481,9 +481,9 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db)
   }
 }
 
-int check_rxtree(char* filename,seltree* tree,DB_ATTR_TYPE* attr, mode_t perm)
+int check_rxtree(char* filename,seltree* tree, rx_rule* *rule, RESTRICTION_TYPE file_type)
 {
-  log_msg(LOG_LEVEL_RULE, "\u252c process '%s' (filetype: %c)", filename, get_file_type_char_from_perm(perm));
+  log_msg(LOG_LEVEL_RULE, "\u252c process '%s' (filetype: %c)", filename, get_restriction_char(file_type));
   int retval=0;
 
   if(conf->limit!=NULL) {
@@ -491,20 +491,19 @@ int check_rxtree(char* filename,seltree* tree,DB_ATTR_TYPE* attr, mode_t perm)
       if (retval >= 0) {
           log_msg(LOG_LEVEL_DEBUG, "\u2502 '%s' does match limit '%s'", filename, conf->limit);
       } else if (retval == PCRE_ERROR_PARTIAL) {
-          if(S_ISDIR(perm) && get_seltree_node(tree,filename)==NULL){
+          if(file_type&FT_DIR && get_seltree_node(tree,filename)==NULL){
               seltree* node = new_seltree_node(tree,filename,0,NULL);
               log_msg(LOG_LEVEL_DEBUG, "added new node '%s' (%p) for '%s' (reason: partial limit match)", node->path, node, filename);
           }
           log_msg(LOG_LEVEL_RULE, "\u2534 skip '%s' (reason: partial limit match, limit: '%s')", filename, conf->limit);
-          return -1;
+          return PARTIAL_LIMIT_MATCH;
       } else {
           log_msg(LOG_LEVEL_RULE, "\u2534 skip '%s' (reason: no limit match, limit '%s')", filename, conf->limit);
-          return -2;
+          return NO_LIMIT_MATCH;
       }
   }
 
-  *attr=0;
-  return check_seltree(tree, filename, get_restriction_from_perm(perm), attr);
+  return check_seltree(tree, filename, file_type, rule);
 }
 
 db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct stat *fs)
@@ -639,7 +638,7 @@ void populate_tree(seltree* tree)
   db_line* old=NULL;
   db_line* new=NULL;
   int initdbwarningprinted=0;
-  DB_ATTR_TYPE attr=0;
+  rx_rule *rule;
   
   /* With this we avoid unnecessary checking of removed files. */
   if(conf->action&DO_INIT){
@@ -650,7 +649,7 @@ void populate_tree(seltree* tree)
         log_msg(LOG_LEVEL_INFO, "read new entries from database: %s:%s", get_url_type_string((conf->database_new.url)->type), (conf->database_new.url)->value);
       db_lex_buffer(&(conf->database_new));
       while((new=db_readline(&(conf->database_new))) != NULL){
-	if((add=check_rxtree(new->filename,tree,&attr, new->perm))>0){
+	if((add=check_rxtree(new->filename,tree, &rule, get_restriction_from_perm(new->perm)))>0){
 	  add_file_to_tree(tree,new,DB_NEW);
 	} else {
           free_db_line(new);
@@ -673,7 +672,7 @@ void populate_tree(seltree* tree)
         log_msg(LOG_LEVEL_INFO, "read old entries from database: %s:%s", get_url_type_string((conf->database_in.url)->type), (conf->database_in.url)->value);
         db_lex_buffer(&(conf->database_in));
             while((old=db_readline(&(conf->database_in))) != NULL) {
-                add=check_rxtree(old->filename,tree,&attr, old->perm);
+                add=check_rxtree(old->filename,tree, &rule, get_restriction_from_perm(old->perm));
                 if(add > 0) {
                     add_file_to_tree(tree,old,DB_OLD);
                 } else if (conf->limit!=NULL && add < 0) {

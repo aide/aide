@@ -203,6 +203,9 @@ typedef struct db_config {
 #endif
 
   DB_ATTR_TYPE db_out_attrs;
+
+  char *check_path;
+  RESTRICTION_TYPE check_file_type;
   
   char* config_file;
   char* config_version;

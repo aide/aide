@@ -56,9 +56,9 @@ char get_file_type_char_from_perm(mode_t);
 char get_restriction_char(RESTRICTION_TYPE);
 
 typedef enum {
-    AIDE_NEGATIVE_RULE=-1,
-    AIDE_EQUAL_RULE=0,
+    AIDE_NEGATIVE_RULE=0,
     AIDE_SELECTIVE_RULE=1,
+    AIDE_EQUAL_RULE=2,
 } AIDE_RULE_TYPE;
 
 char* get_rule_type_long_string(AIDE_RULE_TYPE);

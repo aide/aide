@@ -317,7 +317,7 @@ rx_rule * add_rx_to_tree(char * rx, RESTRICTION_TYPE restriction, int rule_type,
 #define LOG_MATCH(log_level, border, format, ...) \
     log_msg(log_level, "%s %*c'%s' " #format " of %s (%s:%d: '%s')", border, depth+2, ' ', text, __VA_ARGS__, get_rule_type_long_string(rule_type), rx->config_filename, rx->config_linenumber, rx->config_line);
 
-static int check_list_for_match(list* rxrlist,char* text,DB_ATTR_TYPE* attr, RESTRICTION_TYPE file_type, int rule_type, int depth, bool unrestricted_only)
+static int check_list_for_match(list* rxrlist,char* text, rx_rule* *rule, RESTRICTION_TYPE file_type, int rule_type, int depth, bool unrestricted_only)
 {
   list* r=NULL;
   int retval=NO_RULE_MATCH;
@@ -332,7 +332,7 @@ static int check_list_for_match(list* rxrlist,char* text,DB_ATTR_TYPE* attr, RES
       pcre_retval=pcre_exec((pcre*)rx->crx, pcre_extra, text, strlen(text), 0, PCRE_PARTIAL_SOFT, NULL, 0);
       if (pcre_retval >= 0) {
           if (!rx->restriction || file_type&rx->restriction) {
-                  *attr=rx->attr;
+                  *rule = rx;
                   retval = rx->restriction?RESTRICTED_RULE_MATCH:RULE_MATCH;
                   LOG_MATCH(LOG_LEVEL_RULE, "\u251d", matches regex '%s' and restriction '%s', rx->rx, rs_str = get_restriction_string(rx->restriction))
                   free(rs_str);
@@ -373,7 +373,7 @@ static int check_list_for_match(list* rxrlist,char* text,DB_ATTR_TYPE* attr, RES
  *16,  this is a recursed call
  *32,  top-level call
  */
-static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file_type, int retval, DB_ATTR_TYPE *attr, int depth)
+static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file_type, int retval, rx_rule* *rule, int depth)
 {
 
   if(node==NULL){
@@ -389,7 +389,7 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
 
       if (node->equ_rx_lst) {
           log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': check equal list", depth, ' ', node->path);
-          switch (check_list_for_match(node->equ_rx_lst, text, attr, file_type, AIDE_EQUAL_RULE, depth, false)) {
+          switch (check_list_for_match(node->equ_rx_lst, text, rule, file_type, AIDE_EQUAL_RULE, depth, false)) {
               case RESTRICTED_RULE_MATCH:
               case RULE_MATCH: {
                           log_msg(LOG_LEVEL_RULE, "\u2502 %*cequal match for '%s' (node: '%s')", depth, ' ', text, node->path);
@@ -417,7 +417,7 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
   if(!(retval&(4|8))){
       if (node->sel_rx_lst) {
           log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': check selective list", depth, ' ', node->path);
-          switch (check_list_for_match(node->sel_rx_lst, text, attr, file_type, AIDE_SELECTIVE_RULE, depth, false)) {
+          switch (check_list_for_match(node->sel_rx_lst, text, rule, file_type, AIDE_SELECTIVE_RULE, depth, false)) {
               case RESTRICTED_RULE_MATCH:
               case RULE_MATCH: {
                           log_msg(LOG_LEVEL_RULE, "\u2502 %*cselective match for '%s' (node: '%s')", depth, ' ', text, node->path);
@@ -440,7 +440,7 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
   }
 
   /* Now let's check the ancestors */
-  retval=check_node_for_match(node->parent, text, file_type, retval&~32, attr, depth+2);
+  retval=check_node_for_match(node->parent, text, file_type, retval&~32, rule, depth+2);
 
   /* Negative regexps are the strongest so they are checked last */
   /* If this file is to be added */
@@ -458,7 +458,7 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
               }
               if (strcmp(parentname,node->path) > 0) {
                   log_msg(LOG_LEVEL_RULE, "\u2502 %*ccheck parent directory '%s' (unrestricted rules only)", depth+2, ' ', parentname);
-                  if (check_list_for_match(node->neg_rx_lst, parentname, attr, FT_DIR, AIDE_NEGATIVE_RULE, depth+4, true) == RULE_MATCH) {
+                  if (check_list_for_match(node->neg_rx_lst, parentname, rule, FT_DIR, AIDE_NEGATIVE_RULE, depth+4, true) == RULE_MATCH) {
                       log_msg(LOG_LEVEL_RULE, "\u2502 %*cnegative match for parent directory '%s'", depth, ' ', parentname);
                       retval=0;;
                       break;
@@ -469,7 +469,7 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
 
           if (retval) {
           log_msg(LOG_LEVEL_RULE, "\u2502 %*ccheck file '%s'", depth+2, ' ', text);
-          switch (check_list_for_match(node->neg_rx_lst, text, attr, file_type, AIDE_NEGATIVE_RULE, depth+2, false)) {
+          switch (check_list_for_match(node->neg_rx_lst, text, rule, file_type, AIDE_NEGATIVE_RULE, depth+2, false)) {
               case RESTRICTED_RULE_MATCH: {
                   if(file_type&FT_DIR && get_seltree_node(node,text)==NULL) {
                       seltree *new_node = new_seltree_node(node,text,0,NULL);
@@ -496,7 +496,7 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
 
   } else {
     log_msg(LOG_LEVEL_DEBUG, "\u2502 %*cskip node '%s' (reason: no regex rules)", depth, ' ', node->path);
-    retval = check_node_for_match(node->parent, text, file_type, (retval|16)&~32, attr, depth);
+    retval = check_node_for_match(node->parent, text, file_type, (retval|16)&~32, rule, depth);
   }
 
   /* Now we discard the info whether a match was made or not *
@@ -507,7 +507,7 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
   return retval;
 }
 
-int check_seltree(seltree *tree, char *filename, RESTRICTION_TYPE file_type, DB_ATTR_TYPE *attr) {
+int check_seltree(seltree *tree, char *filename, RESTRICTION_TYPE file_type, rx_rule* *rule) {
   log_msg(LOG_LEVEL_RULE, "\u2502 check '%s'", filename);
   char * tmp=NULL;
   char * parentname=NULL;
@@ -540,11 +540,11 @@ int check_seltree(seltree *tree, char *filename, RESTRICTION_TYPE file_type, DB_
 
   free(parentname);
 
-  retval = check_node_for_match(pnode, filename, file_type, retval|32 ,attr, 0);
+  retval = check_node_for_match(pnode, filename, file_type, retval|32 ,rule, 0);
 
   if (retval) {
     char *str;
-    log_msg(LOG_LEVEL_RULE, "\u2534 ADD '%s' to the tree (attr: '%s')", filename, str = diff_attributes(0, *attr));
+    log_msg(LOG_LEVEL_RULE, "\u2534 ADD '%s' to the tree (attr: '%s')", filename, str = diff_attributes(0, (*rule)->attr));
     free(str);
 
     if(get_seltree_node(tree,filename)==NULL) {

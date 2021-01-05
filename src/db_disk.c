@@ -175,7 +175,7 @@ static int get_file_status(char *filename, struct stat *fs) {
 db_line *db_readline_disk ()
 {
 	db_line *fil = NULL;
-	DB_ATTR_TYPE attr;
+	rx_rule *rule = NULL;
 	char *fullname;
 	int add = 0;
 	struct stat fs;
@@ -187,11 +187,11 @@ db_line *db_readline_disk ()
 		strncpy(fullname, conf->root_prefix, conf->root_prefix_length+1);
 		strcat (fullname, "/");
 		if (!get_file_status(fullname, &fs)) {
-		add = check_rxtree (&fullname[conf->root_prefix_length], conf->tree, &attr, fs.st_mode);
+		add = check_rxtree (&fullname[conf->root_prefix_length], conf->tree, &rule, get_restriction_from_perm(fs.st_mode));
 
 		if (add > 0) {
             log_msg(LOG_LEVEL_DEBUG, "get file atttributes '%s'", &fullname[conf->root_prefix_length]);
-			fil = get_file_attrs (fullname, attr, &fs);
+			fil = get_file_attrs (fullname, rule->attr, &fs);
 
 			if (fil != NULL) {
 				return fil;
@@ -232,11 +232,11 @@ recursion:
 		    free (fullname);
 		    goto recursion;
 		}
-		add = check_rxtree (&fullname[conf->root_prefix_length], conf->tree, &attr, fs.st_mode);
+		add = check_rxtree (&fullname[conf->root_prefix_length], conf->tree, &rule, get_restriction_from_perm(fs.st_mode));
 
 		if (add > 0) {
             log_msg(LOG_LEVEL_DEBUG, "get file atttributes '%s'", &fullname[conf->root_prefix_length]);
-			fil = get_file_attrs (fullname, attr, &fs);
+			fil = get_file_attrs (fullname, rule->attr, &fs);
 
 			if (fil == NULL) {
 				/*
@@ -247,7 +247,7 @@ recursion:
 				goto recursion;					// return db_readline_disk(db);
 			}
 
-			if (add == 1) {
+			if (add == SELECTIVE_MATCH) {
 				/*
 				   add_children -> if dir, then add to children list.
 				 */
@@ -256,7 +256,7 @@ recursion:
 				   accordingly
 				 */
 				add_child (fil);
-			} else if (add == 2) {
+			} else if (add == EQUAL_MATCH) {
 				/*
 				   Don't add to children list.
 				 */

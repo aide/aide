@@ -71,9 +71,10 @@ static void usage(int exitvalue)
 	    "  -u, --update\t\tCheck and update the database non-interactively\n"
 	    "  -E, --compare\t\tCompare two databases\n\n"
 	    "Miscellaneous:\n"
-	    "  -D, --config-check\tTest the configuration file\n"
-	    "  -v, --version\t\tShow version of AIDE and compilation options\n"
-	    "  -h, --help\t\tShow this help message\n\n"
+	    "  -D,\t\t\t--config-check\t\t\tTest the configuration file\n"
+	    "  -p [file_type:]path\t--path-check=[file_type:]path\tMatch path against rule tree\n"
+	    "  -v,\t\t\t--version\t\t\tShow version of AIDE and compilation options\n"
+	    "  -h,\t\t\t--help\t\t\t\tShow this help message\n\n"
 	    "Options:\n"
 	    "  -c [cfgfile]\t--config=[cfgfile]\tGet config options from [cfgfile]\n"
 	    "  -l [REGEX]\t--limit=[REGEX]\t\tLimit command to entries matching [REGEX]\n"
@@ -209,6 +210,7 @@ static void read_param(int argc,char**argv)
     { "check", no_argument, NULL, 'C'},
     { "update", no_argument, NULL, 'u'},
     { "config-check", no_argument, NULL, 'D'},
+    { "path-check", required_argument, NULL, 'p'},
     { "limit", required_argument, NULL, 'l'},
     { "log-level", required_argument, NULL, 'L'},
     { "compare", no_argument, NULL, 'E'},
@@ -216,7 +218,7 @@ static void read_param(int argc,char**argv)
   };
 
   while(1){
-    option = getopt_long(argc, argv, "hL:V::vc:l:B:A:riCuDE", options, &i);
+    option = getopt_long(argc, argv, "hL:V::vc:l:p:B:A:riCuDE", options, &i);
     if(option==-1)
       break;
     switch(option)
@@ -269,6 +271,32 @@ static void read_param(int argc,char**argv)
             }
            break;
                }
+      case 'p':{
+            if(conf->action==0){
+                conf->action=DO_DRY_RUN;
+                log_msg(LOG_LEVEL_INFO,"(--path-check): path check command");
+                int index = 0;
+                if (strlen(optarg) >= 3 && optarg[0] != '/' && optarg[1] == ':') {
+                    RESTRICTION_TYPE file_type = get_restriction_from_char(*optarg);
+                    if (file_type == FT_NULL) {
+                        INVALID_ARGUMENT("---path-check", invalid file type '%c' (see man aide for details), *optarg)
+                    } else {
+                        conf->check_file_type = file_type;
+                        index = 2;
+                    }
+                }
+                if (optarg[index] != '/') {
+                    INVALID_ARGUMENT("--path-check", '%s' needs to be an absolute path, optarg)
+                } else {
+                    conf->check_path = strdup(optarg+index);
+                    log_msg(LOG_LEVEL_INFO,"(--path-check): set path to '%s' (filetype: %c)", optarg+index, get_restriction_char(conf->check_file_type));
+                }
+            } else {
+                INVALID_ARGUMENT("--path-check", %s, "cannot have multiple commands on a single commandline")
+                exit(INVALID_ARGUMENT_ERROR);
+            }
+            break;
+      }
       case 'r': {
        INVALID_ARGUMENT("--report", %s, "option no longer supported, use 'report_url' config option instead (see man aide.conf for detail)")
        break;
@@ -311,6 +339,9 @@ static void setdefaults_before_config()
 #ifdef WITH_E2FSATTRS
   conf->report_ignore_e2fsattrs = 0UL;
 #endif
+
+  conf->check_path=NULL;
+  conf->check_file_type = FT_REG;
 
   conf->report_urls=NULL;
   conf->report_level=REPORT_LEVEL_CHANGED_ATTRIBUTES;
@@ -463,6 +494,29 @@ static void setdefaults_after_config()
   };
 }
 
+static bool check_path(char* filename, RESTRICTION_TYPE filetype, seltree *tree) {
+      rx_rule* rule = NULL;
+      char * str;
+
+      int match = check_seltree(tree, filename, filetype, &rule);
+      fprintf(stdout, "[%c] %c '%s': ", match?'X':' ', get_restriction_char(filetype), filename);
+      if (match > 0) {
+          char* attr_str;
+          fprintf(stdout, "%s: '%s%s %s %s' (%s:%d: '%s')\n", get_rule_type_long_string(match), match == EQUAL_MATCH?"=":"", rule->rx, str = get_restriction_string(rule->restriction), attr_str = diff_attributes(0, rule->attr), rule->config_filename, rule->config_linenumber, rule->config_line);
+          free(attr_str);
+          free(str);
+          return true;
+      } else {
+          if (rule) {
+              fprintf(stdout, "negative rule: '!%s %s' (%s:%d: '%s')\n", rule->rx, str = get_restriction_string(rule->restriction), rule->config_filename, rule->config_linenumber, rule->config_line);
+              free(str);
+          } else {
+              fprintf(stdout, "no matching rule\n");
+          }
+          return false;
+      }
+}
+
 int main(int argc,char**argv)
 {
   int errorno=0;
@@ -505,6 +559,10 @@ int main(int argc,char**argv)
 
   log_msg(LOG_LEVEL_RULE, "rule tree:");
   log_tree(LOG_LEVEL_RULE, conf->tree, 0);
+
+  if (conf->check_path) {
+      exit(check_path(conf->check_path, conf->check_file_type, conf->tree)?0:1);
+  }
   
   /* Let's do some sanity checks for the config */
   if(cmpurl(conf->database_in.url,conf->database_out.url)==RETOK){

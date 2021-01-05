@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2010,2020 Rami Lehti,Pablo Virolainen, Hannes von
- * Haugwitz
+ * Copyright (C) 1999-2002,2010,2020,2021 Rami Lehti,Pablo Virolainen, Hannes
+ * von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -34,7 +34,7 @@ seltree* get_seltree_node(seltree* ,char*);
 
 rx_rule * add_rx_to_tree(char *, RESTRICTION_TYPE, int, seltree *, const char **, int *);
 
-int check_seltree(seltree *, char *, RESTRICTION_TYPE, DB_ATTR_TYPE *);
+int check_seltree(seltree *, char *, RESTRICTION_TYPE, rx_rule* *);
 
 int treedepth(seltree *);
 

@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2019,2020 Hannes von Haugwitz
+ * Copyright (C) 2019-2021 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -244,8 +244,8 @@ static void eval_config_statement(config_option_statement statement, int linenum
                 LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, invalid log level: '%s', str);
                 exit(INVALID_CONFIGURELINE_ERROR);
             } else {
-                if (is_log_level_unset() || ( conf->config_check && !log_level_set_in_config )) {
-                    if (!conf->config_check) {
+                if (is_log_level_unset() || ( conf->action&DO_DRY_RUN && !log_level_set_in_config )) {
+                    if (!(conf->action&DO_DRY_RUN)) {
                         set_log_level(level);
                     } else {
                         log_level_set_in_config = true;

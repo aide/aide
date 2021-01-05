@@ -178,10 +178,11 @@ static char *append_line_to_config(char *config, char *line) {
         fprintf(stderr, "%s: (%s): " #format "\n", argv[0], option, __VA_ARGS__); \
         exit(INVALID_ARGUMENT_ERROR);
 
-#define ACTION_CASE(longopt, option, _action) \
+#define ACTION_CASE(longopt, option, _action, desc) \
       case option: { \
             if(conf->action==0){ \
                 conf->action=_action; \
+                log_msg(LOG_LEVEL_INFO,"(%s): %s command", longopt, desc); \
             } else { \
                 INVALID_ARGUMENT(longopt, %s, "cannot have multiple commands on a single commandline") \
                 exit(INVALID_ARGUMENT_ERROR); \
@@ -272,15 +273,11 @@ static void read_param(int argc,char**argv)
        INVALID_ARGUMENT("--report", %s, "option no longer supported, use 'report_url' config option instead (see man aide.conf for detail)")
        break;
       }
-      ACTION_CASE("--init", 'i', DO_INIT)
-      ACTION_CASE("--check", 'C', DO_COMPARE)
-      ACTION_CASE("--update", 'u', DO_INIT|DO_COMPARE)
-      ACTION_CASE("--compare", 'E', DO_DIFF)
-      case 'D': {
-            conf->config_check=1;
-            log_msg(LOG_LEVEL_INFO,"(--config-check): enable config check");
-            break;
-        }
+      ACTION_CASE("--init", 'i', DO_INIT, "database init")
+      ACTION_CASE("--check", 'C', DO_COMPARE, "database check")
+      ACTION_CASE("--update", 'u', DO_INIT|DO_COMPARE, "database update")
+      ACTION_CASE("--compare", 'E', DO_DIFF, "database compare")
+      ACTION_CASE("--config-check", 'D', DO_DRY_RUN, "config check")
       default: /* '?' */
 	  exit(INVALID_ARGUMENT_ERROR);
       }
@@ -303,7 +300,6 @@ static void setdefaults_before_config()
 
   log_msg(LOG_LEVEL_INFO, "initialise rule tree");
   conf->tree=init_tree();
-  conf->config_check=0;
   conf->database_add_metadata=1;
   conf->report_detailed_init=0;
   conf->report_base16=0;
@@ -529,7 +525,7 @@ int main(int argc,char**argv)
 	      "database compare"));
     exit(INVALID_ARGUMENT_ERROR);
   }
-  if (!conf->config_check) {
+  if (!(conf->action&DO_DRY_RUN)) {
 
   if (!init_report_urls()) {
       exit(INVALID_CONFIGURELINE_ERROR);

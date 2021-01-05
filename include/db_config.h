@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2004-2006,2010-2013,2015,2016,2019,2020 Rami Lehti,
+ * Copyright (C) 1999-2002,2004-2006,2010-2013,2015,2016,2019-2021 Rami Lehti,
  * Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -96,6 +96,7 @@ typedef struct xattrs_type
 #define DO_INIT     (1<<0)
 #define DO_COMPARE  (1<<1)
 #define DO_DIFF     (1<<2)
+#define DO_DRY_RUN  (1<<3)
 
 #include "url.h"
 
@@ -192,8 +193,6 @@ typedef struct db_config {
   database database_in;
   database database_out;
   database database_new;
-
-  int config_check;
 
   DB_ATTR_TYPE db_attrs;
 

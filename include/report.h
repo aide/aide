@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2006,2010,2020 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002,2006,2010,2020,2021 Rami Lehti, Pablo Virolainen,
  * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -36,6 +36,8 @@ typedef enum { /* preserve order */
     REPORT_LEVEL_ADDED_REMOVED_ATTRIBUTES = 6,
     REPORT_LEVEL_ADDED_REMOVED_ENTRIES = 7,
 } REPORT_LEVEL;
+
+bool init_report_urls();
 
 bool add_report_url(url_t* url, int, char*, char*);
 

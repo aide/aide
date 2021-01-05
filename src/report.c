@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2007,2010-2013,2015,2016,2018-2020 Rami Lehti,
+ * Copyright (C) 1999-2007,2010-2013,2015,2016,2018-2021 Rami Lehti,
  * Pablo Virolainen, Richard van den Berg, Mike Markley, Hannes von Haugwitz
  * $Id$
  *
@@ -176,6 +176,10 @@ typedef struct report_t {
 
     long ntotal;
     long nadd, nrem, nchg;
+
+    int linenumber;
+    char* filename;
+    char* linebuf;
 
 } report_t;
 
@@ -427,7 +431,6 @@ void log_report_urls(LOG_LEVEL log_level) {
 
 bool add_report_url(url_t* url, int linenumber, char* filename, char* linebuf) {
     list* report_urls=NULL;
-    FILE* fh=NULL;
 
     if(url==NULL) {
         return false;
@@ -443,27 +446,10 @@ bool add_report_url(url_t* url, int linenumber, char* filename, char* linebuf) {
         }
     }
 
-    switch (url->type) {
-#ifdef HAVE_SYSLOG
-        int sfac;
-        case url_syslog: {
-            sfac=syslog_facility_lookup(url->value);
-            openlog(AIDE_IDENT,AIDE_LOGOPT, sfac);
-            break;
-        }
-#endif
-        default : {
-            fh=be_init(0,url,0, linenumber, filename, linebuf);
-            if(fh==NULL) {
-                return false;
-            }
-            break;
-        }
-    }
 
     report_t* r = malloc(sizeof(report_t));
     r->url = url;
-    r->fd = fh;
+    r->fd = NULL;
     r->level = conf->report_level;
 
     r->detailed_init = conf->report_detailed_init;
@@ -482,16 +468,46 @@ bool add_report_url(url_t* url, int linenumber, char* filename, char* linebuf) {
     r->nrem = 0;
     r->nchg = 0;
 
+    r->linenumber = linenumber;
+    r->filename = filename;
+    r->linebuf = linebuf;
+
 #ifdef WITH_E2FSATTRS
     r->ignore_e2fsattrs = conf->report_ignore_e2fsattrs;
 #endif
 
+    log_msg(LOG_LEVEL_DEBUG, _("add report_url (%p): url(: %s:%s, level: %d"), r, get_url_type_string((r->url)->type), (r->url)->value, r->level);
     conf->report_urls=list_sorted_insert(conf->report_urls, (void*) r, compare_report_t_by_report_level);
-    log_msg(LOG_LEVEL_DEBUG, _("added r(%p): url(value): %s, fd: %p, level: %d"), r, (r->url)->value, r->fd, r->level);
     return true;
 
 }
 
+bool init_report_urls() {
+    list* l = NULL;
+
+    for (l=conf->report_urls; l; l=l->next) {
+        report_t* r = l->data;
+    switch (r->url->type) {
+#ifdef HAVE_SYSLOG
+        int sfac;
+        case url_syslog: {
+            sfac=syslog_facility_lookup(r->url->value);
+            openlog(AIDE_IDENT,AIDE_LOGOPT, sfac);
+            break;
+        }
+#endif
+        default : {
+            r->fd=be_init(0,r->url,0, r->linenumber, r->filename, r->linebuf);
+            if(r->fd==NULL) {
+                return false;
+            }
+            break;
+        }
+    }
+
+    }
+    return true;
+}
 static char* byte_to_base16(byte* src, size_t ssize) {
     char* str = malloc((2*ssize+1) * sizeof (char));
     size_t i;

@@ -530,6 +530,11 @@ int main(int argc,char**argv)
     exit(INVALID_ARGUMENT_ERROR);
   }
   if (!conf->config_check) {
+
+  if (!init_report_urls()) {
+      exit(INVALID_CONFIGURELINE_ERROR);
+  }
+
   if (conf->action&(DO_INIT|DO_COMPARE) && conf->root_prefix_length > 0) {
       DIR *dir;
       if((dir = opendir(conf->root_prefix)) != NULL) {

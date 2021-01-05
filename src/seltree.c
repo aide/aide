@@ -397,7 +397,7 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
                           break;
                       }
               case PARTIAL_RULE_MATCH: {
-                           if(file_type&RESTRICTION_FT_DIR && get_seltree_node(node,text)==NULL) {
+                           if(file_type&FT_DIR && get_seltree_node(node,text)==NULL) {
                                seltree *new_node = new_seltree_node(node,text,0,NULL);
                                log_msg(LOG_LEVEL_DEBUG, "added new node '%s' (%p) for '%s' (reason: partial equal match for directory)", new_node->path, new_node, text);
                            }
@@ -425,7 +425,7 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
                           break;
                       }
               case PARTIAL_RULE_MATCH: {
-                           if(file_type&RESTRICTION_FT_DIR && get_seltree_node(node,text)==NULL) {
+                           if(file_type&FT_DIR && get_seltree_node(node,text)==NULL) {
                                seltree *new_node = new_seltree_node(node,text,0,NULL);
                                log_msg(LOG_LEVEL_DEBUG, "added new node '%s', (%p) for '%s' (reason: partial selective match for directory)", new_node->path, new_node, text);
                            }
@@ -458,7 +458,7 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
               }
               if (strcmp(parentname,node->path) > 0) {
                   log_msg(LOG_LEVEL_RULE, "\u2502 %*ccheck parent directory '%s' (unrestricted rules only)", depth+2, ' ', parentname);
-                  if (check_list_for_match(node->neg_rx_lst, parentname, attr, RESTRICTION_FT_DIR, AIDE_NEGATIVE_RULE, depth+4, true) == RULE_MATCH) {
+                  if (check_list_for_match(node->neg_rx_lst, parentname, attr, FT_DIR, AIDE_NEGATIVE_RULE, depth+4, true) == RULE_MATCH) {
                       log_msg(LOG_LEVEL_RULE, "\u2502 %*cnegative match for parent directory '%s'", depth, ' ', parentname);
                       retval=0;;
                       break;
@@ -471,7 +471,7 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
           log_msg(LOG_LEVEL_RULE, "\u2502 %*ccheck file '%s'", depth+2, ' ', text);
           switch (check_list_for_match(node->neg_rx_lst, text, attr, file_type, AIDE_NEGATIVE_RULE, depth+2, false)) {
               case RESTRICTED_RULE_MATCH: {
-                  if(file_type&RESTRICTION_FT_DIR && get_seltree_node(node,text)==NULL) {
+                  if(file_type&FT_DIR && get_seltree_node(node,text)==NULL) {
                       seltree *new_node = new_seltree_node(node,text,0,NULL);
                       log_msg(LOG_LEVEL_DEBUG, "added new node '%s' (%p) for '%s' (reason: restricted negative match for directory)", new_node->path, new_node, text);
                   }

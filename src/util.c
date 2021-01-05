@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2004-2006,2010,2011,2013,2016,2019,2020 Rami Lehti,
+ * Copyright (C) 1999-2002,2004-2006,2010,2011,2013,2016,2019-2021 Rami Lehti,
  * Pablo Virolainen, Mike Markley, Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
@@ -234,29 +234,6 @@ char* perm_to_char(mode_t perm)
   log_msg(LOG_LEVEL_TRACE, "perm_to_char: %i -> %s",perm,pc);
 
   return pc;
-}
-
-char get_file_type_char(mode_t mode) {
-    switch (mode & S_IFMT) {
-        case S_IFREG: return 'f';
-        case S_IFDIR: return 'd';
-#ifdef S_IFIFO
-        case S_IFIFO: return 'p';
-#endif
-        case S_IFLNK: return 'l';
-        case S_IFBLK: return 'b';
-        case S_IFCHR: return 'c';
-#ifdef S_IFSOCK
-        case S_IFSOCK: return 's';
-#endif
-#ifdef S_IFDOOR
-        case S_IFDOOR: return 'D';
-#endif
-#ifdef S_IFPORT
-        case S_IFPORT: return 'P';
-#endif
-        default: return '?';
-    }
 }
 
 char *expand_tilde(char *path) {

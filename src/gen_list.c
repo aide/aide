@@ -361,12 +361,12 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db)
 
   switch (db) {
   case DB_OLD: {
-    log_msg(LOG_LEVEL_DEBUG, "add old entry '%s' (%c) to node '%s' (%p) as old data", file->filename, get_file_type_char(file->perm), node->path, node);
+    log_msg(LOG_LEVEL_DEBUG, "add old entry '%s' (%c) to node '%s' (%p) as old data", file->filename, get_file_type_char_from_perm(file->perm), node->path, node);
     node->old_data=file;
     break;
   }
   case DB_NEW: {
-    log_msg(LOG_LEVEL_DEBUG, "add new entry '%s' (%c) to node '%s' (%p) as new data", file->filename, get_file_type_char(file->perm), node->path, node);
+    log_msg(LOG_LEVEL_DEBUG, "add new entry '%s' (%c) to node '%s' (%p) as new data", file->filename, get_file_type_char_from_perm(file->perm), node->path, node);
     node->new_data=file;
     break;
   }
@@ -374,7 +374,7 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db)
     node->new_data=file;
     if(conf->action&DO_INIT) {
         node->checked|=NODE_FREE;
-        log_msg(LOG_LEVEL_DEBUG, "add old entry '%s' (%c) to node (%p) as new data (entry does not match limit but keep it for database_out)", file->filename, get_file_type_char(file->perm), node);
+        log_msg(LOG_LEVEL_DEBUG, "add old entry '%s' (%c) to node (%p) as new data (entry does not match limit but keep it for database_out)", file->filename, get_file_type_char_from_perm(file->perm), node);
     } else {
         log_msg(LOG_LEVEL_DEBUG, "drop old entry '%s' (entry does not match limit)", file->filename);
         free_db_line(node->new_data);
@@ -483,7 +483,7 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db)
 
 int check_rxtree(char* filename,seltree* tree,DB_ATTR_TYPE* attr, mode_t perm)
 {
-  log_msg(LOG_LEVEL_RULE, "\u252c process '%s' (filetype: %c)", filename, get_file_type_char(perm));
+  log_msg(LOG_LEVEL_RULE, "\u252c process '%s' (filetype: %c)", filename, get_file_type_char_from_perm(perm));
   int retval=0;
 
   if(conf->limit!=NULL) {
@@ -504,7 +504,7 @@ int check_rxtree(char* filename,seltree* tree,DB_ATTR_TYPE* attr, mode_t perm)
   }
 
   *attr=0;
-  return check_seltree(tree, filename, get_file_type(perm), attr);
+  return check_seltree(tree, filename, get_restriction_from_perm(perm), attr);
 }
 
 db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct stat *fs)

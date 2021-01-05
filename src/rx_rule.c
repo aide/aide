@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2016,2020 Hannes von Haugwitz
+ * Copyright (C) 2016,2020,2021 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -22,61 +22,87 @@
 
 #include "rx_rule.h"
 
-static const char restriction_char[] = { 'f', 'd', 'p', 'l', 'b', 'c', 's', 'D', 'P'};
+typedef struct {
+    char c;
+    RESTRICTION_TYPE r;
+    mode_t ft;
+} restriction_t;
 
-static int num_restrictions = sizeof(restriction_char)/sizeof(char);
-
-RESTRICTION_TYPE get_file_type(mode_t mode) {
-    switch (mode & S_IFMT) {
-        case S_IFREG: return RESTRICTION_FT_REG;
-        case S_IFDIR: return RESTRICTION_FT_DIR;
+static restriction_t rs[] = {
+    { 'f', FT_REG, S_IFREG },
+    { 'd', FT_DIR, S_IFDIR },
 #ifdef S_IFIFO
-        case S_IFIFO: return RESTRICTION_FT_FIFO;
+    { 'p', FT_FIFO, S_IFIFO },
 #endif
-        case S_IFLNK: return RESTRICTION_FT_LNK;
-        case S_IFBLK: return RESTRICTION_FT_BLK;
-        case S_IFCHR: return RESTRICTION_FT_CHR;
+    { 'l', FT_LNK, S_IFLNK },
+    { 'b', FT_BLK, S_IFBLK },
+    { 'c', FT_CHR, S_IFCHR },
 #ifdef S_IFSOCK
-        case S_IFSOCK: return RESTRICTION_FT_SOCK;
+    { 's', FT_SOCK, S_IFSOCK },
 #endif
 #ifdef S_IFDOOR
-        case S_IFDOOR: return RESTRICTION_FT_DOOR;
+    { 'D', FT_DOOR, S_IFDOOR },
 #endif
-#ifdef S_IFDOOR
-        case S_IFPORT: return RESTRICTION_FT_PORT;
+#ifdef S_IFPORT
+    { 'P', FT_PORT, S_IFPORT },
 #endif
-        default: return RESTRICTION_NULL;
+};
+
+static int num_restrictions = sizeof(rs)/sizeof(restriction_t);
+
+RESTRICTION_TYPE get_restriction_from_perm(mode_t mode) {
+    mode_t ft = mode & S_IFMT;
+    for (int i = 0 ; i < num_restrictions; ++i) {
+        if (ft == rs[i].ft) {
+            return rs[i].r;
+        }
     }
+    return FT_NULL;
 }
 
-RESTRICTION_TYPE get_restrictionval(char* ch) {
-    if (strcmp(ch, "f") == 0) { return RESTRICTION_FT_REG; }
-    else if (strcmp(ch, "d") == 0) { return RESTRICTION_FT_DIR; }
-    else if (strcmp(ch, "p") == 0) { return RESTRICTION_FT_FIFO; }
-    else if (strcmp(ch, "l") == 0) { return RESTRICTION_FT_LNK; }
-    else if (strcmp(ch, "b") == 0) { return RESTRICTION_FT_BLK; }
-    else if (strcmp(ch, "c") == 0) { return RESTRICTION_FT_CHR; }
-    else if (strcmp(ch, "s") == 0) { return RESTRICTION_FT_SOCK; }
-    else if (strcmp(ch, "D") == 0) { return RESTRICTION_FT_DOOR; }
-    else if (strcmp(ch, "P") == 0) { return RESTRICTION_FT_PORT; }
-    else { return RESTRICTION_NULL; }
+char get_file_type_char_from_perm(mode_t mode) {
+    mode_t ft = mode & S_IFMT;
+    for (int i = 0 ; i < num_restrictions; ++i) {
+        if (ft == rs[i].ft) {
+            return rs[i].c;
+        }
+    }
+    return '?';
 }
 
-static int generate_restriction_string(RESTRICTION_TYPE rs, char *str) {
+RESTRICTION_TYPE get_restriction_from_char(char c) {
+    for (int i = 0 ; i < num_restrictions; ++i) {
+        if (c == rs[i].c) {
+            return rs[i].r;
+        }
+    }
+    return FT_NULL;
+}
+
+char get_restriction_char(RESTRICTION_TYPE r) {
+    for (int i = 0 ; i < num_restrictions; ++i) {
+        if (r == rs[i].r) {
+            return rs[i].c;
+        }
+    }
+    return '?';
+}
+
+static int generate_restriction_string(RESTRICTION_TYPE r, char *str) {
     int n = 0;
-    if (rs == RESTRICTION_NULL) {
+    if (r == FT_NULL) {
         char *no_restriction_string = "(none)";
         size_t length = strlen(no_restriction_string);
         if (str) { strncpy(str, no_restriction_string, length+1); }
         n = length + 1;
     } else {
         for (int i = 0; i < num_restrictions; ++i) {
-            if ((1LLU<<i)&rs) {
+            if (rs[i].r&r) {
                 if (n) {
                     if (str) { str[n] = ','; }
                     n++;
                 }
-                if (str) { str[n] = restriction_char[i]; }
+                if (str) { str[n] = rs[i].c; }
                 n ++;
             }
         }

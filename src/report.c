@@ -616,7 +616,7 @@ if ((conf->action&(DO_COMPARE|DO_DIFF) || (conf->action&DO_INIT && r->detailed_i
         int i;
         char* summary = malloc ((report_attrs_order_length+1) * sizeof (char));
         if (node->checked&(NODE_ADDED|NODE_REMOVED)) {
-            summary[0]=get_file_type_char(((node->checked&NODE_REMOVED)?node->old_data:node->new_data)->perm);
+            summary[0]=get_file_type_char_from_perm(((node->checked&NODE_REMOVED)?node->old_data:node->new_data)->perm);
             for(i=1;i<report_attrs_order_length;i++){
                 summary[i]=(node->checked&NODE_ADDED)?'+':'-';
             }
@@ -628,7 +628,7 @@ if ((conf->action&(DO_COMPARE|DO_DIFF) || (conf->action&DO_INIT && r->detailed_i
                 d = '-'; a = '+'; g = ':'; u = '.'; s = ' ';
                 switch (i) {
                     case 0:
-                        summary[i]=get_file_type_char((node->new_data)->perm);
+                        summary[i]=get_file_type_char_from_perm((node->new_data)->perm);
                         continue;
                     case 2:
                         if (attrs&(node->changed_attrs&(~(r->ignore_removed_attrs))) && (node->old_data)->size > (node->new_data)->size) {

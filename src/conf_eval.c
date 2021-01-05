@@ -358,12 +358,12 @@ static void eval_include_statement(include_statement statement, int linenumber, 
 }
 
 static RESTRICTION_TYPE eval_restriction_expression(restriction_expression *expression, int linenumber, char *filename, char* linebuf) {
-    RESTRICTION_TYPE rs = RESTRICTION_NULL, rs_r;
+    RESTRICTION_TYPE rs = FT_NULL, rs_r;
 
     if (expression) {
-        rs_r = get_restrictionval(expression->right);
+        rs_r = (strlen(expression->right) == 1)?get_restriction_from_char(*(expression->right)):FT_NULL;
         log_msg(eval_log_level, "eval(%p): restriction file type '%s' evaluates to %d", expression, expression->right, rs_r);
-        if (rs_r == RESTRICTION_NULL) {
+        if (rs_r == FT_NULL) {
             LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, invalid restriction '%s', expression->right)
             exit(INVALID_CONFIGURELINE_ERROR);
         }

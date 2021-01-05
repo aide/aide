@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2006,2013,2020 Rami Lehti, Pablo Virolainen, Richard
- * van den Berg, Hannes von Haugwitz
+ * Copyright (C) 1999-2002,2006,2013,2020,2021 Rami Lehti, Pablo Virolainen,
+ * Richard van den Berg, Hannes von Haugwitz
  * $Header$
  *
  * This program is free software; you can redistribute it and/or
@@ -53,7 +53,6 @@ void decode_string(char*);
 char* encode_string(const char*);
 
 char* perm_to_char(mode_t perm);
-char get_file_type_char(mode_t);
 
 char *expand_tilde(char * path);
 

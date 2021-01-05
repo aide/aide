@@ -1,8 +1,8 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002,2006,2016,2020 Rami Lehti,Pablo Virolainen, Richard
- * van den Berg, Hannes von Haugwitz
+ * Copyright (C) 1999-2002,2006,2016,2020,2021 Rami Lehti,Pablo Virolainen,
+ * Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -28,16 +28,16 @@
 #include <pcre.h>
 
 #define RESTRICTION_TYPE unsigned int
-#define RESTRICTION_FT_REG   (1U<<0) /* file */
-#define RESTRICTION_FT_DIR   (1U<<1) /* dir */
-#define RESTRICTION_FT_FIFO  (1U<<2) /* fifo */
-#define RESTRICTION_FT_LNK   (1U<<3) /* link */
-#define RESTRICTION_FT_BLK   (1U<<4) /* block device */
-#define RESTRICTION_FT_CHR   (1U<<5) /* char device */
-#define RESTRICTION_FT_SOCK  (1U<<6) /* socket */
-#define RESTRICTION_FT_DOOR  (1U<<7) /* door */
-#define RESTRICTION_FT_PORT  (1U<<8) /* port */
-#define RESTRICTION_NULL 0U
+#define FT_REG   (1U<<0) /* file */
+#define FT_DIR   (1U<<1) /* dir */
+#define FT_FIFO  (1U<<2) /* fifo */
+#define FT_LNK   (1U<<3) /* link */
+#define FT_BLK   (1U<<4) /* block device */
+#define FT_CHR   (1U<<5) /* char device */
+#define FT_SOCK  (1U<<6) /* socket */
+#define FT_DOOR  (1U<<7) /* door */
+#define FT_PORT  (1U<<8) /* port */
+#define FT_NULL  0U
 
 typedef struct rx_rule {
   char* rx; /* Regular expression in text form */
@@ -50,9 +50,10 @@ typedef struct rx_rule {
   RESTRICTION_TYPE restriction;
 } rx_rule;
 
-RESTRICTION_TYPE get_restrictionval(char*);
-
-RESTRICTION_TYPE get_file_type(mode_t mode);
+RESTRICTION_TYPE get_restriction_from_char(char);
+RESTRICTION_TYPE get_restriction_from_perm(mode_t);
+char get_file_type_char_from_perm(mode_t);
+char get_restriction_char(RESTRICTION_TYPE);
 
 typedef enum {
     AIDE_NEGATIVE_RULE=-1,

@@ -35,6 +35,9 @@
 #include "symboltable.h"
 
 #include <stddef.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <errno.h>
 #include <unistd.h>
 
 LOG_LEVEL eval_log_level = LOG_LEVEL_DEBUG;
@@ -348,18 +351,77 @@ static void eval_undefine_statement(undefine_statement statement, int linenumber
     do_undefine(statement.name, linenumber, filename, linebuf);
 }
 
+static bool conffilter(const char* path, const char* file_ext) {
+    int path_len = strlen(path);
+    int ext_len = strlen(file_ext);
+    if (path_len < ext_len || strncmp(&path[path_len-ext_len], file_ext, ext_len) != 0) {
+        log_msg(LOG_LEVEL_DEBUG,"skip '%s': file name does not end with '%s'", path, file_ext);
+        return false;
+    } else {
+        return true;
+    }
+}
+
+static int dirfilter(const struct dirent *d) {
+    return (strcmp(d->d_name, ".") != 0 && strcmp(d->d_name, "..") != 0);
+}
+
+static void eval_path(const char* path, const char* file_ext) {
+    int sres = 0;
+    struct stat fs;
+
+    sres = lstat(path,&fs);
+    if(sres == -1){
+        log_msg(LOG_LEVEL_ERROR,"lstat() failed for '%s': %s", path, strerror(errno));
+        exit(INVALID_CONFIGURELINE_ERROR);
+    } else {
+        if (S_ISDIR(fs.st_mode)) {
+            log_msg(LOG_LEVEL_DEBUG, "read directory: '%s'", path);
+
+            struct dirent **namelist;
+            int n;
+
+            n = scandir(path, &namelist, dirfilter, alphasort);
+            if (n == -1) {
+                log_msg(LOG_LEVEL_ERROR,"scandir() failed for '%s': %s", path, strerror(errno));
+                exit(INVALID_CONFIGURELINE_ERROR);
+            }
+
+            int path_len = strlen(path);
+            for (int i = 0 ; i < n ; ++i) {
+                char * child = checked_malloc((path_len+strlen(namelist[i]->d_name)+2)*sizeof(char));
+                sprintf(child, "%s/%s", path, namelist[i]->d_name);
+                eval_path(child, ".conf");
+                free(child);
+                free(namelist[i]);
+            }
+            free(namelist);
+        } else {
+            if (!file_ext || conffilter(path, file_ext)) {
+                conf_lex_file(path);
+                ast* config_ast = NULL;
+                if(confparse(&config_ast)){
+                    exit(INVALID_CONFIGURELINE_ERROR);
+                }
+                conf_lex_delete_buffer();
+                eval_config(config_ast);
+                deep_free(config_ast);
+            }
+        }
+    }
+}
+
 static void eval_include_statement(include_statement statement, int linenumber, char *filename, char* linebuf) {
     char* path = eval_string_expression(statement.path, linenumber, filename, linebuf);
     LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, include '%s', path)
-    conf_lex_file(path);
-    ast* config_ast = NULL;
-    if(confparse(&config_ast)){
-        exit(INVALID_CONFIGURELINE_ERROR);
+
+    int path_len = strlen(path);
+    if (path[path_len-1] == '/') {
+        path[path_len-1] = '\0';
+        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, removed trailing '/' from include path: '%s', path)
     }
-    conf_lex_delete_buffer();
+    eval_path(path, NULL);
     free(path);
-    eval_config(config_ast);
-    deep_free(config_ast);
 }
 
 static RESTRICTION_TYPE eval_restriction_expression(restriction_expression *expression, int linenumber, char *filename, char* linebuf) {

@@ -485,9 +485,11 @@ Pre-defined marco variables:
 Begins the else part of an if statement.
 .IP "@@endif"
 Ends an if statement.
-.IP "@@include \fBVAR\fR"
-Includes the file \fBVAR\fR. The content of the file is used as if it
-were inserted in this part of the config file.
+.IP "@@include \fBPATH\fR"
+Include the file or directory specified by \fBPATH\fR. If \fBPATH\fR is a
+directory all files ending with \fB.conf\fR are included (alphabetical order).
+The content of the files is used as if it were inserted in this
+part of the config file.
 
 .PP
 .SH URLS

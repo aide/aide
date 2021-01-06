@@ -48,6 +48,7 @@ typedef enum config_option {
     REPORT_URL_OPTION,
     ROOT_PREFIX_OPTION,
     WARN_DEAD_SYMLINKS_OPTION,
+    VERBOSE_OPTION,
     CONFIG_VERSION,
 } config_option;
 

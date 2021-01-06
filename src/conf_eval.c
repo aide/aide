@@ -263,6 +263,10 @@ static void eval_config_statement(config_option_statement statement, int linenum
             conf->config_version = str;
             LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, set 'config_version' option to '%s', str)
             break;
+        case VERBOSE_OPTION:
+            log_msg(LOG_LEVEL_ERROR, "%s:%d: 'verbose' option is no longer supported, use 'log_level' and 'report_level' options instead (see man aide.conf for details) (line: '%s')", conf_filename, conf_linenumber, conf_linebuf);
+            exit(INVALID_CONFIGURELINE_ERROR);
+            break;
     }
 }
 

@@ -315,8 +315,10 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
 }
 
 <CONFIG>"verbose" {
-  log_msg(LOG_LEVEL_ERROR, "%s:%d: 'verbose' option is no longer supported, use 'log_level' and 'report_level' options instead (see man aide.conf for details) (line: '%s')", conf_filename, conf_linenumber, conf_linebuf);
-  exit(INVALID_CONFIGURELINE_ERROR);
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (VERBOSE_OPTION), conftext)
+  conflval.option = VERBOSE_OPTION;
+  BEGIN (STRINGEQHUNT);
+  return (CONFIGOPTION);
 }
 
 <CONFIG>"log_level" {

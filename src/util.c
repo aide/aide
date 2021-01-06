@@ -2,7 +2,6 @@
  *
  * Copyright (C) 1999-2002,2004-2006,2010,2011,2013,2016,2019-2021 Rami Lehti,
  * Pablo Virolainen, Mike Markley, Richard van den Berg, Hannes von Haugwitz
- * $Header$
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as

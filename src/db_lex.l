@@ -6,7 +6,6 @@ C	[^\n\t ]
  *
  * Copyright (C) 1999-2002,2005,2010,2013,2016,2019,2020 Rami Lehti,Pablo
  * Virolainen, Richard van den Berg, Hannes von Haugwitz
- * $Header$
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as

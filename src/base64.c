@@ -2,7 +2,6 @@
 **
 ** Copyright (C) 1994 Swedish University Network (SUNET)
 ** Modified by Rami Lehti (C) 1999
-** $Header$
 **
 **
 ** This program is free software; you can redistribute it and/or modify

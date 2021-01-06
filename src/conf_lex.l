@@ -9,7 +9,7 @@ E	[\ ]*"="[\ ]*
 #define YYDEBUG 1
 
 /*
- * Copyright (C) 1999-2002,2004-2006,2010-2013,2015,2016,2019,2020 Rami Lehti,
+ * Copyright (C) 1999-2002,2004-2006,2010-2013,2015,2016,2019-2021 Rami Lehti,
  * Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -357,6 +357,13 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
 <CONFIG>"report_quiet" {
   LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (REPORT_QUIET_OPTION), conftext)
   conflval.option = REPORT_QUIET_OPTION;
+  BEGIN (STRINGEQHUNT);
+  return (CONFIGOPTION);
+}
+
+<CONFIG>"report_append" {
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (REPORT_APPEND_OPTION), conftext)
+  conflval.option = REPORT_APPEND_OPTION;
   BEGIN (STRINGEQHUNT);
   return (CONFIGOPTION);
 }

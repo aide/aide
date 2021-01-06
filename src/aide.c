@@ -331,6 +331,7 @@ static void setdefaults_before_config()
   conf->report_detailed_init=0;
   conf->report_base16=0;
   conf->report_quiet=0;
+  conf->report_append=false;
   conf->report_ignore_added_attrs = 0;
   conf->report_ignore_removed_attrs = 0;
   conf->report_ignore_changed_attrs = 0;

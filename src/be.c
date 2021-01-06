@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2003,2005,2006,2010,2011,2013,2019,2020 Rami Lehti, Pablo
+ * Copyright (C) 1999-2003,2005,2006,2010,2011,2013,2019-2021 Rami Lehti, Pablo
  * Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -38,7 +38,7 @@
 /*for locale support*/
 
 
-void* be_init(bool readonly, url_t* u, bool iszipped, int linenumber, char* filename, char* linebuf) {
+void* be_init(bool readonly, url_t* u, bool iszipped, bool append, int linenumber, char* filename, char* linebuf) {
   FILE* fh=NULL;
   long a=0;
   char* err=NULL;
@@ -50,11 +50,11 @@ void* be_init(bool readonly, url_t* u, bool iszipped, int linenumber, char* file
   switch (u->type) {
   case url_file : {
     u->value = expand_tilde(u->value);
-    log_msg(LOG_LEVEL_DEBUG, "open (%s, gzip: %s) file '%s'", readonly?"read-only":"read/write", btoa(iszipped), u->value);
+    log_msg(LOG_LEVEL_DEBUG, "open (%s, gzip: %s, append: %s ) file '%s'", readonly?"read-only":"read/write", btoa(iszipped), btoa(append), u->value);
 #if HAVE_FCNTL && HAVE_FTRUNCATE
-    fd=open(u->value,readonly?O_RDONLY:O_CREAT|O_RDWR,0666);
+    fd=open(u->value,readonly?O_RDONLY:O_CREAT|O_RDWR|(append?O_APPEND:0),0666);
 #else
-    fd=open(u->value,readonly?O_RDONLY:O_CREAT|O_RDWR|O_TRUNC,0666);
+    fd=open(u->value,readonly?O_RDONLY:O_CREAT|O_RDWR|(append?O_APPEND:O_TRUNC),0666);
 #endif
     if(fd==-1) {
         LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, open (%s) failed for file '%s': %s, readonly?"read-only":"read/write", u->value, strerror(errno));
@@ -76,11 +76,13 @@ void* be_init(bool readonly, url_t* u, bool iszipped, int linenumber, char* file
       } else {
           log_msg(LOG_LEVEL_DEBUG, "successfully got lock for file '%s'", u->value);
       }
-      if(ftruncate(fd,0)==-1) {
-          log_msg(LOG_LEVEL_ERROR,_("ftruncate failed for file %s: %s"),u->value, strerror(errno));
-          return NULL;
-      } else {
-          log_msg(LOG_LEVEL_DEBUG, "successfully truncated file '%s' to size 0", u->value);
+      if (!append) {
+          if(ftruncate(fd,0)==-1) {
+              log_msg(LOG_LEVEL_ERROR,_("ftruncate failed for file %s: %s"),u->value, strerror(errno));
+              return NULL;
+          } else {
+              log_msg(LOG_LEVEL_DEBUG, "successfully truncated file '%s' to size 0", u->value);
+          }
      }
         } else {
           log_msg(LOG_LEVEL_DEBUG, "skip lock for '/dev/null'");

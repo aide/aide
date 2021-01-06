@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2019,2020 Hannes von Haugwitz
+ * Copyright (C) 2019-2021 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -43,6 +43,7 @@ typedef enum config_option {
     REPORT_IGNORE_E2FSATTRS_OPTION,
     REPORT_LEVEL_OPTION,
     REPORT_QUIET_OPTION,
+    REPORT_APPEND_OPTION,
     REPORT_SUMMARIZE_CHANGES_OPTION,
     REPORT_URL_OPTION,
     ROOT_PREFIX_OPTION,

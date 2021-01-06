@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2006,2010,2011,2013,2019,2020 Rami Lehti, Pablo
+ * Copyright (C) 1999-2006,2010,2011,2013,2019-2021 Rami Lehti, Pablo
  * Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -131,7 +131,7 @@ int db_init(database* db, bool readonly, bool gzip) {
   log_msg(LOG_LEVEL_TRACE,"db_init(): arguments: db=%p, gzip=%s", db, btoa(gzip));
   
     db->mdc = init_db_attrs(db->url);
-    fp=be_init(readonly, db->url, gzip, db->linenumber, db->filename, db->linebuf);
+    fp=be_init(readonly, db->url, gzip, false, db->linenumber, db->filename, db->linebuf);
     if(fp==NULL) {
       return RETFAIL;
     } else {

@@ -164,6 +164,7 @@ typedef struct report_t {
     int quiet;
     int summarize_changes;
     int grouped;
+    bool append;
 
 #ifdef WITH_E2FSATTRS
     long ignore_e2fsattrs;
@@ -412,7 +413,7 @@ void log_report_urls(LOG_LEVEL log_level) {
 
         log_msg(log_level, " %s%s%s (%p)", get_url_type_string((r->url)->type), (r->url)->value?":":"", (r->url)->value?(r->url)->value:"", r);
 
-        log_msg(log_level, "   level: %s | base16: %s | quiet: %s | detailed_init: %s | summarize_changes: %s | grouped: %s", get_report_level_string(r->level), btoa(r->base16), btoa(r->quiet), btoa(r->detailed_init), btoa(r->summarize_changes), btoa(r->grouped));
+        log_msg(log_level, "   level: %s | base16: %s | append: %s | quiet: %s | detailed_init: %s | summarize_changes: %s | grouped: %s", get_report_level_string(r->level), btoa(r->base16), btoa(r->append), btoa(r->quiet), btoa(r->detailed_init), btoa(r->summarize_changes), btoa(r->grouped));
         char *str;
         log_msg(log_level, "   ignore_added_attrs: '%s'", str = diff_attributes(0, r->ignore_added_attrs));
         free(str);
@@ -455,6 +456,7 @@ bool add_report_url(url_t* url, int linenumber, char* filename, char* linebuf) {
     r->detailed_init = conf->report_detailed_init;
     r->base16 = conf->report_base16;
     r->quiet = conf->report_quiet;
+    r->append = conf->report_append;
     r->summarize_changes = conf->report_summarize_changes;
     r->grouped = conf->report_grouped;
 
@@ -497,7 +499,7 @@ bool init_report_urls() {
         }
 #endif
         default : {
-            r->fd=be_init(0,r->url,0, r->linenumber, r->filename, r->linebuf);
+            r->fd=be_init(0,r->url,0, r->append, r->linenumber, r->filename, r->linebuf);
             if(r->fd==NULL) {
                 return false;
             }

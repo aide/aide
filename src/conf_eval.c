@@ -228,6 +228,7 @@ static void eval_config_statement(config_option_statement statement, int linenum
         BOOL_CONFIG_OPTION_CASE(REPORT_DETAILED_INIT_OPTION, report_detailed_init)
         BOOL_CONFIG_OPTION_CASE(REPORT_GROUPED_OPTION, report_grouped)
         BOOL_CONFIG_OPTION_CASE(REPORT_QUIET_OPTION, report_quiet)
+        BOOL_CONFIG_OPTION_CASE(REPORT_APPEND_OPTION, report_append)
         BOOL_CONFIG_OPTION_CASE(REPORT_SUMMARIZE_CHANGES_OPTION, report_summarize_changes)
         BOOL_CONFIG_OPTION_CASE(WARN_DEAD_SYMLINKS_OPTION, warn_dead_symlinks)
         case REPORT_LEVEL_OPTION:

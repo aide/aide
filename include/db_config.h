@@ -213,6 +213,7 @@ typedef struct db_config {
   int report_detailed_init;
   int report_base16;
   int report_quiet;
+  bool report_append;
 
   DB_ATTR_TYPE report_ignore_added_attrs;
   DB_ATTR_TYPE report_ignore_removed_attrs;

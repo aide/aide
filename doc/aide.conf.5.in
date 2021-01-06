@@ -197,7 +197,9 @@ report checksums in base64 encoding.
 Report added files (report level >= \fBlist_entries\fP) and their details (report
 level >= \fBadded_removed_entries\fP) in initialization mode.
 .IP "report_quiet (type: bool, default: \fBfalse\fR)"
-Suppress report output if no differences to the database have been found
+Suppress report output if no differences to the database have been found.
+.IP "report_append (type: bool, default: \fBfalse\fR)"
+Append to the report URL.
 .TP
 report_grouped (type: bool, default: \fBtrue\fR)
 .TQ

@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999,2000,2001,2002,2019,2020 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999,2000,2001,2002,2019-2021 Rami Lehti, Pablo Virolainen,
  * Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -23,6 +23,6 @@
 #include <stdbool.h>
 #include "url.h"
 
-void* be_init(bool ,url_t*, bool, int, char*, char*);
+void* be_init(bool ,url_t*, bool, bool, int, char*, char*);
 
 #endif /* _BE_H_INCLUDED */

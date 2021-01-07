@@ -343,6 +343,12 @@ REPORT_LEVEL get_report_level(char *str) {
     return 0;
 }
 
+static void report_vprintf(report_t*, const char *, va_list)
+#ifdef __GNUC__
+        __attribute__ ((format (printf, 2, 0)))
+#endif
+;
+
 static void report_vprintf(report_t* r, const char *format, va_list ap) {
     int retval;
 
@@ -373,6 +379,11 @@ if (!r->quiet || (r->nadd || r->nchg || r->nrem)) {
 
 }
 
+static void report_printf(report_t*, const char*, ...)
+#ifdef __GNUC__
+        __attribute__ ((format (printf, 2, 3)))
+#endif
+;
 static void report_printf(report_t* r, const char* error_msg, ...) {
     va_list ap;
 
@@ -382,6 +393,11 @@ static void report_printf(report_t* r, const char* error_msg, ...) {
 
 }
 
+static void report(REPORT_LEVEL, const char*, ...)
+#ifdef __GNUC__
+        __attribute__ ((format (printf, 2, 3)))
+#endif
+;
 static void report(REPORT_LEVEL report_level, const char* error_msg, ...) {
     va_list ap;
     list* l = NULL;

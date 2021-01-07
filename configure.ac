@@ -574,8 +574,8 @@ else
 	default_db_out="$ac_default_prefix/etc/aide.db.new"
 fi
 
-AC_DEFINE_UNQUOTED(DEFAULT_DB,"file:/$default_db",[Default location of signature database])
-AC_DEFINE_UNQUOTED(DEFAULT_DB_OUT,"file:/$default_db_out",[Default output location for newly-generated signature database])
+AC_DEFINE_UNQUOTED(DEFAULT_DB,"file:$default_db",[Default location of signature database])
+AC_DEFINE_UNQUOTED(DEFAULT_DB_OUT,"file:$default_db_out",[Default output location for newly-generated signature database])
 
 fi
 

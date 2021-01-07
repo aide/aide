@@ -140,7 +140,7 @@ url_t* parse_url(char* val, int linenumber, char* filename, char* linebuf)
 
 int parse_config(char *before, char *config, char* after) {
     if(before==NULL && after==NULL && (config==NULL||strcmp(config,"")==0)){
-      log_msg(LOG_LEVEL_ERROR,_("no config given (use '--config' --before' or '--after' command line parameter"));
+      log_msg(LOG_LEVEL_ERROR,_("missing configuration (use '--config' '--before' or '--after' command line parameter)"));
       return RETFAIL;
     }
 

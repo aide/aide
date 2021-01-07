@@ -136,11 +136,11 @@ static void print_version(void)
 	  "Compiled with the following options:\n\n" AIDECOMPILEOPTIONS "\n");
 
   fprintf(stdout, "Default config values:\n");
-  fprintf(stdout, "config file: %s\n", CONFIG_FILE),
+  fprintf(stdout, "config file: %s\n", conf->config_file?conf->config_file:"<none>");
   fprintf(stdout, "database_in: %s\n", "file:"DEFAULT_DB),
   fprintf(stdout, "database_out: %s\n", "file:"DEFAULT_DB_OUT),
 
-  fprintf(stdout, "\aAvailable hashsum groups:\n");
+  fprintf(stdout, "\nAvailable hashsum groups:\n");
   DB_ATTR_TYPE available_hashsums = get_hashes(false);
   for (int i = 0; i < num_hashes; ++i) {
       fprintf(stdout, "%s: %s\n", attributes[hashsums[i].attribute].config_name, ATTR(hashsums[i].attribute)&available_hashsums?"yes":"no");
@@ -346,7 +346,13 @@ static void setdefaults_before_config()
   conf->report_urls=NULL;
   conf->report_level=REPORT_LEVEL_CHANGED_ATTRIBUTES;
 
-  conf->config_file=CONFIG_FILE;
+  conf->config_file=
+#ifdef CONFIG_FILE
+          CONFIG_FILE
+#else
+      NULL
+#endif
+      ;
   conf->config_version=NULL;
   
 #ifdef WITH_ACL

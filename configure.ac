@@ -537,18 +537,23 @@ AM_CONDITIONAL(HAVE_CHECK, [test "x$CHECK_LIBS" != "x"])
 
 AC_ARG_WITH([config_file],
 	AC_HELP_STRING([--with-config-file=config-file],
-		[use config-file as the default config file]),
-	[config_file=$withval],
-	[if test "x$sysconfdir" != x'${prefix}/etc'; then
-	   config_file=`eval echo "$sysconfdir/aide.conf"`
-	elif test "x$prefix" != xNONE; then
-	   config_file="$prefix/etc/aide.conf"
-	else
-	   config_file="$ac_default_prefix/etc/aide.conf"
-	fi]
-)
+    [specify default config file (use --without-config-file to disable default config file)]),
+    [with_config_file=$withval],[with_config_file=yes])
 
-AC_DEFINE_UNQUOTED(CONFIG_FILE,"$config_file",[Location of configuration file])
+if test "$with_config_file" != "no"; then
+    if test "$with_config_file" != "yes"; then
+        config_file=$with_config_file
+    else
+        if test "x$sysconfdir" != x'${prefix}/etc'; then
+            config_file=`eval echo "$sysconfdir/aide.conf"`
+        elif test "x$prefix" != xNONE; then
+            config_file="$prefix/etc/aide.conf"
+        else
+            config_file="$ac_default_prefix/etc/aide.conf"
+        fi
+    fi
+    AC_DEFINE_UNQUOTED(CONFIG_FILE,"$config_file",[Location of configuration file])
+fi
 
 if test "x$sysconfdir" != x'${prefix}/etc'; then
 	evalled_sysconfdir=`eval echo "$sysconfdir"`

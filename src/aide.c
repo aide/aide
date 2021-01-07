@@ -137,8 +137,20 @@ static void print_version(void)
 
   fprintf(stdout, "Default config values:\n");
   fprintf(stdout, "config file: %s\n", conf->config_file?conf->config_file:"<none>");
-  fprintf(stdout, "database_in: %s\n", "file:"DEFAULT_DB),
-  fprintf(stdout, "database_out: %s\n", "file:"DEFAULT_DB_OUT),
+  fprintf(stdout, "database_in: %s\n",
+#ifdef DEFAULT_DB
+          DEFAULT_DB
+#else
+          "<none>"
+#endif
+          ),
+  fprintf(stdout, "database_out: %s\n",
+#ifdef DEFAULT_DB_OUT
+          DEFAULT_DB_OUT
+#else
+          "<none>"
+#endif
+          ),
 
   fprintf(stdout, "\nAvailable hashsum groups:\n");
   DB_ATTR_TYPE available_hashsums = get_hashes(false);
@@ -476,12 +488,16 @@ static void setdefaults_after_config()
 {
   int linenumber=1;
 
+#ifdef DEFAULT_DB
   if(conf->database_in.url==NULL){
-    do_dbdef(DB_TYPE_IN, "file:"DEFAULT_DB, linenumber++, "(default)",  NULL);
+    do_dbdef(DB_TYPE_IN, DEFAULT_DB, linenumber++, "(default)",  NULL);
   }
+#endif
+#ifdef DEFAULT_DB_OUT
   if(conf->database_out.url==NULL){
-    do_dbdef(DB_TYPE_OUT, "file:"DEFAULT_DB_OUT, linenumber++, "(default)",  NULL);
+    do_dbdef(DB_TYPE_OUT, DEFAULT_DB_OUT, linenumber++, "(default)",  NULL);
   }
+#endif
 
   if(conf->root_prefix==NULL){
     do_rootprefix("" , linenumber++, "(default)",  NULL);
@@ -571,7 +587,15 @@ int main(int argc,char**argv)
   }
   
   /* Let's do some sanity checks for the config */
-  if(cmpurl(conf->database_in.url,conf->database_out.url)==RETOK){
+  if (conf->action&(DO_DIFF|DO_COMPARE) && !(conf->database_in.url)) {
+    log_msg(LOG_LEVEL_ERROR,_("missing 'database_in', config option is required"));
+    exit(INVALID_ARGUMENT_ERROR);
+  }
+  if (conf->action&DO_INIT && !(conf->database_out.url)) {
+    log_msg(LOG_LEVEL_ERROR,_("missing 'database_out', config option is required"));
+    exit(INVALID_ARGUMENT_ERROR);
+  }
+  if(conf->database_in.url && conf->database_out.url && cmpurl(conf->database_in.url,conf->database_out.url)==RETOK){
       log_msg(LOG_LEVEL_NOTICE, "input and output database URLs are the same: '%s'", (conf->database_in.url)->value);
     if((conf->action&DO_INIT)&&(conf->action&DO_COMPARE)){
       log_msg(LOG_LEVEL_ERROR,_("input and output database urls cannot be the same "

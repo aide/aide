@@ -555,6 +555,13 @@ if test "$with_config_file" != "no"; then
     AC_DEFINE_UNQUOTED(CONFIG_FILE,"$config_file",[Location of configuration file])
 fi
 
+AC_ARG_ENABLE([default_db],
+	AC_HELP_STRING([--disable-default-db],
+    [do not set default values for database_in and database_out config options]),
+    [enable_default_db=$enableval],[enable_default_db=yes])
+
+if test "$enable_default_db" == "yes"; then
+
 if test "x$sysconfdir" != x'${prefix}/etc'; then
 	evalled_sysconfdir=`eval echo "$sysconfdir"`
 	default_db="$evalled_sysconfdir/aide.db"
@@ -567,8 +574,10 @@ else
 	default_db_out="$ac_default_prefix/etc/aide.db.new"
 fi
 
-AC_DEFINE_UNQUOTED(DEFAULT_DB,"$default_db",[Default location of signature database])
-AC_DEFINE_UNQUOTED(DEFAULT_DB_OUT,"$default_db_out",[Default output location for newly-generated signature database])
+AC_DEFINE_UNQUOTED(DEFAULT_DB,"file:/$default_db",[Default location of signature database])
+AC_DEFINE_UNQUOTED(DEFAULT_DB_OUT,"file:/$default_db_out",[Default output location for newly-generated signature database])
+
+fi
 
 dnl Do the library tests with the static flag
 LDFLAGS="$LDFLAGS $LD_STATIC_FLAG"

@@ -484,6 +484,7 @@ int db_writeline(db_line* line,db_config* dbconf){
 }
 
 void db_close() {
+  if (conf->database_out.url) {
   switch (conf->database_out.url->type) {
   case url_stdin:
   case url_stdout:
@@ -514,6 +515,7 @@ void db_close() {
   case url_syslog: {
     /* do nothing */
     break;
+  }
   }
   }
   conf->database_in.db_line = close_db_attrs(conf->database_in.mdc, conf->database_in.url->value);

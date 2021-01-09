@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2010,2020 Rami Lehti, Pablo Virolainen, Richard
+ * Copyright (C) 1999-2002,2010,2020,2021 Rami Lehti, Pablo Virolainen, Richard
  * van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -27,6 +27,7 @@
 #define INVALID_CONFIGURELINE_ERROR 17
 #define IO_ERROR 18
 #define VERSION_MISMATCH_ERROR 19
+#define EXEC_ERROR 20
 #define HASH_ALGO_ERROR 30
 
 #endif

@@ -36,6 +36,7 @@
 
 #include <stddef.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <dirent.h>
 #include <errno.h>
 #include <unistd.h>
@@ -355,7 +356,68 @@ static int dirfilter(const struct dirent *d) {
     return (strcmp(d->d_name, ".") != 0 && strcmp(d->d_name, "..") != 0);
 }
 
-static void include_file(const char* file) {
+static void include_file(const char* file, bool execute) {
+    if (execute) {
+        int p_stdout[2];
+        pid_t pid;
+
+        if (pipe(p_stdout)==-1) {
+            log_msg(LOG_LEVEL_ERROR, "%s: pipe failed: %s", file, strerror(errno));
+            exit(EXEC_ERROR);
+        }
+        if ((pid = fork()) == -1) {
+            log_msg(LOG_LEVEL_ERROR, "%s: fork failed: %s", file, strerror(errno));
+            exit(EXEC_ERROR);
+        }
+
+        if(pid == 0) {
+            /* child */
+            close(p_stdout[0]);
+            dup2 (p_stdout[1], STDOUT_FILENO);
+            close(p_stdout[1]);
+            execl(file, file, (char*) NULL);
+            log_msg(LOG_LEVEL_ERROR, "%s: execl failed: %s", file, strerror(errno));
+            exit(EXIT_FAILURE);
+        } else {
+            /* parent */
+            close(p_stdout[1]);
+
+            int nbytes;
+            char* config_str = NULL;
+            char buffer[1024];
+            while ((nbytes = read(p_stdout[0], buffer, sizeof(buffer))) > 0) {
+                if (config_str) {
+                    config_str = realloc(config_str, (strlen(config_str)+nbytes+1)*sizeof(char));
+                    strncat(config_str, buffer, nbytes);
+                } else {
+                    config_str = checked_malloc((nbytes+1)*sizeof(char));
+                    strncpy(config_str,buffer, nbytes+1);
+                }
+            }
+
+            int wstatus;
+            waitpid(pid, &wstatus, 0);
+            if (!WIFEXITED(wstatus) || WEXITSTATUS(wstatus)) {
+                log_msg(LOG_LEVEL_ERROR, "%s: execution failed with exit code %d", file, WEXITSTATUS(wstatus));
+                exit(EXEC_ERROR);
+            }
+
+            if (config_str) {
+                ast* config_ast = NULL;
+                char * source_name = checked_malloc((strlen(file) + 10) * sizeof(char));
+                sprintf(source_name, "%s (stdout)", file);
+                conf_lex_string(source_name, config_str);
+                if(confparse(&config_ast)){
+                    exit(INVALID_CONFIGURELINE_ERROR);
+                }
+                conf_lex_delete_buffer();
+                free(source_name);
+                eval_config(config_ast);
+                deep_free(config_ast);
+            }
+            free(config_str);
+        }
+    } else {
     conf_lex_file(file);
     ast* config_ast = NULL;
     if(confparse(&config_ast)){
@@ -364,9 +426,10 @@ static void include_file(const char* file) {
     conf_lex_delete_buffer();
     eval_config(config_ast);
     deep_free(config_ast);
+    }
 }
 
-static void include_directory(const char* dir, const char* rx, int linenumber, char *filename, char* linebuf) {
+static void include_directory(const char* dir, const char* rx, bool execute, int linenumber, char *filename, char* linebuf) {
     LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, include directory '%s' (regex: '%s'), dir, rx)
 
     struct dirent **namelist;
@@ -399,12 +462,14 @@ static void include_directory(const char* dir, const char* rx, int linenumber, c
         }
         if (S_ISREG(fs.st_mode)) {
             if(pcre_exec(crx, NULL, namelist[i]->d_name, strlen(namelist[i]->d_name), 0, 0, NULL, 0) < 0) {
-                log_msg(LOG_LEVEL_DEBUG,"%s: skip '%s': file name does not match regex '%s'", dir, namelist[i]->d_name, rx);
+                log_msg(LOG_LEVEL_DEBUG,"%s: skip '%s' (reason: file name does not match regex '%s')", dir, namelist[i]->d_name, rx);
             } else {
-                include_file(filepath);
+                int exec = execute && S_IXUSR&fs.st_mode;
+                log_msg(LOG_LEVEL_CONFIG,"%s: %s '%s'", dir, exec?"execute":"include", namelist[i]->d_name);
+                include_file(filepath, exec);
             }
         } else {
-            log_msg(LOG_LEVEL_DEBUG,"%s: skip '%s': file is not a regular file", dir, namelist[i]->d_name);
+            log_msg(LOG_LEVEL_DEBUG,"%s: skip '%s' (reason: file is not a regular file)", dir, namelist[i]->d_name);
         }
 
         free(filepath);
@@ -418,7 +483,7 @@ static void eval_include_statement(include_statement statement, int linenumber, 
     char* rx = statement.rx?eval_string_expression(statement.rx, linenumber, filename, linebuf):NULL;
 
     if (rx) {
-        include_directory(path, rx, linenumber, filename, linebuf);
+        include_directory(path, rx, statement.execute, linenumber, filename, linebuf);
         free(rx);
     } else {
     struct stat fs;
@@ -428,7 +493,7 @@ static void eval_include_statement(include_statement statement, int linenumber, 
     }
     if (S_ISREG(fs.st_mode)) {
         LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, include file '%s', path)
-        include_file(path);
+        include_file(path, statement.execute && S_IXUSR&fs.st_mode);
     } else {
         LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, '@@include': '%s' is not a regular file, path);
         exit(INVALID_CONFIGURELINE_ERROR);

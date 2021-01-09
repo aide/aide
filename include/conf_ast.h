@@ -121,6 +121,7 @@ typedef struct define_statement {
 typedef struct include_statement {
     string_expression *path;
     string_expression *rx;
+    bool execute;
 } include_statement;
 
 typedef struct undefine_statement {
@@ -189,7 +190,7 @@ ast* new_undefine_statement(char*);
 
 ast* new_group_statement(char*, attribute_expression*);
 
-ast* new_include_statement(string_expression*, string_expression*);
+ast* new_include_statement(string_expression*, string_expression*, bool);
 
 ast* new_if_statement(struct if_condition*, struct ast*, struct ast*);
 

@@ -61,14 +61,15 @@ ast* new_attribute_option_statement(config_option option, attribute_expression* 
       return a;
 }
 
-ast* new_include_statement(string_expression* path, string_expression* rx) {
+ast* new_include_statement(string_expression* path, string_expression* rx, bool execute) {
       ast* a = new_ast_node();
 
       a->type = include_statement_type;
       a->statement._include.path = path;
       a->statement._include.rx = rx;
+      a->statement._include.execute = execute;
 
-      log_msg(ast_log_level, "ast: new include statement (%p): path: %p, rx: %p", a, path, rx);
+      log_msg(ast_log_level, "ast: new include statement (%p): path: %p, rx: %p, execute: %s", a, path, rx, btoa(execute));
       return a;
 }
 

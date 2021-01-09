@@ -196,6 +196,12 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
   return (TINCLUDE);
 }
 
+<CONFIG>"\@\@x_include" {
+  LOG_LEX_TOKEN(lex_log_level, TXINCLUDE, conftext)
+  BEGIN(STRINGS);
+  return (TXINCLUDE);
+}
+
 <CONFIG,DEFSTMT,EXPR>[\t\ ]+ {
     LOG_LEX_TOKEN(LOG_LEVEL_DEBUG, skip tab(s)/whitespace(s), conftext)
 }
@@ -490,14 +496,14 @@ int confwrap(void){
 }
 
 void conf_lex_string(const char * name, const char *string) {
-    log_msg(LOG_LEVEL_DEBUG, "parse string: '%s'", name);
+    log_msg(LOG_LEVEL_DEBUG, "parse: '%s'", name);
     conf_linenumber = 0;
     conf_filename = strdup(name); /* not to be freed, needed for logging */
     conf_scan_string(string);
 }
 
 void conf_lex_file(const char * config) {
-    log_msg(LOG_LEVEL_DEBUG, "parse file: '%s'", config);
+    log_msg(LOG_LEVEL_DEBUG, "parse: '%s'", config);
     conf_linenumber = 0;
 
     if (strcmp(config,"-") == 0) {

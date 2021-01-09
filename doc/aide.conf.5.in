@@ -486,9 +486,18 @@ Pre-defined marco variables:
 Begins the else part of an if statement.
 .IP "@@endif"
 Ends an if statement.
-.IP "@@include \fBPATH\fR"
-Include the file or directory specified by \fBPATH\fR. If \fBPATH\fR is a
-directory all files ending with \fB.conf\fR are included (alphabetical order).
+
+.IP "@@include \fBFILE\fR"
+Include \fBFILE\fR.
+
+The content of the file is used as if it were inserted in this part of the
+config file.
+
+.IP "@@include \fBDIRECTORY\fR \fBREGEX\fR"
+Include all (regular) files found in \fBDIRECTORY\fR matching regular
+expression \fBREGEX\fR (sub-directories are ignored). The file are included in
+lexical sort order.
+
 The content of the files is used as if it were inserted in this
 part of the config file.
 

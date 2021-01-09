@@ -63,7 +63,7 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
 
 %option noinput nounput
 
-%x CONFIG DEFSTMT EXPR EXPREQUHUNT PATH STRING STRINGEQHUNT STRINGHUNT
+%x CONFIG DEFSTMT EXPR EXPREQUHUNT PATH STRING STRINGS STRINGEQHUNT STRINGHUNT
 
 %%
 <INITIAL>^[\t\ ]*"#"[^\n]*"\n" {
@@ -192,7 +192,7 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
 
 <CONFIG>"\@\@include" {
   LOG_LEX_TOKEN(lex_log_level, TINCLUDE, conftext)
-  BEGIN(STRINGHUNT);
+  BEGIN(STRINGS);
   return (TINCLUDE);
 }
 
@@ -419,7 +419,7 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
   return('=');
 }
 
-<STRING,PATH>"@@{"({L}+)"}" {
+<STRINGS,STRING,PATH>"@@{"({L}+)"}" {
   size_t length = strlen(conftext)-4;
   conflval.s=checked_malloc(length);
   strncpy(conflval.s, conftext+3, length);
@@ -428,22 +428,27 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
   return (TVARIABLE);
 }
 
-<STRING,PATH>[^@\\ \t\n]+ {
+<STRINGS,STRING,PATH>[^@\\ \t\n]+ {
   LOG_LEX_TOKEN(lex_log_level, TSTRING, conftext)
   conflval.s=checked_strdup(conftext);
   return (TSTRING);
 }
 
-<STRING,PATH>\\[\\@ ] {
+<STRINGS,STRING,PATH>\\[\\@ ] {
   LOG_LEX_TOKEN(lex_log_level, (escaped) TSTRING, conftext)
   conflval.s=strdup(conftext+1);
   return (TSTRING);
 }
 
-<STRING,PATH>[\\@] {
+<STRINGS,STRING,PATH>[\\@] {
   LOG_LEX_TOKEN(lex_log_level, (single-character) TSTRING, conftext)
   conflval.s=strdup(conftext);
   return (TSTRING);
+}
+
+<STRINGS>[\ \t]+ {
+  LOG_LEX_TOKEN(lex_log_level, TSPACE, conftext)
+  return (TSPACE);
 }
 
 <STRING>[\ \t]+ {
@@ -467,7 +472,7 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
   BEGIN(STRING);
 }
 
-<CONFIG,DEFSTMT,EXPR,EXPREQUHUNT,PATH,STRING,STRINGEQHUNT,STRINGHUNT>[\t\ ]*"\n" {
+<CONFIG,DEFSTMT,EXPR,EXPREQUHUNT,PATH,STRINGS,STRING,STRINGEQHUNT,STRINGHUNT>[\t\ ]*"\n" {
   log_msg(lex_log_level,"%s:%d: \u2534 TNEWLINE (text: '\\n')", conf_filename, conf_linenumber);
   BEGIN 0;
   return (TNEWLINE);

@@ -351,77 +351,89 @@ static void eval_undefine_statement(undefine_statement statement, int linenumber
     do_undefine(statement.name, linenumber, filename, linebuf);
 }
 
-static bool conffilter(const char* path, const char* file_ext) {
-    int path_len = strlen(path);
-    int ext_len = strlen(file_ext);
-    if (path_len < ext_len || strncmp(&path[path_len-ext_len], file_ext, ext_len) != 0) {
-        log_msg(LOG_LEVEL_DEBUG,"skip '%s': file name does not end with '%s'", path, file_ext);
-        return false;
-    } else {
-        return true;
-    }
-}
-
 static int dirfilter(const struct dirent *d) {
     return (strcmp(d->d_name, ".") != 0 && strcmp(d->d_name, "..") != 0);
 }
 
-static void eval_path(const char* path, const char* file_ext) {
-    int sres = 0;
-    struct stat fs;
-
-    sres = lstat(path,&fs);
-    if(sres == -1){
-        log_msg(LOG_LEVEL_ERROR,"lstat() failed for '%s': %s", path, strerror(errno));
+static void include_file(const char* file) {
+    conf_lex_file(file);
+    ast* config_ast = NULL;
+    if(confparse(&config_ast)){
         exit(INVALID_CONFIGURELINE_ERROR);
-    } else {
-        if (S_ISDIR(fs.st_mode)) {
-            log_msg(LOG_LEVEL_DEBUG, "read directory: '%s'", path);
-
-            struct dirent **namelist;
-            int n;
-
-            n = scandir(path, &namelist, dirfilter, alphasort);
-            if (n == -1) {
-                log_msg(LOG_LEVEL_ERROR,"scandir() failed for '%s': %s", path, strerror(errno));
-                exit(INVALID_CONFIGURELINE_ERROR);
-            }
-
-            int path_len = strlen(path);
-            for (int i = 0 ; i < n ; ++i) {
-                char * child = checked_malloc((path_len+strlen(namelist[i]->d_name)+2)*sizeof(char));
-                sprintf(child, "%s/%s", path, namelist[i]->d_name);
-                eval_path(child, ".conf");
-                free(child);
-                free(namelist[i]);
-            }
-            free(namelist);
-        } else {
-            if (!file_ext || conffilter(path, file_ext)) {
-                conf_lex_file(path);
-                ast* config_ast = NULL;
-                if(confparse(&config_ast)){
-                    exit(INVALID_CONFIGURELINE_ERROR);
-                }
-                conf_lex_delete_buffer();
-                eval_config(config_ast);
-                deep_free(config_ast);
-            }
-        }
     }
+    conf_lex_delete_buffer();
+    eval_config(config_ast);
+    deep_free(config_ast);
+}
+
+static void include_directory(const char* dir, const char* rx, int linenumber, char *filename, char* linebuf) {
+    LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, include directory '%s' (regex: '%s'), dir, rx)
+
+    struct dirent **namelist;
+    int n;
+
+    const char* pcre_error;
+    int pcre_erroffset;
+    pcre* crx;
+
+    if((crx = pcre_compile(rx, PCRE_UTF8, &pcre_error, &pcre_erroffset, NULL)) == NULL) {
+        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, '@@include': error in regular expression '%s' at %i: %s, rx, pcre_erroffset, pcre_error)
+        exit(INVALID_CONFIGURELINE_ERROR);
+    }
+
+    n = scandir(dir, &namelist, dirfilter, alphasort);
+    if (n == -1) {
+        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, '@@include': failed to open directory '%s': %s, dir, strerror(errno))
+        exit(INVALID_CONFIGURELINE_ERROR);
+    }
+
+    int dir_len = strlen(dir);
+    struct stat fs;
+    for (int i = 0 ; i < n ; ++i) {
+
+        char * filepath = checked_malloc((dir_len+strlen(namelist[i]->d_name)+2)*sizeof(char));
+        sprintf(filepath, "%s/%s", dir, namelist[i]->d_name);
+        if (stat(filepath,&fs) == -1) {
+            LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, '@@include': stat for '%s' failed: %s, dir, strerror(errno))
+            exit(INVALID_CONFIGURELINE_ERROR);
+        }
+        if (S_ISREG(fs.st_mode)) {
+            if(pcre_exec(crx, NULL, namelist[i]->d_name, strlen(namelist[i]->d_name), 0, 0, NULL, 0) < 0) {
+                log_msg(LOG_LEVEL_DEBUG,"%s: skip '%s': file name does not match regex '%s'", dir, namelist[i]->d_name, rx);
+            } else {
+                include_file(filepath);
+            }
+        } else {
+            log_msg(LOG_LEVEL_DEBUG,"%s: skip '%s': file is not a regular file", dir, namelist[i]->d_name);
+        }
+
+        free(filepath);
+        free(namelist[i]);
+    }
+    free(namelist);
 }
 
 static void eval_include_statement(include_statement statement, int linenumber, char *filename, char* linebuf) {
     char* path = eval_string_expression(statement.path, linenumber, filename, linebuf);
-    LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, include '%s', path)
+    char* rx = statement.rx?eval_string_expression(statement.rx, linenumber, filename, linebuf):NULL;
 
-    int path_len = strlen(path);
-    if (path[path_len-1] == '/') {
-        path[path_len-1] = '\0';
-        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, removed trailing '/' from include path: '%s', path)
+    if (rx) {
+        include_directory(path, rx, linenumber, filename, linebuf);
+        free(rx);
+    } else {
+    struct stat fs;
+    if (lstat(path,&fs) == -1) {
+        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, '@@include': stat for '%s' failed: %s, path, strerror(errno))
+        exit(INVALID_CONFIGURELINE_ERROR);
     }
-    eval_path(path, NULL);
-    free(path);
+    if (S_ISREG(fs.st_mode)) {
+        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, include file '%s', path)
+        include_file(path);
+    } else {
+        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, '@@include': '%s' is not a regular file, path);
+        exit(INVALID_CONFIGURELINE_ERROR);
+    }
+    }
 }
 
 static RESTRICTION_TYPE eval_restriction_expression(restriction_expression *expression, int linenumber, char *filename, char* linebuf) {

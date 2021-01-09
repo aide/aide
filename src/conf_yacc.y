@@ -4,7 +4,7 @@
 %{
 
 /*
- * Copyright (C) 1999-2006,2010-2013,2015,2016,2019,2020 Rami Lehti, Pablo
+ * Copyright (C) 1999-2006,2010-2013,2015,2016,2019-2021 Rami Lehti, Pablo
  * Virolainen, Richard van den Berg, Hannes von Haugwitz
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -73,6 +73,7 @@ void conferror(ast**, const char *);
 %token <s> TEXPR
 %token <s> TVARIABLE
 
+%token TSPACE
 %token TNEWLINE
 
 /* File rule */
@@ -138,7 +139,8 @@ config_statement: CONFIGOPTION '=' string_expression { $$ = new_string_option_st
 
 group_statement: TGROUP '=' attribute_expression { $$ = new_group_statement($1, $3); }
 
-include_statement: TINCLUDE string_expression { $$ = new_include_statement($2); }
+include_statement: TINCLUDE TSPACE string_expression { $$ = new_include_statement($3, NULL); }
+                 | TINCLUDE TSPACE string_expression TSPACE string_expression { $$ = new_include_statement($3, $5); }
 
 if_statement: if_condition TNEWLINE statements TENDIF { $$ = new_if_statement($1, $3, NULL); }
             | if_condition TNEWLINE statements TELSE TNEWLINE statements TENDIF { $$ = new_if_statement($1, $3, $6); }

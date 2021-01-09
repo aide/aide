@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2019,2020 Hannes von Haugwitz
+ * Copyright (C) 2019-2021 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -61,13 +61,14 @@ ast* new_attribute_option_statement(config_option option, attribute_expression* 
       return a;
 }
 
-ast* new_include_statement(string_expression* path) {
+ast* new_include_statement(string_expression* path, string_expression* rx) {
       ast* a = new_ast_node();
 
       a->type = include_statement_type;
       a->statement._include.path = path;
+      a->statement._include.rx = rx;
 
-      log_msg(ast_log_level, "ast: new include statement (%p): path: %p", a, path);
+      log_msg(ast_log_level, "ast: new include statement (%p): path: %p, rx: %p", a, path, rx);
       return a;
 }
 
@@ -271,6 +272,7 @@ void deep_free(ast* config_ast) {
                 break;
             case include_statement_type:
                 free_string_expression(node->statement._include.path);
+                free_string_expression(node->statement._include.rx);
                 break;
             case rule_statement_type:
                 free_string_expression(node->statement._rule.path);

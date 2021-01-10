@@ -374,9 +374,14 @@ static char* pipe2string(int fd) {
 static void include_file(const char* file, bool execute) {
     if (execute) {
         int p_stdout[2];
+        int p_stderr[2];
         pid_t pid;
 
         if (pipe(p_stdout)==-1) {
+            log_msg(LOG_LEVEL_ERROR, "%s: pipe failed: %s", file, strerror(errno));
+            exit(EXEC_ERROR);
+        }
+        if (pipe(p_stderr)==-1) {
             log_msg(LOG_LEVEL_ERROR, "%s: pipe failed: %s", file, strerror(errno));
             exit(EXEC_ERROR);
         }
@@ -390,19 +395,36 @@ static void include_file(const char* file, bool execute) {
             close(p_stdout[0]);
             dup2 (p_stdout[1], STDOUT_FILENO);
             close(p_stdout[1]);
+            close(p_stderr[0]);
+            dup2 (p_stderr[1], STDERR_FILENO);
+            close(p_stderr[1]);
             execl(file, file, (char*) NULL);
             log_msg(LOG_LEVEL_ERROR, "%s: execl failed: %s", file, strerror(errno));
             exit(EXIT_FAILURE);
         } else {
             /* parent */
             close(p_stdout[1]);
+            close(p_stderr[1]);
 
             char* config_str = pipe2string(p_stdout[0]);
 
+            char* child_stderr = pipe2string(p_stderr[0]);
+
             int wstatus;
             waitpid(pid, &wstatus, 0);
-            if (!WIFEXITED(wstatus) || WEXITSTATUS(wstatus)) {
-                log_msg(LOG_LEVEL_ERROR, "%s: execution failed with exit code %d", file, WEXITSTATUS(wstatus));
+            if (child_stderr || !WIFEXITED(wstatus) || WEXITSTATUS(wstatus)) {
+                char* newline;
+                while (child_stderr && *child_stderr != '\0') {
+                    newline = strchr(child_stderr, '\n');
+                    if (newline != NULL) {
+                        log_msg(LOG_LEVEL_ERROR, "%s: stderr> %.*s", file, newline-child_stderr, child_stderr);
+                        child_stderr = newline+1;
+                    } else {
+                        log_msg(LOG_LEVEL_ERROR, "%s: stderr> %s", file, child_stderr);
+                        break;
+                    }
+                }
+                log_msg(LOG_LEVEL_ERROR, "%s: execution failed (exit status: %d)", file, WEXITSTATUS(wstatus));
                 exit(EXEC_ERROR);
             }
 

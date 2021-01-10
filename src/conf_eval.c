@@ -356,6 +356,21 @@ static int dirfilter(const struct dirent *d) {
     return (strcmp(d->d_name, ".") != 0 && strcmp(d->d_name, "..") != 0);
 }
 
+static char* pipe2string(int fd) {
+    int nbytes, str_len, len;
+    char buffer[1024];
+
+    char* str = NULL;
+    while ((nbytes = read(fd, buffer, sizeof(buffer))) > 0) {
+        str_len = str?strlen(str):0U;
+        len = str_len+nbytes;
+        str = realloc(str, (len+1)*sizeof(char));
+        strncpy(str+str_len, buffer, nbytes);
+        str[len] = '\0';
+    }
+    return str;
+}
+
 static void include_file(const char* file, bool execute) {
     if (execute) {
         int p_stdout[2];
@@ -382,18 +397,7 @@ static void include_file(const char* file, bool execute) {
             /* parent */
             close(p_stdout[1]);
 
-            int nbytes;
-            char* config_str = NULL;
-            char buffer[1024];
-            while ((nbytes = read(p_stdout[0], buffer, sizeof(buffer))) > 0) {
-                if (config_str) {
-                    config_str = realloc(config_str, (strlen(config_str)+nbytes+1)*sizeof(char));
-                    strncat(config_str, buffer, nbytes);
-                } else {
-                    config_str = checked_malloc((nbytes+1)*sizeof(char));
-                    strncpy(config_str,buffer, nbytes+1);
-                }
-            }
+            char* config_str = pipe2string(p_stdout[0]);
 
             int wstatus;
             waitpid(pid, &wstatus, 0);

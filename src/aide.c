@@ -66,6 +66,7 @@ static void usage(int exitvalue)
 	    "Usage: aide [options] command\n\n"
 	    "Commands:\n"
 	    "  -i, --init\t\tInitialize the database\n"
+	    "  -n, --dry-init\tTraverse the file system and match each file against rule tree\n"
 	    "  -C, --check\t\tCheck the database\n"
 	    "  -u, --update\t\tCheck and update the database non-interactively\n"
 	    "  -E, --compare\t\tCompare two databases\n\n"
@@ -218,6 +219,7 @@ static void read_param(int argc,char**argv)
     { "after", required_argument, NULL, 'A'},
     { "report", no_argument, NULL, 'r'},
     { "init", no_argument, NULL, 'i'},
+    { "dry-init", no_argument, NULL, 'n'},
     { "check", no_argument, NULL, 'C'},
     { "update", no_argument, NULL, 'u'},
     { "config-check", no_argument, NULL, 'D'},
@@ -229,7 +231,7 @@ static void read_param(int argc,char**argv)
   };
 
   while(1){
-    option = getopt_long(argc, argv, "hL:V::vc:l:p:B:A:riCuDE", options, &i);
+    option = getopt_long(argc, argv, "hL:V::vc:l:p:B:A:riCuDEn", options, &i);
     if(option==-1)
       break;
     switch(option)
@@ -313,6 +315,7 @@ static void read_param(int argc,char**argv)
        break;
       }
       ACTION_CASE("--init", 'i', DO_INIT, "database init")
+      ACTION_CASE("--dry-init", 'n', DO_INIT|DO_DRY_RUN, "dry init")
       ACTION_CASE("--check", 'C', DO_COMPARE, "database check")
       ACTION_CASE("--update", 'u', DO_INIT|DO_COMPARE, "database update")
       ACTION_CASE("--compare", 'E', DO_DIFF, "database compare")
@@ -516,28 +519,7 @@ static void setdefaults_after_config()
   };
 }
 
-static bool check_path(char* filename, RESTRICTION_TYPE filetype, seltree *tree) {
-      rx_rule* rule = NULL;
-      char * str;
 
-      int match = check_seltree(tree, filename, filetype, &rule);
-      fprintf(stdout, "[%c] %c '%s': ", match?'X':' ', get_restriction_char(filetype), filename);
-      if (match > 0) {
-          char* attr_str;
-          fprintf(stdout, "%s: '%s%s %s %s' (%s:%d: '%s')\n", get_rule_type_long_string(match), match == EQUAL_MATCH?"=":"", rule->rx, str = get_restriction_string(rule->restriction), attr_str = diff_attributes(0, rule->attr), rule->config_filename, rule->config_linenumber, rule->config_line);
-          free(attr_str);
-          free(str);
-          return true;
-      } else {
-          if (rule) {
-              fprintf(stdout, "negative rule: '!%s %s' (%s:%d: '%s')\n", rule->rx, str = get_restriction_string(rule->restriction), rule->config_filename, rule->config_linenumber, rule->config_line);
-              free(str);
-          } else {
-              fprintf(stdout, "no matching rule\n");
-          }
-          return false;
-      }
-}
 
 int main(int argc,char**argv)
 {
@@ -583,9 +565,16 @@ int main(int argc,char**argv)
   log_tree(LOG_LEVEL_RULE, conf->tree, 0);
 
   if (conf->check_path) {
-      exit(check_path(conf->check_path, conf->check_file_type, conf->tree)?0:1);
+      rx_rule* rule = NULL;
+      int match = check_rxtree(conf->check_path, conf->tree, &rule, conf->check_file_type, true);
+      if (match < 0) {
+        fprintf(stdout, "[ ] %c '%s': outside of limit '%s'\n", get_restriction_char(conf->check_file_type), conf->check_path, conf->limit);
+        exit(2);
+      } else {
+        exit(match?0:1);
+      }
   }
-  
+
   /* Let's do some sanity checks for the config */
   if (conf->action&(DO_DIFF|DO_COMPARE) && !(conf->database_in.url)) {
     log_msg(LOG_LEVEL_ERROR,_("missing 'database_in', config option is required"));
@@ -613,6 +602,16 @@ int main(int argc,char**argv)
 	      "database compare"));
     exit(INVALID_ARGUMENT_ERROR);
   }
+
+  if (conf->action&DO_INIT && conf->action&DO_DRY_RUN) {
+      if(db_disk_init()==RETFAIL) {
+          exit(IO_ERROR);
+      }
+      log_msg(LOG_LEVEL_INFO, "populate tree (dry-run)");
+      populate_tree(conf->tree, true);
+      exit (0);
+  }
+
   if (!(conf->action&DO_DRY_RUN)) {
 
   if (!init_report_urls()) {
@@ -656,7 +655,14 @@ int main(int argc,char**argv)
 	exit(IO_ERROR);
     }
       
-    populate_tree(conf->tree);
+    log_msg(LOG_LEVEL_INFO, "populate tree");
+    populate_tree(conf->tree, false);
+
+    if(conf->action&DO_INIT) {
+        log_msg(LOG_LEVEL_INFO, "write new entries to database: %s:%s", get_url_type_string((conf->database_out.url)->type), (conf->database_out.url)->value);
+        write_tree(conf->tree);
+    }
+
     db_close();
 
     log_msg(LOG_LEVEL_INFO, "generate reports");

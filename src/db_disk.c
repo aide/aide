@@ -171,7 +171,7 @@ static int get_file_status(char *filename, struct stat *fs) {
   Now implemented with goto-statement. Yeah, it's ugly and easy.
 */
 
-db_line *db_readline_disk ()
+db_line *db_readline_disk (bool dry_run)
 {
 	db_line *fil = NULL;
 	rx_rule *rule = NULL;
@@ -186,11 +186,11 @@ db_line *db_readline_disk ()
 		strncpy(fullname, conf->root_prefix, conf->root_prefix_length+1);
 		strcat (fullname, "/");
 		if (!get_file_status(fullname, &fs)) {
-		add = check_rxtree (&fullname[conf->root_prefix_length], conf->tree, &rule, get_restriction_from_perm(fs.st_mode));
+		add = check_rxtree (&fullname[conf->root_prefix_length], conf->tree, &rule, get_restriction_from_perm(fs.st_mode), dry_run);
 
 		if (add > 0) {
             log_msg(LOG_LEVEL_DEBUG, "get file atttributes '%s'", &fullname[conf->root_prefix_length]);
-			fil = get_file_attrs (fullname, rule->attr, &fs);
+			fil = get_file_attrs (fullname, rule->attr, &fs, dry_run);
 
 			if (fil != NULL) {
 				return fil;
@@ -231,11 +231,11 @@ recursion:
 		    free (fullname);
 		    goto recursion;
 		}
-		add = check_rxtree (&fullname[conf->root_prefix_length], conf->tree, &rule, get_restriction_from_perm(fs.st_mode));
+		add = check_rxtree (&fullname[conf->root_prefix_length], conf->tree, &rule, get_restriction_from_perm(fs.st_mode), dry_run);
 
 		if (add > 0) {
             log_msg(LOG_LEVEL_DEBUG, "get file atttributes '%s'", &fullname[conf->root_prefix_length]);
-			fil = get_file_attrs (fullname, rule->attr, &fs);
+			fil = get_file_attrs (fullname, rule->attr, &fs, dry_run);
 
 			if (fil == NULL) {
 				/*

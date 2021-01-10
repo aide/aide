@@ -23,6 +23,7 @@
 #include <pcre.h>
 #include "seltree.h"
 #include "list.h"
+#include <stdbool.h>
 
 /* DB_FOO are anded together to form rx_rule's attr */
 
@@ -33,7 +34,9 @@ int compare_node_by_path(const void *n1, const void *n2);
  * Populate tree with data from disk and db 
  * Also do comparing while adding to the tree
  */
-void populate_tree(seltree* tree);
+void populate_tree(seltree*, bool);
+
+void write_tree(seltree*);
 
 #define NO_LIMIT_MATCH -2
 #define PARTIAL_LIMIT_MATCH -1
@@ -41,8 +44,8 @@ void populate_tree(seltree* tree);
 #define SELECTIVE_MATCH 1
 #define EQUAL_MATCH 2
 
-int check_rxtree(char*,seltree*, rx_rule* *, RESTRICTION_TYPE);
+int check_rxtree(char*,seltree*, rx_rule* *, RESTRICTION_TYPE, bool);
 
-db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct stat *fs);
+db_line* get_file_attrs(char*,DB_ATTR_TYPE, struct stat *, bool);
 
 #endif /*_GEN_LIST_H_INCLUDED*/

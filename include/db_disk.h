@@ -1,6 +1,6 @@
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2011 Rami Lehti, Pablo Virolainen, Hannes von
+ * Copyright (C) 1999-2002,2011,2021 Rami Lehti, Pablo Virolainen, Hannes von
  * Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -22,8 +22,9 @@
 #define _DB_DISK_H_INCLUDED
 
 #include "db.h"
+#include <stdbool.h>
 
-db_line* db_readline_disk();
+db_line* db_readline_disk(bool);
 int db_disk_init(void);
 
 #endif

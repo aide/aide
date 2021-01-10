@@ -480,7 +480,7 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db)
   }
 }
 
-int check_rxtree(char* filename,seltree* tree, rx_rule* *rule, RESTRICTION_TYPE file_type)
+int check_rxtree(char* filename,seltree* tree, rx_rule* *rule, RESTRICTION_TYPE file_type, bool dry_run)
 {
   log_msg(LOG_LEVEL_RULE, "\u252c process '%s' (filetype: %c)", filename, get_restriction_char(file_type));
   int retval=0;
@@ -502,10 +502,28 @@ int check_rxtree(char* filename,seltree* tree, rx_rule* *rule, RESTRICTION_TYPE 
       }
   }
 
-  return check_seltree(tree, filename, file_type, rule);
+  int match = check_seltree(tree, filename, file_type, rule);
+  if (dry_run) {
+      char * str;
+      fprintf(stdout, "[%c] %c '%s': ", match?'X':' ', get_restriction_char(file_type), filename);
+      if (match > 0) {
+          char* attr_str;
+          fprintf(stdout, "%s: '%s%s %s %s' (%s:%d: '%s')\n", get_rule_type_long_string(match), match == EQUAL_MATCH?"=":"", (*rule)->rx, str = get_restriction_string((*rule)->restriction), attr_str = diff_attributes(0, (*rule)->attr), (*rule)->config_filename, (*rule)->config_linenumber, (*rule)->config_line);
+          free(attr_str);
+          free(str);
+      } else {
+          if (*rule) {
+              fprintf(stdout, "negative rule: '!%s %s' (%s:%d: '%s')\n", (*rule)->rx, str = get_restriction_string((*rule)->restriction), (*rule)->config_filename, (*rule)->config_linenumber, (*rule)->config_line);
+              free(str);
+          } else {
+              fprintf(stdout, "no matching rule\n");
+          }
+      }
+  }
+  return match;
 }
 
-db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct stat *fs)
+db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct stat *fs, bool dry_run)
 {
   db_line* line=NULL;
   time_t cur_time;
@@ -559,6 +577,11 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct stat *fs)
   line->filename=&filename[conf->root_prefix_length];
   line->perm_o=fs->st_mode;
   line->linkname=NULL;
+
+  if (dry_run) {
+    log_msg(LOG_LEVEL_DEBUG, " skip file attribute calculation for '%s' (reason: dry-run)", line->filename);
+    return line;
+  }
 
   /*
     Handle symbolic link
@@ -615,7 +638,7 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct stat *fs)
   return line;
 }
 
-static void write_tree(seltree* node) {
+void write_tree(seltree* node) {
     list* r=NULL;
     if (node->checked&DB_NEW) {
         db_writeline(node->new_data,conf);
@@ -630,7 +653,7 @@ static void write_tree(seltree* node) {
     }
 }
 
-void populate_tree(seltree* tree)
+void populate_tree(seltree* tree, bool dry_run)
 {
   /* FIXME this function could really use threads */
   int add=0;
@@ -648,7 +671,7 @@ void populate_tree(seltree* tree)
         log_msg(LOG_LEVEL_INFO, "read new entries from database: %s:%s", get_url_type_string((conf->database_new.url)->type), (conf->database_new.url)->value);
       db_lex_buffer(&(conf->database_new));
       while((new=db_readline(&(conf->database_new))) != NULL){
-	if((add=check_rxtree(new->filename,tree, &rule, get_restriction_from_perm(new->perm)))>0){
+	if((add=check_rxtree(new->filename,tree, &rule, get_restriction_from_perm(new->perm), dry_run))>0){
 	  add_file_to_tree(tree,new,DB_NEW);
 	} else {
           free_db_line(new);
@@ -663,7 +686,7 @@ void populate_tree(seltree* tree)
       /* FIXME  */
       new=NULL;
       log_msg(LOG_LEVEL_INFO, "read new entries from disk (root: '%s', limit: '%s')", conf->root_prefix, conf->limit?conf->limit:"(none)");
-      while((new=db_readline_disk()) != NULL) {
+      while((new=db_readline_disk(dry_run)) != NULL) {
 	    add_file_to_tree(tree,new,DB_NEW);
       }
     }
@@ -671,7 +694,7 @@ void populate_tree(seltree* tree)
         log_msg(LOG_LEVEL_INFO, "read old entries from database: %s:%s", get_url_type_string((conf->database_in.url)->type), (conf->database_in.url)->value);
         db_lex_buffer(&(conf->database_in));
             while((old=db_readline(&(conf->database_in))) != NULL) {
-                add=check_rxtree(old->filename,tree, &rule, get_restriction_from_perm(old->perm));
+                add=check_rxtree(old->filename,tree, &rule, get_restriction_from_perm(old->perm), dry_run);
                 if(add > 0) {
                     add_file_to_tree(tree,old,DB_OLD);
                 } else if (conf->limit!=NULL && add < 0) {
@@ -687,10 +710,6 @@ void populate_tree(seltree* tree)
                 }
             }
             db_lex_delete_buffer(&(conf->database_in));
-    }
-    if(conf->action&DO_INIT) {
-        log_msg(LOG_LEVEL_INFO, "write new entries to database: %s:%s", get_url_type_string((conf->database_out.url)->type), (conf->database_out.url)->value);
-        write_tree(tree);
     }
 }
 

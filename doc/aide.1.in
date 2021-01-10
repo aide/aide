@@ -18,6 +18,15 @@ command \fBaide\fP does a check.
 .IP "--init, -i"
 Initialize the database. You must initialize a database and move it to
 the appropriate place before you can use the \-\-check command.
+.IP "--dry-init, -n"
+Traverse the file system, match each file against the rule tree and report to stdout.
+
+Neither reports nor the database are written in this mode.
+
+To change the log level in this mode please use the \fB--log-level\fR command line parameter.
+
+In this mode aide exits with status 0.
+
 .IP "--update, -u"
 Checks the database and updates the database non-interactively.
 The input and output databases must be different.
@@ -31,8 +40,13 @@ command line parameter.
 .IP "--path-check=[\fIfile_type\fR:]\fIpath\fR, -p [\fIfile_type\fR:]\fIpath\fR"
 Read configuration and match provided file_type (optional, default: \fBf\fP)
 and path against rule tree. See RESTRICTED RULES section in aide.conf (5) for
-supported file types). The path needs to be absolute. To change the log level
-in this mode please use the \fB--log-level\fR command line parameter.
+supported file types). The path needs to be absolute.
+
+To change the log level in this mode please use the \fB--log-level\fR command line parameter.
+
+In this mode aide exits with status 0 if the file would be added to the tree, 1
+if not and 2 if the file does not match a specified limit.
+
 .SH PARAMETERS
 .IP "--config=\fBconfigfile\fR , -c \fBconfigfile\fR"
 Configuration is read from file \fBconfigfile\fR instead of "./aide.conf". Use '-' for stdin.

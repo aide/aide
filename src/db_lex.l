@@ -4,7 +4,7 @@ C	[^\n\t ]
 
 /* aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2005,2010,2013,2016,2019,2020 Rami Lehti,Pablo
+ * Copyright (C) 1999,2002,2005,2010,2013,2016,2019-2021 Rami Lehti,Pablo
  * Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -62,15 +62,15 @@ LOG_LEVEL db_lex_log_level = LOG_LEVEL_DEBUG;
             (db->lineno)++;
             LOG_DB_FORMAT_LINE(db_lex_log_level, db_lex: skip comment line: '%.*s', strlen(dbtext)-1, dbtext)
            }
+<INITIAL>^"\n" {
+            (db->lineno)++;
+            LOG_DB_FORMAT_LINE(db_lex_log_level, %s, "db_lex: skip empty line")
+           }
 <INITIAL>^[^\n]*"\n" {
             (db->lineno)++;
             LOG_DB_FORMAT_LINE(db_lex_log_level, db_lex: parse '%.*s', strlen(dbtext)-1, dbtext)
             yyless(0);
             BEGIN(DB);
-           }
-<INITIAL>^"\n" {
-            (db->lineno)++;
-            LOG_DB_FORMAT_LINE(db_lex_log_level, %s, "db_lex: skip empty line")
            }
 
 <DB>^"@@db_spec" {

@@ -703,5 +703,5 @@ LDFLAGS="$LDFLAGS $EXTRA_LDFLAGS"
 CFLAGS="$CFLAGS $EXTRA_CFLAGS"
 
 AC_SUBST(AIDE_DEFS)
-AC_OUTPUT(Makefile doc/aide.conf doc/aide.1 doc/aide.conf.5)
+AC_OUTPUT(Makefile doc/aide.conf)
 

@@ -108,6 +108,7 @@ conditions:
 .IP "17 Configuration error"
 .IP "18 IO error"
 .IP "19 Version mismatch error"
+.IP "21 file lock error"
 .PP
 .SH SIGNAL HANDLING
 Please note that due to mmap issues, aide cannot be terminated with

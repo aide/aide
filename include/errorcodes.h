@@ -28,6 +28,7 @@
 #define IO_ERROR 18
 #define VERSION_MISMATCH_ERROR 19
 #define EXEC_ERROR 20
+#define LOCK_ERROR 21
 #define HASH_ALGO_ERROR 30
 
 #endif

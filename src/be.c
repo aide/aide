@@ -28,6 +28,7 @@
 #include "db_file.h"
 #include "log.h"
 #include "util.h"
+#include "errorcodes.h"
 #ifdef WITH_CURL
 #include "fopen.h"
 #endif
@@ -72,7 +73,7 @@ void* be_init(bool readonly, url_t* u, bool iszipped, bool append, int linenumbe
       log_msg(LOG_LEVEL_DEBUG, "try to get lock for file '%s'", u->value);
       if (fcntl(fd, F_SETLK, &fl) == -1) {
           log_msg(LOG_LEVEL_ERROR, "cannot get lock for file '%s': %s", u->value, strerror(errno));
-          return NULL;
+          exit(LOCK_ERROR);
       } else {
           log_msg(LOG_LEVEL_DEBUG, "successfully got lock for file '%s'", u->value);
       }

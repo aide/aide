@@ -507,6 +507,10 @@ part of the config file.
 @@x_include \fBDIRECTORY\fR \fBREGEX\fR
 \fB@x_include\fR is identical to \fB@@include\fR, except that if a config file
 is executable is is run and the output is used as config.
+
+For security reasons \fBDIRECTORY\fR and each executable config file must be
+owned by the current user and must not be group- or world-writable.
+
 .PP
 .SH URLS
 Urls can be one of the following. Input urls cannot be used as outputs

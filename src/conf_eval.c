@@ -455,6 +455,13 @@ static void include_file(const char* file, bool execute) {
     }
 }
 
+void check_permissions(const char* path, struct stat *st, int linenumber, char *filename, char* linebuf) {
+    if (st->st_uid != geteuid() || (st->st_mode & 002) != 0 || (st->st_mode & 020) != 0) {
+        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, '@@x_include': bad ownership or modes for '%s' (please ensure it is neither group- nor world-writable and owned by the current user), path)
+        exit(INVALID_CONFIGURELINE_ERROR);
+    }
+}
+
 static void include_directory(const char* dir, const char* rx, bool execute, int linenumber, char *filename, char* linebuf) {
     LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, include directory '%s' (regex: '%s'), dir, rx)
 
@@ -466,24 +473,33 @@ static void include_directory(const char* dir, const char* rx, bool execute, int
     pcre* crx;
 
     if((crx = pcre_compile(rx, PCRE_UTF8, &pcre_error, &pcre_erroffset, NULL)) == NULL) {
-        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, '@@include': error in regular expression '%s' at %i: %s, rx, pcre_erroffset, pcre_error)
+        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, '%s': error in regular expression '%s' at %i: %s, execute?"@@x_include":"@@include", rx, pcre_erroffset, pcre_error)
         exit(INVALID_CONFIGURELINE_ERROR);
+    }
+
+    struct stat fs;
+
+    if (execute) {
+        if (stat(dir,&fs) == -1) {
+            LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, '@@x_include': stat for '%s' failed: %s, dir, strerror(errno))
+            exit(INVALID_CONFIGURELINE_ERROR);
+        }
+        check_permissions(dir, &fs, linenumber, filename, linebuf);
     }
 
     n = scandir(dir, &namelist, dirfilter, alphasort);
     if (n == -1) {
-        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, '@@include': failed to open directory '%s': %s, dir, strerror(errno))
+        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, '%s': failed to open directory '%s': %s, execute?"@@x_include":"@@include", dir, strerror(errno))
         exit(INVALID_CONFIGURELINE_ERROR);
     }
 
     int dir_len = strlen(dir);
-    struct stat fs;
     for (int i = 0 ; i < n ; ++i) {
 
         char * filepath = checked_malloc((dir_len+strlen(namelist[i]->d_name)+2)*sizeof(char));
         sprintf(filepath, "%s/%s", dir, namelist[i]->d_name);
         if (stat(filepath,&fs) == -1) {
-            LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, '@@include': stat for '%s' failed: %s, dir, strerror(errno))
+            LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, '%s': stat for '%s' failed: %s, execute?"@@x_include":"@@include", filepath, strerror(errno))
             exit(INVALID_CONFIGURELINE_ERROR);
         }
         if (S_ISREG(fs.st_mode)) {
@@ -491,6 +507,9 @@ static void include_directory(const char* dir, const char* rx, bool execute, int
                 log_msg(LOG_LEVEL_DEBUG,"%s: skip '%s' (reason: file name does not match regex '%s')", dir, namelist[i]->d_name, rx);
             } else {
                 int exec = execute && S_IXUSR&fs.st_mode;
+                if (exec) {
+                    check_permissions(filepath, &fs, linenumber, filename, linebuf);
+                }
                 log_msg(LOG_LEVEL_CONFIG,"%s: %s '%s'", dir, exec?"execute":"include", namelist[i]->d_name);
                 include_file(filepath, exec);
             }

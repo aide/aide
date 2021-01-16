@@ -66,7 +66,8 @@ if HAVE_CHECK
 TESTS				= check_aide
 check_PROGRAMS		= check_aide
 check_aide_SOURCES	= tests/check_aide.c tests/check_aide.h \
-					  tests/check_attributes.c src/attributes.c
+					  tests/check_attributes.c src/attributes.c \
+					  src/log.c src/util.c
 check_aide_CFLAGS	= -I$(top_srcdir)/include $(CHECK_CFLAGS)
 check_aide_LDADD	= -lm @PCRELIB@ @CRYPTLIB@ $(CHECK_LIBS)
 endif # HAVE_CHECK

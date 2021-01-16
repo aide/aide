@@ -72,7 +72,7 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
             LOG_CONFIG_LINE(lex_log_level, "- skip comment line")
             free(conf_linebuf);
            }
-<INITIAL>^"\n" {
+<INITIAL>^[\t\ ]*"\n" {
             conf_linebuf = "";
             ++conf_linenumber;
             LOG_CONFIG_LINE(lex_log_level, "- skip empty line")

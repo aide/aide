@@ -205,11 +205,20 @@ string_expression* new_string_concat(string_expression* left, string_expression*
     return e;
 }
 
+void free_string(char * s) {
+    if (s == NULL) {
+        return;
+    }
+    log_msg(ast_log_level, "ast: free string %p", s);
+    free(s);
+}
+
 void free_attribute_expression(attribute_expression *a) {
     if (a == NULL) {
         return;
     }
     free_attribute_expression(a->left);
+    free_string(a->right);
     log_msg(ast_log_level, "ast: free attribute expression %p", a);
     free(a);
 }
@@ -220,6 +229,7 @@ void free_string_expression(string_expression *s) {
     }
     free_string_expression(s->left);
     free_string_expression(s->right);
+    free_string(s->str);
     log_msg(ast_log_level, "ast: free string expression %p", s);
     free(s);
 }
@@ -228,6 +238,7 @@ void free_bool_expression(bool_expression *b) {
     if (b == NULL) {
         return;
     }
+    free_string_expression(b->expr);
     free_bool_expression(b->left);
     free_bool_expression(b->right);
     log_msg(ast_log_level, "ast: free bool expression %p", b);
@@ -236,6 +247,7 @@ void free_bool_expression(bool_expression *b) {
 
 void free_if_condition(if_condition *c) {
     free_bool_expression(c->expression);
+    free_string(c->linebuf);
     log_msg(ast_log_level, "ast: free if condition %p", c);
     free(c);
 }
@@ -245,6 +257,7 @@ void free_restriction_expression(restriction_expression *r) {
         return;
     }
     free_restriction_expression(r->left);
+    free_string(r->right);
     log_msg(ast_log_level, "ast: free restriction expression %p", r);
     free(r);
 }
@@ -262,9 +275,11 @@ void deep_free(ast* config_ast) {
                 break;
             case define_statement_type:
                 free_string_expression(node->statement._define.value);
+                free_string(node->statement._define.name);
                 break;
             case group_statement_type:
                 free_attribute_expression(node->statement._group.expr);
+                free_string(node->statement._group.name);
                 break;
             case if_statement_type:
                 free_if_condition(node->statement._if.condition);
@@ -281,9 +296,10 @@ void deep_free(ast* config_ast) {
                 free_attribute_expression(node->statement._rule.attributes);
                 break;
             case undefine_statement_type:
-                /* do nothing */
+                free_string(node->statement._define.name);
                 break;
         }
+        free(node->linebuf);
         ast* to_be_freed = node;
         node = node->next;
         log_msg(ast_log_level, "ast: free ast node %p (next: %p)", to_be_freed, node);

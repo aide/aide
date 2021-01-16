@@ -81,17 +81,19 @@ url_t* parse_url(char* val, int linenumber, char* filename, char* linebuf)
       for(i=0;r[0]!='/'&&r[0]!='\0';r++,i++);
       if(r[0]=='\0'){
     LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, invalid file-URL '%s': no path after hostname, val)
+    free(val_copy);
     free(u);
     return NULL;
+      }
+      if( (strcmp(t,"localhost") != 0) && !( conf->hostname && strcmp(t,conf->hostname)==0)){
+          LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, invalid file-URL '%s': cannot use hostname other than 'localhost' or '%s', val, conf->hostname);
+          free(u);
+          free(val_copy);
+          return NULL;
       }
       u->value=checked_strdup(r);
       r[0]='\0';
 
-      if( (strcmp(t,"localhost") != 0) && !( conf->hostname && strcmp(t,conf->hostname)==0)){
-          LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, invalid file-URL '%s': cannot use hostname other than 'localhost' or '%s', val, conf->hostname);
-          free(u);
-          return NULL;
-      }
       break;
     }
     u->value=checked_strdup(r);
@@ -104,6 +106,7 @@ url_t* parse_url(char* val, int linenumber, char* filename, char* linebuf)
     u->value=checked_strdup(val);
 #else
     LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, %s, "http, https and ftp URL support not compiled in, recompile AIDE with '--with-curl'")
+    free(val_copy);
     free(u);
     return NULL;
 #endif /* WITH CURL */
@@ -121,6 +124,7 @@ url_t* parse_url(char* val, int linenumber, char* filename, char* linebuf)
     u->value=checked_strdup(r);
 #else
     LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, %s, "syslog url support not compiled in, recompile AIDE with syslog support")
+    free(val_copy);
     free(u);
     return NULL;
 #endif
@@ -262,7 +266,7 @@ void do_define(char* name, char* value, int linenumber, char* filename, char* li
   if(!(l=list_find(name,conf->defsyms))){
     LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, define '%s' with value '%s', name, value)
     s=(symba*)malloc(sizeof(symba));
-    s->name=name;
+    s->name=checked_strdup(name);
     s->value=value;
     conf->defsyms=list_append(conf->defsyms,(void*)s);
   }
@@ -280,6 +284,7 @@ void do_undefine(char* name, int linenumber, char* filename, char* linebuf)
 
   if((r=list_find(name,conf->defsyms))){
     LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, undefine '%s' (value: '%s'), name, ((symba*)r->data)->value)
+    free(((symba*)r->data)->name);
     free(((symba*)r->data)->value);
     free((symba*)r->data);
     r->data=NULL;
@@ -307,7 +312,7 @@ bool add_rx_rule_to_tree(char* rx, RESTRICTION_TYPE restriction, DB_ATTR_TYPE at
     }else {
         r->config_linenumber = linenumber;
         r->config_filename = filename;
-        r->config_line = linebuf;
+        r->config_line = checked_strdup(linebuf);
 
         DB_ATTR_TYPE unsupported_hashes = attr&(get_hashes(true)&~get_hashes(false));
         if (unsupported_hashes) {
@@ -428,7 +433,7 @@ bool do_dbdef(DB_TYPE dbtype ,char* val, int linenumber, char* filename, char* l
     db->url = u;
     db->linenumber = linenumber;
     db->filename = filename;
-    db->linebuf = linebuf;
+    db->linebuf = linebuf?checked_strdup(linebuf):NULL;
     LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, set '%s' option to '%s:%s', db_option_name, get_url_type_string(u->type), u->value)
     } else {
         return false;
@@ -473,6 +478,7 @@ void do_rootprefix(char* val, int linenumber, char* filename, char* linebuf) {
         LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, set 'root_prefix' option to '%s', conf->root_prefix)
     } else {
         LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_NOTICE, 'root_prefix' option already set to '%s' (ignore new value '%s'), conf->root_prefix, val);
+        free(val);
     }
 }
 

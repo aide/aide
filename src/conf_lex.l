@@ -67,17 +67,18 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
 
 %%
 <INITIAL>^[\t\ ]*"#"[^\n]*"\n" {
-            conf_linebuf = strndup(conftext, confleng-1); /* not to be freed, needed for logging */
+            conf_linebuf = strndup(conftext, confleng-1);
             ++conf_linenumber;
             LOG_CONFIG_LINE(lex_log_level, "- skip comment line")
+            free(conf_linebuf);
            }
 <INITIAL>^"\n" {
-            conf_linebuf = checked_strdup(""); /* not to be freed, needed for logging */
+            conf_linebuf = "";
             ++conf_linenumber;
             LOG_CONFIG_LINE(lex_log_level, "- skip empty line")
            }
 <INITIAL>^[^\n]* {
-            conf_linebuf = strndup(conftext, confleng); /* not to be freed, needed for logging */
+            conf_linebuf = strndup(conftext, confleng);
             ++conf_linenumber;
             log_msg(lex_log_level,"%s:%d: \u252c '%s'", conf_filename, conf_linenumber, conf_linebuf);
             yyless(0);
@@ -427,7 +428,7 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
 
 <STRINGS,STRING,PATH>"@@{"({L}+)"}" {
   size_t length = strlen(conftext)-4;
-  conflval.s=checked_malloc(length);
+  conflval.s=checked_malloc(length+1);
   strncpy(conflval.s, conftext+3, length);
   conflval.s[length] = '\0';
   LOG_LEX_TOKEN(lex_log_level, TVARIABLE, conflval.s)

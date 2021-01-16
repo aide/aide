@@ -488,7 +488,7 @@ bool add_report_url(url_t* url, int linenumber, char* filename, char* linebuf) {
 
     r->linenumber = linenumber;
     r->filename = filename;
-    r->linebuf = linebuf;
+    r->linebuf = linebuf?checked_strdup(linebuf):NULL;
 
 #ifdef WITH_E2FSATTRS
     r->ignore_e2fsattrs = conf->report_ignore_e2fsattrs;

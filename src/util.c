@@ -52,10 +52,34 @@ void* checked_malloc(size_t size) {
     }
     return p;
 }
+void* checked_calloc(size_t nmemb, size_t size) {
+    void * p = calloc(nmemb, size);
+    if (p == NULL) {
+        log_msg(LOG_LEVEL_ERROR, "calloc: failed to allocate %d bytes of memory", size);
+        exit(EXIT_FAILURE);
+    }
+    return p;
+}
 void* checked_strdup(const char *s) {
     void * p = strdup(s);
     if (p == NULL) {
         log_msg(LOG_LEVEL_ERROR, "strdup: failed to allocate memory");
+        exit(EXIT_FAILURE);
+    }
+    return p;
+}
+void* checked_strndup(const char *s, size_t size) {
+    void * p = strndup(s, size);
+    if (p == NULL) {
+        log_msg(LOG_LEVEL_ERROR, "strdup: failed to allocate memory");
+        exit(EXIT_FAILURE);
+    }
+    return p;
+}
+void* checked_realloc(void *ptr, size_t size) {
+    void * p = realloc(ptr,size);
+    if (p == NULL) {
+        log_msg(LOG_LEVEL_ERROR, "realloc: failed to allocate memory");
         exit(EXIT_FAILURE);
     }
     return p;
@@ -128,7 +152,7 @@ char* encode_string (const char* s)
     }
   }
 
-  res = (char *)malloc (i + 1);
+  res = (char *)checked_malloc (i + 1);
   s = b;
   for (p = res; *s; s++){
     if (strchr (URL_UNSAFE, *s)||!ISPRINT((int)*s))
@@ -151,7 +175,7 @@ char* perm_to_char(mode_t perm)
   char*pc=NULL;
   int i=0;
   
-  pc=(char*)malloc(sizeof(char)*11);
+  pc=(char*)checked_malloc(sizeof(char)*11);
   for(i=0;i<10;i++){
     pc[i]='-';
   }
@@ -246,7 +270,7 @@ char *expand_tilde(char *path) {
                 path_len = strlen(path+sizeof(char));
                 homedir_len = strlen(homedir);
                 full_len = homedir_len+path_len;
-                full = malloc(sizeof(char) * (full_len+1));
+                full = checked_malloc(sizeof(char) * (full_len+1));
                 strcpy(full, homedir);
                 strcat(full+homedir_len, path+sizeof(char));
                 log_msg(LOG_LEVEL_DEBUG, "expanded '~' in '%s' to '%s'", path, full);

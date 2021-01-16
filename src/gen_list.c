@@ -559,7 +559,7 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct stat *fs, bool 
     Malloc if we have something to store..
   */
   
-  line=(db_line*)malloc(sizeof(db_line));
+  line=(db_line*)checked_malloc(sizeof(db_line));
   
   memset(line,0,sizeof(db_line));
   
@@ -738,11 +738,7 @@ void hsymlnk(db_line* line) {
       Is this valid?? 
       No, We should do this elsewhere.
     */
-    line->linkname=(char*)malloc(_POSIX_PATH_MAX+1);
-    if(line->linkname==NULL){
-      log_msg(LOG_LEVEL_ERROR,_("malloc failed in hsymlnk()"));
-      abort();
-    }
+    line->linkname=(char*)checked_malloc(_POSIX_PATH_MAX+1);
     
     /*
       Remember to nullify the buffer, because man page says
@@ -758,10 +754,7 @@ void hsymlnk(db_line* line) {
     
     len=readlink(line->fullpath,line->linkname,_POSIX_PATH_MAX+1);
     
-    /*
-     * We use realloc :)
-     */
-    line->linkname=realloc(line->linkname,len+1);
+    line->linkname=checked_realloc(line->linkname,len+1);
   } else {
       line->attr&=(~ATTR(attr_linkname));
   }

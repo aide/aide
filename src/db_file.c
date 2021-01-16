@@ -121,7 +121,7 @@ static int db_file_read_spec(database* db){
 
   DB_ATTR_TYPE seen_attrs = 0LLU;
 
-  db->fields = malloc(1*sizeof(ATTRIBUTE));
+  db->fields = checked_malloc(1*sizeof(ATTRIBUTE));
   
   while ((i=db_scan())!=TNEWLINE){
     LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, db_file_read_spec(): db_scan() returned token=%d, i);
@@ -130,10 +130,7 @@ static int db_file_read_spec(database* db){
       
     case TSTRING : {
       ATTRIBUTE l;
-      db->fields = realloc(db->fields, (db->num_fields+1)*sizeof(ATTRIBUTE));
-      if(db->fields == NULL) {
-          return RETFAIL;
-      }
+      db->fields = checked_realloc(db->fields, (db->num_fields+1)*sizeof(ATTRIBUTE));
       db->fields[db->num_fields]=attr_unknown;
       for (l=0;l<num_attrs;l++){
           if (attributes[l].db_name && strcmp(attributes[l].db_name,dbtext)==0) {
@@ -255,7 +252,7 @@ char** db_readline_file(database* db) {
             for(ATTRIBUTE j=0; j<num_attrs; j++){
                 s[j]=NULL;
             }
-            s[i] = strdup(dbtext);
+            s[i] = checked_strdup(dbtext);
             LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, '%s' set field '%s' (position %d): '%s', s[0], attributes[db->fields[i]].db_name, i, dbtext);
             break;
         }
@@ -264,7 +261,7 @@ char** db_readline_file(database* db) {
                 if (++i<db->num_fields) {
                     if (db->fields[i] != attr_unknown) {
                         LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, '%s' set field '%s' (position %d): '%s', s[0], attributes[db->fields[i]].db_name, i, dbtext);
-                        s[db->fields[i]] = strdup(dbtext);
+                        s[db->fields[i]] = checked_strdup(dbtext);
                     } else {
                         LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, skip unknown field '%s' (position: %d): '%s', attributes[db->fields[i]].db_name, i, dbtext);
                     }

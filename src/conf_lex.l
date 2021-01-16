@@ -67,7 +67,7 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
 
 %%
 <INITIAL>^[\t\ ]*"#"[^\n]*"\n" {
-            conf_linebuf = strndup(conftext, confleng-1);
+            conf_linebuf = checked_strndup(conftext, confleng-1);
             ++conf_linenumber;
             LOG_CONFIG_LINE(lex_log_level, "- skip comment line")
             free(conf_linebuf);
@@ -78,7 +78,7 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
             LOG_CONFIG_LINE(lex_log_level, "- skip empty line")
            }
 <INITIAL>^[^\n]* {
-            conf_linebuf = strndup(conftext, confleng);
+            conf_linebuf = checked_strndup(conftext, confleng);
             ++conf_linenumber;
             log_msg(lex_log_level,"%s:%d: \u252c '%s'", conf_filename, conf_linenumber, conf_linebuf);
             yyless(0);
@@ -443,13 +443,13 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
 
 <STRINGS,STRING,PATH>\\[\\@ ] {
   LOG_LEX_TOKEN(lex_log_level, (escaped) TSTRING, conftext)
-  conflval.s=strdup(conftext+1);
+  conflval.s=checked_strdup(conftext+1);
   return (TSTRING);
 }
 
 <STRINGS,STRING,PATH>[\\@] {
   LOG_LEX_TOKEN(lex_log_level, (single-character) TSTRING, conftext)
-  conflval.s=strdup(conftext);
+  conflval.s=checked_strdup(conftext);
   return (TSTRING);
 }
 
@@ -499,7 +499,7 @@ int confwrap(void){
 void conf_lex_string(const char * name, const char *string) {
     log_msg(LOG_LEVEL_DEBUG, "parse: '%s'", name);
     conf_linenumber = 0;
-    conf_filename = strdup(name); /* not to be freed, needed for logging */
+    conf_filename = checked_strdup(name); /* not to be freed, needed for logging */
     conf_scan_string(string);
 }
 
@@ -508,11 +508,11 @@ void conf_lex_file(const char * config) {
     conf_linenumber = 0;
 
     if (strcmp(config,"-") == 0) {
-        conf_filename = strdup("(stdin)"); /* not to be freed, needed for logging */
+        conf_filename = checked_strdup("(stdin)"); /* not to be freed, needed for logging */
         confin = stdin;
     } else {
-        conf_filename = strdup(config);  /* not to be freed, needed for logging */
-        char *expanded_config = expand_tilde(strdup(config));
+        conf_filename = checked_strdup(config);  /* not to be freed, needed for logging */
+        char *expanded_config = expand_tilde(checked_strdup(config));
         confin = fopen( expanded_config, "r" );
         if (!confin) {
             log_msg(LOG_LEVEL_ERROR,"cannot open config file '%s': %s", config, strerror(errno));

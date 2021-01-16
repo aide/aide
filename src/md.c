@@ -1,7 +1,7 @@
 /* Aide, Advanced Intrusion Detection Environment
  *
- * Copyright (C) 1999-2002,2005,2006,2010,2019 Rami Lehti, Pablo Virolainen,
- * Richard van den Berg, Hannes von Haugwitz
+ * Copyright (C) 1999-2002,2005,2006,2010,2019,2021 Rami Lehti, Pablo
+ * Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -21,6 +21,7 @@
 #include "aide.h"
 #include <stdlib.h>
 #include "md.h"
+#include "util.h"
 #include "log.h"
 #include "errorcodes.h"
 #include <string.h>
@@ -171,7 +172,7 @@ void md2line(struct md_container* md,struct db_line* line) {
        DB_ATTR_TYPE attr = ATTR(hashsums[i].attribute);
        if (line->attr&attr) {
            if (md->calc_attr&attr) {
-               line->hashsums[i] = malloc(hashsums[i].length);
+               line->hashsums[i] = checked_malloc(hashsums[i].length);
                memcpy(line->hashsums[i],md->hashsums[i],hashsums[i].length);
            } else {
                line->attr&=~attr;

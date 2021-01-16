@@ -21,6 +21,7 @@
 #include <string.h>
 
 #include "rx_rule.h"
+#include "util.h"
 
 typedef struct {
     char c;
@@ -115,7 +116,7 @@ static int generate_restriction_string(RESTRICTION_TYPE r, char *str) {
 char *get_restriction_string(RESTRICTION_TYPE rs) {
     char *str = NULL;
     int n = generate_restriction_string(rs, str);
-    str = malloc(n);
+    str = checked_malloc(n);
     generate_restriction_string(rs, str);
     return str;
 }

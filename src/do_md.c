@@ -1,7 +1,7 @@
 /* aide, Advanced Intrusion Detection Environment
  * vi: ts=8 sw=8
  *
- * Copyright (C) 1999-2002,2004-2006,2009-2011,2013,2018-2020 Rami Lehti, Pablo
+ * Copyright (C) 1999-2002,2004-2006,2009-2011,2013,2018-2021 Rami Lehti, Pablo
  * Virolainen, Mike Markley, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -41,6 +41,7 @@
 
 #include "db_config.h"
 #include "do_md.h"
+#include "util.h"
 #include "log.h"
 #include "attributes.h"
 #include "list.h"
@@ -317,7 +318,7 @@ void calc_md(struct stat* old_fs,db_line* line) {
       }
 #endif
 #endif /* not HAVE_MMAP */
-      buf=malloc(READ_BLOCK_SIZE);
+      buf=checked_malloc(READ_BLOCK_SIZE);
 #if READ_BLOCK_SIZE>SSIZE_MAX
 #error "READ_BLOCK_SIZE" is too large. Max value is SSIZE_MAX, and current is READ_BLOCK_SIZE
 #endif
@@ -457,15 +458,14 @@ void acl2line(db_line* line) {
             line->fullpath, strerror(errno));
     }
 
-    /* assume memory allocs work, like rest of AIDE code... */
-    ret = malloc(sizeof(acl_type));
+    ret = checked_malloc(sizeof(acl_type));
 
     /* use tmp, so free() can be called instead of acl_free() */
     tmp = acl_to_text(acl_a, NULL);
     if (!tmp || !*tmp)
       ret->acl_a = NULL;
     else
-      ret->acl_a = strdup(tmp);
+      ret->acl_a = checked_strdup(tmp);
     acl_free(tmp);
 
     if (!acl_d)
@@ -476,7 +476,7 @@ void acl2line(db_line* line) {
       if (!tmp || !*tmp)
         ret->acl_d = NULL;
       else
-        ret->acl_d = strdup(tmp);
+        ret->acl_d = checked_strdup(tmp);
       acl_free(tmp);
     }
 
@@ -492,10 +492,10 @@ void acl2line(db_line* line) {
 static xattrs_type *xattr_new(void) {
     xattrs_type *ret = NULL;
 
-    ret = malloc(sizeof(xattrs_type));
+    ret = checked_malloc(sizeof(xattrs_type));
     ret->num = 0;
     ret->sz  = 2;
-    ret->ents = malloc(sizeof(xattr_node) * ret->sz);
+    ret->ents = checked_malloc(sizeof(xattr_node) * ret->sz);
 
     return (ret);
 }
@@ -504,7 +504,7 @@ static void *xzmemdup(const void *ptr, size_t len) {
     /* always keeps a 0 at the end... */
     void *ret = NULL;
 
-    ret = malloc(len+1);
+    ret = checked_malloc(len+1);
     memcpy(ret, ptr, len);
     ((char*)ret)[len] = 0;
 
@@ -515,10 +515,10 @@ static void xattr_add(xattrs_type *xattrs, const char *key, const char
         *val, size_t vsz) {
     if (xattrs->num >= xattrs->sz) {
         xattrs->sz <<= 1;
-        xattrs->ents = realloc(xattrs->ents, sizeof(xattr_node) * xattrs->sz);
+        xattrs->ents = checked_realloc(xattrs->ents, sizeof(xattr_node) * xattrs->sz);
     }
 
-    xattrs->ents[xattrs->num].key = strdup(key);
+    xattrs->ents[xattrs->num].key = checked_strdup(key);
     xattrs->ents[xattrs->num].val = xzmemdup(val, vsz);
     xattrs->ents[xattrs->num].vsz = vsz;
 
@@ -535,8 +535,7 @@ void xattrs2line(db_line *line) {
     if (!(ATTR(attr_xattrs)&line->attr))
         return;
 
-    /* assume memory allocs work, like rest of AIDE code... */
-    if (!xatrs) xatrs = malloc(xsz);
+    if (!xatrs) xatrs = checked_malloc(xsz);
 
     while (((xret = llistxattr(line->fullpath, xatrs, xsz)) == -1) && (errno == ERANGE)) {
         xsz <<= 1;
@@ -552,7 +551,7 @@ void xattrs2line(db_line *line) {
         static ssize_t asz = 1024;
         static char *val = NULL;
 
-        if (!val) val = malloc(asz);
+        if (!val) val = checked_malloc(asz);
 
         xattrs = xattr_new();
 
@@ -600,7 +599,7 @@ void selinux2line(db_line *line) {
         return;
     }
 
-    line->cntx = strdup(cntx);
+    line->cntx = checked_strdup(cntx);
 
     freecon(cntx);
 }
@@ -634,7 +633,7 @@ void capabilities2line(db_line* line) {
 
     if (caps != NULL) {
         txt_caps = cap_to_text(caps, NULL);
-        line->capabilities = strdup(txt_caps);
+        line->capabilities = checked_strdup(txt_caps);
 	cap_free(txt_caps);
 	cap_free(caps);
     } else {

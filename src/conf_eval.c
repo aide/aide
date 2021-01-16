@@ -364,7 +364,7 @@ static char* pipe2string(int fd) {
     while ((nbytes = read(fd, buffer, sizeof(buffer))) > 0) {
         str_len = str?strlen(str):0U;
         len = str_len+nbytes;
-        str = realloc(str, (len+1)*sizeof(char));
+        str = checked_realloc(str, (len+1)*sizeof(char));
         strncpy(str+str_len, buffer, nbytes);
         str[len] = '\0';
     }

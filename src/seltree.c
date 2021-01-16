@@ -24,6 +24,7 @@
 
 #include "seltree.h"
 #include "log.h"
+#include "util.h"
 
 #define PARTIAL_RULE_MATCH       (-1)
 #define NO_RULE_MATCH            (0)
@@ -78,7 +79,7 @@ static char* strrxtok(char* rx)
   /* The following code assumes that the first character is a slash */
   size_t lastslash=1;
 
-  p=strdup(rx);
+  p=checked_strdup(rx);
   p[0]='/';
 
   for(i=1;i<strlen(p);i++){
@@ -96,7 +97,7 @@ static char* strrxtok(char* rx)
 	i=strlen(p);
 	break;
       case '\\':
-	t=strdup(p);
+	t=checked_strdup(p);
 	strcpy(p+i,t+i+1);
 	free(t);
 	t=NULL;
@@ -123,7 +124,7 @@ static char* strlastslash(char*str)
     }
   }
 
-  p=(char*)malloc(sizeof(char)*lastslash+1);
+  p=(char*)checked_malloc(sizeof(char)*lastslash+1);
   strncpy(p,str,lastslash);
   p[lastslash]='\0';
 
@@ -146,9 +147,9 @@ char* strgetndirname(char* path,int depth)
   }
   /* If we ran out string return the whole string */
   if(!(*r))
-    return strdup(path);
+    return checked_strdup(path);
 
-  tmp=strdup(path);
+  tmp=checked_strdup(path);
 
   tmp[r-path]='\0';
 
@@ -214,9 +215,9 @@ seltree* new_seltree_node(
   seltree* parent=NULL;
   char* tmprxtok = NULL;
 
-  node=(seltree*)malloc(sizeof(seltree));
+  node=(seltree*)checked_malloc(sizeof(seltree));
   node->childs=NULL;
-  node->path=strdup(path);
+  node->path=checked_strdup(path);
   node->sel_rx_lst=NULL;
   node->neg_rx_lst=NULL;
   node->equ_rx_lst=NULL;
@@ -264,7 +265,7 @@ rx_rule * add_rx_to_tree(char * rx, RESTRICTION_TYPE restriction, int rule_type,
     seltree *curnode = NULL;
     char *rxtok = NULL;
 
-    r=(rx_rule*)malloc(sizeof(rx_rule));
+    r=(rx_rule*)checked_malloc(sizeof(rx_rule));
 
     r->rx=rx;
     r->restriction = restriction;
@@ -448,7 +449,7 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
       if (node->neg_rx_lst) {
           log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': check negative list (reason: previous positive match)", depth, ' ', node->path);
 
-          char* parentname=strdup(text);
+          char* parentname=checked_strdup(text);
           do {
               char *tmp=strrchr(parentname,'/');
               if(tmp != parentname){
@@ -514,7 +515,7 @@ int check_seltree(seltree *tree, char *filename, RESTRICTION_TYPE file_type, rx_
   seltree* pnode=NULL;
   int retval = 0;
 
-  parentname=strdup(filename);
+  parentname=checked_strdup(filename);
 
   do {
 

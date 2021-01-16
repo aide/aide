@@ -266,7 +266,7 @@ static void read_param(int argc,char**argv)
       case 'l': {
                 const char* pcre_error;
                 int pcre_erroffset;
-                conf->limit=malloc(strlen(optarg)+1);
+                conf->limit=checked_malloc(strlen(optarg)+1);
                 strcpy(conf->limit,optarg);
                 if((conf->limit_crx=pcre_compile(conf->limit, PCRE_ANCHORED, &pcre_error, &pcre_erroffset, NULL)) == NULL) {
                     INVALID_ARGUMENT("--limit", error in regular expression '%s' at %i: %s, conf->limit, pcre_erroffset, pcre_error)
@@ -301,7 +301,7 @@ static void read_param(int argc,char**argv)
                 if (optarg[index] != '/') {
                     INVALID_ARGUMENT("--path-check", '%s' needs to be an absolute path, optarg)
                 } else {
-                    conf->check_path = strdup(optarg+index);
+                    conf->check_path = checked_strdup(optarg+index);
                     log_msg(LOG_LEVEL_INFO,"(--path-check): set path to '%s' (filetype: %c)", optarg+index, get_restriction_char(conf->check_file_type));
                 }
             } else {
@@ -335,7 +335,7 @@ static void setdefaults_before_config()
 {
   DB_ATTR_TYPE X;
 
-  conf=(db_config*)malloc(sizeof(db_config));
+  conf=(db_config*)checked_malloc(sizeof(db_config));
   conf->defsyms=NULL;
 
   /* Setting some defaults */
@@ -539,7 +539,7 @@ int main(int argc,char**argv)
   read_param(argc,argv);
 
   /* get hostname */
-  conf->hostname = malloc(sizeof(char) * MAXHOSTNAMELEN + 1);
+  conf->hostname = checked_malloc(sizeof(char) * MAXHOSTNAMELEN + 1);
   if (gethostname(conf->hostname,MAXHOSTNAMELEN) == -1) {
       log_msg(LOG_LEVEL_WARNING,"gethostname failed: %s", strerror(errno));
       free(conf->hostname);

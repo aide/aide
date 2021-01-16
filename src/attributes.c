@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2015,2016,2019,2020 Hannes von Haugwitz
+ * Copyright (C) 2015,2016,2019-2021 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -22,6 +22,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include "util.h"
 
 #include "attributes.h"
 
@@ -92,7 +93,7 @@ static int get_diff_attrs_string(DB_ATTR_TYPE a, DB_ATTR_TYPE b, char *str, bool
 char *diff_attributes(DB_ATTR_TYPE a, DB_ATTR_TYPE b) {
     char *str = NULL;
     int n = get_diff_attrs_string(a, b, str, false);
-    str = malloc(n);
+    str = checked_malloc(n);
     get_diff_attrs_string(a, b, str, false);
     return str;
 }
@@ -100,7 +101,7 @@ char *diff_attributes(DB_ATTR_TYPE a, DB_ATTR_TYPE b) {
 char *diff_database_attributes(DB_ATTR_TYPE a, DB_ATTR_TYPE b) {
     char *str = NULL;
     int n = get_diff_attrs_string(a, b, str, true);
-    str = malloc(n);
+    str = checked_malloc(n);
     get_diff_attrs_string(a, b, str, true);
     return str;
 }

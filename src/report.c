@@ -221,8 +221,8 @@ static int xattrs2array(xattrs_type* xattrs, char* **values) {
     int n = 0;
     if (xattrs==NULL) { n=1; }
     else { n=1+xattrs->num; }
-    *values = malloc(n * sizeof(char*));
-    (*values)[0]=malloc((6+floor(log10(n)))*sizeof(char));
+    *values = checked_malloc(n * sizeof(char*));
+    (*values)[0]=checked_malloc((6+floor(log10(n)))*sizeof(char));
     snprintf((*values)[0], 6+floor(log10(n)), "num=%d", n-1);
     if (n>1) {
         size_t num = 0;
@@ -235,12 +235,12 @@ static int xattrs2array(xattrs_type* xattrs, char* **values) {
             len = xstrnspn(val, xattrs->ents[num - 1].vsz, PRINTABLE_XATTR_VALS);
             if ((len ==  xattrs->ents[num - 1].vsz) || ((len == (xattrs->ents[num - 1].vsz - 1)) && !val[len])) {
                 length = 8 + width + strlen(xattrs->ents[num - 1].key) + strlen(val);
-                (*values)[num]=malloc(length *sizeof(char));
+                (*values)[num]=checked_malloc(length *sizeof(char));
                 snprintf((*values)[num], length , "[%.*zd] %s = %s", width, num, xattrs->ents[num - 1].key, val);
             } else {
                 val = encode_base64(xattrs->ents[num - 1].val, xattrs->ents[num - 1].vsz);
                 length = 10 + width + strlen(xattrs->ents[num - 1].key) + strlen(val);
-                (*values)[num]=malloc( length  *sizeof(char));
+                (*values)[num]=checked_malloc( length  *sizeof(char));
                 snprintf((*values)[num], length , "[%.*zd] %s <=> %s", width, num, xattrs->ents[num - 1].key, val);
                 free(val);
             }
@@ -259,7 +259,7 @@ static int acl2array(acl_type* acl, char* **values) {
             i = k = 0; \
             while (acl->x[i]) { \
                 if (acl->x[i]=='\n') { \
-                    (*values)[j]=malloc(4+(i-k)*sizeof(char)); \
+                    (*values)[j]=checked_malloc(4+(i-k)*sizeof(char)); \
                     snprintf((*values)[j], 4+(i-k), "%c: %s", y, &acl->x[k]); \
                     j++; \
                     k=i+1; \
@@ -271,7 +271,7 @@ static int acl2array(acl_type* acl, char* **values) {
         int j, k, i;
         if (acl->acl_a) { i = 0; while (acl->acl_a[i]) { if (acl->acl_a[i++]=='\n') { n++; } } }
         if (acl->acl_d) { i = 0; while (acl->acl_d[i]) { if (acl->acl_d[i++]=='\n') { n++; } } }
-        *values = malloc(n * sizeof(char*));
+        *values = checked_malloc(n * sizeof(char*));
         j = 0;
         easy_posix_acl(acl_a, 'A')
         easy_posix_acl(acl_d, 'D')
@@ -284,7 +284,7 @@ static int acl2array(acl_type* acl, char* **values) {
 #ifdef WITH_E2FSATTRS
 static char* e2fsattrs2string(unsigned long flags, int flags_only, unsigned long ignore_e2fsattrs) {
     int length = sizeof(flag_bits)/sizeof(long);
-    char* string = malloc ((length+1) * sizeof (char));
+    char* string = checked_malloc ((length+1) * sizeof (char));
     int j = 0;
     for (int i = 0 ; i < length ; i++) {
         if (!flags_only && flag_bits[i]&ignore_e2fsattrs) {
@@ -464,7 +464,7 @@ bool add_report_url(url_t* url, int linenumber, char* filename, char* linebuf) {
     }
 
 
-    report_t* r = malloc(sizeof(report_t));
+    report_t* r = checked_malloc(sizeof(report_t));
     r->url = url;
     r->fd = NULL;
     r->level = conf->report_level;
@@ -527,7 +527,7 @@ bool init_report_urls() {
     return true;
 }
 static char* byte_to_base16(byte* src, size_t ssize) {
-    char* str = malloc((2*ssize+1) * sizeof (char));
+    char* str = checked_malloc((2*ssize+1) * sizeof (char));
     size_t i;
     for(i=0; i < ssize; ++i) {
         snprintf(&str[2*i], 3, "%02x", src[i]);
@@ -540,18 +540,18 @@ static int get_attribute_values(DB_ATTR_TYPE attr, db_line* line,
 
 #define easy_string(s) \
 l = strlen(s)+1; \
-*values[0] = malloc(l * sizeof (char)); \
+*values[0] = checked_malloc(l * sizeof (char)); \
 snprintf(*values[0], l, "%s",s);
 
 #define easy_number(a,b,c) \
 } else if (a&attr) { \
     l = 2+floor(line->b?log10(line->b):0); \
-    *values[0] = malloc(l * sizeof (char)); \
+    *values[0] = checked_malloc(l * sizeof (char)); \
     snprintf(*values[0], l, c,line->b);
 
 #define easy_time(a,b) \
 } else if (a&attr) { \
-    *values[0] = malloc(time_string_len * sizeof (char));  \
+    *values[0] = checked_malloc(time_string_len * sizeof (char));  \
     strftime(*values[0], time_string_len, time_format, localtime(&(line->b)));
 
     if (line==NULL || !(line->attr&attr)) {
@@ -567,7 +567,7 @@ snprintf(*values[0], l, "%s",s);
 #endif
     } else {
         int l;
-        *values = malloc(1 * sizeof (char*));
+        *values = checked_malloc(1 * sizeof (char*));
         if (ATTR(attr_ftype)&attr) {
             easy_string(get_file_type_string(line->perm))
         } else if (ATTR(attr_linkname)&attr) {
@@ -632,7 +632,7 @@ if ((conf->action&(DO_COMPARE|DO_DIFF) || (conf->action&DO_INIT && r->detailed_i
 
     if(r->summarize_changes) {
         int i;
-        char* summary = malloc ((report_attrs_order_length+1) * sizeof (char));
+        char* summary = checked_malloc ((report_attrs_order_length+1) * sizeof (char));
         if (node->checked&(NODE_ADDED|NODE_REMOVED)) {
             summary[0]=get_file_type_char_from_perm(((node->checked&NODE_REMOVED)?node->old_data:node->new_data)->perm);
             for(i=1;i<report_attrs_order_length;i++){
@@ -905,7 +905,7 @@ static void print_report_summary_line(REPORT_LEVEL report_level) {
 static void print_report_header() {
     char *time;
 
-    time = malloc(time_string_len * sizeof (char));
+    time = checked_malloc(time_string_len * sizeof (char));
     strftime(time, time_string_len, time_format, localtime(&(conf->start_time)));
     report(REPORT_LEVEL_SUMMARY,_("Start timestamp: %s (AIDE " AIDEVERSION ")\n"), time);
     free(time); time=NULL;
@@ -1005,7 +1005,7 @@ static void print_report_databases() {
 
 static void print_report_footer()
 {
-  char *time = malloc(time_string_len * sizeof (char));
+  char *time = checked_malloc(time_string_len * sizeof (char));
   int run_time = (int) difftime(conf->end_time, conf->start_time);
 
   strftime(time, time_string_len, time_format, localtime(&(conf->end_time)));

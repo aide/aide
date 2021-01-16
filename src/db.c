@@ -90,7 +90,7 @@ static struct md_container *init_db_attrs(url_t *u) {
             case url_http:
             case url_https:
             case url_ftp: {
-                mdc = malloc(sizeof(struct md_container)); /* freed in close_db_attrs */
+                mdc = checked_malloc(sizeof(struct md_container)); /* freed in close_db_attrs */
                 mdc->todo_attr = conf->db_attrs;
 
                 int length = snprintf(NULL, 0, "%s:%s", get_url_type_string(u->type), u->value) + 1;
@@ -115,7 +115,7 @@ static db_line *close_db_attrs (struct md_container *mdc, char *url_value) {
     db_line *line = NULL;
     if (mdc != NULL) {
         close_md(mdc);
-        line = malloc(sizeof(struct db_line));
+        line = checked_malloc(sizeof(struct db_line));
         line->filename = url_value;
         line->perm = 0;
         line->attr = conf->db_attrs;
@@ -190,7 +190,7 @@ static char *db_readchar(char *s)
       return (NULL);
     
     if (s[1] == '-')
-      return (strdup(""));
+      return (checked_strdup(""));
 
     if (s[1] == '0')
     {
@@ -203,7 +203,7 @@ static char *db_readchar(char *s)
 
   decode_string(s);
 
-  return strdup(s);
+  return checked_strdup(s);
 }
 
 
@@ -216,7 +216,7 @@ case attr_ ##hash : { \
 
 db_line* db_char2line(char** ss, database* db){
 
-  db_line* line=(db_line*)malloc(sizeof(db_line)*1);
+  db_line* line=(db_line*)checked_malloc(sizeof(db_line)*1);
 
   line->perm=0;
   line->uid=0;
@@ -252,7 +252,7 @@ db_line* db_char2line(char** ss, database* db){
     case attr_filename : {
       if(ss[db->fields[i]]!=NULL){
 	decode_string(ss[db->fields[i]]);
-	line->fullpath=strdup(ss[db->fields[i]]);
+	line->fullpath=checked_strdup(ss[db->fields[i]]);
 	line->filename=line->fullpath;
       } else {
         log_msg(LOG_LEVEL_ERROR, "db_char2line(): error while reading database");
@@ -322,7 +322,7 @@ db_line* db_char2line(char** ss, database* db){
         line->acl = NULL;
       else if (!strcmp(tval, "POSIX"))
       {
-        line->acl = malloc(sizeof(acl_type));        
+        line->acl = checked_malloc(sizeof(acl_type));
         line->acl->acl_a = NULL;
         line->acl->acl_d = NULL;
         
@@ -343,8 +343,8 @@ db_line* db_char2line(char** ss, database* db){
         num = readlong(tval,  db, "xattrs");
         if (num)
         {
-          line->xattrs = malloc(sizeof(xattrs_type));
-          line->xattrs->ents = calloc(sizeof(xattr_node), num);
+          line->xattrs = checked_malloc(sizeof(xattrs_type));
+          line->xattrs->ents = checked_calloc(sizeof(xattr_node), num);
           line->xattrs->sz  = num;
           line->xattrs->num = num;
           num = 0;
@@ -354,7 +354,7 @@ db_line* db_char2line(char** ss, database* db){
             size_t vsz = 0;
             
             tval = strtok(NULL, ",");
-            line->xattrs->ents[num].key = db_readchar(strdup(tval));
+            line->xattrs->ents[num].key = db_readchar(checked_strdup(tval));
             tval = strtok(NULL, ",");
             val = base64tobyte(tval, strlen(tval), &vsz);
             line->xattrs->ents[num].val = val;

@@ -34,6 +34,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "base64.h"
+#include "util.h"
 #include "log.h"
 /*for locale support*/
 #include "locale-aide.h"
@@ -99,7 +100,7 @@ char* encode_base64(byte* src,size_t ssize)
     log_msg(LOG_LEVEL_DEBUG,"encode base64: empty string");
     return NULL;
   }
-  outbuf = (char *)malloc(sizeof(char)*B64_BUF);
+  outbuf = (char *)checked_malloc(sizeof(char)*B64_BUF);
   
   /* Initialize working pointers */
   inb = src;
@@ -161,7 +162,7 @@ char* encode_base64(byte* src,size_t ssize)
   }
   
   /* outbuf is not completely used so we use retbuf */
-  retbuf=(char*)malloc(sizeof(char)*(pos+1));
+  retbuf=(char*)checked_malloc(sizeof(char)*(pos+1));
   memcpy(retbuf,outbuf,pos);
   retbuf[pos]='\0';
   free(outbuf);
@@ -190,7 +191,7 @@ byte* decode_base64(char* src,size_t ssize, size_t *ret_len)
 
   /* Initialize working pointers */
   inb = src;
-  outbuf = (byte *)malloc(sizeof(byte)*B64_BUF);
+  outbuf = (byte *)checked_malloc(sizeof(byte)*B64_BUF);
 
   l = 0;
   triple = 0;
@@ -241,7 +242,7 @@ byte* decode_base64(char* src,size_t ssize, size_t *ret_len)
       inb++;
     }
   
-  retbuf=(byte*)malloc(sizeof(byte)*(pos+1));
+  retbuf=(byte*)checked_malloc(sizeof(byte)*(pos+1));
   memcpy(retbuf,outbuf,pos);
   retbuf[pos]='\0';
   

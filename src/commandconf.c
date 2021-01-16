@@ -265,7 +265,7 @@ void do_define(char* name, char* value, int linenumber, char* filename, char* li
 
   if(!(l=list_find(name,conf->defsyms))){
     LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, define '%s' with value '%s', name, value)
-    s=(symba*)malloc(sizeof(symba));
+    s=(symba*)checked_malloc(sizeof(symba));
     s->name=checked_strdup(name);
     s->value=value;
     conf->defsyms=list_append(conf->defsyms,(void*)s);
@@ -346,7 +346,7 @@ DB_ATTR_TYPE do_groupdef(char* group,DB_ATTR_TYPE value)
       return prev_value;
   }
   /* This is a new group */
-  s=(symba*)malloc(sizeof(symba));
+  s=checked_malloc(sizeof(symba));
   s->name=group;
   s->ival=value;
   conf->groupsyms=list_append(conf->groupsyms,(void*)s);

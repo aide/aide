@@ -99,7 +99,7 @@ static char *name_construct (const char *s)
 		len++;
 	}
 
-	ret = (char *) malloc (len);
+	ret = (char *) checked_malloc (len);
 	ret[0] = (char) 0;
 	strncpy(ret, conf->root_prefix, conf->root_prefix_length+1);
 	strncat (ret, r->path, len2);
@@ -128,11 +128,11 @@ void add_child (db_line * fil)
 
 	log_msg(LOG_LEVEL_DEBUG, "add child '%s' to %s", fil->filename, r->path);
 
-	new_r = malloc (sizeof (seltree));
+	new_r = checked_malloc (sizeof (seltree));
 
 	i = strlen (fil->filename);
 
-	new_r->path = malloc (i + 1);
+	new_r->path = checked_malloc (i + 1);
 	strncpy(new_r->path, fil->filename, i+1);
 	new_r->childs = NULL;
 	new_r->sel_rx_lst = NULL;
@@ -182,7 +182,7 @@ db_line *db_readline_disk (bool dry_run)
 	/* root needs special handling */
 	if (!root_handled) {
 		root_handled = 1;
-		fullname=malloc((conf->root_prefix_length+2)*sizeof(char));
+		fullname=checked_malloc((conf->root_prefix_length+2)*sizeof(char));
 		strncpy(fullname, conf->root_prefix, conf->root_prefix_length+1);
 		strcat (fullname, "/");
 		if (!get_file_status(fullname, &fs)) {
@@ -312,7 +312,7 @@ recursion:
 
 				log_msg (LOG_LEVEL_TRACE, "r->childs %p, r->parent %p,r->checked %i",
 							 r->childs, r->parent, r->checked);
-				fullname=malloc((conf->root_prefix_length+strlen(r->path)+1)*sizeof(char));
+				fullname=checked_malloc((conf->root_prefix_length+strlen(r->path)+1)*sizeof(char));
 				strncpy(fullname, conf->root_prefix, conf->root_prefix_length+1);
 				strcat(fullname, r->path);
 				dirh=open_dir(fullname);
@@ -390,7 +390,7 @@ int db_disk_init ()
 
 	r = conf->tree;
 
-	char* fullname=malloc((conf->root_prefix_length+2)*sizeof(char));
+	char* fullname=checked_malloc((conf->root_prefix_length+2)*sizeof(char));
 	strncpy(fullname, conf->root_prefix, conf->root_prefix_length+1);
 	strcat (fullname, "/");
 	dirh=open_dir(fullname);

@@ -41,7 +41,10 @@
 const char* btoa(bool);
 
 void* checked_malloc(size_t);
+void* checked_calloc(size_t, size_t);
 void* checked_strdup(const char *);
+void* checked_strndup(const char *, size_t);
+void* checked_realloc(void *, size_t);
 
 int cmpurl(url_t*, url_t*);
 

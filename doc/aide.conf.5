@@ -511,6 +511,14 @@ is executable is is run and the output is used as config.
 For security reasons \fBDIRECTORY\fR and each executable config file must be
 owned by the current user and must not be group- or world-writable.
 
+.IP "@@x_include_setenv \fBVAR\fR \fBVALUE\fR"
+
+Adds the variable \fBVAR\fR with the value \fBVALUE\fR to the environment used
+for config file execution.
+
+Enironment variable names are limited to alphanumeric charachters
+(\fBA-Za-z0-9\fP) and the underscore '\fB_\fR' and must not begin with a digit.
+
 .PP
 .SH URLS
 Urls can be one of the following. Input urls cannot be used as outputs

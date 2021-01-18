@@ -124,6 +124,11 @@ typedef struct include_statement {
     bool execute;
 } include_statement;
 
+typedef struct x_include_setenv_statement {
+    char *variable;
+    string_expression *value;
+} x_include_setenv_statement;
+
 typedef struct undefine_statement {
     char *name;
 } undefine_statement;
@@ -151,6 +156,7 @@ typedef struct ast {
         config_option_type,
 
         include_statement_type,
+        x_include_setenv_statement_type,
         define_statement_type,
         undefine_statement_type,
 
@@ -164,6 +170,7 @@ typedef struct ast {
     union {
         config_option_statement _config;
         include_statement _include;
+        x_include_setenv_statement _x_include_setenv;
         define_statement _define;
         undefine_statement _undefine;
         group_statement _group;
@@ -191,6 +198,7 @@ ast* new_undefine_statement(char*);
 ast* new_group_statement(char*, attribute_expression*);
 
 ast* new_include_statement(string_expression*, string_expression*, bool);
+ast* new_x_include_setenv_statement(char*, string_expression*);
 
 ast* new_if_statement(struct if_condition*, struct ast*, struct ast*);
 

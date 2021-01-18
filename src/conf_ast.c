@@ -73,6 +73,16 @@ ast* new_include_statement(string_expression* path, string_expression* rx, bool 
       return a;
 }
 
+ast* new_x_include_setenv_statement(char *variable, string_expression *value) {
+      ast* a = new_ast_node();
+
+      a->type = x_include_setenv_statement_type;
+      a->statement._x_include_setenv.variable = variable;
+      a->statement._x_include_setenv.value = value;
+      log_msg(ast_log_level, "ast: new x_include_setenv statement (%p): variable: '%s', value: %p", a, variable, value);
+      return a;
+}
+
 ast* new_define_statement(char *name, string_expression *value) {
       ast* a = new_ast_node();
 
@@ -289,6 +299,10 @@ void deep_free(ast* config_ast) {
             case include_statement_type:
                 free_string_expression(node->statement._include.path);
                 free_string_expression(node->statement._include.rx);
+                break;
+            case x_include_setenv_statement_type:
+                free_string_expression(node->statement._x_include_setenv.value);
+                free_string(node->statement._x_include_setenv.variable);
                 break;
             case rule_statement_type:
                 free_string_expression(node->statement._rule.path);

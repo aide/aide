@@ -2,6 +2,7 @@ C	[^\n\t ]
 
 L	[a-zA-Zˆ‰¸ﬂÂ÷ƒ‹≈0-9_%]
 G	[a-zA-Z0-9]
+V	[a-zA-Z_]+[a-zA-Z0-9_]*
 E	[\ ]*"="[\ ]*
 
 %{
@@ -67,7 +68,7 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
 
 %option noinput nounput
 
-%x CONFIG DEFSTMT EXPR EXPREQUHUNT PATH STRING STRINGS STRINGEQHUNT STRINGHUNT
+%x CONFIG DEFSTMT ENVVAR EXPR EXPREQUHUNT PATH STRING STRINGS STRINGEQHUNT STRINGHUNT
 
 %%
 <INITIAL>^[\t\ ]*"#"[^\n]*"\n" {
@@ -207,7 +208,20 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
   return (TXINCLUDE);
 }
 
-<CONFIG,DEFSTMT,EXPR>[\t\ ]+ {
+<CONFIG>"\@\@x_include_setenv" {
+  LOG_LEX_TOKEN(lex_log_level, TSETENV, conftext)
+  BEGIN ENVVAR;
+  return (TSETENV);
+}
+
+<ENVVAR>({V})+ {
+  LOG_LEX_TOKEN(lex_log_level, TVARIABLE, conftext)
+  conflval.s=checked_strdup(conftext);
+  BEGIN(STRINGHUNT);
+  return (TVARIABLE);
+}
+
+<CONFIG,DEFSTMT,ENVVAR,EXPR>[\t\ ]+ {
     LOG_LEX_TOKEN(LOG_LEVEL_DEBUG, skip tab(s)/whitespace(s), conftext)
 }
 
@@ -483,7 +497,7 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
   BEGIN(STRING);
 }
 
-<CONFIG,DEFSTMT,EXPR,EXPREQUHUNT,PATH,STRINGS,STRING,STRINGEQHUNT,STRINGHUNT>[\t\ ]*"\n" {
+<CONFIG,DEFSTMT,ENVVAR,EXPR,EXPREQUHUNT,PATH,STRINGS,STRING,STRINGEQHUNT,STRINGHUNT>[\t\ ]*"\n" {
   log_msg(lex_log_level,"%s:%d: \u2534 TNEWLINE (text: '\\n')", conf_filename, conf_linenumber);
   BEGIN 0;
   return (TNEWLINE);

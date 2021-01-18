@@ -34,6 +34,7 @@
 
 #include "symboltable.h"
 
+#include <stdlib.h>
 #include <stddef.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -44,6 +45,8 @@
 LOG_LEVEL eval_log_level = LOG_LEVEL_DEBUG;
 
 bool log_level_set_in_config = false;
+
+list* x_include_environment = NULL;
 
 #define BOOL_CONFIG_OPTION_CASE(id, option) \
     case id: \
@@ -371,6 +374,26 @@ static char* pipe2string(int fd) {
     return str;
 }
 
+static void eval_x_include_setenv_statement(x_include_setenv_statement statement, int linenumber, char *filename, char* linebuf) {
+    symba* s=NULL;
+    list* l=NULL;
+
+    char* value = eval_string_expression(statement.value, linenumber, filename, linebuf);
+
+    if(!(l=list_find(statement.variable,x_include_environment))) {
+        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, add '%s' with value '%s' to @@x_include environment, statement.variable, value)
+        s=(symba*)checked_malloc(sizeof(symba));
+        s->name=checked_strdup(statement.variable);
+        s->value=value;
+        x_include_environment=list_append(x_include_environment,(void*)s);
+    } else {
+        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_NOTICE, overwrite '%s' variable with value '%s' in @@x_include environment (previous value: '%s'), statement.variable, value, ((symba*)l->data)->value)
+        free(((symba*)l->data)->value);
+        ((symba*)l->data)->value=NULL;
+        ((symba*)l->data)->value=value;
+    }
+}
+
 static void include_file(const char* file, bool execute) {
     if (execute) {
         int p_stdout[2];
@@ -398,6 +421,17 @@ static void include_file(const char* file, bool execute) {
             close(p_stderr[0]);
             dup2 (p_stderr[1], STDERR_FILENO);
             close(p_stderr[1]);
+
+            list *entry;
+            for(entry = x_include_environment ; entry != NULL; entry = entry->next) {
+                char* name = ((symba*)entry->data)->name;
+                char* value = ((symba*)entry->data)->value;
+                if (setenv(name, value, 0) < 0) {
+                    fprintf(stderr, "aide: @@x_include: setenv for '%s' failed: %s\n", name, strerror(errno));
+                    exit(EXEC_ERROR);
+                }
+            }
+
             execl(file, file, (char*) NULL);
             log_msg(LOG_LEVEL_ERROR, "%s: execl failed: %s", file, strerror(errno));
             exit(EXIT_FAILURE);
@@ -591,6 +625,9 @@ void eval_config(ast* config_ast) {
                 break;
             case include_statement_type:
                 eval_include_statement(node->statement._include, node->linenumber, node->filename, node->linebuf);
+                break;
+            case x_include_setenv_statement_type:
+                eval_x_include_setenv_statement(node->statement._x_include_setenv, node->linenumber, node->filename, node->linebuf);
                 break;
             case if_statement_type:
                 eval_if_statement(node->statement._if, node->linenumber, node->filename, node->linebuf);

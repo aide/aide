@@ -72,6 +72,7 @@ void conferror(ast**, const char *);
 %token TENDIF
 %token TINCLUDE
 %token TXINCLUDE
+%token TSETENV
 %token <s> TGROUP
 %token <s> TSTRING
 %token <s> TEXPR
@@ -88,7 +89,7 @@ void conferror(ast**, const char *);
 
 %token <option> CONFIGOPTION
 
-%type <ast> statements statement config_statement include_statement if_statement define_statement undefine_statement group_statement rule_statement
+%type <ast> statements statement config_statement include_statement x_include_setenv_statement if_statement define_statement undefine_statement group_statement rule_statement
 
 %type <if_cond> if_condition
 %type <attr_expr> attribute_expression
@@ -116,6 +117,7 @@ statements : statement TNEWLINE statements {
 
 statement: config_statement
          | include_statement
+         | x_include_setenv_statement
          | if_statement
          | define_statement | undefine_statement
          | group_statement
@@ -147,6 +149,8 @@ include_statement: TINCLUDE TSPACE string_expression { $$ = new_include_statemen
                  | TINCLUDE TSPACE string_expression TSPACE string_expression { $$ = new_include_statement($3, $5, false); }
                  | TXINCLUDE TSPACE string_expression { $$ = new_include_statement($3, NULL, true); }
                  | TXINCLUDE TSPACE string_expression TSPACE string_expression { $$ = new_include_statement($3, $5, true); }
+
+x_include_setenv_statement: TSETENV TVARIABLE string_expression { $$ = new_x_include_setenv_statement($2, $3); }
 
 if_statement: if_condition TNEWLINE statements TENDIF { $$ = new_if_statement($1, $3, NULL); }
             | if_condition TNEWLINE statements TELSE TNEWLINE statements TENDIF { $$ = new_if_statement($1, $3, $6); }

@@ -80,7 +80,7 @@ static char* eval_string_expression(struct string_expression* expression, int li
         case STR_OP_VARIABLE:
             entry = NULL;
             if ((entry = list_find(expression->str, conf->defsyms))) {
-                str = checked_strdup(((symba*)entry->data)->value);
+                str = checked_strdup(((symba*)entry->data)->value?((symba*)entry->data)->value:"");
                 LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, variable substitution: replace '@@%c%s%c' with '%s', '{', expression->str, '}', str)
             } else if (strcmp(expression->str, "HOSTNAME") == 0 && conf->hostname) {
                 str = checked_strdup(conf->hostname);

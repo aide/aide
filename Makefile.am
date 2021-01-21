@@ -81,7 +81,7 @@ CLEANFILES = src/conf_yacc.h src/conf_yacc.c src/conf_lex.c src/db_lex.c
 
 man_MANS = doc/aide.1 doc/aide.conf.5
 
-EXTRA_DIST = $(man_MANS) Todo doc/manual.html \
+EXTRA_DIST = $(man_MANS) Todo \
 	contrib/bzip2.sh contrib/gpg2_check.sh contrib/gpg2_update.sh \
 	contrib/gpg_check.sh contrib/gpg_update.sh contrib/sshaide.sh
 

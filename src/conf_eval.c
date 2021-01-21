@@ -555,6 +555,7 @@ static void include_directory(const char* dir, const char* rx, bool execute, int
         free(namelist[i]);
     }
     free(namelist);
+    free(crx);
 }
 
 static void eval_include_statement(include_statement statement, int include_depth, int linenumber, char *filename, char* linebuf) {

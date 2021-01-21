@@ -63,7 +63,7 @@ char* after = NULL;
 
 static void usage(int exitvalue)
 {
-  fprintf(stderr, 
+  fprintf(stdout,
 	  _("Aide " AIDEVERSION" \n\n"
 	    "Usage: aide [options] command\n\n"
 	    "Commands:\n"

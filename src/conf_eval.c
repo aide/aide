@@ -327,18 +327,18 @@ static bool evaL_if_condition(if_condition* c) {
     return cond_result;
 }
 
-static void eval_if_statement(if_statement statement, int linenumber, char *filename, char* linebuf) {
+static void eval_if_statement(if_statement statement, int include_depth, int linenumber, char *filename, char* linebuf) {
     bool condition = evaL_if_condition(statement.condition);
 
     if (condition) {
         log_msg(eval_log_level, "eval(%p): if branch", statement.if_branch);
         if (statement.if_branch) {
-            eval_config(statement.if_branch);
+            eval_config(statement.if_branch, include_depth);
         }
     } else {
         log_msg(eval_log_level, "eval(%p): else branch", statement.else_branch);
         if (statement.else_branch) {
-            eval_config(statement.else_branch);
+            eval_config(statement.else_branch, include_depth);
         }
     }
     LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, %s, "endif")
@@ -394,7 +394,7 @@ static void eval_x_include_setenv_statement(x_include_setenv_statement statement
     }
 }
 
-static void include_file(const char* file, bool execute) {
+static void include_file(const char* file, bool execute, int include_depth) {
     if (execute) {
         int p_stdout[2];
         int p_stderr[2];
@@ -472,7 +472,7 @@ static void include_file(const char* file, bool execute) {
                 }
                 conf_lex_delete_buffer();
                 free(source_name);
-                eval_config(config_ast);
+                eval_config(config_ast, include_depth);
                 deep_free(config_ast);
             }
             free(config_str);
@@ -484,7 +484,7 @@ static void include_file(const char* file, bool execute) {
         exit(INVALID_CONFIGURELINE_ERROR);
     }
     conf_lex_delete_buffer();
-    eval_config(config_ast);
+    eval_config(config_ast, include_depth);
     deep_free(config_ast);
     }
 }
@@ -496,8 +496,8 @@ void check_permissions(const char* path, struct stat *st, int linenumber, char *
     }
 }
 
-static void include_directory(const char* dir, const char* rx, bool execute, int linenumber, char *filename, char* linebuf) {
-    LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, include directory '%s' (regex: '%s'), dir, rx)
+static void include_directory(const char* dir, const char* rx, bool execute, int include_depth, int linenumber, char *filename, char* linebuf) {
+    LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, include directory '%s' (regex: '%s', depth: %d), dir, rx, include_depth)
 
     struct dirent **namelist;
     int n;
@@ -545,7 +545,7 @@ static void include_directory(const char* dir, const char* rx, bool execute, int
                     check_permissions(filepath, &fs, linenumber, filename, linebuf);
                 }
                 log_msg(LOG_LEVEL_CONFIG,"%s: %s '%s'", dir, exec?"execute":"include", namelist[i]->d_name);
-                include_file(filepath, exec);
+                include_file(filepath, exec, include_depth);
             }
         } else {
             log_msg(LOG_LEVEL_DEBUG,"%s: skip '%s' (reason: file is not a regular file)", dir, namelist[i]->d_name);
@@ -557,22 +557,26 @@ static void include_directory(const char* dir, const char* rx, bool execute, int
     free(namelist);
 }
 
-static void eval_include_statement(include_statement statement, int linenumber, char *filename, char* linebuf) {
+static void eval_include_statement(include_statement statement, int include_depth, int linenumber, char *filename, char* linebuf) {
+    if (include_depth >= 16) {
+        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, "%s", "include files are nested too deeply")
+        exit(INVALID_CONFIGURELINE_ERROR);
+    }
     char* path = eval_string_expression(statement.path, linenumber, filename, linebuf);
     char* rx = statement.rx?eval_string_expression(statement.rx, linenumber, filename, linebuf):NULL;
 
     if (rx) {
-        include_directory(path, rx, statement.execute, linenumber, filename, linebuf);
+        include_directory(path, rx, statement.execute, include_depth, linenumber, filename, linebuf);
         free(rx);
     } else {
     struct stat fs;
     if (lstat(path,&fs) == -1) {
-        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, '@@include': stat for '%s' failed: %s, path, strerror(errno))
+        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, '@@include': lstat for '%s' failed: %s, path, strerror(errno))
         exit(INVALID_CONFIGURELINE_ERROR);
     }
     if (S_ISREG(fs.st_mode)) {
-        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, include file '%s', path)
-        include_file(path, statement.execute && S_IXUSR&fs.st_mode);
+        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, include file '%s' (depth: %d), path, include_depth)
+        include_file(path, statement.execute && S_IXUSR&fs.st_mode, include_depth);
     } else {
         LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, '@@include': '%s' is not a regular file, path);
         exit(INVALID_CONFIGURELINE_ERROR);
@@ -615,7 +619,7 @@ static void eval_rule_statement(rule_statement statement, int linenumber, char *
     }
 }
 
-void eval_config(ast* config_ast) {
+void eval_config(ast* config_ast, int include_depth) {
     ast* node = NULL;
     for(node = config_ast; node != NULL; node = node->next) {
         log_msg(eval_log_level, "eval(%p): ast node (next: %p)", node, node->next);
@@ -624,13 +628,13 @@ void eval_config(ast* config_ast) {
                 eval_config_statement(node->statement._config, node->linenumber, node->filename, node->linebuf);
                 break;
             case include_statement_type:
-                eval_include_statement(node->statement._include, node->linenumber, node->filename, node->linebuf);
+                eval_include_statement(node->statement._include, include_depth+1, node->linenumber, node->filename, node->linebuf);
                 break;
             case x_include_setenv_statement_type:
                 eval_x_include_setenv_statement(node->statement._x_include_setenv, node->linenumber, node->filename, node->linebuf);
                 break;
             case if_statement_type:
-                eval_if_statement(node->statement._if, node->linenumber, node->filename, node->linebuf);
+                eval_if_statement(node->statement._if, include_depth, node->linenumber, node->filename, node->linebuf);
                 break;
             case define_statement_type:
                 eval_define_statement(node->statement._define, node->linenumber, node->filename, node->linebuf);

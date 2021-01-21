@@ -156,7 +156,7 @@ int parse_config(char *before, char *config, char* after) {
           return RETFAIL;
         }
         conf_lex_delete_buffer();
-        eval_config(config_ast);
+        eval_config(config_ast, 0);
         deep_free(config_ast);
         config_ast = NULL;
     }
@@ -166,7 +166,7 @@ int parse_config(char *before, char *config, char* after) {
           return RETFAIL;
         }
         conf_lex_delete_buffer();
-        eval_config(config_ast);
+        eval_config(config_ast, 0);
         deep_free(config_ast);
         config_ast = NULL;
     }
@@ -176,7 +176,7 @@ int parse_config(char *before, char *config, char* after) {
           return RETFAIL;
         }
         conf_lex_delete_buffer();
-        eval_config(config_ast);
+        eval_config(config_ast, 0);
         deep_free(config_ast);
         config_ast = NULL;
     }

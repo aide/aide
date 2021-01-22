@@ -408,7 +408,6 @@ AS_IF([test "x$with_posix_acl_support" != xno],
 	AC_DEFINE(WITH_ACL,1,[use ACL])
 	ACLLIB="-lacl"
 	compoptionstring="${compoptionstring}WITH_POSIX_ACL\\n"
-	aideextragroups="${aideextragroups}+acl"
 	AC_MSG_RESULT(yes)],
 	[AC_MSG_RESULT(no)]
 )
@@ -442,7 +441,6 @@ AS_IF([test "x$with_selinux_support" != xno],
     fi
     fi
 	compoptionstring="${compoptionstring}WITH_SELINUX\\n"
-	aideextragroups="${aideextragroups}+selinux"
     ],
 	[AC_MSG_RESULT(no)]
 )
@@ -487,7 +485,6 @@ AS_IF([test "x$with_xattr_support" != xno],
 	[AC_DEFINE(WITH_XATTR,1,[use xattr])
 	ATTRLIB=-lattr
 	compoptionstring="${compoptionstring}WITH_XATTR\\n"
-	aideextragroups="${aideextragroups}+xattrs"
 	AC_MSG_RESULT(yes)],
 	[AC_MSG_RESULT(no)]
 )
@@ -506,7 +503,6 @@ AS_IF([test "x$with_capabilities_support" != xno],
         [AC_DEFINE(WITH_CAPABILITIES,1,[use capabilities])
         CAPLIB=-lcap
         compoptionstring="${compoptionstring}WITH_CAPABILITIES\\n"
-        aideextragroups="${aideextragroups}+caps"
         AC_MSG_RESULT(yes)],
         [AC_MSG_RESULT(no)]
 )
@@ -525,7 +521,6 @@ AS_IF([test "x$with_e2fsattrs_support" != xno],
 	[AC_DEFINE(WITH_E2FSATTRS,1,[use e2fsattrs])
 	E2FSATTRSLIB=-le2p
 	compoptionstring="${compoptionstring}WITH_E2FSATTRS\\n"
-	aideextragroups="${aideextragroups}+e2fsattrs"
 	AC_MSG_RESULT(yes)],
 	[AC_MSG_RESULT(no)]
 )
@@ -619,7 +614,6 @@ AS_IF([test "x$with_mhash" != xno],
 		[CRYPTLIB="${CRYPTLIB} -lmhash"
 		compoptionstring="${compoptionstring}WITH_MHASH\\n"
 		with_mhash=yes
-		aideextragroups="${aideextragroups}+whirlpool"
 		AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 		[[#include <mhash.h>
 		int i=MHASH_WHIRLPOOL;
@@ -693,8 +687,7 @@ AS_IF([test "x$with_audit" != xno],
 )
 AC_SUBST(AUDITLIB)
 
-extrasub="s&@aideextragroups@&$aideextragroups&;t t
-s&@AIDEVERSION@&$PACKAGE_VERSION&;t t"
+extrasub="s&@AIDEVERSION@&$PACKAGE_VERSION&;t t"
 
 AC_DEFINE_UNQUOTED(AIDECOMPILEOPTIONS, "${compoptionstring}",[Compile-time options displayed in -v output])
 
@@ -703,5 +696,5 @@ LDFLAGS="$LDFLAGS $EXTRA_LDFLAGS"
 CFLAGS="$CFLAGS $EXTRA_CFLAGS"
 
 AC_SUBST(AIDE_DEFS)
-AC_OUTPUT(Makefile doc/aide.conf)
+AC_OUTPUT(Makefile)
 

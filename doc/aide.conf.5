@@ -9,22 +9,21 @@ Detection Environment. \fBaide.conf\fP contains the runtime
 configuration aide uses to initialize or check the AIDE database.
 .PP
 .SH "FILE FORMAT"
-\fBaide.conf\fP is similar in to Tripwire(tm)'s configuration
-file. With little effort tw.conf can be converted to aide.conf.
-.PP
 aide.conf is case-sensitive. Leading and trailing white spaces are
 ignored. AIDE uses the backslash character (\fB\\\fR) as escape character for ' '
-(space), '@' and '\\' (backslash) (e.g. '\\ ' or '\\@').
+(space), '@' and '\\' (backslash) (e.g. '\\ ' or '\\@'). To literally match a '\fB\\\fR'
+in a file path with a regular expression you have to escape the backslash
+twice (i.e. '\fB\\\\\\\\\fR').
 .PP
 There are three types of lines in \fBaide.conf\fP. First there are the
-configuration lines which are used to set configuration parameters and
-define/undefine variables. Second, there are (restricted) selection lines that
-are used to indicate which files are added to the database. Third, macro lines
-define or undefine variables within the config file. Lines beginning with #
-are ignored as comments.
+configuration options which are used to set configuration parameters and
+define groups. Second, there are (restricted) rules that are used to indicate
+which files are added to the database. Third, macro lines define or undefine
+variables within the config file. Lines beginning with # are ignored as
+comments.
 .PP
 
-.SH "CONFIG LINES"
+.SH "CONFIG OPTIONS"
 .PP
 These lines have the format parameter=value. See URLS for a list of
 valid urls.
@@ -39,24 +38,21 @@ lines. If there are multiple database lines then the first is used.
 The url to which the new database is written to. There can only be one
 of these lines. If there are multiple database_out lines then the
 first is used.
-.IP "database_new"
+.IP "database_new (type: URL, default: \fB<none>\fP)"
 The url from which the other database for \-\-compare is read.
-There is no default for this one.
-.IP "database_attrs"
+.IP "database_attrs (type: attribute expression, default: \fBH\fP)"
 The attributes of the (uncompressed) database files which are to be added to
 the reports in report level >= \fBdatabase_attributes\fP . Only checksum attributes are
 supported. To disable set
 .I database_attrs
 to
 .RB ' E '.
-By default all compiled in checksums are added to the report.
-.IP "database_add_metadata"
+.IP "database_add_metadata (type: bool, default: \fBtrue\fR)"
 Whether to add the AIDE version and the time of database generation as comments
-to the database file or not. Valid values are yes, true, no and false. The
-default is to add the AIDE version and the time of database generation. This
-option may be set to no by default in a future release.
+to the database file or not. This option may be set to false by default in a
+future release.
 
-.IP "log_level (type: enum, default: \fBwarning\fR)"
+.IP "log_level (type: log level, default: \fBwarning\fR)"
 The log level to use. Log messages are written to \fIstderr\fR. If there are
 multiple \fIlog_level\fR lines then the first one is used. The \-\-log-level or
 \-L command line option overwrites this option.
@@ -85,45 +81,36 @@ The following log levels are available:
 
 .RE
 
-.IP "verbose"
+.IP "verbose (type: number, range: 0 - 255, default: \fB5\fR)"
 Removed in AIDE v0.17, use \fBlog_level\fR and \fBreport_level\fR options instead
-.IP "gzip_dbout"
-Whether the output to the database is gzipped or not. Valid values are
-yes,true,no and false. The default is no. This option is available only
-if zlib support is compiled in.
-.IP "root_prefix"
+.IP "gzip_dbout (type: bool, default: \fBfalse\fR)"
+Whether the output to the database is gzipped or not. This option is available
+only if zlib support is compiled in.
+.IP "root_prefix (type: path, default: \fB<empty>\fR)"
 The prefix to strip from each file name in the file system before applying the
 rules and writing to database. AIDE removes a trailing slash from the prefix.
-If there are multiple root_prefix lines then the first one is used. The default is no
-(an empty) prefix. This option has no effect in compare mode.
-.IP "acl_no_symlink_follow"
-Whether to check ACLs for symlinks or not. Valid values are
-yes,true,no and false. The default is to follow symlinks. This option
+If there are multiple root_prefix lines then the first one is used. This option
+has no effect in compare mode.
+.IP "acl_no_symlink_follow (type: bool, default: \fBfalse\fR)"
+Whether to check ACLs for symlinks or not. This option
 is available only if acl support is compiled in.
-.IP "warn_dead_symlinks"
-Whether to warn about dead symlinks or not. Valid values are
-yes,true,no and false. The default is not to warn about dead symlinks.
-.IP "config_version"
+.IP "warn_dead_symlinks (type: path, default: \fBfalse\fR)"
+Whether to warn about dead symlinks or not.
+.IP "config_version (type: string, default: \fB<empty>\fR)"
 The value of config_version is printed in the report and also printed
 to the database. This is for informational purposes only. It has no
 other functionality.
 .IP "Group definitions"
 If the parameter is not one of the previous parameters then it is
 regarded as a group definition. Value is then regarded as an
-expression. Expression is of the following form.
-.IP
-.nf
-    <predefined group>| <expr> + <predefined group>
-                      | <expr> - <predefined group>
-.fi
+attribute expression.
 .IP
 See DEFAULT GROUPS for an explanation of default predefined groups.
-Note that this is different from the way Tripwire(tm) does it.
 
 Group names are limited to alphanumeric charachters (\fBA-Za-z0-9\fP).
 .PP
 
-.SH REPORT CONFIG LINES
+.SH REPORT OPTIONS
 .PP
 
 .IP "report_url (type: URL, default: \fBstdout\fR)"
@@ -137,7 +124,7 @@ Multiple instances of the \fBreport_url\fR option are supported.
 
 .RS 3
 .nf
-.B report_url=file:///var/log/aide.log
+.B report_url=file:/var/log/aide.log
 .fi
 
 .RS 3
@@ -157,11 +144,11 @@ Write report to \fIstdout\fR.
 
 .RS 3
 .nf
-.B report_url=syslog://
+.B report_url=syslog:<LOG_FACILITY>
 .fi
 
 .RS 3
-Write report to \fIsyslog\fR.
+Write report to \fIsyslog\fR using \fILOG_FACILITY\fR.
 .RE
 .RE
 
@@ -172,7 +159,7 @@ The following report options are available (to take effect they
 have to be set before \fBreport_url\fR):
 .PP
 
-.IP "report_level (type: enum, default: \fBchanged_attributes\fR)"
+.IP "report_level (type: report level, default: \fBchanged_attributes\fR)"
 
 The report level to use. The available report levels are as follows:
 
@@ -310,15 +297,15 @@ report_ignore_e2fsattrs=EhI
 .RE
 .RE
 .PP
-.SH "SELECTION LINES"
+.SH "RULES"
 .PP
-AIDE supports three types of selection lines:
+AIDE supports three types of rules:
 
-Regular selection line:
+Regular rule:
 .RS 3
 
 .nf
-.B <regex> <group>
+.B <regex> <attribute expression>
 .fi
 
 Files and directories matching the regular expression are added to the
@@ -326,7 +313,7 @@ database.
 
 .RE
 
-Negative selection line:
+Negative rule:
 .RS 3
 
 .nf
@@ -338,11 +325,11 @@ to the database. The children of matching directories are also ignored.
 
 .RE
 
-Equals selection line:
+Equals rule:
 .RS 3
 
 .nf
-.B =<regex> <group>
+.B =<regex> <attribute expression>
 .fi
 
 Files and directories matching the regular expression are added to the
@@ -363,9 +350,9 @@ More in-depth discussion of the selection algorithm can be found in
 the AIDE manual.
 .IP
 .PP
-.SH "RESTRICTED SELECTION LINES"
+.SH "RESTRICTED RULES"
 .PP
-Restricted selection lines are like normal selection lines but can be
+Restricted rules are like normal rules but can be
 restricted to file types. The following file types are supported:
 
 .RS
@@ -390,26 +377,26 @@ restricted to file types. The following file types are supported:
 .RE
 
 The file types are separated by comma. The syntax of restricted
-selection lines is as follows:
+rules is as follows:
 
-Restricted regular selection line:
+Restricted regular rule:
 .RS 3
 .nf
-.B <regex> <file types> <group>
+.B <regex> <file types> <attribute expression>
 .fi
 .RE
 
-Restricted negative selection line:
+Restricted negative rule:
 .RS 3
 .nf
 .B !<regex> <file types>
 .fi
 .RE
 
-Restricted equals selection line:
+Restricted equals rule:
 .RS 3
 .nf
-.B =<regex> <file types> <group>
+.B =<regex> <file types> <attribute expression>
 .fi
 .RE
 
@@ -467,8 +454,7 @@ logic of @@ifdef statement but otherwise works similarly.
 (hostname, not hostname.example.com).
 .IP "@@{\fBVAR\fR}"
 @@{\fBVAR\fR} is replaced with the value of the variable \fBVAR\fR.
-If variable \fBVAR\fR is not defined an empty string is used. Unlike
-Tripwire(tm) @@VAR is NOT supported.
+If variable \fBVAR\fR is not defined an empty string is used.
 
 Variables are supported in strings and in regular expressions of selection
 lines.
@@ -493,6 +479,8 @@ Include \fBFILE\fR.
 The content of the file is used as if it were inserted in this part of the
 config file.
 
+The maximum depth of nested includes is 16.
+
 .IP "@@include \fBDIRECTORY\fR \fBREGEX\fR"
 Include all (regular) files found in \fBDIRECTORY\fR matching regular
 expression \fBREGEX\fR (sub-directories are ignored). The file are included in
@@ -508,6 +496,9 @@ part of the config file.
 \fB@x_include\fR is identical to \fB@@include\fR, except that if a config file
 is executable is is run and the output is used as config.
 
+If the execuable file exits with status greater than zero or writes to stderr
+aide stops with an error.
+
 For security reasons \fBDIRECTORY\fR and each executable config file must be
 owned by the current user and must not be group- or world-writable.
 
@@ -520,75 +511,126 @@ Enironment variable names are limited to alphanumeric charachters
 (\fBA-Za-z0-9\fP) and the underscore '\fB_\fR' and must not begin with a digit.
 
 .PP
-.SH URLS
+
+.SH TYPES
+
+.B bool
+.RS 3
+Valid values are \fByes\fR, \fBtrue\fR, \fBno\fR or \fBfalse\fR.
+.RE
+
+.B "attribute expression"
+.RS 3
+
+An attribute expression is of the following form:
+.IP
+.nf
+  <group>
+| <expr> + <group>
+| <expr> - <group>
+.fi
+.RE
+
+.B URLS
+.RS 3
 Urls can be one of the following. Input urls cannot be used as outputs
 and vice versa.
+.RS
+
 .IP "stdout"
 .IP "stderr"
 Output is sent to stdout, stderr respectively.
 .IP "stdin"
 Input is read from stdin.
-.IP "file://\fBfilename\fR"
-Input is read from \fBfilename\fR or output is written to
-\fBfilename\fR.
+.IP "file:/\fBpath\fR"
+Input is read from \fBpath\fR or output is written to \fBpath\fR.
 .IP "fd:\fBnumber\fR"
 Input is read from filedescriptor \fBnumber\fR or output is written to
 \fBnumber\fR.
-.PP
+.IP "syslog:\fBLOG_FACILITY\fR"
+Output is written to syslog using \fILOG_FACILITY\fR.
+
+.RE
+
+.RE
+
 .SH "DEFAULT GROUPS"
 .PP
-.IP "p:	permissions"
-.IP "ftype: file type"
-.IP "i:	inode"
-.IP "l:	link name"
-.IP "n:	number of links"
-.IP "u:	user"
-.IP "g:	group"
-.IP "s:	size"
-.IP "b:	block count"
-.IP "m:	mtime"
-.IP "a:	atime"
-.IP "c:	ctime"
+.B File attribute groups
+.RS 3
+.IP "\fBftype\fR: file type"
+.IP "\fBp\fR: permissions"
+.IP "\fBi\fR: inode"
+.IP "\fBl\fR: link name"
+.IP "\fBn\fR: number of links"
+.IP "\fBu\fR: user"
+.IP "\fBg\fR: group"
+.IP "\fBs\fR: size"
+.IP "\fBb\fR: block count"
+.IP "\fBm\fR: mtime"
+.IP "\fBa\fR: atime"
+.IP "\fBc\fR: ctime"
+.IP "\fBacl\fR: access control list (requires \fIlibacl\fR)"
+.IP "\fBselinux\fR: selinux attributes (requires \fIlibselinux\fR)"
+.IP "\fBxattrs\fR: extended attributes (requires \fIlibattr\fR)"
+.IP "\fBe2fsattrs\fR: file attributes on a second extended file system (requires \fIlibext2fs\fR)"
+.IP "\fBcaps\fR: file capabilities (requires \fIlibcap2\fR)"
+.RE
+
+Use 'aide --version' to show which compiled in groups are avaialbe.
+
+.B Special groups
+.RS 3
 .IP "S:	check for growing size"
 .IP "I:	ignore changed filename"
+\fBNote\fR: when c is also set in the same rule a ctime change is ignored when the name of a file is changed
+
 .IP "ANF:	allow new files
-.IP "ARF:	allow removed files
-.IP "md5:	md5 checksum"
-.IP "sha1: sha1 checksum"
-.IP "sha256: sha256 checksum"
-.IP "sha512: sha512 checksum"
-.IP "rmd160: rmd160 checksum"
-.IP "tiger: tiger checksum"
-.IP "haval: haval checksum"
-.IP "crc32:	crc32 checksum"
-.IP "gost: GOST R 34.11-94 checksum"
-.IP "whirlpool: whirlpool checksum"
-.IP "stribog256: GOST R 34.11-2012, 256 bit checksum (gcrypt library only)"
-.IP "stribog512: GOST R 34.11-2012, 512 bit checksum (gcrypt library only)"
-.IP "R:	p+ftype+i+l+n+u+g+s+m+c+md5+X"
-.IP "L:	p+ftype+i+l+n+u+g+X"
-.IP "E:	Empty group"
-.IP "X:	acl+selinux+xattrs+e2fsattrs+caps (if groups are explicitly enabled)"
-.IP ">:	Growing file p+ftype+l+u+g+i+n+S+X"
-.IP "H:	all compiled in hashsums"
-.LP
-.LP
-The following are available only when explicitly enabled using configure
-.IP "acl: access control list"
-.IP "selinux: selinux attributes"
-.IP "xattrs: extended attributes"
-.IP "e2fsattrs: file attributes on a second extended file system
-.IP "caps: file capabilities"
-.LP
-Please note that 'I' and 'c' are incompatible. When the name of a file
-is changed, its ctime is updated as well. When you put 'c' and 'I' in
-the same rule the, a changed ctime is silently ignored.
-.LP
 When 'ANF' is used, new files are added to the new database, but are
 ignored in the report.
-.LP
+
+
+.IP "ARF:	allow removed files
 When 'ARF' is used, files missing on disk are omitted from the new database,
 but are ignored in the report.
+
+.LP
+.LP
+
+.RE
+
+.B Hashsums groups
+.RS 3
+.IP "md5: MD5 checksum"
+.IP "sha1: SHA-1 checksum"
+.IP "sha256: SHA-256 checksum"
+.IP "sha512: SHA-512 checksum"
+.IP "rmd160: RIPEMD-160 checksum"
+.IP "tiger: tiger checksum"
+.IP "haval: haval256 checksum (\fIlibmhash\fR only)"
+.IP "crc32:	crc32 checksum"
+.IP "crc32b:	crc32 checksum (\fIlibmhash\fR only)"
+.IP "gost: GOST R 34.11-94 checksum"
+.IP "whirlpool: whirlpool checksum"
+.IP "stribog256: GOST R 34.11-2012, 256 bit checksum (\fIlibgcrypt\fR only)"
+.IP "stribog512: GOST R 34.11-2012, 512 bit checksum (\fIlibgcrypt\fR only)"
+.RE
+
+Use 'aide --version' to show which compiled hashsums are avaialbe.
+
+.B Compound groups
+.RS 3
+.IP "R:	p+ftype+i+l+n+u+g+s+m+c+md5+X"
+.IP "L:	p+ftype+i+l+n+u+g+X"
+.IP ">:	Growing file p+ftype+l+u+g+i+n+S+X"
+.IP "H:	all compiled in hashsums"
+.IP "X:	acl+selinux+xattrs+e2fsattrs+caps (if groups are compiled in)"
+.IP "E:	Empty group"
+.RE
+.LP
+
+Please run 'aide --version' to list the default compound groups.
+
 .PP
 .SH EXAMPLES
 .IP
@@ -612,13 +654,11 @@ Only /foo and its children (e.g. /foo/file and /foo/directory) are taken into
 the database. The children of sub-directories (e.g. /foo/directory/bar) are not
 added.
 .IP
-.B "\fBAll\fR=p+i+n+u+g+s+m+c+a+md5+sha1+tiger+rmd160"
+.B "\fBAll\fR=ftype+p+l+u+g+s+m+c+a+i+b+n+H+X"
 .LP
-This line defines group \fBAll\fR. It has all attributes and all
-md checksum functions. If you absolutely want all digest functions
-then you should enable mhash support and add
-+crc32+haval+gost to the end of the definition for
-\fBAll\fR. Mhash support can only be enabled at compile-time.
+This line defines group \fBAll\fR. It has all attributes, all compiled in
+hashsums (\fBH\fR) and all compiled in extra file attributes (\fBX\fR).
+See '--version' output for the compiled in hashsums and extra groups.
 .PP
 .SH HINTS
 In the following, the first is not allowed in AIDE. Use the latter instead.
@@ -633,5 +673,3 @@ In the following, the first is not allowed in AIDE. Use the latter instead.
 All trademarks are the property of their respective owners.
 No animals were harmed while making this webpage or this piece of
 software.
-
-

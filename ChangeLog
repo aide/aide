@@ -1,6 +1,8 @@
+2021-01-23  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Release aide 0.17
+
 2021-01-22  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
 	* Update manual pages
-	* Remove release.HOWTO
 	* Remove outdated aide.conf.in
 
 2021-01-21  Hannes von Haugwitz  <hannes@vonhaugwitz.com>

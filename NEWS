@@ -1,4 +1,4 @@
-Version 0.17 (UNRELEASED)
+Version 0.17 (2021-01-23)
     * BACKWARDS INCOMPATIBLE CHANGES
         - '--verbose' command line option and 'verbose' config option are no
           longer supported, use 'log_level' and 'report_level' options instead

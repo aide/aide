@@ -1,3 +1,83 @@
+Version 0.17 (UNRELEASED)
+    * BACKWARDS INCOMPATIBLE CHANGES
+        - '--verbose' command line option and 'verbose' config option are no
+          longer supported, use 'log_level' and 'report_level' options instead
+        - '--report' command line option is no longer supported, use
+          'report_url' config option instead
+        - 'ignore_list' config option is no longer supported, use
+          'report_ignore_changed_attrs' instead
+        - 'report_attributes' config option is no longer supported, use
+          'report_force_attrs' instead
+        - (restricted) regular rules must start with literal '/', i.e. the rule
+          cannot begin with a macro variable
+        - config lines must end with new line
+        - '@' and ' ' in the configuration are now escaped with '\', that means
+          to match a '\' you have to use four backslashes '\\\\' in your rules
+        - 'gzip_dbout=false' fails now with config error when no zlib support
+          is compiled in
+        - remove '--with-initial-errors' configure option
+        - remove PostgreSQL database backend support
+        - remove Sun ACL support
+        - remove config and database signing support
+    * Enhancements:
+        - add new '--log-level' command line option and 'log_level' config option
+        - introduce named log levels
+        - add new 'report' log level to help to debug rule matching
+        - add new 'config' log level to help to debug config and rule parsing
+        - aad new '--dry-init' command
+        - add new '--path-check' command
+        - add directory support for @@include
+        - add new @@x_include config macro
+        - add new @@x_include_setenv config macro
+        - add new default compound group 'H' (all compiled-in hashsums)
+        - add support for per-report_url options
+        - add new 'report_level' config option
+        - add new 'report_append' config option
+        - add exit code 21 for file lock errors
+        - add default config values, available hashsums and compound groups
+          to '--version' output
+        - add Linux capabilities support
+        - show changed attributes in 'different attributes' message
+        - enable 'gost' and 'whirlpool' checksums when using gcrypt
+        - add 'stribog256' and 'stribog512' gcrypt algorithms
+        - add config file names to log output
+    * Miscellaneous behaviour changes:
+        - 'report_summarize_changes': hashsum changes are now indicated with 'H'
+        - print '--help' and '--verion' output to stdout
+        - log messages and errors are always written to stderr
+        - initialise report URLs after configuration parsing
+        - allow empty values for macro variables
+        - SIGUSR1 now toggles debug log level
+        - fail on errors in regular expressions during config parsing
+        - fail on invalid URLs during config check
+        - Fail on double slash in rule path
+        - cache log lines when 'log_level' is not yet set
+    * Deprecations:
+        - 'database' config option is now deprecated, use 'database_in' instead
+        - 'summarize_changes' config option is now deprecated, use
+          'report_summarize_changes' instead
+        - 'grouped' config option is now deprecated, use 'report_grouped'
+          instead
+        - non-alphanumeric group names are deprecated
+    * Notable bug fixes:
+       - fix line numbers in log messages
+       - remove warning when input database is '/dev/null'
+       - correctly handle UTF-8 in path names and rules
+       - fix compilation with curl and gcrypt
+       - warn on unsupported hash algorithms
+       - improve large-file support
+    * Build system changes:
+        - require C99 compatible compiler
+        - require pkg-config
+        - '--disable-default-db configure option disables default database values
+        - '--without-config' configure option now disables default config file
+    * Remove obsolete aide-attributes.sh script
+    * Remove outdated example aide.conf and manual.html
+    * Fix compiler warnings
+    * Update documentation
+    * Minor bug fixes
+    * Code clean up
+
 Version 0.16.2 (2019-05-19)
     * Bug fixes
         - Fix handling of directory-restricted negative rules

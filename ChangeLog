@@ -1,23 +1,247 @@
+2021-01-22  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Update manual pages
+	* Remove release.HOWTO
+	* Remove outdated aide.conf.in
+
+2021-01-21  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Update README
+	* Print --help to stdout
+	* Remove manual.html
+	* Add missing free()
+	* Limit number of nested includes
+
+2021-01-18  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Add @@x_include_setenv macro
+	* Fix segfault when using variable without value
+
+2021-01-17  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Update copyright notices
+	  - reformat copyright statements
+	  - fix outdated FSF address
+
+2021-01-16  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Don't use autoconf input files for man pages
+	* Add exit code 21 for file lock errors
+	* Check for secure permissions of executable config files
+	* Fix rule order in database lexer
+	* Add missing source files to check_aide_SOURCES
+	* Check return value after dynamic memory allocations
+	* Allow empty line with white spaces
+	* Fix off-by-one error and several memory leaks
+
+2021-01-10  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Add --dry-init command (closes #28)
+	* Handle stderr during file execution
+	* Fix stdout processing during script execution
+
+2021-01-09  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Add @@x_include macro (closes #6)
+	* Adjust directory support for @@include
+	  - use regular expression filter
+	  - follow symbolic links
+	  - don't follow sub-directories
+
+2021-01-07  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Fix compiler warnings in report code
+	* Fix default db values
+	* Add --disable-default-db configure option
+	* Add support to disable default config file
+
+2021-01-06  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Add directory support for @@include (closes #4)
+	* Fail on 'verbose' option only on evaluation (closes #84)
+	* Add 'report_append' option (closes: #5)
+	* Remove '$Header$' tag from copyright notice
+
+2021-01-05  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Add --path-check command
+	* Refactor restriction code
+	* Log command in 'info' log level
+	* Initialise report URLs after configuration parsing
+
+2021-01-04  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Check for negative matches in parent directories
+
+2021-01-03  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Reduce logging in 'rule' log level
+	* Fix equal rule matching
+
+2021-01-02  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Adjust log message about variable redefinition
+	* Adjust log level for 'rules referring to non-existent directory' message
+	* Remove notice about c and I flags enabled at the same time
+	* Extend '--version' output
+	  - output is written to stdout (instead of stderr)
+	  - add default config values
+	  - add available hashsums
+	  - add default compound groups
+	* Fix default 'database_in' value
+	* Add new default compound group 'H'
+
+2021-01-01  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Fix several segmentation faults
+	* Fail on double slash in rule path
+
+2020-12-30  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Refactor logging and config parsing code
+	  - Logging related changes:
+	    - add log_level option (closes: #21)
+	    - add -L, --log-level command line option
+	    - remove 'verbose' config option
+	    - remove -V, --verbose command line option
+	    - introduce named log levels
+	    - add 'config' log level (closes: #37)
+	    - SIGUSR1 now toggles debug log level
+	    - add config file names to log output
+	    - cache log lines until log level is set
+	    - log messages and errors are always written to stderr
+	    - remove warning when input database is '/dev/null' (closes: #35)
+	  - Config parsing related changes:
+	    - add 'database_in' option (deprecates 'database' option)
+	    - handle UTF-8 in path names and rules (closes: #11)
+	    - '@' and ' ' in config/rules are now escaped with '\' (closes: #50)
+	    - fix line numbers in log messages (closes: #43)
+	    - config lines must end with a newline
+	    - (restricted) regular rules must start with '/'
+	    - allow empty value for macros (closes: #45)
+	    - early fail on regular expression errors
+	    - fail on invalid/unsupported URLs
+	    - deprecate non-alphanumeric characters in group names
+	    - code cleanup
+
+2020-12-20  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Remove config and database signing code
+	  - remove '--with-confighmactype' configure option
+	  - remove '--with-confighmackey' configure option
+	  - remove '--with-dbhmactype' configure option
+	  - remove '--with-dbhmackey' configure option
+
+2020-12-18  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* aide.conf.5: clarify negative matching behaviour (closes: #82)
+	* aide.conf.5: fix example to ignore /dev directory structure
+
+2020-12-13  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Add 'stribog256' and 'stribog512' gcrypt algorithms (closes: #69)
+	* Adjust indent of changed attributes
+	* Remove unused `attr` field from seltree struct
+	* Remove obsolete aide-attributes.sh script
+	* Refactor attributes and hashsum code
+	  - change associated letter for message digests changes to 'H'
+
+2020-12-12  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Fix report when using report_ignore_e2fsattrs
+	* Document removal of 'ignore_list' and 'report_attributes' options
+	* Remove unused code
+
+2020-08-09  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Fix compilation with curl
+	  - use pkg-config to get link flags
+	* Remove db name alias code
+	* Remove (unmaintained) Solaris ACL code
+	  - remove '--with-sun-acl' configure option
+	* Remove PostgreSQL database backend support
+
+2020-07-14  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Fix report of added files (closes #79)
+
+2020-07-13  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Fix report when using --update (closes #78)
+	* Fix condition for 'couldn't open file' message (closes #77)
+
+2020-07-11  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Enable gost and whirlpool checksums with gcrypt
+	* Fix compilation with gcrypt
+
+2020-07-09  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Add support for per-report_url options (closes #19)
+	  - add 'report_level' option (see #21)
+	  - add 'report_summarize_changes' option (deprecates 'summarize_changes' option)
+	  - add 'report_grouped' option (deprecates 'grouped' option)
+	  - remove '--with-initial-errors' configure option
+	  - remove -r, --report command line option
+	  - write non-report messages to stderr
+	  - handle report_ignore_added_attrs, report_ignore_removed_attrs,
+	    report_ignore_changed_attrs, report_force_attrs as config options
+	  - code cleanup
+
+2020-06-16  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Refactor seltree code
+	  - add seltree_struct.h
+	  - add seltree.c
+	  - add rx_rule.h and rx_rule.c
+	  - fail on errors in regular expressions
+	  - code cleanup
+
+2020-06-14  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Fix compiler warnings in postgresql code
+	* Fix compilation with postgresql support
+	  - use pkg-config to get link flags
+	* Update copyright notices
+
+2020-05-04  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Rephrase init database warning
+
+2020-02-25  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Remove useless pointer dereference
+
+2020-01-11  Ferenc Erki  <erkiferenc@gmail.com>
+	* Fix typos
+
+2019-12-19  Peter Whittaker  <pww@EdgeKeep.com>
+	* Fix typo in aide.conf.5.in
+
+2019-12-01  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Add 'tests/check_aide.h' to check_aide_SOURCES
+	* Add unit test for attributes.c
+	* Remove unused code
+	* Rename compare_db.[hc] to report.[hc]
+
+2019-09-29  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Rename report.h to error.h
+	* Remove unused local m4 macros
+	* Remove C99 compliant snprintf implementation
+
+2019-09-22  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Show changed attributes in 'different attributes' message
+
+2019-09-22  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Refactor attributes code
+	* Remove unsued functions
+	* Use AC_SYS_LARGEFILE for large-file support (closes #16)
+	  - require C99 compatible compiler
+	  - stop using readdir_r in favor of readdir
+	  - remove unused 'size_o member in db_line struct
+	  - '--disable-largefile' now disables LFS
+
+2019-09-21  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Fix some compiler warnings
+
+2019-07-17  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* aide.conf.5: fix position of 'C' letter
+
+2019-07-17  Julien DUBOIS  <julien.dubois.2600@gmail.com>
+	* Add support for Linux capabilities
+
+2019-07-06  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Change associated letter for message digests changes
+	* Remove unsued lex/yacc code
+
 2019-05-19  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
 	* Release version 0.16.2
 
 2019-05-18  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
-
 	* Fix handling of directory-restricted negative rules (closes #24)
 	* Don't lock '/dev/null' when used as output database (closes #26)
 	* Fix parsing of rules containing '?' quantifier
 
 2019-04-29  Julien DUBOIS  <julien.dubois.2600@gmail.com>
-
 	* Fix extended attributes support (xattrs)
 	* README: fix typo
 
 2019-03-20  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
-
 	* Add 'autoreconf-clean' Makefile target
 
 2019-03-16  Lukáš Jirkovský  <l.jirkovsky@gmail.com>
-
 	* Fix processing of go files
 
 2019-02-25 Hannes von Haugwitz <hannes@vonhaugwitz.com>
@@ -32,9 +256,9 @@
 2019-02-10 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Move to GitHub
 	* Update documentation
-	 - move end user mailing list to ipi.fi
-	 - fix tabs/whitespaces
-	 - add mssing release date for 0.16 in NEWS file
+	  - move end user mailing list to ipi.fi
+	  - fix tabs/whitespaces
+	  - add mssing release date for 0.16 in NEWS file
 	* Update README
 	  - mention AIDE website aide.github.io
 	  - remove broken links

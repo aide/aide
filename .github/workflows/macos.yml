@@ -1,0 +1,31 @@
+name: macos
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, macos-11.0]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install deps
+        run: brew install pkg-config libgcrypt libgpg-error pcre
+      - name: autoconf
+        run: sh autogen.sh
+      - name: configure
+        run: |
+          ./configure --disable-static \
+                      --with-zlib \
+                      --with-curl \
+                      --sysconfdir=#{etc} \
+                      --prefix=#{prefix}
+      - name: make
+        run: make
+      - name: make check
+        run: make check
+      - name: make distcheck
+        run: make distcheck

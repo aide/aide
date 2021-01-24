@@ -11,7 +11,7 @@ jobs:
         os: [macos-latest, macos-11.0]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v1
       - name: Install deps
         run: brew install pkg-config libgcrypt libgpg-error pcre
       - name: autoconf

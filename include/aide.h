@@ -33,7 +33,10 @@
 #if HAVE_FCNTL_H
 # include <fcntl.h>
 #endif
+
+#ifndef __APPLE__
 #include "error.h"
+#endif /* __APPLE__ */
 
 #ifndef TEMP_FAILURE_RETRY
 /* Evaluate EXPRESSION, and repeat as long as it returns -1 with errno'

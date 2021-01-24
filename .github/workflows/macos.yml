@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Install deps
-        run: brew install pkg-config libgcrypt libgpg-error pcre
+        run: brew install autoconf automake pkg-config libgcrypt libgpg-error pcre
       - name: autoconf
         run: sh autogen.sh
       - name: configure

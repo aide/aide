@@ -392,8 +392,11 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db)
     str = node->changed_attrs?diff_attributes(0, node->changed_attrs):NULL;
     log_msg(LOG_LEVEL_DEBUG,"changed attributes for entry '%s': %s", (node->old_data)->filename, str?str:"(none)");
     free(str);
+    str = ((node->old_data)->attr^(node->new_data)->attr)?diff_attributes((node->old_data)->attr, (node->new_data)->attr):NULL;
+    log_msg(LOG_LEVEL_DEBUG,"different attributes for entry '%s': %s", (node->old_data)->filename, str?str:"(none)");
+    free(str);
     /* Free the data if same else leave as is for report_tree */
-    if(node->changed_attrs==RETOK){
+    if(node->changed_attrs==RETOK && !((node->old_data)->attr^(node->new_data)->attr)) {
       log_msg(LOG_LEVEL_DEBUG, "free old data (node '%s' is unchanged)", node->path);
       node->changed_attrs=0;
 

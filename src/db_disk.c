@@ -190,7 +190,7 @@ db_line *db_readline_disk (bool dry_run)
 		add = check_rxtree (&fullname[conf->root_prefix_length], conf->tree, &rule, get_restriction_from_perm(fs.st_mode), dry_run);
 
 		if (add > 0) {
-            log_msg(LOG_LEVEL_DEBUG, "get file atttributes '%s'", &fullname[conf->root_prefix_length]);
+            log_msg(LOG_LEVEL_DEBUG, "get file attributes '%s'", &fullname[conf->root_prefix_length]);
 			fil = get_file_attrs (fullname, rule->attr, &fs, dry_run);
 
 			if (fil != NULL) {
@@ -235,7 +235,7 @@ recursion:
 		add = check_rxtree (&fullname[conf->root_prefix_length], conf->tree, &rule, get_restriction_from_perm(fs.st_mode), dry_run);
 
 		if (add > 0) {
-            log_msg(LOG_LEVEL_DEBUG, "get file atttributes '%s'", &fullname[conf->root_prefix_length]);
+            log_msg(LOG_LEVEL_DEBUG, "get file attributes '%s'", &fullname[conf->root_prefix_length]);
 			fil = get_file_attrs (fullname, rule->attr, &fs, dry_run);
 
 			if (fil == NULL) {

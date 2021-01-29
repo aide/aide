@@ -158,7 +158,7 @@ static int db_file_read_spec(database* db){
     }
 
     default : {
-      LOG_DB_FORMAT_LINE(LOG_LEVEL_ERROR, unexpeted token while reading dbspec: '%s', dbtext);
+      LOG_DB_FORMAT_LINE(LOG_LEVEL_ERROR, unexpected token while reading dbspec: '%s', dbtext);
       return RETFAIL;
     }
     }

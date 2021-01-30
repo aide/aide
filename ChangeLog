@@ -1,5 +1,6 @@
 2021-01-30  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
 	* Require file type for --path-check (closes #88)
+	* Release aide 0.17.1
 
 2021-01-29  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
 	* Fix some typos in log messages

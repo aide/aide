@@ -1,3 +1,18 @@
+2021-01-30  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Require file type for --path-check (closes #88)
+
+2021-01-29  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Fix some typos in log messages
+
+2021-01-27  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Fix issue where 'different attributes' message is not shown
+
+2021-01-24  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Fix typos in aide.conf manual page
+
+2021-01-24  rui  <rui@meetup.com>
+	* Remove leftover include of 'error.h'
+
 2021-01-23  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
 	* Release aide 0.17
 

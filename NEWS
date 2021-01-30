@@ -1,3 +1,9 @@
+Version 0.17.1 (2021-01-30)
+    * Require file type for --path-check
+    * Fix issue where 'different attributes' message is not shown
+    * Remove leftover include of 'error.h' (fixes build on macOS)
+    * Fix typos
+
 Version 0.17 (2021-01-23)
     * BACKWARDS INCOMPATIBLE CHANGES
         - '--verbose' command line option and 'verbose' config option are no

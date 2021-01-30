@@ -74,7 +74,7 @@ static void usage(int exitvalue)
 	    "  -E, --compare\t\tCompare two databases\n\n"
 	    "Miscellaneous:\n"
 	    "  -D,\t\t\t--config-check\t\t\tTest the configuration file\n"
-	    "  -p [file_type:]path\t--path-check=[file_type:]path\tMatch path against rule tree\n"
+	    "  -p file_type:path\t--path-check=file_type:path\tMatch file type and path against rule tree\n"
 	    "  -v,\t\t\t--version\t\t\tShow version of AIDE and compilation options\n"
 	    "  -h,\t\t\t--help\t\t\t\tShow this help message\n\n"
 	    "Options:\n"
@@ -290,22 +290,24 @@ static void read_param(int argc,char**argv)
             if(conf->action==0){
                 conf->action=DO_DRY_RUN;
                 log_msg(LOG_LEVEL_INFO,"(--path-check): path check command");
-                int index = 0;
-                if (strlen(optarg) >= 3 && optarg[0] != '/' && optarg[1] == ':') {
+
+                if (strlen(optarg) >= 3 && optarg[1] == ':') {
                     RESTRICTION_TYPE file_type = get_restriction_from_char(*optarg);
                     if (file_type == FT_NULL) {
-                        INVALID_ARGUMENT("---path-check", invalid file type '%c' (see man aide for details), *optarg)
+                        INVALID_ARGUMENT("--path-check", invalid file type '%c' (see man aide for details), *optarg)
                     } else {
                         conf->check_file_type = file_type;
-                        index = 2;
+                        if (optarg[2] != '/') {
+                            INVALID_ARGUMENT("--path-check", '%s' needs to be an absolute path, optarg+2)
+                        } else {
+                            conf->check_path = checked_strdup(optarg+2);
+                            log_msg(LOG_LEVEL_INFO,"(--path-check): set path to '%s' (filetype: %c)", optarg+2, get_restriction_char(conf->check_file_type));
+                        }
                     }
-                }
-                if (optarg[index] != '/') {
-                    INVALID_ARGUMENT("--path-check", '%s' needs to be an absolute path, optarg)
                 } else {
-                    conf->check_path = checked_strdup(optarg+index);
-                    log_msg(LOG_LEVEL_INFO,"(--path-check): set path to '%s' (filetype: %c)", optarg+index, get_restriction_char(conf->check_file_type));
+                    INVALID_ARGUMENT("--path-check", %s, "missing file type or path (see man aide for details)")
                 }
+
             } else {
                 INVALID_ARGUMENT("--path-check", %s, "cannot have multiple commands on a single commandline")
                 exit(INVALID_ARGUMENT_ERROR);

@@ -38,10 +38,11 @@ database=<url> and database_new=<url>.
 Stops after reading in the configuration file. Any errors will be reported.
 To change the log level in this mode please use the \fB--log-level\fR
 command line parameter.
-.IP "--path-check=[\fIfile_type\fR:]\fIpath\fR, -p [\fIfile_type\fR:]\fIpath\fR"
-Read configuration and match provided file_type (optional, default: \fBf\fP)
-and path against rule tree. See RESTRICTED RULES section in aide.conf (5) for
-supported file types). The path needs to be absolute.
+.IP "--path-check=\fIfile_type\fR:\fIpath\fR, -p \fIfile_type\fR:\fIpath\fR"
+Read configuration and match provided file_type and path against rule tree. The
+path is independent of what is in the actual file system and needs to be
+absolute. See RESTRICTED RULES section in aide.conf (5) for supported file
+types.
 
 To change the log level in this mode please use the \fB--log-level\fR command line parameter.
 

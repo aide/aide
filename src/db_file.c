@@ -265,7 +265,7 @@ char** db_readline_file(database* db) {
                         LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, '%s' set field '%s' (position %d): '%s', s[0], attributes[db->fields[i]].db_name, i, dbtext);
                         s[db->fields[i]] = checked_strdup(dbtext);
                     } else {
-                        LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, skip unknown field '%s' (position: %d): '%s', attributes[db->fields[i]].db_name, i, dbtext);
+                        LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, skip unknown/redefined field at position: %d: '%s', i, dbtext);
                     }
                 } else {
                     LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, expected newline or end of file (skip found string '%s'), dbtext);

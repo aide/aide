@@ -112,16 +112,16 @@ static struct md_container *init_db_attrs(url_t *u) {
     return mdc;
 }
 
-static db_line *close_db_attrs (struct md_container *mdc, char *url_value) {
+static db_line *close_db_attrs (database *db) {
     db_line *line = NULL;
-    if (mdc != NULL) {
-        close_md(mdc);
+    if (db->mdc != NULL) {
+        close_md(db->mdc);
         line = checked_malloc(sizeof(struct db_line));
-        line->filename = url_value;
+        line->filename = (db->url)->value;
         line->perm = 0;
         line->attr = conf->db_attrs;
-        md2line(mdc, line);
-        free(mdc);
+        md2line(db->mdc, line);
+        free(db->mdc);
     }
     return line;
 }
@@ -519,9 +519,9 @@ void db_close() {
   }
   }
   }
-  conf->database_in.db_line = close_db_attrs(conf->database_in.mdc, conf->database_in.url->value);
-  conf->database_out.db_line = close_db_attrs(conf->database_out.mdc, conf->database_out.url->value);
-  conf->database_new.db_line = close_db_attrs(conf->database_new.mdc, conf->database_new.url->value);
+  conf->database_in.db_line = close_db_attrs(&conf->database_in);
+  conf->database_out.db_line = close_db_attrs(&conf->database_out);
+  conf->database_new.db_line = close_db_attrs(&conf->database_new);
 }
 
 void free_db_line(db_line* dl)

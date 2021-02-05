@@ -1,3 +1,7 @@
+Version 0.17.2 (UNRELEASED)
+    * Fix null pointer dereference in db_close()
+    * Fix out-of-bounds read of attributes array
+
 Version 0.17.1 (2021-01-30)
     * Require file type for --path-check
     * Fix issue where 'different attributes' message is not shown

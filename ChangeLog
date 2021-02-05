@@ -1,3 +1,7 @@
+2021-02-02  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Fix null pointer dereference in db_close()
+	* Fix out-of-bounds read of attributes array
+
 2021-01-30  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
 	* Require file type for --path-check (closes #88)
 	* Release aide 0.17.1

@@ -348,7 +348,7 @@ DB_ATTR_TYPE do_groupdef(char* group,DB_ATTR_TYPE value)
   }
   /* This is a new group */
   s=checked_malloc(sizeof(symba));
-  s->name=group;
+  s->name=checked_strdup(group);
   s->ival=value;
   conf->groupsyms=list_append(conf->groupsyms,(void*)s);
   return 0;

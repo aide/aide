@@ -1,3 +1,6 @@
+Version 0.17.3 (UNRELEASED)
+    * Fix group usage in '--after' config line
+
 Version 0.17.2 (2021-02-06)
     * Fix null pointer dereference in db_close()
     * Fix out-of-bounds read of attributes array

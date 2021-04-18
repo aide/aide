@@ -174,6 +174,23 @@ The report level to use. The available report levels are as follows:
 
 \fBchanged_attributes\fP: additionally print details about changed entries
 
+.RS
+.B Example:
+.RS 3
+
+.EX
+File: /var/lib/apt/extended_states
+ Perm      : -rw-r--r--                       | -rw-------
+ Uid       : 0                                | 106
+.EE
+
+.RE
+
+The left column shows the old value (e.g. from the \fIdatabase_in\fR database) and the right
+column shows the new value (e.g. from the file system).
+
+.RE
+
 \fBadded_removed_attributes\fP: additionally print details about added and removed attributes
 
 \fBadded_removed_entries\fP: additionally print details about added and removed entries

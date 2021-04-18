@@ -166,6 +166,10 @@ rule_statement: TSELRXRULE string_expression attribute_expression { $$ = new_rul
               | TSELRXRULE string_expression restriction_expression attribute_expression { $$ = new_rule_statement(AIDE_SELECTIVE_RULE, $2, $3, $4); }
               | TEQURXRULE string_expression restriction_expression attribute_expression { $$ = new_rule_statement(AIDE_EQUAL_RULE, $2, $3, $4); }
               | TNEGRXRULE string_expression restriction_expression { $$ = new_rule_statement(AIDE_NEGATIVE_RULE, $2, $3, NULL); }
+              | TNEGRXRULE string_expression restriction_expression attribute_expression {
+                log_msg(LOG_LEVEL_ERROR, "%s:%d: negative rule must not have an attribute expression (line: '%s')", conf_filename, conf_linenumber, conf_linebuf);
+                YYABORT;
+              }
 
 %%
 

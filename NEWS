@@ -1,3 +1,6 @@
+Version 0.18 (UNRELEASED)
+    * Improve logging
+
 Version 0.17.3 (2021-02-10)
     * Fix group usage in '--after' config line
 

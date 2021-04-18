@@ -1,3 +1,7 @@
+2021-04-18	Hannes von Haugwitz  <hannes@vonhaugwitz.com>
+	* Improve error message for negative rule with an
+	  attribute expression (closes: #90)
+
 2021-02-10  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
 	* Release aide 0.17.3
 

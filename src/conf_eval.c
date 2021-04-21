@@ -238,6 +238,7 @@ static void eval_config_statement(config_option_statement statement, int linenum
         BOOL_CONFIG_OPTION_CASE(REPORT_APPEND_OPTION, report_append)
         BOOL_CONFIG_OPTION_CASE(REPORT_SUMMARIZE_CHANGES_OPTION, report_summarize_changes)
         BOOL_CONFIG_OPTION_CASE(WARN_DEAD_SYMLINKS_OPTION, warn_dead_symlinks)
+        BOOL_CONFIG_OPTION_CASE(CONFIG_CHECK_WARN_UNRESTRICTED_RULES, config_check_warn_unrestricted_rules)
         case REPORT_LEVEL_OPTION:
             str = eval_string_expression(statement.e, linenumber, filename, linebuf);
             if(!do_reportlevel(str, linenumber, filename, linebuf)) {
@@ -608,9 +609,13 @@ static RESTRICTION_TYPE eval_restriction_expression(restriction_expression *expr
 }
 
 static void eval_rule_statement(rule_statement statement, int linenumber, char *filename, char* linebuf) {
+    /* not to be freed, reused in add_rx_rule_to_tree */
+    char *rx = eval_string_expression(statement.path, linenumber, filename, linebuf);
+     if (conf->action&DO_DRY_RUN && conf->config_check_warn_unrestricted_rules && !statement.restriction) {
+         LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_WARNING, %s '%s' is unrestricted, get_rule_type_long_string(statement.type), rx)
+     }
     if(!add_rx_rule_to_tree(
-            /* not to be freed, reused in add_rx_rule_to_tree */
-            eval_string_expression(statement.path, linenumber, filename, linebuf),
+            rx,
             eval_restriction_expression(statement.restriction, linenumber, filename, linebuf),
             eval_attribute_expression(statement.attributes, linenumber, filename, linebuf),
             statement.type,

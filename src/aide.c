@@ -373,6 +373,7 @@ static void setdefaults_before_config()
 #endif
       ;
   conf->config_version=NULL;
+  conf->config_check_warn_unrestricted_rules = false;
   
 #ifdef WITH_ACL
   conf->no_acl_on_symlinks=0; /* zero means don't do ACLs on symlinks */

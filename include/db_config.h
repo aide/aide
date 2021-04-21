@@ -210,6 +210,7 @@ typedef struct db_config {
   
   char* config_file;
   char* config_version;
+  bool config_check_warn_unrestricted_rules;
 
   int database_add_metadata;
   int report_detailed_init;

@@ -423,6 +423,13 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
   return (CONFIGOPTION);
 }
 
+<CONFIG>"config_check_warn_unrestricted_rules" {
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (CONFIG_CHECK_WARN_UNRESTRICTED_RULES), conftext)
+  conflval.option = CONFIG_CHECK_WARN_UNRESTRICTED_RULES;
+  BEGIN (STRINGEQHUNT);
+  return (CONFIGOPTION);
+}
+
 <CONFIG>({G})+ { /* group definition */
   conflval.s=checked_strdup(conftext);
   LOG_LEX_TOKEN(lex_log_level, TGROUP, conftext)

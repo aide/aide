@@ -50,6 +50,7 @@ typedef enum config_option {
     WARN_DEAD_SYMLINKS_OPTION,
     VERBOSE_OPTION,
     CONFIG_VERSION,
+    CONFIG_CHECK_WARN_UNRESTRICTED_RULES,
 } config_option;
 
 typedef enum attribute_operator {

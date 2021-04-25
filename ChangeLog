@@ -1,5 +1,6 @@
 2021-04-25	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Refactor e2fsattrs code
+	* Improve warning message for cutoff database line (closes: #91)
 
 2021-04-21	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Add 'config_check_warn_unrestricted_rules' option (closes: #44)

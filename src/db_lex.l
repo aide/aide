@@ -73,6 +73,12 @@ LOG_LEVEL db_lex_log_level = LOG_LEVEL_DEBUG;
             yyless(0);
             BEGIN(DB);
            }
+<INITIAL>^[^\n]* {
+            (db->lineno)++;
+            LOG_DB_FORMAT_LINE(db_lex_log_level, db_lex: parse '%s', dbtext)
+            yyless(0);
+            BEGIN(DB);
+           }
 
 <DB>^"@@db_spec" {
     LOG_AND_RETURN(TDBSPEC)
@@ -93,10 +99,6 @@ LOG_LEVEL db_lex_log_level = LOG_LEVEL_DEBUG;
 
 <DB>"#"[^\n]* { /* inline comment */
     LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, db_lex: skip inline comment: '%s', dbtext)
-}
-
-<DB>^"/"({C})* {
-    LOG_AND_RETURN(TPATH)
 }
 
 <DB>({C})+ {

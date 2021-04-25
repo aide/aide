@@ -226,13 +226,6 @@ char** db_readline_file(database* db) {
         }
         case TEOF:
         case TNEWLINE: {
-            if (found_enddb) {
-                LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, %s, "stop reading database")
-                return s;
-            } else if (token == TEOF) {
-                LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, %s, "missing '@@end_db' in database")
-                return s;
-            }
             if (s) {
                 if (i<db->num_fields-1) {
                     LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, cutoff database line '%s' found (field '%s' (position: %d) is missing) (skip line), s[0], attributes[db->fields[i+1]].db_name, i+1);
@@ -246,19 +239,17 @@ char** db_readline_file(database* db) {
                     return s;
                 }
             }
-            break;
-        }
-        case TPATH: {
-            i = 0;
-            s = checked_malloc(sizeof(char*)*num_attrs);
-            for(ATTRIBUTE j=0; j<num_attrs; j++){
-                s[j]=NULL;
+            if (found_enddb) {
+                LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, %s, "stop reading database")
+                return s;
+            } else if (token == TEOF) {
+                LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, %s, "missing '@@end_db' in database")
+                return s;
             }
-            s[i] = checked_strdup(dbtext);
-            LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, '%s' set field '%s' (position %d): '%s', s[0], attributes[db->fields[i]].db_name, i, dbtext);
             break;
         }
         case TSTRING: {
+            if (!found_enddb) {
             if (s) {
                 if (++i<db->num_fields) {
                     if (db->fields[i] != attr_unknown) {
@@ -271,7 +262,16 @@ char** db_readline_file(database* db) {
                     LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, expected newline or end of file (skip found string '%s'), dbtext);
                 }
             } else {
-                LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, expected newline or end of file (skip found string '%s'), dbtext);
+                i = 0;
+                s = checked_malloc(sizeof(char*)*num_attrs);
+                for(ATTRIBUTE j=0; j<num_attrs; j++){
+                    s[j]=NULL;
+                }
+                s[i] = checked_strdup(dbtext);
+                LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, '%s' set field '%s' (position %d): '%s', s[0], attributes[db->fields[i]].db_name, i, dbtext);
+            }
+            } else {
+                LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, expected newline or end of file (skip found string '%s'), dbtext)
             }
             break;
         }

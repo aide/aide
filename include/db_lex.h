@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2006, 2020 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002, 2006, 2020-2021 Rami Lehti, Pablo Virolainen,
  *               Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -36,7 +36,6 @@ typedef enum {
     TBEGIN_DB = 1,
     TEND_DB,
     TSTRING,
-    TPATH,
     TDBSPEC,
     TUNKNOWN,
     TNEWLINE,

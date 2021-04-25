@@ -46,6 +46,9 @@
 #ifdef WITH_CURL
 #include "fopen.h"
 #endif
+#ifdef WITH_E2FSATTRS
+#include "e2fsattrs.h"
+#endif
 
 #define BUFSIZE 4096
 #define ZBUFSIZE 16384
@@ -484,59 +487,18 @@ void do_rootprefix(char* val, int linenumber, char* filename, char* linebuf) {
 }
 
 #ifdef WITH_E2FSATTRS
-#define easy_e2fsattrs_case(c,f) \
-case c: { \
-    conf->report_ignore_e2fsattrs|=f; \
-    break; \
-}
-
 void do_report_ignore_e2fsattrs(char* val, int linenumber, char* filename, char* linebuf) {
     conf->report_ignore_e2fsattrs = 0UL;
-    while (*val) {
-        switch(*val){
-            /* source for mappings see report.c */
-            easy_e2fsattrs_case('s',EXT2_SECRM_FL)
-            easy_e2fsattrs_case('u',EXT2_UNRM_FL)
-            easy_e2fsattrs_case('S',EXT2_SYNC_FL)
-            easy_e2fsattrs_case('D',EXT2_DIRSYNC_FL)
-            easy_e2fsattrs_case('i',EXT2_IMMUTABLE_FL)
-            easy_e2fsattrs_case('a',EXT2_APPEND_FL)
-            easy_e2fsattrs_case('d',EXT2_NODUMP_FL)
-            easy_e2fsattrs_case('A',EXT2_NOATIME_FL)
-            easy_e2fsattrs_case('c',EXT2_COMPR_FL)
-            easy_e2fsattrs_case('B',EXT2_COMPRBLK_FL)
-            easy_e2fsattrs_case('Z',EXT2_DIRTY_FL)
-            easy_e2fsattrs_case('X',EXT2_NOCOMPR_FL)
-#ifdef EXT2_ECOMPR_FL
-            easy_e2fsattrs_case('E',EXT2_ECOMPR_FL)
-#else
-            easy_e2fsattrs_case('E',EXT4_ENCRYPT_FL)
-#endif
-            easy_e2fsattrs_case('j',EXT3_JOURNAL_DATA_FL)
-            easy_e2fsattrs_case('I',EXT2_INDEX_FL)
-            easy_e2fsattrs_case('t',EXT2_NOTAIL_FL)
-            easy_e2fsattrs_case('T',EXT2_TOPDIR_FL)
-#ifdef EXT4_EXTENTS_FL
-            easy_e2fsattrs_case('e',EXT4_EXTENTS_FL)
-#endif
-#ifdef EXT4_HUGE_FILE_FL
-            easy_e2fsattrs_case('h',EXT4_HUGE_FILE_FL)
-#endif
-#ifdef FS_NOCOW_FL
-            easy_e2fsattrs_case('C',FS_NOCOW_FL)
-#endif
-#ifdef EXT4_INLINE_DATA_FL
-            easy_e2fsattrs_case('N',EXT4_INLINE_DATA_FL)
-#endif
-            case '0': {
-                 break;
-            }
-            default: {
+    if (strcmp(val, "0") != 0) {
+        while (*val) {
+            unsigned long flag = e2fsattrs_get_flag(*val);
+            if (flag) {
+                conf->report_ignore_e2fsattrs |= flag;
+            } else {
                  LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_NOTICE, ignore invalid ext2 file attribute: '%c', *val)
-                 break;
             }
+            val++;
         }
-        val++;
     }
 }
 #endif

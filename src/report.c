@@ -28,6 +28,9 @@
 #ifdef WITH_AUDIT
 #include <libaudit.h>
 #endif
+#ifdef WITH_E2FSATTRS
+#include "e2fsattrs.h"
+#endif
 #ifdef HAVE_SYSLOG
 #include <syslog.h>
 #endif
@@ -105,54 +108,6 @@ static DB_ATTR_TYPE get_attrs(ATTRIBUTE attr) {
         default: return ATTR(attr);
     }
 }
-
-#ifdef WITH_E2FSATTRS
-    /* flag->character mappings taken from lib/e2p/pf.c (git commit c46b57b)
-     * date: 2015-05-10
-     * sources: git://git.kernel.org/pub/scm/fs/ext2/e2fsprogs.git
-     *
-     * on update see also do_e2fsattrs in commandconf.c
-     */
-    unsigned long flag_bits[] = { EXT2_SECRM_FL, EXT2_UNRM_FL, EXT2_SYNC_FL, EXT2_DIRSYNC_FL, EXT2_IMMUTABLE_FL,
-        EXT2_APPEND_FL, EXT2_NODUMP_FL, EXT2_NOATIME_FL, EXT2_COMPR_FL, EXT2_COMPRBLK_FL,
-        EXT2_DIRTY_FL, EXT2_NOCOMPR_FL,
-#ifdef EXT2_ECOMPR_FL
-        EXT2_ECOMPR_FL,
-#else
-        EXT4_ENCRYPT_FL,
-#endif
-        EXT3_JOURNAL_DATA_FL, EXT2_INDEX_FL,
-        EXT2_NOTAIL_FL, EXT2_TOPDIR_FL
-#ifdef EXT4_EXTENTS_FL
-        , EXT4_EXTENTS_FL
-#endif
-#ifdef EXT4_HUGE_FILE_FL
-        , EXT4_HUGE_FILE_FL
-#endif
-#ifdef FS_NOCOW_FL
-    , FS_NOCOW_FL
-#endif
-#ifdef EXT4_INLINE_DATA_FL
-    , EXT4_INLINE_DATA_FL
-#endif
-
-    };
-    char flag_char[] = { 's', 'u', 'S', 'D', 'i', 'a', 'd', 'A', 'c', 'B', 'Z', 'X', 'E', 'j', 'I', 't', 'T'
-#ifdef EXT4_EXTENTS_FL
-    , 'e'
-#endif
-#ifdef EXT4_HUGE_FILE_FL
-    , 'h'
-#endif
-#ifdef FS_NOCOW_FL
-    , 'C'
-#endif
-#ifdef EXT4_INLINE_DATA_FL
-    , 'N'
-#endif
-    };
-/*************/
-#endif
 
 typedef struct report_t {
     url_t* url;
@@ -279,25 +234,6 @@ static int acl2array(acl_type* acl, char* **values) {
     }
 #endif
     return n;
-}
-#endif
-
-#ifdef WITH_E2FSATTRS
-static char* e2fsattrs2string(unsigned long flags, int flags_only, unsigned long ignore_e2fsattrs) {
-    int length = sizeof(flag_bits)/sizeof(long);
-    char* string = checked_malloc ((length+1) * sizeof (char));
-    int j = 0;
-    for (int i = 0 ; i < length ; i++) {
-        if (!flags_only && flag_bits[i]&ignore_e2fsattrs) {
-            string[j++]=':';
-        } else if (flag_bits[i] & flags) {
-            string[j++]=flag_char[i];
-        } else if (!flags_only) {
-            string[j++]='-';
-        }
-    }
-    string[j] = '\0';
-    return string;
 }
 #endif
 
@@ -441,7 +377,7 @@ void log_report_urls(LOG_LEVEL log_level) {
         log_msg(log_level, "   force_attrs: '%s'", str = diff_attributes(0, r->force_attrs));
         free(str);
 #ifdef WITH_E2FSATTRS
-        log_msg(log_level, "   ignore_e2fsattrs: '%s'", str = e2fsattrs2string(r->ignore_e2fsattrs, 1, 0));
+        log_msg(log_level, "   ignore_e2fsattrs: '%s'", str = get_e2fsattrs_string(r->ignore_e2fsattrs, true, 0));
         free(str);
 #endif
     }
@@ -590,7 +526,7 @@ snprintf(*values[0], l, "%s",s);
 #endif
 #ifdef WITH_E2FSATTRS
         } else if (ATTR(attr_e2fsattrs)&attr) {
-            *values[0]=e2fsattrs2string(line->e2fsattrs, 0, r->ignore_e2fsattrs);
+            *values[0]=get_e2fsattrs_string(line->e2fsattrs, false, r->ignore_e2fsattrs);
 #endif
 #ifdef WITH_CAPABILITIES
         } else if (ATTR(attr_capabilities)&attr) {
@@ -974,7 +910,7 @@ static void print_report_header() {
 
 #ifdef WITH_E2FSATTRS
             if (r->level >= REPORT_LEVEL_LIST_ENTRIES && r->ignore_e2fsattrs) {
-                report_printf(r,_("Ignored e2fs attributes: %s\n"), str = e2fsattrs2string(r->ignore_e2fsattrs, 1, 0) );
+                report_printf(r,_("Ignored e2fs attributes: %s\n"), str = get_e2fsattrs_string(r->ignore_e2fsattrs, true, 0) );
                 free(str);
             }
 #endif

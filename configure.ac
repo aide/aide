@@ -524,6 +524,7 @@ AS_IF([test "x$with_e2fsattrs_support" != xno],
 	AC_MSG_RESULT(yes)],
 	[AC_MSG_RESULT(no)]
 )
+AM_CONDITIONAL(HAVE_E2FSATTRS, [test "x$E2FSATTRSLIB" != "x"])
 
 AC_SUBST(E2FSATTRSLIB)
 

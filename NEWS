@@ -2,6 +2,8 @@ Version 0.18 (UNRELEASED)
     * Add 'config_check_warn_unrestricted_rules' option
     * Improve logging
     * Update documentation
+    * Minor bug fixes
+    * Code clean up
 
 Version 0.17.3 (2021-02-10)
     * Fix group usage in '--after' config line

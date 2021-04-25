@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2006, 2011, 2015-2016, 2020 Rami Lehti,
+ * Copyright (C) 1999-2002, 2006, 2011, 2015-2016, 2020-2021 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -53,5 +53,7 @@ bool do_repurldef(char*, int, char*, char*);
 
 void do_rootprefix(char*, int, char*, char*);
 
+#ifdef WITH_E2FSATTRS
 void do_report_ignore_e2fsattrs(char*, int, char*, char*);
+#endif
 #endif

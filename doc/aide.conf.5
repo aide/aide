@@ -305,12 +305,12 @@ attribute. Ignored attributes are represented by a ':' in the output.
 .B Example:
 
 .RS 3
-Ignore changes of the ext2 file attributes compression error (E), huge file
-(h), indexed directory (I):
+Ignore changes of the ext2 file attributes encrypted (E), indexed directory
+(I), inline data (N), and verity (V):
 
 .RS 3
 .nf
-report_ignore_e2fsattrs=EhI
+report_ignore_e2fsattrs=EINV
 .fi
 .RE
 .RE

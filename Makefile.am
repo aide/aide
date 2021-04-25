@@ -55,6 +55,9 @@ aide_SOURCES = src/aide.c include/aide.h \
 	include/types.h \
 	include/url.h src/url.c\
 	include/util.h src/util.c
+if HAVE_E2FSATTRS
+aide_SOURCES += include/e2fsattrs.h src/e2fsattrs.c
+endif
 if USE_CURL
 aide_SOURCES += include/fopen.h src/fopen.c
 endif

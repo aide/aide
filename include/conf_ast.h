@@ -89,6 +89,7 @@ typedef enum bool_operator {
         BOOL_OP_NOT,
         BOOL_OP_DEFINED,
         BOOL_OP_HOSTNAME,
+        BOOL_OP_EXISTS,
 } bool_operator;
 
 typedef struct bool_expression {

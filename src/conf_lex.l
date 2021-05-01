@@ -185,6 +185,13 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
   return (TBOOLFUNC);
 }
 
+<CONDITION>"exists" {
+  LOG_LEX_TOKEN(lex_log_level, TBOOLFUNC (BOOL_OP_EXISTS), conftext)
+  conflval.operator = BOOL_OP_EXISTS;
+  BEGIN(STRINGHUNT);
+  return (TBOOLFUNC);
+}
+
 <CONFIG>"\@\@ifdef" {
   DEPRECATION_WARNING("@@ifdef", "@@if defined")
   LOG_LEX_TOKEN(lex_log_level, TIFDEF, conftext)

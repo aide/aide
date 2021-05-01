@@ -5,6 +5,7 @@ Version 0.18 (UNRELEASED)
         - '@@ifhost', macro is now deprecated, use '@@if hostame' instead
         - '@@ifnhost', macro is now deprecated, use '@@if not hostname' instead
     * Add @@if macro
+    * Add 'exists' boolean function
     * Add 'config_check_warn_unrestricted_rules' option
     * Improve logging
     * Update documentation

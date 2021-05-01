@@ -5,6 +5,7 @@
 	  - deprecate '@@ifndef', use '@@if not defined' instead
 	  - deprecate '@@ifhost', use '@@if hostame' instead
 	  - deprecate '@@ifnhost', use '@@if not hostname' instead
+	* Add 'exists' boolean function (closes: #87)
 
 2021-04-25	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Refactor e2fsattrs code

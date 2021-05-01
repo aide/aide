@@ -68,7 +68,7 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
 
 %option noinput nounput
 
-%x CONFIG DEFSTMT ENVVAR EXPR EXPREQUHUNT PATH STRING STRINGS STRINGEQHUNT STRINGHUNT
+%x CONFIG DEFSTMT ENVVAR EXPR EXPREQUHUNT PATH STRING STRINGS STRINGEQHUNT STRINGHUNT CONDITION
 
 %%
 <INITIAL>^[\t\ ]*"#"[^\n]*"\n" {
@@ -160,13 +160,40 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
   return (TUNDEFINE);
 }
 
+<CONFIG>"\@\@if" {
+  LOG_LEX_TOKEN(lex_log_level, TIF, conftext)
+  BEGIN(CONDITION);
+  return (TIF);
+}
+
+<CONDITION>"not" {
+  LOG_LEX_TOKEN(lex_log_level, TBOOLNOT, conftext)
+  return (TBOOLNOT);
+}
+
+<CONDITION>"defined" {
+  LOG_LEX_TOKEN(lex_log_level, TBOOLFUNC (BOOL_OP_DEFINED), conftext)
+  conflval.operator = BOOL_OP_DEFINED;
+  BEGIN(STRINGHUNT);
+  return (TBOOLFUNC);
+}
+
+<CONDITION>"hostname" {
+  LOG_LEX_TOKEN(lex_log_level, TBOOLFUNC (BOOL_OP_HOSTNAME), conftext)
+  conflval.operator = BOOL_OP_HOSTNAME;
+  BEGIN(STRINGHUNT);
+  return (TBOOLFUNC);
+}
+
 <CONFIG>"\@\@ifdef" {
+  DEPRECATION_WARNING("@@ifdef", "@@if defined")
   LOG_LEX_TOKEN(lex_log_level, TIFDEF, conftext)
   BEGIN(STRINGHUNT);
   return (TIFDEF);
 }
 
 <CONFIG>"\@\@ifndef" {
+  DEPRECATION_WARNING("@@ifndef", "@@if not defined")
   LOG_LEX_TOKEN(lex_log_level, TIFNDEF, conftext)
   BEGIN(STRINGHUNT);
   return (TIFNDEF);
@@ -185,12 +212,14 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
 }
 
 <CONFIG>"\@\@ifhost" {
+  DEPRECATION_WARNING("@@ifhost", "@@if hostname")
   LOG_LEX_TOKEN(lex_log_level, TIFHOST, conftext)
   BEGIN(STRINGHUNT);
   return (TIFHOST);
 }
 
 <CONFIG>"\@\@ifnhost" {
+  DEPRECATION_WARNING("@@ifnhost", "@@if not hostname")
   LOG_LEX_TOKEN(lex_log_level, TIFNHOST, conftext)
   BEGIN(STRINGHUNT);
   return (TIFNHOST);
@@ -221,7 +250,7 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
   return (TVARIABLE);
 }
 
-<CONFIG,DEFSTMT,ENVVAR,EXPR>[\t\ ]+ {
+<CONFIG,DEFSTMT,ENVVAR,EXPR,CONDITION>[\t\ ]+ {
     LOG_LEX_TOKEN(LOG_LEVEL_DEBUG, skip tab(s)/whitespace(s), conftext)
 }
 

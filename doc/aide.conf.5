@@ -463,18 +463,64 @@ Use specific rule for directories:
 Define variable \fBVAR\fR to value \fBval\fR.
 .IP "@@undef \fBVAR\fR"
 Undefine variable \fBVAR\fR.
-.IP "@@ifdef \fBVAR\fR, @@ifndef \fBVAR\fR"
-@@ifdef begins an if statement. It must be terminated with an @@endif
-statement. The lines between @@ifdef and @@endif are used if variable
-\fBVAR\fR is defined. If there is an @@else statement then the part
-between @@ifdef and @@else is used is \fBVAR\fR is defined otherwise
-the part between @@else and @@endif is used. @@ifndef reverses the
-logic of @@ifdef statement but otherwise works similarly.
-.IP "@@ifhost \fBhostname\fR, @@ifnhost \fBhostname\fR"
-@@ifhost works like @@ifdef only difference is that it checks whether
-\fBhostname\fR equals the name of the host that AIDE is running on.
-\fBhostname\fR is the name of the host without the domainname
-(hostname, not hostname.example.com).
+.TP
+@@if \fBboolean_expression\fR
+.TQ
+@@else
+.TQ
+@@endif
+@@if begins an if statement. It must be terminated with an @@endif statement.
+The lines between @@if and @@endif are used if the \fBboolean_expression\fR
+evaluates to \fBtrue\fR.  If there is an @@else statement then the part between
+@@if and @@else is used if \fBboolean_expression\fR evaluates to \fBtrue\fR
+otherwise the part between @@else and @@endif is used.
+
+.RS
+Available operators and functions in boolean expressions:
+
+.RS 3
+.nf
+.B not \fIboolean_expression\fR
+.fi
+.RS 3
+Evaluates to true if the \fIboolean_expression\fR is false, and false if the
+\fIboolean_expression\fR is true.
+.RE
+.RE
+
+.RS 3
+.nf
+.B defined \fIVARIABLE\fR
+.fi
+
+.RS 3
+Evaluates to \fBtrue\fR if \fIVARIABLE\fR is defined.
+.RE
+.RE
+
+.RS 3
+.nf
+.B hostname \fIHOSTNAME\fR
+.fi
+
+.RS 3
+Evaluates to \fBtrue\fR if \fIHOSTNAME\fR equals the \fBhostname\fR of the machine
+that AIDE is running on. \fBhostname\fR is the name of the host without the
+domainname (ie 'hostname', not 'hostname.example.com').
+.RE
+.RE
+
+.RE
+
+.IP "@@ifdef \fBVARIABLE\fR (DEPRECATED, will be removed in a future release)"
+same as \fB@@if defined VARIABLE\fR
+.IP "@@ifndef \fBVARIABLE\fR (DEPRECATED, will be removed in a future release)"
+same as \fB@@if not defined VARIABLE\fR
+.IP "@@ifhost \fBHOSTNAME\fR (DEPRECATED, will be removed in a future release)"
+same as \fB@@if hostname HOSTNAME\fR
+.IP "@@ifnhost \fBHOSTNAME\fR (DEPRECATED, will be removed in a future release)"
+same as \fB@@if not hostname HOSTNAME\fR
+
 .IP "@@{\fBVAR\fR}"
 @@{\fBVAR\fR} is replaced with the value of the variable \fBVAR\fR.
 If variable \fBVAR\fR is not defined an empty string is used.
@@ -490,11 +536,6 @@ Pre-defined marco variables:
 .RE
 
 .RE
-
-.IP "@@else"
-Begins the else part of an if statement.
-.IP "@@endif"
-Ends an if statement.
 
 .IP "@@include \fBFILE\fR"
 Include \fBFILE\fR.

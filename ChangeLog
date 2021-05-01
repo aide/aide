@@ -1,5 +1,10 @@
 2021-05-01	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Document how to ignore read-only ext2 file attributes (closes: #47)
+	* Add @@if macro
+	  - deprecate '@@ifdef', use '@@if defined' instead
+	  - deprecate '@@ifndef', use '@@if not defined' instead
+	  - deprecate '@@ifhost', use '@@if hostame' instead
+	  - deprecate '@@ifnhost', use '@@if not hostname' instead
 
 2021-04-25	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Refactor e2fsattrs code

@@ -54,9 +54,12 @@ void conferror(ast**, const char *);
 
   config_option option;
 
+  bool_operator operator;
+
   ast* ast;
 
   if_condition* if_cond;
+  bool_expression* bool_expr;
   attribute_expression* attr_expr;
   restriction_expression* rs_expr;
   string_expression* string_expr;
@@ -68,6 +71,9 @@ void conferror(ast**, const char *);
 %token TIFNDEF
 %token TIFNHOST
 %token TIFHOST
+%token TIF
+%token TBOOLNOT
+%token <operator> TBOOLFUNC
 %token TELSE
 %token TENDIF
 %token TINCLUDE
@@ -92,6 +98,7 @@ void conferror(ast**, const char *);
 %type <ast> statements statement config_statement include_statement x_include_setenv_statement if_statement define_statement undefine_statement group_statement rule_statement
 
 %type <if_cond> if_condition
+%type <bool_expr> bool_expression
 %type <attr_expr> attribute_expression
 %type <rs_expr> restriction_expression
 %type <string_expr> string_expression string_fragment
@@ -159,6 +166,10 @@ if_condition: TIFDEF string_expression { $$=new_if_condition(new_string_bool_exp
             | TIFNDEF string_expression { $$=new_if_condition(new_bool_expression(BOOL_OP_NOT, new_string_bool_expression(BOOL_OP_DEFINED, $2), NULL)); }
             | TIFHOST string_expression { $$=new_if_condition(new_string_bool_expression(BOOL_OP_HOSTNAME, $2)); }
             | TIFNHOST string_expression { $$=new_if_condition(new_bool_expression(BOOL_OP_NOT, new_string_bool_expression(BOOL_OP_HOSTNAME, $2), NULL)); }
+            | TIF bool_expression { $$=new_if_condition($2); }
+
+bool_expression: TBOOLNOT bool_expression { $$ = new_bool_expression(BOOL_OP_NOT, $2, NULL); }
+               | TBOOLFUNC string_expression { $$ = new_string_bool_expression($1, $2); }
 
 rule_statement: TSELRXRULE string_expression attribute_expression { $$ = new_rule_statement(AIDE_SELECTIVE_RULE, $2, NULL, $3); }
               | TEQURXRULE string_expression attribute_expression { $$ = new_rule_statement(AIDE_EQUAL_RULE, $2, NULL, $3); }

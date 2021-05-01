@@ -299,13 +299,17 @@ List (no delimiter) of ext2 file attributes which are to be ignored in the repor
 See
 .BR chattr (1)
 for the available attributes. Use \fB0\fR (zero) to not ignore any
-attribute. Ignored attributes are represented by a ':' in the output.
+attribute. Ignored attributes are represented by a ':' in the report.
+
+By default AIDE also reports changes of the read-only attributes mentioned in
+.BR chattr (1)
+(see example below how to ignore those changes).
 
 .RS
 .B Example:
 
 .RS 3
-Ignore changes of the ext2 file attributes encrypted (E), indexed directory
+Ignore changes of the read-only ext2 file attributes encrypted (E), indexed directory
 (I), inline data (N), and verity (V):
 
 .RS 3
@@ -592,7 +596,7 @@ Output is written to syslog using \fILOG_FACILITY\fR.
 .IP "\fBacl\fR: access control list (requires \fIlibacl\fR)"
 .IP "\fBselinux\fR: selinux attributes (requires \fIlibselinux\fR)"
 .IP "\fBxattrs\fR: extended attributes (requires \fIlibattr\fR)"
-.IP "\fBe2fsattrs\fR: file attributes on a second extended file system (requires \fIlibext2fs\fR)"
+.IP "\fBe2fsattrs\fR: file attributes on a second extended file system, see also \fB report_ignore_e2fsattrs \fP option (requires \fIlibext2fs\fR)"
 .IP "\fBcaps\fR: file capabilities (requires \fIlibcap2\fR)"
 .RE
 

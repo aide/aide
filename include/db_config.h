@@ -174,7 +174,7 @@ typedef struct database {
     int linenumber;
     char *linebuf;
 
-    void *fp;
+    FILE *fp;
 #ifdef WITH_ZLIB
     gzFile gzp;
 #endif

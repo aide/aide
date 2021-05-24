@@ -1,3 +1,6 @@
+2021-05-24	Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Fix type of database file pointer (closes: #98)
+
 2021-05-01	Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Document how to ignore read-only ext2 file attributes (closes: #47)
 	* Add @@if macro

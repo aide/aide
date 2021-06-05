@@ -1022,7 +1022,7 @@ int gen_report(seltree* node) {
     print_detailed_header();
     print_report_details(node);
     print_report_databases();
-    conf->end_time=time(&(conf->end_time));
+    conf->end_time=time(NULL);
     print_report_footer();
 
     return conf->action&(DO_COMPARE|DO_DIFF) ? (added_entries_reported)*1+(removed_entries_reported!=0)*2+(changed_entries_reported!=0)*4 : 0;

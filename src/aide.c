@@ -450,7 +450,7 @@ static void setdefaults_before_config()
 
   conf->groupsyms=NULL;
 
-  conf->start_time=time(&(conf->start_time));
+  conf->start_time=time(NULL);
 
   log_msg(LOG_LEVEL_INFO, "define default group definitions");
 

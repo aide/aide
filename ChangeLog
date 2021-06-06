@@ -1,6 +1,7 @@
 2021-06-06 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix handling of --without-posix-acl configure option,
 	  thanks to Ilya Tumaykin for the patch
+	* Mention removal of -r, --report command line option in man page
 
 2021-06-05 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Only use the return value of time function

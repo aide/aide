@@ -399,7 +399,7 @@ AC_MSG_CHECKING(for posix-acl-support)
 AC_ARG_WITH([posix-acl],
 	[AC_HELP_STRING([--with-posix-acl],
 		[use POSIX ACLs (no checking)])],
-	[],
+	[with_posix_acl_support="$withval"],
 	[with_posix_acl_support=no]
 )
 

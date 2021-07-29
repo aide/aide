@@ -21,6 +21,7 @@
 
 #ifndef _UTIL_H_INCLUDED
 #define _UTIL_H_INCLUDED
+#include "config.h"
 #include <string.h>
 #include <stdbool.h>
 #include <sys/types.h>

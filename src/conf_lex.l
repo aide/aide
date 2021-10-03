@@ -1,4 +1,4 @@
-C	[^\n\t ]
+C	[^\r\n\t ]
 
 L	[a-zA-Zˆ‰¸ﬂÂ÷ƒ‹≈0-9_%]
 G	[a-zA-Z0-9]
@@ -71,25 +71,25 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
 %x CONFIG DEFSTMT ENVVAR EXPR EXPREQUHUNT PATH STRING STRINGS STRINGEQHUNT STRINGHUNT CONDITION
 
 %%
-<INITIAL>^[\t\ ]*"#"[^\n]*"\n" {
+<INITIAL>^[\t\ ]*"#"[^\r\n]*\r?\n {
             conf_linebuf = checked_strndup(conftext, confleng-1);
             ++conf_linenumber;
             LOG_CONFIG_LINE(lex_log_level, "- skip comment line")
             free(conf_linebuf);
            }
-<INITIAL>^[\t\ ]*"\n" {
+<INITIAL>^[\t\ ]*\r?\n {
             conf_linebuf = "";
             ++conf_linenumber;
             LOG_CONFIG_LINE(lex_log_level, "- skip empty line")
            }
-<INITIAL>^[^\n]* {
+<INITIAL>^[^\n\r]* {
             conf_linebuf = checked_strndup(conftext, confleng);
             ++conf_linenumber;
             log_msg(lex_log_level,"%s:%d: \u252c '%s'", conf_filename, conf_linenumber, conf_linebuf);
             yyless(0);
             BEGIN(CONFIG);
            }
-<CONFIG>"#"[^\n]* { /* inline comment */
+<CONFIG>"#"[^\r\n]* { /* inline comment */
   LOG_LEX_TOKEN(lex_log_level, skip inline comment, conftext)
  }
 
@@ -496,7 +496,7 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
   return (TVARIABLE);
 }
 
-<STRINGS,STRING,PATH>[^@\\ \t\n]+ {
+<STRINGS,STRING,PATH>[^@\\ \t\r\n]+ {
   LOG_LEX_TOKEN(lex_log_level, TSTRING, conftext)
   conflval.s=checked_strdup(conftext);
   return (TSTRING);
@@ -534,20 +534,24 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
   BEGIN(STRING);
 }
 
-<STRINGHUNT>[^\ \t\n] {
+<STRINGHUNT>[^\ \t\r\n] {
   LOG_LEX_TOKEN(LOG_LEVEL_DEBUG, found string -> unput, conftext)
   yyless(0);
   BEGIN(STRING);
 }
 
-<CONFIG,DEFSTMT,ENVVAR,EXPR,EXPREQUHUNT,PATH,STRINGS,STRING,STRINGEQHUNT,STRINGHUNT>[\t\ ]*"\n" {
-  log_msg(lex_log_level,"%s:%d: \u2534 TNEWLINE (text: '\\n')", conf_filename, conf_linenumber);
+<CONFIG,DEFSTMT,ENVVAR,EXPR,EXPREQUHUNT,PATH,STRINGS,STRING,STRINGEQHUNT,STRINGHUNT>\r?\n {
+  log_msg(lex_log_level,"%s:%d: \u2534 TNEWLINE (text: '%s')", conf_filename, conf_linenumber, strlen(conftext) == 2?"\\r\\n":"\\n");
   BEGIN 0;
   return (TNEWLINE);
 }
 
 <*>. {
-     log_msg(LOG_LEVEL_ERROR,"%s:%d: unexpected character: '%c' (line: '%s')", conf_filename, conf_linenumber, *conftext, conf_linebuf);
+     char *unexpected_character = conftext;
+     switch (*conftext) {
+         case '\r': unexpected_character = "\\r"; break;
+     };
+     log_msg(LOG_LEVEL_ERROR,"%s:%d: unexpected character: '%s' (line: '%s')", conf_filename, conf_linenumber, unexpected_character, conf_linebuf);
      exit(INVALID_CONFIGURELINE_ERROR);
 }
 

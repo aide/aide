@@ -88,6 +88,11 @@ DB_ATTR_TYPE get_hashes(bool include_unsupported) {
     DB_ATTR_TYPE attr = 0LLU;
     for (int i = 0; i < num_hashes; ++i) {
         if (include_unsupported || algorithms[i] >= 0) {
+#ifdef WITH_GCRYPT
+            /* Skip MD5 with gcrypt in fips_mode */
+            if (gcry_fips_mode_active() && algorithms[i] == GCRY_MD_MD5)
+                continue;
+#endif
             attr |= ATTR(hashsums[i].attribute);
         }
     }

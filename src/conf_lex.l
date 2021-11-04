@@ -71,6 +71,10 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
 %x CONFIG DEFSTMT ENVVAR EXPR EXPREQUHUNT PATH STRING STRINGS STRINGEQHUNT STRINGHUNT CONDITION
 
 %%
+<INITIAL><<EOF>> {
+            log_msg(lex_log_level,"%s: - <end of file>", conf_filename);
+            return (0);
+           }
 <INITIAL>^[\t\ ]*"#"[^\r\n]*\r?\n {
             conf_linebuf = checked_strndup(conftext, confleng-1);
             ++conf_linenumber;
@@ -546,6 +550,12 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
   return (TNEWLINE);
 }
 
+<*><<EOF>> {
+  log_msg(lex_log_level,"%s:%d: \u2534 <end of file>", conf_filename, conf_linenumber);
+  log_msg(LOG_LEVEL_NOTICE,"%s:%d: missing new line at end of file (line: '%s')", conf_filename, conf_linenumber, conf_linebuf);
+  return (0);
+}
+
 <*>. {
      char *unexpected_character = conftext;
      switch (*conftext) {
@@ -587,6 +597,7 @@ void conf_lex_file(const char * config) {
         expanded_config=NULL;
     }
     conf_switch_to_buffer(conf_create_buffer( confin, YY_BUF_SIZE ));
+    BEGIN 0;
 }
 
 void conf_lex_delete_buffer() {

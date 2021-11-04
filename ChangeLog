@@ -1,3 +1,6 @@
+2021-11-04 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Don't fail on missing new line at end of config file (closes: #108)
+
 2021-10-03 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Support CRLF line-endings in config files (closes: #107)
 

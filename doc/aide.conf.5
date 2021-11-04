@@ -10,7 +10,9 @@ configuration aide uses to initialize or check the AIDE database.
 .PP
 .SH "FILE FORMAT"
 aide.conf is case-sensitive. Leading and trailing white spaces are
-ignored. AIDE uses the backslash character (\fB\\\fR) as escape character for ' '
+ignored. Each config lines must end with new line.
+.PP
+AIDE uses the backslash character (\fB\\\fR) as escape character for ' '
 (space), '@' and '\\' (backslash) (e.g. '\\ ' or '\\@'). To literally match a '\fB\\\fR'
 in a file path with a regular expression you have to escape the backslash
 twice (i.e. '\fB\\\\\\\\\fR').

@@ -117,10 +117,7 @@ statements : statement TNEWLINE statements {
                temp->next = $3;
                $$ = $1; }
                | statement TNEWLINE { $$ = $1; }
-               | statement {
-                    log_msg(LOG_LEVEL_ERROR, "%s:%d: syntax error: unexpected token or end of file, expected newline (line: '%s')", conf_filename, conf_linenumber, conf_linebuf);
-                    YYABORT;
-               }
+               | statement { $$ = $1; }
 
 statement: config_statement
          | include_statement

@@ -87,7 +87,11 @@ int algorithms[] = { /* order must match hashsums array */
 DB_ATTR_TYPE get_hashes(bool include_unsupported) {
     DB_ATTR_TYPE attr = 0LLU;
     for (int i = 0; i < num_hashes; ++i) {
-        if (include_unsupported || algorithms[i] >= 0) {
+        if (include_unsupported || (algorithms[i] >= 0
+#ifdef WITH_GCRYPT
+            && (algorithms[i] != GCRY_MD_MD5 || ! gcry_fips_mode_active())
+#endif
+)) {
             attr |= ATTR(hashsums[i].attribute);
         }
     }

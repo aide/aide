@@ -60,12 +60,6 @@ int init_md(struct md_container* md, const char *filename) {
    }
 #endif 
 #ifdef WITH_GCRYPT
-  	if(!gcry_check_version(GCRYPT_VERSION)) {
-		log_msg(LOG_LEVEL_ERROR,"libgcrypt version mismatch");
-		exit(VERSION_MISMATCH_ERROR);
-	}
-	gcry_control(GCRYCTL_DISABLE_SECMEM, 0);
-	gcry_control(GCRYCTL_INITIALIZATION_FINISHED, 0);
 	if(gcry_md_open(&md->mdh,0,0)!=GPG_ERR_NO_ERROR){
 		log_msg(LOG_LEVEL_ERROR,"gcrypt_md_open failed");
 		exit(IO_ERROR);

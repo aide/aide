@@ -1,3 +1,6 @@
+2021-11-07 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Remove bashism in configure.ac
+
 2021-11-05 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Disable MD5 hashsum if in libgcrypt FIPS mode (closes: #110)
 

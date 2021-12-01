@@ -328,15 +328,12 @@ fi
 
 AC_CHECK_HEADERS(syslog.h inttypes.h fcntl.h ctype.h)
 
-PCRELIB="-lpcre"
-if test "$aide_static_choice" = "yes"; then
-    PCRELIB="$PCRELIB -pthread"
+if test "$aide_static_choice" == "yes"; then
+   PKG_CHECK_MODULES_STATIC(PCRE2, [libpcre2-8], , [AC_MSG_RESULT([libpcre2-8 not found by pkg-config - Try to add directory containing libpcre2-8.pc to PKG_CONFIG_PATH environment variable])])
+else
+   PKG_CHECK_MODULES(PCRE2, [libpcre2-8], , [AC_MSG_RESULT([libpcre2-8 not found by pkg-config - Try to add directory containing libpcre2-8.pc to PKG_CONFIG_PATH environment variable])])
 fi
-AC_CHECK_LIB(pcre, pcre_exec, [
-    compoptionstring="${compoptionstring}WITH_PCRE\\n"
-    ], [AC_MSG_ERROR([You don't have pcre library properly installed.])]
-    )
-AC_SUBST(PCRELIB)
+compoptionstring="${compoptionstring}WITH_PCRE2\\n"
 
 AC_ARG_WITH([locale],
 	[AC_HELP_STRING([--with-locale],

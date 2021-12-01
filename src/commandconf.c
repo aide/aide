@@ -307,11 +307,7 @@ bool add_rx_rule_to_tree(char* rx, RESTRICTION_TYPE restriction, DB_ATTR_TYPE at
     char *attr_str = NULL;
     char *rs_str = NULL;
 
-    const char* rule_error;
-    int         rule_erroffset;
-
-    if ((r = add_rx_to_tree(rx, restriction, type, tree, &rule_error, &rule_erroffset)) == NULL) {
-        log_msg(LOG_LEVEL_ERROR, "%s:%d:%i: error in rule '%s': %s (line: '%s')", filename, linenumber, rule_erroffset, rx, rule_error, linebuf);
+    if ((r = add_rx_to_tree(rx, restriction, type, tree, linenumber, filename, linebuf)) == NULL) {
         retval = false;
     }else {
         r->config_linenumber = linenumber;

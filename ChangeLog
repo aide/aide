@@ -1,3 +1,6 @@
+2021-12-01 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Switch from PCRE to PCRE2 (closes: #116)
+
 2021-11-14 Jason Pyeron <jpyeron@pdinc.us>
 	* Add missing config.h include (closes: #104)
 

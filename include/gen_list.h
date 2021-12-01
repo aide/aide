@@ -21,7 +21,8 @@
 
 #ifndef _GEN_LIST_H_INCLUDED
 #define _GEN_LIST_H_INCLUDED
-#include <pcre.h>
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include <pcre2.h>
 #include "seltree.h"
 #include "list.h"
 #include <stdbool.h>

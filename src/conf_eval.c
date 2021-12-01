@@ -512,13 +512,20 @@ static void include_directory(const char* dir, const char* rx, bool execute, int
     struct dirent **namelist;
     int n;
 
-    const char* pcre_error;
-    int pcre_erroffset;
-    pcre* crx;
+    int pcre2_errorcode;
+    PCRE2_SIZE pcre2_erroffset;
+    pcre2_code* crx;
 
-    if((crx = pcre_compile(rx, PCRE_UTF8, &pcre_error, &pcre_erroffset, NULL)) == NULL) {
-        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, '%s': error in regular expression '%s' at %i: %s, execute?"@@x_include":"@@include", rx, pcre_erroffset, pcre_error)
+    if((crx = pcre2_compile((PCRE2_SPTR) rx, PCRE2_ZERO_TERMINATED, PCRE2_UTF, &pcre2_errorcode, &pcre2_erroffset, NULL)) == NULL) {
+        PCRE2_UCHAR pcre2_error[128];
+        pcre2_get_error_message(pcre2_errorcode, pcre2_error, 128);
+        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, '%s': error in regular expression '%s' at %i: %s, execute?"@@x_include":"@@include", rx, pcre2_erroffset, pcre2_error)
         exit(INVALID_CONFIGURELINE_ERROR);
+    }
+    pcre2_match_data *match_data = pcre2_match_data_create_from_pattern(crx, NULL);
+    if (match_data == NULL) {
+        log_msg(LOG_LEVEL_ERROR, "pcre2_match_data_create_from_pattern: failed to allocate memory");
+        exit(EXIT_FAILURE);
     }
 
     struct stat fs;
@@ -547,7 +554,8 @@ static void include_directory(const char* dir, const char* rx, bool execute, int
             exit(INVALID_CONFIGURELINE_ERROR);
         }
         if (S_ISREG(fs.st_mode)) {
-            if(pcre_exec(crx, NULL, namelist[i]->d_name, strlen(namelist[i]->d_name), 0, 0, NULL, 0) < 0) {
+            int match=pcre2_match(crx, (PCRE2_SPTR) namelist[i]->d_name, PCRE2_ZERO_TERMINATED, 0, 0, match_data, NULL);
+            if(match < 0) {
                 log_msg(LOG_LEVEL_DEBUG,"%s: skip '%s' (reason: file name does not match regex '%s')", dir, namelist[i]->d_name, rx);
             } else {
                 int exec = execute && S_IXUSR&fs.st_mode;
@@ -565,7 +573,8 @@ static void include_directory(const char* dir, const char* rx, bool execute, int
         free(namelist[i]);
     }
     free(namelist);
-    free(crx);
+    pcre2_match_data_free(match_data);
+    pcre2_code_free(crx);
 }
 
 static void eval_include_statement(include_statement statement, int include_depth, int linenumber, char *filename, char* linebuf) {

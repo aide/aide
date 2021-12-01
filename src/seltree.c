@@ -260,7 +260,7 @@ seltree *init_tree() {
     return node;
 }
 
-rx_rule * add_rx_to_tree(char * rx, RESTRICTION_TYPE restriction, int rule_type, seltree *tree, const char **rule_error, int *rule_erroffset) {
+rx_rule * add_rx_to_tree(char * rx, RESTRICTION_TYPE restriction, int rule_type, seltree *tree, int linenumber, char* filename, char* linebuf) {
     rx_rule* r = NULL;
     seltree *curnode = NULL;
     char *rxtok = NULL;
@@ -275,17 +275,36 @@ rx_rule * add_rx_to_tree(char * rx, RESTRICTION_TYPE restriction, int rule_type,
     r->config_linenumber = -1;
     r->attr = 0;
 
-    if((r->crx=pcre_compile(r->rx, PCRE_ANCHORED|PCRE_UTF8, rule_error, rule_erroffset, NULL)) == NULL) {
+    int pcre2_errorcode;
+    PCRE2_SIZE pcre2_erroffset;
+
+    if((r->crx=pcre2_compile((PCRE2_SPTR) r->rx, PCRE2_ZERO_TERMINATED, PCRE2_UTF|PCRE2_ANCHORED, &pcre2_errorcode, &pcre2_erroffset, NULL)) == NULL) {
+        PCRE2_UCHAR pcre2_error[128];
+        pcre2_get_error_message(pcre2_errorcode, pcre2_error, 128);
+        log_msg(LOG_LEVEL_ERROR, "%s:%d:%i: error in rule '%s': %s (line: '%s')", filename, linenumber, pcre2_erroffset, rx, pcre2_error, linebuf);
         free(r);
         return NULL;
     } else {
+        r->md = pcre2_match_data_create_from_pattern(r->crx, NULL);
+        if (r->md == NULL) {
+            log_msg(LOG_LEVEL_ERROR, "pcre2_match_data_create_from_pattern: failed to allocate memory");
+            exit(EXIT_FAILURE);
+        }
+        int pcre2_jit = pcre2_jit_compile(r->crx, PCRE2_JIT_PARTIAL_SOFT);
+        if (pcre2_jit < 0) {
+            PCRE2_UCHAR pcre2_error[128];
+            pcre2_get_error_message(pcre2_jit, pcre2_error, 128);
+            log_msg(LOG_LEVEL_NOTICE, "JIT compilation for regex '%s' failed: %s (fall back to interpreted matching)", r->rx, pcre2_error);
+        } else {
+            log_msg(LOG_LEVEL_DEBUG, "JIT compilation for reges '%s' successful", r->rx);
+        }
+
         rxtok=strrxtok(r->rx);
         curnode=get_seltree_node(tree,rxtok);
 
         for(size_t i=1;i < strlen(rxtok); ++i){
             if (rxtok[i] == '/' && rxtok[i-1] == '/') {
-                *rule_error = "invalid double slash" ;
-                *rule_erroffset = i;
+                log_msg(LOG_LEVEL_ERROR, "%s:%d:1: error in rule '%s': invalid double slash (line: '%s')", filename, linenumber, rx, linebuf);
                 free(r);
                 return NULL;
             }
@@ -323,14 +342,13 @@ static int check_list_for_match(list* rxrlist,char* text, rx_rule* *rule, RESTRI
   list* r=NULL;
   int retval=NO_RULE_MATCH;
   int pcre_retval;
-  pcre_extra *pcre_extra = NULL;
   char *rs_str = NULL;
   for(r=rxrlist;r;r=r->next){
       rx_rule *rx = (rx_rule*)r->data;
 
       if (!(unrestricted_only && rx->restriction)) {
 
-      pcre_retval=pcre_exec((pcre*)rx->crx, pcre_extra, text, strlen(text), 0, PCRE_PARTIAL_SOFT, NULL, 0);
+      pcre_retval = pcre2_match(rx->crx, (PCRE2_SPTR) text, PCRE2_ZERO_TERMINATED, 0, PCRE2_PARTIAL_SOFT, rx->md, NULL);
       if (pcre_retval >= 0) {
           if (!rx->restriction || file_type&rx->restriction) {
                   *rule = rx;
@@ -343,7 +361,7 @@ static int check_list_for_match(list* rxrlist,char* text, rx_rule* *rule, RESTRI
               free(rs_str);
               retval=PARTIAL_RULE_MATCH;
           }
-      } else if (pcre_retval == PCRE_ERROR_PARTIAL) {
+      } else if (pcre_retval == PCRE2_ERROR_PARTIAL) {
           LOG_MATCH(LOG_LEVEL_RULE, "\u2502", partially matches regex '%s', rx->rx)
           retval=PARTIAL_RULE_MATCH;
       } else {

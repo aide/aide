@@ -62,7 +62,7 @@ if USE_CURL
 aide_SOURCES += include/fopen.h src/fopen.c
 endif
 
-aide_LDADD = -lm @PCRELIB@ @CRYPTLIB@ @ACLLIB@ @SELINUXLIB@ @AUDITLIB@ @ATTRLIB@ @E2FSATTRSLIB@ @ELFLIB@ @CAPLIB@ ${CURL_LIBS}
+aide_LDADD = -lm ${PCRE2_LIBS} @CRYPTLIB@ @ACLLIB@ @SELINUXLIB@ @AUDITLIB@ @ATTRLIB@ @E2FSATTRSLIB@ @ELFLIB@ @CAPLIB@ ${CURL_LIBS}
 
 if HAVE_CHECK
 TESTS				= check_aide
@@ -71,7 +71,7 @@ check_aide_SOURCES	= tests/check_aide.c tests/check_aide.h \
 					  tests/check_attributes.c src/attributes.c \
 					  src/log.c src/util.c
 check_aide_CFLAGS	= -I$(top_srcdir)/include $(CHECK_CFLAGS)
-check_aide_LDADD	= -lm @PCRELIB@ @CRYPTLIB@ $(CHECK_LIBS)
+check_aide_LDADD	= -lm ${PCRE2_LIBS} @CRYPTLIB@ $(CHECK_LIBS)
 endif # HAVE_CHECK
 
 AM_CFLAGS = @AIDE_DEFS@ -W -Wall -g

@@ -28,7 +28,8 @@
 #include "types.h"
 #include <unistd.h>
 #include <stdio.h>
-#include <pcre.h>
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include <pcre2.h>
 
 #define E2O(n) (1<<n)
 
@@ -260,7 +261,8 @@ typedef struct db_config {
   int root_prefix_length;
 
   char* limit;
-  pcre* limit_crx;
+  pcre2_code* limit_crx;
+  pcre2_match_data* limit_md;
 
   struct seltree* tree;
 

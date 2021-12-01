@@ -283,13 +283,31 @@ static void read_param(int argc,char**argv)
 	break;
       }
       case 'l': {
-                const char* pcre_error;
-                int pcre_erroffset;
+                int pcre2_errorcode;
+                PCRE2_SIZE pcre2_erroffset;
                 conf->limit=checked_malloc(strlen(optarg)+1);
                 strcpy(conf->limit,optarg);
-                if((conf->limit_crx=pcre_compile(conf->limit, PCRE_ANCHORED, &pcre_error, &pcre_erroffset, NULL)) == NULL) {
-                    INVALID_ARGUMENT("--limit", error in regular expression '%s' at %i: %s, conf->limit, pcre_erroffset, pcre_error)
+                if((conf->limit_crx=pcre2_compile((PCRE2_SPTR) conf->limit, PCRE2_ZERO_TERMINATED, PCRE2_UTF|PCRE2_ANCHORED, &pcre2_errorcode, &pcre2_erroffset, NULL)) == NULL) {
+                    PCRE2_UCHAR pcre2_error[128];
+                    pcre2_get_error_message(pcre2_errorcode, pcre2_error, 128);
+                    INVALID_ARGUMENT("--limit", error in regular expression '%s' at %zu: %s, conf->limit, pcre2_erroffset, pcre2_error)
+
                 }
+                conf->limit_md = pcre2_match_data_create_from_pattern(conf->limit_crx, NULL);
+                if (conf->limit_md == NULL) {
+                    log_msg(LOG_LEVEL_ERROR, "pcre2_match_data_create_from_pattern: failed to allocate memory");
+                    exit(EXIT_FAILURE);
+                }
+
+                int pcre2_jit = pcre2_jit_compile(conf->limit_crx, PCRE2_JIT_PARTIAL_SOFT);
+                if (pcre2_jit < 0) {
+                    PCRE2_UCHAR pcre2_error[128];
+                    pcre2_get_error_message(pcre2_jit, pcre2_error, 128);
+                    log_msg(LOG_LEVEL_NOTICE, "JIT compilation for limit '%s' failed: %s (fall back to interpreted matching)", conf->limit, pcre2_error);
+                } else {
+                    log_msg(LOG_LEVEL_DEBUG, "JIT compilation for limit '%s' successful", conf->limit);
+                }
+
                 log_msg(LOG_LEVEL_INFO,_("(--limit): set limit to '%s'"), conf->limit);
             break;
       }

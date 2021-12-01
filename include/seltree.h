@@ -32,7 +32,7 @@ seltree* new_seltree_node(seltree*, char*, int, rx_rule*);
 
 seltree* get_seltree_node(seltree* ,char*);
 
-rx_rule * add_rx_to_tree(char *, RESTRICTION_TYPE, int, seltree *, const char **, int *);
+rx_rule * add_rx_to_tree(char *, RESTRICTION_TYPE, int, seltree *, int, char *, char *);
 
 int check_seltree(seltree *, char *, RESTRICTION_TYPE, rx_rule* *);
 

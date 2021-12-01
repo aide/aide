@@ -32,7 +32,8 @@
 #include <sys/types.h>
 #include <errno.h>
 #include <time.h>
-#include <pcre.h>
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include <pcre2.h>
 
 #include "attributes.h"
 #include "list.h"
@@ -488,13 +489,12 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db)
 int check_rxtree(char* filename,seltree* tree, rx_rule* *rule, RESTRICTION_TYPE file_type, bool dry_run)
 {
   log_msg(LOG_LEVEL_RULE, "\u252c process '%s' (filetype: %c)", filename, get_restriction_char(file_type));
-  int retval=0;
 
   if(conf->limit!=NULL) {
-      retval=pcre_exec(conf->limit_crx, NULL, filename, strlen(filename), 0, PCRE_PARTIAL_SOFT, NULL, 0);
-      if (retval >= 0) {
+      int match=pcre2_match(conf->limit_crx, (PCRE2_SPTR) filename, PCRE2_ZERO_TERMINATED, 0, PCRE2_PARTIAL_SOFT, conf->limit_md, NULL);
+      if (match >= 0) {
           log_msg(LOG_LEVEL_DEBUG, "\u2502 '%s' does match limit '%s'", filename, conf->limit);
-      } else if (retval == PCRE_ERROR_PARTIAL) {
+      } else if (match == PCRE2_ERROR_PARTIAL) {
           if(file_type&FT_DIR && get_seltree_node(tree,filename)==NULL){
               seltree* node = new_seltree_node(tree,filename,0,NULL);
               log_msg(LOG_LEVEL_DEBUG, "added new node '%s' (%p) for '%s' (reason: partial limit match)", node->path, node, filename);

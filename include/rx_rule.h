@@ -25,7 +25,8 @@
 #include "attributes.h"
 #include "seltree_struct.h"
 #include <sys/stat.h>
-#include <pcre.h>
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include <pcre2.h>
 
 #define RESTRICTION_TYPE unsigned int
 #define FT_REG   (1U<<0) /* file */
@@ -41,7 +42,8 @@
 
 typedef struct rx_rule {
   char* rx; /* Regular expression in text form */
-  pcre* crx; /* Compiled regexp */
+  pcre2_code* crx; /* Compiled regexp */
+  pcre2_match_data *md;
   DB_ATTR_TYPE attr; /* Which attributes to save */
   seltree *node;
   char *config_filename;

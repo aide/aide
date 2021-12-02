@@ -1,3 +1,6 @@
+2021-12-02 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Remove re-introduced bashism in configure.ac
+
 2021-12-01 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Switch from PCRE to PCRE2 (closes: #116)
 

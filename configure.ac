@@ -328,7 +328,7 @@ fi
 
 AC_CHECK_HEADERS(syslog.h inttypes.h fcntl.h ctype.h)
 
-if test "$aide_static_choice" == "yes"; then
+if test "$aide_static_choice" = "yes"; then
    PKG_CHECK_MODULES_STATIC(PCRE2, [libpcre2-8], , [AC_MSG_RESULT([libpcre2-8 not found by pkg-config - Try to add directory containing libpcre2-8.pc to PKG_CONFIG_PATH environment variable])])
 else
    PKG_CHECK_MODULES(PCRE2, [libpcre2-8], , [AC_MSG_RESULT([libpcre2-8 not found by pkg-config - Try to add directory containing libpcre2-8.pc to PKG_CONFIG_PATH environment variable])])

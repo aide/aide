@@ -1,7 +1,9 @@
+AC_PREREQ([2.69])
+
 m4_include([version.m4])
 
 dnl Initialize autoconf/automake
-AC_INIT(aide, AIDE_VERSION)
+AC_INIT([aide],[AIDE_VERSION])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([1.10 -Wall -Werror silent-rules subdir-objects serial-tests])
 
@@ -9,10 +11,10 @@ AC_DEFINE_UNQUOTED(AIDEVERSION, "AIDE_VERSION")
 AH_TEMPLATE([AIDEVERSION], [package version])
 
 dnl The name of the configure h-file.
-AM_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS(config.h)
 
 dnl Checks for programs.
-AC_PROG_CC_C99
+AC_PROG_CC
 if test "x$ac_cv_prog_cc_c99" = xno; then
     AC_MSG_ERROR([AIDE needs a C99 compatible compiler])
 fi
@@ -26,7 +28,7 @@ if test "x${YACC}" != "xbison -y"; then
         exit 5
 fi
 
-AC_PROG_LEX
+AC_PROG_LEX(noyywrap)
 if test "x${LEX}" != "xflex"; then
         echo "AIDE requires GNU flex"
         exit 5
@@ -41,18 +43,15 @@ AC_SYS_LARGEFILE
 dnl AC_ARG_PROGRAM
 
 AC_ARG_WITH(extra-includes,
-	AC_HELP_STRING([--with-extra-includes],
-		[Specify additional paths with -I to find headerfiles]),
+	AS_HELP_STRING([--with-extra-includes],[Specify additional paths with -I to find headerfiles]),
 	[CPPFLAGS="$CPPFLAGS $withval"]
 )
 AC_ARG_WITH(extra-libs,
-	AC_HELP_STRING([--with-extra-libs],
-		[Specify additional paths with -L to find libraries]),
+	AS_HELP_STRING([--with-extra-libs],[Specify additional paths with -L to find libraries]),
 	[LDFLAGS="$LDFLAGS $withval"]
 )
 AC_ARG_WITH(extra-link-libs,
-	AC_HELP_STRING([--with-extra-link-libs],
-		[Specify additional libraries to link]),
+	AS_HELP_STRING([--with-extra-link-libs],[Specify additional libraries to link]),
 	[LIBS="$LIBS $withval"]
 )
 
@@ -61,7 +60,7 @@ AIDE_DEFS="-D_GNU_SOURCE"
 
 dnl This is borrowed from libtool
     
-if test $ac_cv_prog_gcc = yes; then
+if test $ac_cv_c_compiler_gnu = yes; then
     LD_STATIC_FLAG='-static'
 
     case "$host_os" in
@@ -187,10 +186,10 @@ cc_supports_flag() {
 dnl Borrowed from dbus
 ld_supports_flag() {
   AC_MSG_CHECKING([whether $LD supports "$@"])
-  AC_TRY_LINK([
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([
     int one(void) { return 1; }
     int two(void) { return 2; }
-  ], [ two(); ] , [_ac_ld_flag_supported=yes], [_ac_ld_flag_supported=no])
+  ], [ two(); ] ) ] , [_ac_ld_flag_supported=yes], [_ac_ld_flag_supported=no])
 
   if test "$_ac_ld_flag_supported" = "yes"; then
     rm -f conftest.c
@@ -270,15 +269,11 @@ AC_CHECK_SIZEOF(nlink_t)
 AC_CHECK_SIZEOF(off_t)
 AC_CHECK_SIZEOF(blkcnt_t)
 
-AC_C_LONG_DOUBLE
-
-AC_HEADER_STDC
 AC_CHECK_FUNCS(strtoll strtoimax readdir)
 AC_CHECK_FUNCS(stricmp strnstr strnlen)
 
 AC_ARG_WITH([mmap],
-	[AC_HELP_STRING([--with-mmap],
-		[use mmap @<:@default=check@:>@])],
+	[AS_HELP_STRING([--with-mmap],[use mmap @<:@default=check@:>@])],
 	[],
 	[with_mmap=check]
 )
@@ -294,7 +289,7 @@ AC_CHECK_FUNCS(fcntl ftruncate posix_fadvise asprintf snprintf \
 # Linux has the O_NOATIME flag, sometimes
 AC_CACHE_CHECK([for open/O_NOATIME], db_cv_open_o_noatime, [
 echo "test for working open/O_NOATIME" > __o_noatime_file
-AC_TRY_RUN([
+AC_RUN_IFELSE([AC_LANG_SOURCE([
 #include <sys/types.h>
 #include <fcntl.h>
 #ifndef O_NOATIME
@@ -307,8 +302,8 @@ AC_TRY_RUN([
 main() {
 int c, fd = open("__o_noatime_file", O_RDONLY | O_NOATIME, 0);
 exit ((!O_NOATIME) || (fd == -1) || (read(fd, &c, 1) != 1));
-}], [db_cv_open_o_noatime=yes], [db_cv_open_o_noatime=no],
-AC_TRY_LINK([
+} ]) ], [db_cv_open_o_noatime=yes], [db_cv_open_o_noatime=no],
+AC_LINK_IFELSE([AC_LANG_PROGRAM([
 #include <sys/types.h>   
 #include <fcntl.h>
 #ifndef O_NOATIME
@@ -317,9 +312,9 @@ AC_TRY_LINK([
 #else
 #define O_NOATIME 0
 #endif
-#endif], [
-	open("__o_noatime_file", O_RDONLY | O_NOATIME, 0);
-], [db_cv_open_o_noatime=yes], [db_cv_open_o_noatime=no]))
+#endif
+], [ open("__o_noatime_file", O_RDONLY | O_NOATIME, 0);
+]) ], [db_cv_open_o_noatime=yes], [db_cv_open_o_noatime=no]))
 rm -f __o_noatime_file])
 if test "$db_cv_open_o_noatime" = yes; then
 	AC_DEFINE(HAVE_O_NOATIME)
@@ -336,8 +331,7 @@ fi
 compoptionstring="${compoptionstring}WITH_PCRE2\\n"
 
 AC_ARG_WITH([locale],
-	[AC_HELP_STRING([--with-locale],
-		[use locale stuff])],
+	[AS_HELP_STRING([--with-locale],[use locale stuff])],
 	[],
 	[with_locale=no]
 )
@@ -354,31 +348,27 @@ dnl        	AC_DEFINE_UNQUOTED(LOCALEDIR,"$prefix/lib/locale",[Localedir to use]
 AC_SUBST(AIDE_USE_LOCALE)
 
 AC_ARG_WITH([syslog_ident],
-	AC_HELP_STRING([--with-syslog-ident],
-	[syslog ident]),
+	AS_HELP_STRING([--with-syslog-ident],[syslog ident]),
   	[AC_DEFINE_UNQUOTED(AIDE_IDENT,"$withval",[syslog ident])]
 		compoptionstring="${compoptionstring}AIDE_IDENT=${withval}\\n",
   	[AC_DEFINE_UNQUOTED(AIDE_IDENT,"aide",[syslog ident])]
 )
 
 AC_ARG_WITH([syslog_facility],
-	AC_HELP_STRING([--with-syslog-facility],
-		[Specify syslog facility, see man syslog for options]),
+	AS_HELP_STRING([--with-syslog-facility],[Specify syslog facility, see man syslog for options]),
 	[AC_DEFINE_UNQUOTED(AIDE_SYSLOG_FACILITY,$withval,[syslog facility])]
 	compoptionstring="${compoptionstring}AIDE_SYSLOG_FACILITY=${withval}\\n",
 	[AC_DEFINE_UNQUOTED(AIDE_SYSLOG_FACILITY,LOG_LOCAL0,[syslog facility])]
 )
 
 AC_ARG_WITH([syslog_logopt],
-	AC_HELP_STRING([--with-syslog-logopt],
-		[Specify syslog logopt, see man syslog for options]),
+	AS_HELP_STRING([--with-syslog-logopt],[Specify syslog logopt, see man syslog for options]),
 	[AC_DEFINE_UNQUOTED(AIDE_LOGOPT,$withval,[syslog logopt])],
 	[AC_DEFINE_UNQUOTED(AIDE_LOGOPT,LOG_CONS,[syslog logopt])]
 )
 
 AC_ARG_WITH([syslog_priority],
-	AC_HELP_STRING([--with-syslog-priority],
-		[Specify syslog priority, see man syslog for options]),
+	AS_HELP_STRING([--with-syslog-priority],[Specify syslog priority, see man syslog for options]),
 	[AC_DEFINE_UNQUOTED(SYSLOG_PRIORITY,$withval,[syslog priority])]
 	compoptionstring="${compoptionstring}SYSLOG_PRIORITY=${withval}\\n",
 	[AC_DEFINE_UNQUOTED(SYSLOG_PRIORITY,LOG_NOTICE,[syslog priority])]
@@ -386,16 +376,14 @@ AC_ARG_WITH([syslog_priority],
 
 
 AC_ARG_WITH([zlib],
-	AC_HELP_STRING([--with-zlib],
-		[use zlib compression]),
+	AS_HELP_STRING([--with-zlib],[use zlib compression]),
 	,
 	[with_zlib=yes]
 )
 
 AC_MSG_CHECKING(for posix-acl-support)
 AC_ARG_WITH([posix-acl],
-	[AC_HELP_STRING([--with-posix-acl],
-		[use POSIX ACLs (no checking)])],
+	[AS_HELP_STRING([--with-posix-acl],[use POSIX ACLs (no checking)])],
 	[with_posix_acl_support="$withval"],
 	[with_posix_acl_support=no]
 )
@@ -413,8 +401,7 @@ AC_SUBST(ACLLIB)
 
 AC_MSG_CHECKING(for selinux-support)
 AC_ARG_WITH([selinux],
-	[AC_HELP_STRING([--with-selinux],
-		[use SELinux (no checking)])],
+	[AS_HELP_STRING([--with-selinux],[use SELinux (no checking)])],
 	[with_selinux_support="$withval"],
 	[with_selinux_support=no]
 )
@@ -447,7 +434,7 @@ AC_SUBST(SELINUXLIB)
 
 AC_MSG_CHECKING(for prelink-support)
 AC_ARG_WITH([prelink], 
-            [AC_HELP_STRING([--with-prelink],[use prelink (no checking)])],
+            [AS_HELP_STRING([--with-prelink],[use prelink (no checking)])],
             [case $with_prelink in 
 		yes) AC_DEFINE_UNQUOTED(PRELINK_PATH, "/usr/sbin/prelink", [path to prelink])
 		     AC_DEFINE(WITH_PRELINK,1,[use prelink])
@@ -472,8 +459,7 @@ AC_SUBST(ELFLIB)
 
 AC_MSG_CHECKING(for xattr-support)
 AC_ARG_WITH([xattr],
-	[AC_HELP_STRING([--with-xattr],
-		[use xattr (no checking)])],
+	[AS_HELP_STRING([--with-xattr],[use xattr (no checking)])],
 	[with_xattr_support="$withval"],
 	[with_xattr_support=no]
 )
@@ -490,8 +476,7 @@ AC_SUBST(ATTRLIB)
 
 AC_MSG_CHECKING(for capabilities-support)
 AC_ARG_WITH([capabilities],
-        [AC_HELP_STRING([--with-capabilities],
-                [use caps (no checking)])],
+        [AS_HELP_STRING([--with-capabilities],[use caps (no checking)])],
         [with_capabilities_support="$withval"],
         [with_capabilities_support=no]
 )
@@ -508,8 +493,7 @@ AC_SUBST(CAPLIB)
 
 AC_MSG_CHECKING(for e2fsattrs-support)
 AC_ARG_WITH([e2fsattrs],
-	[AC_HELP_STRING([--with-e2fsattrs],
-		[use e2fsattrs (no checking)])],
+	[AS_HELP_STRING([--with-e2fsattrs],[use e2fsattrs (no checking)])],
 	[with_e2fsattrs_support="$withval"],
 	[with_e2fsattrs_support=no]
 )
@@ -529,8 +513,7 @@ PKG_CHECK_MODULES(CHECK, [check >= 0.9.4], , [AC_MSG_RESULT([Check not found (te
 AM_CONDITIONAL(HAVE_CHECK, [test "x$CHECK_LIBS" != "x"])
 
 AC_ARG_WITH([config_file],
-	AC_HELP_STRING([--with-config-file=config-file],
-    [specify default config file (use --without-config-file to disable default config file)]),
+	AS_HELP_STRING([--with-config-file=config-file],[specify default config file (use --without-config-file to disable default config file)]),
     [with_config_file=$withval],[with_config_file=yes])
 
 if test "$with_config_file" != "no"; then
@@ -549,8 +532,7 @@ if test "$with_config_file" != "no"; then
 fi
 
 AC_ARG_ENABLE([default_db],
-	AC_HELP_STRING([--disable-default-db],
-    [do not set default values for database_in and database_out config options]),
+	AS_HELP_STRING([--disable-default-db],[do not set default values for database_in and database_out config options]),
     [enable_default_db=$enableval],[enable_default_db=yes])
 
 if test "$enable_default_db" = "yes"; then
@@ -601,8 +583,7 @@ AS_IF([test "x$with_curl" = "xyes"], [
 AM_CONDITIONAL(USE_CURL, [test "x$CURL_LIBS" != "x"])
 
 AC_ARG_WITH(mhash,
-	AC_HELP_STRING([--with-mhash],
-		[use libmhash, needed for hmacs @<:@default=check@:>@]),
+	AS_HELP_STRING([--with-mhash],[use libmhash, needed for hmacs @<:@default=check@:>@]),
 	[],
 	[with_mhash=check]
 )
@@ -622,8 +603,7 @@ AS_IF([test "x$with_mhash" != xno],
 )
 
 AC_ARG_WITH([gcrypt],
-	[AC_HELP_STRING([--with-gcrypt],
-		[use gcrypt library])],
+	[AS_HELP_STRING([--with-gcrypt],[use gcrypt library])],
 		[],
 		[if test "x$with_mhash" != xyes; then
 			with_gcrypt=check
@@ -657,8 +637,7 @@ AC_SUBST(CRYPTLIB)
 # Check for Linux auditing API
 #
 AC_ARG_WITH([audit],
-	[AC_HELP_STRING([--with-audit],
-		[use audit library])],
+	[AS_HELP_STRING([--with-audit],[use audit library])],
 	[],
 	[with_audit=no]
 )
@@ -694,5 +673,6 @@ LDFLAGS="$LDFLAGS $EXTRA_LDFLAGS"
 CFLAGS="$CFLAGS $EXTRA_CFLAGS"
 
 AC_SUBST(AIDE_DEFS)
-AC_OUTPUT(Makefile)
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
 

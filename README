@@ -30,8 +30,6 @@
         o  Powerful regular expression support to selectively include or
            exclude files and directories to be monitored.
         o  gzip database compression if zlib support is compiled in.
-        o  Stand alone static binary for easy client/server monitoring
-           configurations.
         o  Free software licensed under the GNU General Public License.
 
     The homepage of AIDE is https://aide.github.io
@@ -72,9 +70,22 @@
     in mhash_config.h which can be fixed by removing the line that reads
     #define malloc rpl_malloc
 
-    For Mac OS X Darwin/Leopard (10.4/10.5) and Solaris 10/OpenSolaris you need
-    to use --disable-static when configuring AIDE. Please note that dynamic
-    linking introduces a security risk and is not recommended.
+    Dynamic versus Static Linking
+    -----------------------------
+
+    Formerly aide was linked statically by default to reduce the attack vector
+    of compromised shared libraries and to ease client/server monitoring
+    configurations. However an attacker could still simply replace the
+    statically linked binary, tamper the database file or use dynamically
+    loaded kernel modules to change the behaviour of AIDe.
+
+    These days many Linux distributions (eg Centos/Oracle Linux), operating
+    systems (eg Mac OS/OpenSolaris) and libaries have dropped support for
+    static linking.
+
+    Hence starting with releae v0.18 AIDE is linked dynamically by default.
+
+    To re-enable static linking use '--enable-static' when configuring AIDE.
 
     Source Code Verification
     ------------------------

@@ -166,7 +166,7 @@ else
 fi
 
 # Check whether static linking has explicitly been disabled
-AC_ARG_ENABLE(static,[  --disable-static        Disable static linking (lowers the security of aide)], [aide_static_choice=$enableval], [aide_static_choice=yes])
+AC_ARG_ENABLE(static,[  --enable-static         enable static linking (might increase the security of aide, see README for details)], [aide_static_choice=$enableval], [aide_static_choice=no])
 
 dnl Borrowed from dbus
 cc_supports_flag() {

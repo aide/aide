@@ -36,6 +36,45 @@ database_in (type: URL, default: see \fB--version\fP output)
 database (DEPRECATED, will be removed in a future release)
 The url from which database is read. There can only be one of these
 lines. If there are multiple database lines then the first is used.
+
+.RS
+.B Examples:
+
+.RS 3
+.nf
+.B database_in=file:/var/lib/aide/aide.db
+.fi
+
+.RS 3
+Read database locally from \fI/var/lib/aide/aide.db\fR.
+.RE
+
+.RE
+
+.RS 3
+.nf
+.B database_in=stdin
+.fi
+
+.RS 3
+Read database from \fIstdin\fR.
+.RE
+
+.RE
+
+.RS 3
+.nf
+.B database_in=https://example.com/aide.db
+.fi
+
+.RS 3
+Read database remotely from \fIhttps://example.com/aide.db\fR.
+.RE
+
+.RE
+
+.RE
+
 .IP "database_out (type: URL, default: see \fB--version\fP output)"
 The url to which the new database is written to. There can only be one
 of these lines. If there are multiple database_out lines then the

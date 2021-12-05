@@ -1,3 +1,6 @@
+2021-12-05 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Add 'database_in' examples to manual page (closes: #31)
+
 2021-12-03 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix autoconf warnings
 

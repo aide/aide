@@ -65,35 +65,35 @@ void conferror(ast**, const char *);
   string_expression* string_expr;
 }
 
-%token TDEFINE
-%token TUNDEFINE
-%token TIFDEF
-%token TIFNDEF
-%token TIFNHOST
-%token TIFHOST
-%token TIF
-%token TBOOLNOT
-%token <operator> TBOOLFUNC
-%token TELSE
-%token TENDIF
-%token TINCLUDE
-%token TXINCLUDE
-%token TSETENV
-%token <s> TGROUP
-%token <s> TSTRING
-%token <s> TEXPR
-%token <s> TVARIABLE
+%token TDEFINE "@@define"
+%token TUNDEFINE "@@undef"
+%token TIFDEF "@@ifdef"
+%token TIFNDEF "@@ifndef"
+%token TIFNHOST "@@ifnhost"
+%token TIFHOST "@@ifhost"
+%token TIF "@@if"
+%token TBOOLNOT "not"
+%token <operator> TBOOLFUNC "boolean operator or function"
+%token TELSE "@@else"
+%token TENDIF "@@endif"
+%token TINCLUDE "@@include"
+%token TXINCLUDE "@@x_include"
+%token TSETENV "@@x_include_setenv"
+%token <s> TGROUP "group name"
+%token <s> TSTRING "string"
+%token <s> TEXPR "group"
+%token <s> TVARIABLE "variable name"
 
-%token TSPACE
-%token TNEWLINE
+%token TSPACE "whitespace"
+%token TNEWLINE "new line"
 
 /* File rule */
 
-%token <s> TSELRXRULE
-%token <s> TEQURXRULE
-%token <s> TNEGRXRULE
+%token <s> TSELRXRULE "regular rule"
+%token <s> TEQURXRULE "equals rule"
+%token <s> TNEGRXRULE "negative rule"
 
-%token <option> CONFIGOPTION
+%token <option> CONFIGOPTION "configuration option"
 
 %type <ast> statements statement config_statement include_statement x_include_setenv_statement if_statement define_statement undefine_statement group_statement rule_statement
 
@@ -106,6 +106,7 @@ void conferror(ast**, const char *);
 %start config
 
 %parse-param {ast** config_ast}
+%define parse.error verbose
 
 %%
 

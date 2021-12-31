@@ -11,6 +11,7 @@ Version 0.18 (UNRELEASED)
     * Add 'config_check_warn_unrestricted_rules' option
     * Support CRLF line-endings in config files
     * Improve logging
+    * Improve error message during config parsing
     * Update documentation
     * Minor bug fixes
     * Code clean up

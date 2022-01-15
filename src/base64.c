@@ -85,11 +85,9 @@ FAIL, FAIL, FAIL, FAIL, FAIL, FAIL, FAIL, FAIL
 };
 
 /* Returns NULL on error */
-/* FIXME Possible buffer overflow on outputs larger than B64_BUF */
 char* encode_base64(byte* src,size_t ssize)
 {
   char* outbuf;
-  char* retbuf;
   int pos;
   int i, l, left;
   unsigned long triple;
@@ -100,7 +98,10 @@ char* encode_base64(byte* src,size_t ssize)
     log_msg(LOG_LEVEL_DEBUG,"encode base64: empty string");
     return NULL;
   }
-  outbuf = (char *)checked_malloc(sizeof(char)*B64_BUF);
+
+  /* length of encoded base64 string (padded) */
+  size_t length = sizeof(char)* ((ssize + 2) / 3) * 4;
+  outbuf = (char *)checked_malloc(length + 1);
   
   /* Initialize working pointers */
   inb = src;
@@ -161,20 +162,14 @@ char* encode_base64(byte* src,size_t ssize)
       inb++;
   }
   
-  /* outbuf is not completely used so we use retbuf */
-  retbuf=(char*)checked_malloc(sizeof(char)*(pos+1));
-  memcpy(retbuf,outbuf,pos);
-  retbuf[pos]='\0';
-  free(outbuf);
+  outbuf[pos]='\0';
 
-  return retbuf;
+  return outbuf;
 }
 
-/* FIXME Possible buffer overflow on outputs larger than B64_BUF */
 byte* decode_base64(char* src,size_t ssize, size_t *ret_len)
 {
   byte* outbuf;
-  byte* retbuf;
   char* inb;
   int i;
   int l;
@@ -188,10 +183,18 @@ byte* decode_base64(char* src,size_t ssize, size_t *ret_len)
     return NULL;
   }
 
+  /* exit on unpadded input */
+  if (ssize % 4) {
+    log_msg(LOG_LEVEL_WARNING, "decode_base64: '%s' has invalid length (missing padding characters?)", src);
+    return NULL;
+  }
+
+  /* calculate length of decoded string, substract padding chars if any (ssize is >= 4) */
+  size_t length = sizeof(byte) * ((ssize / 4) * 3)- (src[ssize-1] == '=') - (src[ssize-2] == '=');
 
   /* Initialize working pointers */
   inb = src;
-  outbuf = (byte *)checked_malloc(sizeof(byte)*B64_BUF);
+  outbuf = (byte *)checked_malloc(length + 1);
 
   l = 0;
   triple = 0;
@@ -242,15 +245,11 @@ byte* decode_base64(char* src,size_t ssize, size_t *ret_len)
       inb++;
     }
   
-  retbuf=(byte*)checked_malloc(sizeof(byte)*(pos+1));
-  memcpy(retbuf,outbuf,pos);
-  retbuf[pos]='\0';
-  
-  free(outbuf);
+  outbuf[pos]='\0';
 
   if (ret_len) *ret_len = pos;
   
-  return retbuf;
+  return outbuf;
 }
 
 size_t length_base64(char* src,size_t ssize)

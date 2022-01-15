@@ -428,13 +428,15 @@ db_line* db_char2line(char** ss, database* db){
 
 time_t base64totime_t(char* s, database* db, const char* field_name){
   
+  if(strcmp(s,"0")==0){
+      return 0;
+  }
   byte* b=decode_base64(s,strlen(s),NULL);
   char* endp;
   
-  if (b==NULL||strcmp(s,"0")==0) {
+  if (b==NULL) {
     
     /* Should we print error here? */
-    free(b);
     
     return 0;
   } else {

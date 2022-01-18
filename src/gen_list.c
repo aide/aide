@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006, 2009-2012, 2015-2016, 2019-2021 Rami Lehti,
+ * Copyright (C) 1999-2006, 2009-2012, 2015-2016, 2019-2022 Rami Lehti,
  *               Pablo Virolainen, Mike Markley, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -343,9 +343,8 @@ void strip_dbline(db_line* line)
 
 /*
  * add_file_to_tree
- * db = which db this file belongs to
  */
-static void add_file_to_tree(seltree* tree,db_line* file,int db)
+static void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *db)
 {
   seltree* node=NULL;
 
@@ -354,14 +353,19 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db)
   if(!node){
     node=new_seltree_node(tree,file->filename,0,NULL);
     log_msg(LOG_LEVEL_DEBUG, "added new node '%s' (%p) for '%s' (reason: new entry)", node->path, node, file->filename);
+  } else if (db && db_flags&DB_NEW?node->new_data:node->old_data) {
+      LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, duplicate database entry found for '%s' (skip line), file->filename)
+      free_db_line(file);
+      free(file);
+      return;
   }
 
   /* add note to this node which db has modified it */
-  node->checked|=db;
+  node->checked|=db_flags;
 
   strip_dbline(file);
 
-  switch (db) {
+  switch (db_flags) {
   case DB_OLD: {
     log_msg(LOG_LEVEL_DEBUG, "add old entry '%s' (%c) to node '%s' (%p) as old data", file->filename, get_file_type_char_from_perm(file->perm), node->path, node);
     node->old_data=file;
@@ -431,9 +435,9 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db)
     db_line *newData;
     seltree* moved_node;
 
-    moved_node=get_seltree_inode(tree,file,db==DB_OLD?DB_NEW:DB_OLD);
+    moved_node=get_seltree_inode(tree,file,db_flags==DB_OLD?DB_NEW:DB_OLD);
     if(!(moved_node == NULL || moved_node == node)) {
-      if(db == DB_NEW) {
+      if(db_flags == DB_NEW) {
         newData = node->new_data;
         oldData = moved_node->old_data;
         log_msg(LOG_LEVEL_DEBUG, "checking old data of node '%s' with new data of '%s'", moved_node->path, node->path);
@@ -454,8 +458,8 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db)
          /* Free the data if same else leave as is for report_tree */
          DB_ATTR_TYPE changed_attr_moved_file = get_changed_attributes(oldData, newData);
          if ((changed_attr_moved_file&~(ATTR(attr_ctime))) == RETOK) {
-             node->checked |= db==DB_NEW ? NODE_MOVED_IN : NODE_MOVED_OUT;
-             moved_node->checked |= db==DB_NEW ? NODE_MOVED_OUT : NODE_MOVED_IN;
+             node->checked |= db_flags==DB_NEW ? NODE_MOVED_IN : NODE_MOVED_OUT;
+             moved_node->checked |= db_flags==DB_NEW ? NODE_MOVED_OUT : NODE_MOVED_IN;
              if (changed_attr_moved_file & (ATTR(attr_ctime))) {
                 log_msg(LOG_LEVEL_DEBUG,_("  ctime is ignored, due to filename change: '%s' => '%s'"), oldData->filename, newData->filename);
              }
@@ -472,13 +476,13 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db)
         log_msg(LOG_LEVEL_DEBUG, "no moved file found for '%s'", file->filename);
     }
   }
-  if( (db == DB_NEW) &&
+  if( (db_flags == DB_NEW) &&
       (node->new_data!=NULL) &&
       (file->attr & ATTR(attr_allownewfile)) ){
 	 node->checked|=NODE_ALLOW_NEW;
      log_msg(LOG_LEVEL_DEBUG,_(" mark node '%s' as NODE_ALLOW_NEW (reason: entry '%s' has ANF attribute set)"), node->path, file->filename);
   }
-  if( (db == DB_OLD) &&
+  if( (db_flags == DB_OLD) &&
       (node->old_data!=NULL) &&
       (file->attr & ATTR(attr_allowrmfile)) ){
 	  node->checked|=NODE_ALLOW_RM;
@@ -677,7 +681,7 @@ void populate_tree(seltree* tree, bool dry_run)
       db_lex_buffer(&(conf->database_new));
       while((new=db_readline(&(conf->database_new))) != NULL){
 	if((add=check_rxtree(new->filename,tree, &rule, get_restriction_from_perm(new->perm), dry_run))>0){
-	  add_file_to_tree(tree,new,DB_NEW);
+	  add_file_to_tree(tree,new,DB_NEW, &(conf->database_new));
 	} else {
           free_db_line(new);
           free(new);
@@ -692,7 +696,7 @@ void populate_tree(seltree* tree, bool dry_run)
       new=NULL;
       log_msg(LOG_LEVEL_INFO, "read new entries from disk (root: '%s', limit: '%s')", conf->root_prefix, conf->limit?conf->limit:"(none)");
       while((new=db_readline_disk(dry_run)) != NULL) {
-	    add_file_to_tree(tree,new,DB_NEW);
+	    add_file_to_tree(tree,new,DB_NEW, NULL);
       }
     }
     if((conf->action&DO_COMPARE)||(conf->action&DO_DIFF)){
@@ -701,9 +705,9 @@ void populate_tree(seltree* tree, bool dry_run)
             while((old=db_readline(&(conf->database_in))) != NULL) {
                 add=check_rxtree(old->filename,tree, &rule, get_restriction_from_perm(old->perm), dry_run);
                 if(add > 0) {
-                    add_file_to_tree(tree,old,DB_OLD);
+                    add_file_to_tree(tree,old,DB_OLD, &(conf->database_in));
                 } else if (conf->limit!=NULL && add < 0) {
-                    add_file_to_tree(tree,old,DB_OLD|DB_NEW);
+                    add_file_to_tree(tree,old,DB_OLD|DB_NEW, &(conf->database_in));
                 }else{
                     if(!initdbwarningprinted){
                         log_msg(LOG_LEVEL_WARNING, _("%s:%s: old database entry '%s' has no matching rule, run --init or --update (this warning is only shown once)"), get_url_type_string((conf->database_in.url)->type), (conf->database_in.url)->value, old->filename);

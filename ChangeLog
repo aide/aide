@@ -1,3 +1,6 @@
+2022-01-18 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Handle malformed database lines (closes: #122)
+
 2021-12-31 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Improve error message during config parsing (closes: #119)
 

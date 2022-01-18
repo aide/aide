@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2007, 2010-2013, 2016, 2018-2021 Rami Lehti,
+ * Copyright (C) 1999-2007, 2010-2013, 2016, 2018-2022 Rami Lehti,
  *               Pablo Virolainen, Mike Markley, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -262,13 +262,18 @@ char** db_readline_file(database* db) {
                     LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, expected newline or end of file (skip found string '%s'), dbtext);
                 }
             } else {
-                i = 0;
-                s = checked_malloc(sizeof(char*)*num_attrs);
-                for(ATTRIBUTE j=0; j<num_attrs; j++){
-                    s[j]=NULL;
+                if (*dbtext != '/') {
+                    LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, invalid path found: '%s' (skip line), dbtext);
+                    skip_line(db);
+                } else {
+                    i = 0;
+                    s = checked_malloc(sizeof(char*)*num_attrs);
+                    for(ATTRIBUTE j=0; j<num_attrs; j++){
+                        s[j]=NULL;
+                    }
+                    s[i] = checked_strdup(dbtext);
+                    LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, '%s' set field '%s' (position %d): '%s', s[0], attributes[db->fields[i]].db_name, i, dbtext);
                 }
-                s[i] = checked_strdup(dbtext);
-                LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, '%s' set field '%s' (position %d): '%s', s[0], attributes[db->fields[i]].db_name, i, dbtext);
             }
             } else {
                 LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, expected newline or end of file (skip found string '%s'), dbtext)

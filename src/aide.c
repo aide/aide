@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006, 2010-2013, 2015-2017, 2019-2021 Rami Lehti,
+ * Copyright (C) 1999-2006, 2010-2013, 2015-2017, 2019-2022 Rami Lehti,
  *               Pablo Virolainen, Mike Markley, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -653,6 +653,11 @@ int main(int argc,char**argv)
     log_msg(LOG_LEVEL_ERROR,_("must have both input databases defined for "
 	      "database compare"));
     exit(INVALID_ARGUMENT_ERROR);
+  }
+
+  /* ensure size attribute is added to db_out_attrs if sizeg attribute is set */
+  if (conf->db_out_attrs & ATTR(attr_sizeg)) {
+        conf->db_out_attrs |=ATTR(attr_size);
   }
 
   if (conf->action&DO_INIT && conf->action&DO_DRY_RUN) {

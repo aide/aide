@@ -1,6 +1,7 @@
 2022-01-19  Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Precalculate buffer size in base64 functions (CVE-2021-45417),
 	  thanks to David Bouman for reporting this issue
+	* Release aide 0.17.4
 
 2021-02-10  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
 	* Release aide 0.17.3

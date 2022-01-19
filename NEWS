@@ -1,4 +1,4 @@
-Version 0.17.4 (UNRELEASED)
+Version 0.17.4 (2022-01-19)
     * SECURITY FIX
         - Precalculate buffer size in base64 functions (CVE-2021-45417)
 

@@ -1,3 +1,7 @@
+2022-01-19 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Precalculate buffer size in base64 functions (CVE-2021-45417),
+	  thanks to David Bouman for reporting this issue
+
 2022-01-18 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Handle malformed database lines (closes: #122)
 	* Always add size attribute to database if growing size group

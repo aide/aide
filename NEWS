@@ -1,3 +1,7 @@
+Version 0.17.4 (UNRELEASED)
+    * SECURITY FIX
+        - Precalculate buffer size in base64 functions (CVE-2021-45417)
+
 Version 0.17.3 (2021-02-10)
     * Fix group usage in '--after' config line
 

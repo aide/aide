@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2019-2021 Hannes von Haugwitz
+ * Copyright (C) 2019-2022 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -19,11 +19,12 @@
  */
 
 #include <stdlib.h>
-#include <string.h>
+#include <stdbool.h>
 
 #include "conf_ast.h"
 #include "conf_lex.h"
 #include "log.h"
+#include "rx_rule.h"
 #include "util.h"
 
 LOG_LEVEL ast_log_level = LOG_LEVEL_DEBUG;

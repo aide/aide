@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2006, 2010-2011, 2016, 2019-2021 Rami Lehti,
+ * Copyright (C) 1999-2002, 2006, 2010-2011, 2016, 2019-2022 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -23,9 +23,11 @@
 #define _GEN_LIST_H_INCLUDED
 #define PCRE2_CODE_UNIT_WIDTH 8
 #include <pcre2.h>
-#include "seltree.h"
-#include "list.h"
 #include <stdbool.h>
+#include "attributes.h"
+#include "rx_rule.h"
+#include "seltree_struct.h"
+struct stat;
 
 /* DB_FOO are anded together to form rx_rule's attr */
 
@@ -48,6 +50,6 @@ void write_tree(seltree*);
 
 int check_rxtree(char*,seltree*, rx_rule* *, RESTRICTION_TYPE, bool);
 
-db_line* get_file_attrs(char*,DB_ATTR_TYPE, struct stat *, bool);
+struct db_line* get_file_attrs(char*,DB_ATTR_TYPE, struct stat *, bool);
 
 #endif /*_GEN_LIST_H_INCLUDED*/

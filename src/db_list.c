@@ -1,7 +1,8 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002 Rami Lehti, Pablo Virolainen
+ * Copyright (C) 1999-2002,2022 Rami Lehti, Pablo Virolainen,
+ *                              Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -19,9 +20,6 @@
  */
 
 #include "db_list.h"
-/*for locale support*/
-#include "locale-aide.h"
-/*for locale support*/
 
 void db_list_append(db_list*item)
 {

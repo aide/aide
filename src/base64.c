@@ -2,6 +2,8 @@
 **
 ** Copyright (C) 1994 Swedish University Network (SUNET)
 ** Modified by Rami Lehti (C) 1999
+** Modified by Richard van den Berg (C) 2005,2006
+** Modified by Hannes von Haugwitz (C) 2018,2020-2022
 **
 **
 ** This program is free software; you can redistribute it and/or modify
@@ -29,16 +31,12 @@
 **
 */
 
-#include "aide.h"
-#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 #include "base64.h"
 #include "util.h"
 #include "log.h"
-/*for locale support*/
-#include "locale-aide.h"
-/*for locale support*/
 
 char tob64[] = 
 "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";

@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006, 2009-2011, 2015-2016, 2019-2021 Rami Lehti,
+ * Copyright (C) 1999-2006, 2009-2011, 2015-2016, 2019-2022 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -19,11 +19,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "seltree.h"
+#include "attributes.h"
+#include "list.h"
 #include "log.h"
+#include "rx_rule.h"
+#include "seltree.h"
+#include "seltree_struct.h"
 #include "util.h"
 
 #define PARTIAL_RULE_MATCH       (-1)

@@ -5,7 +5,7 @@ C	[^\n\t ]
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999,2002, 2005, 2010, 2013, 2016, 2019-2021 Rami Lehti,
+ * Copyright (C) 1999,2002, 2005, 2010, 2013, 2016, 2019-2022 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -29,14 +29,10 @@ C	[^\n\t ]
 
 #define YYDEBUG 1
 
-#include "aide.h"
-#include "gen_list.h"
-#include <string.h>
 #include "log.h"
 #include "commandconf.h"
+#include "db_config.h"
 #include "db_lex.h"
-
-#include "db.h"
 
 database* db;
 

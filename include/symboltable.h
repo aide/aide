@@ -1,8 +1,8 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2006 Rami Lehti, Pablo Virolainen,
- *               Richard van den Berg
+ * Copyright (C) 1999-2002, 2006, 2022 Rami Lehti, Pablo Virolainen,
+ *               Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -22,6 +22,7 @@
 #ifndef _SYMBOLTABLE_H_INCLUDED
 #define _SYMBOLTABLE_H_INCLUDED
 
+#include "attributes.h"
 #include "list.h"
 
 typedef struct symba {

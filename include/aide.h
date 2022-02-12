@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2004-2006, 2010-2011, 2019 Rami Lehti,
+ * Copyright (C) 1999-2002, 2004-2006, 2010-2011, 2019, 2022 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -23,16 +23,7 @@
 #define _AIDE_H_INCLUDED
 
 #include "config.h"
-#include "types.h"
 #include "db_config.h"
-#include <stdlib.h>
-#include <unistd.h>
-#if HAVE_INTTYPES_H
-# include <inttypes.h>
-#endif
-#if HAVE_FCNTL_H
-# include <fcntl.h>
-#endif
 
 #ifndef TEMP_FAILURE_RETRY
 /* Evaluate EXPRESSION, and repeat as long as it returns -1 with errno'
@@ -57,14 +48,6 @@
 #ifdef strtoimax
 # define HAVE_STRTOIMAX
 #endif
-
-#ifndef __NetBSD__
-#ifndef _POSIX_C_SOURCE
-/* For _POSIX_THREAD_SEMANTICS _REENTRANT */
-#define _POSIX_C_SOURCE 199506L
-#endif /* _POSIX_C_SOURCE */
-#endif /* __NetBSD__ */
-
 
 #define ARGUMENT_SIZE 65536
 

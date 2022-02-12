@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2016, 2020-2021 Hannes von Haugwitz
+ * Copyright (C) 2016, 2020-2022 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -19,6 +19,7 @@
  */
 
 #include <string.h>
+#include <sys/stat.h>
 
 #include "rx_rule.h"
 #include "util.h"

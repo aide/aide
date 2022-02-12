@@ -47,8 +47,15 @@
  * (pablo@ipi.fi):
  *      2013-05-14: - moved declarations to 'include/fopen.h'
  *                  - removed (unneeded) main method
+ *      2022-02-12: - update #include statements
  */
 
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <errno.h>
+#include <sys/select.h>
+#include <curl/curl.h>
 #include "fopen.h"
 
 /* we use a global one for convenience */

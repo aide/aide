@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2003, 2005-2006, 2010-2011, 2013, 2019-2021 Rami Lehti,
+ * Copyright (C) 1999-2003, 2005-2006, 2010-2011, 2013, 2019-2022 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -19,14 +19,19 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "aide.h"
+#include "config.h"
 #include <string.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
-#include <stdarg.h>
+#ifdef HAVE_FCNTL
+#include <fcntl.h>
+#endif
 #include <unistd.h>
 #include <errno.h>
-#include "db_file.h"
+#ifdef WITH_ZLIB
+#include <zlib.h>
+#endif
 #include "log.h"
 #include "util.h"
 #include "errorcodes.h"
@@ -34,6 +39,7 @@
 #include "fopen.h"
 #endif
 #include "be.h"
+#include "url.h"
 
 /*for locale support*/
 #include "locale-aide.h"

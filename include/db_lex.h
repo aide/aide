@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2006, 2020-2021 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002, 2006, 2020-2022 Rami Lehti, Pablo Virolainen,
  *               Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -22,8 +22,6 @@
 #ifndef _DB_LEX_H_INCLUDED_
 #define _DB_LEX_H_INCLUDED_
 
-#include "url.h"
-#include <stdio.h>
 #include "db_config.h"
 
 extern char* dbtext;

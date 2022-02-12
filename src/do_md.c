@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2004-2006, 2009-2011, 2013, 2018-2021 Rami Lehti,
+ * Copyright (C) 1999-2002, 2004-2006, 2009-2011, 2013, 2018-2022 Rami Lehti,
  *               Pablo Virolainen, Mike Markley, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -20,42 +20,54 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "aide.h"
 #include "config.h"
-
-#ifndef _POSIX_C_SOURCE
-#define _POSIX_C_SOURCE 200112L
-#endif
+#include "aide.h"
+#include <stdbool.h>
 
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/mman.h>
+#ifdef WITH_XATTR
+#include <sys/xattr.h>
+#include <attr/attributes.h>
+#ifndef ENOATTR
+# define ENOATTR ENODATA
+#endif
+#endif
+#ifdef WITH_SELINUX
+#include <selinux/selinux.h>
+#ifndef ENOATTR
+# define ENOATTR ENODATA
+#endif
+#endif
+#ifdef WITH_POSIX_ACL
+#include <sys/acl.h>
+#endif
+#ifdef WITH_E2FSATTRS
+#include <e2p/e2p.h>
+#endif
+
+#ifdef WITH_CAPABILITIES
+#include <sys/capability.h>
+#endif
+
 
 #include "md.h"
 
+#include "hashsum.h"
 #include "db_config.h"
-#include "do_md.h"
 #include "util.h"
 #include "log.h"
 #include "attributes.h"
-#include "list.h"
-/*for locale support*/
-#include "locale-aide.h"
-/*for locale support*/
 
 /* This define should be somewhere else */
 #define READ_BLOCK_SIZE 16777216
-
-#ifdef WITH_MHASH
-#include <mhash.h>
-#endif /* WITH_MHASH */
 
 /* Redhat 5.0 needs this */
 #ifdef HAVE_MMAP

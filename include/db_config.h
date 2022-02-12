@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2004-2006, 2010-2013, 2015-2016, 2019-2021
+ * Copyright (C) 1999-2002, 2004-2006, 2010-2013, 2015-2016, 2019-2022
  *               Rami Lehti, Pablo Virolainen, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -22,39 +22,33 @@
  
 #ifndef _DB_CONFIG_H_INCLUDED
 #define _DB_CONFIG_H_INCLUDED
-#include "config.h"
-#include "attributes.h"
-#include "report.h"
-#include "types.h"
-#include <unistd.h>
-#include <stdio.h>
+
 #define PCRE2_CODE_UNIT_WIDTH 8
 #include <pcre2.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include "config.h"
+#ifdef WITH_ZLIB
+#include <zlib.h>
+#endif
+#include "attributes.h"
+#include "hashsum.h"
+#include "list.h"
+#include "report.h"
+#include "rx_rule.h"
+#include "util.h"
+#include "url.h"
+
 
 #define E2O(n) (1<<n)
-
-#include "list.h"
-
-#ifdef WITH_POSIX_ACL /* POSIX acl works for Sun ACL, AIUI but anyway... */
-#include <sys/acl.h>
-#ifndef WITH_ACL
-# error "No ACL support ... but POSIX ACL support."
-#endif
-#endif
 
 typedef struct acl_type {
  char *acl_a; /* ACCESS */
  char *acl_d; /* DEFAULT, directories only */
 } acl_type;
 
-#ifdef WITH_XATTR /* Do generic user Xattrs. */
-#include <sys/xattr.h>
-#include <attr/attributes.h>
-#ifndef ENOATTR
-# define ENOATTR ENODATA
-#endif
-#endif
-
+#ifdef WITH_XATTR
 typedef struct xattr_node 
 {
  char *key;
@@ -68,28 +62,6 @@ typedef struct xattrs_type
   size_t sz;
   struct xattr_node *ents;
 } xattrs_type;
-
-#ifdef WITH_SELINUX
-#include <selinux/selinux.h>
-#ifndef ENOATTR
-# define ENOATTR ENODATA 
-#endif
-#endif
-
-#ifdef WITH_E2FSATTRS
-#include <e2p/e2p.h>
-#endif
-
-#ifdef WITH_CAPABILITIES
-#include <sys/capability.h>
-#endif
-
-#ifdef WITH_MHASH
-#include <mhash.h>
-#endif
-
-#ifdef WITH_ZLIB
-#include <zlib.h>
 #endif
 
 #define RETOK 0
@@ -99,8 +71,6 @@ typedef struct xattrs_type
 #define DO_COMPARE  (1<<1)
 #define DO_DIFF     (1<<2)
 #define DO_DRY_RUN  (1<<3)
-
-#include "url.h"
 
 /* TIMEBUFSIZE should be exactly ceil(sizeof(time_t)*8*ln(2)/ln(10))
  * Now it is ceil(sizeof(time_t)*2.5)
@@ -128,16 +98,12 @@ typedef struct xattrs_type
 /*    void* local; */  
 /*  }_db_config ; */
 
-
-#include "seltree.h"
-
-#include "hashsum.h"
-
 typedef struct db_line {
   byte* hashsums[num_hashes];
 
+#ifdef WITH_POSIX_ACL
   acl_type* acl;
-  /* Something here.. */
+#endif
 
   mode_t perm;
   mode_t perm_o; /* Permission for tree traverse */
@@ -157,7 +123,9 @@ typedef struct db_line {
 
   char *cntx;
 
+#ifdef WITH_XATTR
   xattrs_type* xattrs;
+#endif
 
   unsigned long e2fsattrs;
 

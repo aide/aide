@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2000-2002, 2005-2006, 2020 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 2000-2002, 2005-2006, 2020, 2022 Rami Lehti, Pablo Virolainen,
  *               Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -22,16 +22,17 @@
 #ifndef _MD_H_INCLUDED
 #define _MD_H_INCLUDED
 
-#include "db_config.h"
-#include "hashsum.h"
-
+#include "config.h"
 #ifdef WITH_MHASH
 #include <mhash.h>
 #endif
-
 #ifdef WITH_GCRYPT
 #include <gcrypt.h>
 #endif
+#include <sys/types.h>
+#include "attributes.h"
+#include "hashsum.h"
+struct db_line;
 
 /*
   This struct hold's internal data needed for md-calls.

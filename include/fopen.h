@@ -4,13 +4,6 @@
 #define _FOPEN_H_INCLUDED
 
 #include <stdio.h>
-#include <string.h>
-#ifndef WIN32
-#  include <sys/time.h>
-#endif
-#include <stdlib.h>
-#include <errno.h>
-
 #include <curl/curl.h>
 
 enum fcurl_type_e {

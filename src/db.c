@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006, 2010-2011, 2013, 2019-2021 Rami Lehti,
+ * Copyright (C) 1999-2006, 2010-2011, 2013, 2019-2022 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -20,13 +20,18 @@
  */
  
 #include "aide.h"
+#include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
+#include <time.h>
+#include "attributes.h"
+#include "config.h"
+#include "hashsum.h"
+#include "url.h"
 #include <stdlib.h>
-#include <errno.h>
 #include "db.h"
 #include "db_lex.h"
 #include "db_file.h"
-#include "db_disk.h"
 #include "md.h"
 
 #ifdef WITH_CURL
@@ -37,15 +42,8 @@
 #include "log.h"
 #include "be.h"
 
-#ifdef WITH_MHASH
-#include <mhash.h>
-#endif
-
 #include "base64.h"
 #include "util.h"
-/*for locale support*/
-#include "locale-aide.h"
-/*for locale support*/
 
 db_line* db_char2line(char**, database*);
 
@@ -232,8 +230,12 @@ db_line* db_char2line(char** ss, database* db){
   line->filename=NULL;
   line->fullpath=NULL;
   line->linkname=NULL;
+#ifdef WITH_POSIX_ACL
   line->acl=NULL;
+#endif
+#ifdef WITH_XATTR
   line->xattrs=NULL;
+#endif
   line->e2fsattrs=0;
   line->cntx=NULL;
   line->capabilities=NULL;
@@ -337,6 +339,7 @@ db_line* db_char2line(char** ss, database* db){
       break;
     }
       case attr_xattrs : {
+#ifdef WITH_XATTR
         size_t num = 0;
         char *tval = NULL;
         
@@ -364,6 +367,7 @@ db_line* db_char2line(char** ss, database* db){
             ++num;
           }
         }
+#endif
         break;
       }
 
@@ -542,17 +546,19 @@ void free_db_line(db_line* dl)
   checked_free(dl->fullpath);
   checked_free(dl->linkname);
   
+#ifdef WITH_ACL
   if (dl->acl)
   {
-#ifdef WITH_ACL
     free(dl->acl->acl_a);
     free(dl->acl->acl_d);
-#endif
   }
   checked_free(dl->acl);
+#endif
   
+#ifdef WITH_XATTR
   if (dl->xattrs)
     free(dl->xattrs->ents);
   checked_free(dl->xattrs);
   checked_free(dl->cntx);
+#endif
 }

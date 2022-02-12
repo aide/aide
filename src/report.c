@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2007, 2010-2013, 2015-2016, 2018-2021 Rami Lehti,
+ * Copyright (C) 1999-2007, 2010-2013, 2015-2016, 2018-2022 Rami Lehti,
  *               Pablo Virolainen, Mike Markley, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -20,6 +20,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "config.h"
 #include "aide.h"
 #include <stdlib.h>
 #include <string.h>
@@ -27,6 +28,7 @@
 #include <math.h>
 #ifdef WITH_AUDIT
 #include <libaudit.h>
+#include <unistd.h>
 #endif
 #ifdef WITH_E2FSATTRS
 #include "e2fsattrs.h"
@@ -34,24 +36,28 @@
 #ifdef HAVE_SYSLOG
 #include <syslog.h>
 #endif
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <sys/stat.h>
+#include "hashsum.h"
+#include "log.h"
+#include "rx_rule.h"
+#include "seltree_struct.h"
 
 #include "attributes.h"
 #include "base64.h"
 #include "db_config.h"
-#include "gen_list.h"
 #include "list.h"
 #include "url.h"
 #include "db.h"
 #include "be.h"
 #include "util.h"
-#include "commandconf.h"
-#include "gen_list.h"
 #include "report.h"
 /*for locale support*/
 #include "locale-aide.h"
 /*for locale support*/
 
-#include "md.h"
 
 /*************/
 /* construction area for report lines */

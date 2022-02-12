@@ -24,6 +24,7 @@
 #include "config.h"
 #include <string.h>
 #include <stdbool.h>
+#include <inttypes.h>
 #include <sys/types.h>
 #include "url.h"
 
@@ -38,6 +39,10 @@
 
 #ifndef HAVE_STRICMP
 #  define stricmp(a,b)   strcasecmp( (a), (b) )
+#endif
+
+#ifndef HAVE_BYTE
+typedef uint8_t byte;
 #endif
 
 const char* btoa(bool);

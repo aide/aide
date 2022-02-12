@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2006, 2011, 2015-2016, 2020-2021 Rami Lehti,
+ * Copyright (C) 1999-2002, 2006, 2011, 2015-2016, 2020-2022 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -21,12 +21,14 @@
 
 #ifndef _COMMANDCONF_H_INCLUDED
 #define _COMMANDCONF_H_INCLUDED
-#include "rx_rule.h"
-#include "list.h"
-#include <stdio.h>
 #include <stdbool.h>
-#include "db_config.h"
+#include <stdio.h>
+#include "attributes.h"
+#include "config.h"
 #include "db.h"
+#include "db_config.h"
+#include "rx_rule.h"
+#include "seltree_struct.h"
 
 int parse_config(char *, char *, char *);
 

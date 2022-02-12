@@ -12,7 +12,7 @@ E	[\ ]*"="[\ ]*
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2004-2006, 2010-2013, 2015-2016, 2019-2021
+ * Copyright (C) 1999-2002, 2004-2006, 2010-2013, 2015-2016, 2019-2022
  *               Rami Lehti, Pablo Virolainen, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -31,16 +31,11 @@ E	[\ ]*"="[\ ]*
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "aide.h"
-#include <string.h>
-#include <stdlib.h>
-#include "gen_list.h"
 #include "util.h"
 #include "conf_yacc.h"
-#include "list.h"
 #include "errorcodes.h"
-#include "symboltable.h"
 #include "commandconf.h"
+#include "log.h"
 
 #include "conf_ast.h"
 

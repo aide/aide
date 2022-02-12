@@ -52,7 +52,6 @@ aide_SOURCES = src/aide.c include/aide.h \
 	include/seltree_struct.h \
 	include/seltree.h src/seltree.c \
 	include/symboltable.h src/symboltable.c \
-	include/types.h \
 	include/url.h src/url.c\
 	include/util.h src/util.c
 if HAVE_E2FSATTRS
@@ -99,5 +98,5 @@ src/db_lex.c: src/db_lex.l src/conf_yacc.h
 
 autoreconf-clean: maintainer-clean
 	-rm -f INSTALL Makefile.in aclocal.m4 compile config.guess \
-	 config.h.in config.h.in~ config.sub configure depcomp \
+	 include/config.h.in include/config.h.in~ config.sub configure depcomp \
 	 install-sh missing version.m4 ylwrap

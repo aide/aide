@@ -22,7 +22,6 @@
 #define _E2FSATTRS_H_INCLUDED
 
 #include <stdbool.h>
-#include <e2p/e2p.h>
 
 unsigned long e2fsattrs_get_flag(char);
 

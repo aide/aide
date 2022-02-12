@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2004-2006, 2010-2011, 2013, 2016, 2019-2021
+ * Copyright (C) 1999-2002, 2004-2006, 2010-2011, 2013, 2016, 2019-2022
  *               Rami Lehti, Pablo Virolainen, Mike Markley,
  *               Richard van den Berg, Hannes von Haugwitz
  *
@@ -20,12 +20,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "config.h"
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <ctype.h>
 #include <syslog.h>
+#include <stdbool.h>
+#include <strings.h>
+#include "url.h"
 /*for locale support*/
 #include "locale-aide.h"
 /*for locale support*/

@@ -20,33 +20,27 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "config.h"
 #include "aide.h"
 #include <stdio.h>
 #include <string.h>
-#include <sys/types.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <time.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include "db_config.h"
+#include "hashsum.h"
+#include "log.h"
+#include "url.h"
 
 #include "attributes.h"
 
 #include <errno.h>
 
-#include "types.h"
 #include "base64.h"
-#include "db.h"
 #include "db_lex.h"
 #include "db_file.h"
-#include "gen_list.h"
 #include "util.h"
-#include "commandconf.h"
-/*for locale support*/
-#include "locale-aide.h"
-/*for locale support*/
-
-#ifdef WITH_MHASH
-#include <mhash.h>
-#endif
 
 #ifdef WITH_ZLIB
 #include <zlib.h>
@@ -642,6 +636,7 @@ int db_writeline_file(db_line* line,db_config* dbconf, url_t* url){
       break;
     }
 #endif
+#ifdef WITH_XATTR
     case attr_xattrs : {
         xattr_node *xattr = NULL;
         size_t num = 0;
@@ -667,6 +662,7 @@ int db_writeline_file(db_line* line,db_config* dbconf, url_t* url){
         }
       break;
     }
+#endif
     case attr_selinux : {
 	db_write_byte_base64((byte*)line->cntx, 0, dbconf->database_out.fp, i, 1, 1);
       break;

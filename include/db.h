@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2004-2005, 2013, 2016, 2020 Rami Lehti,
+ * Copyright (C) 1999-2002, 2004-2005, 2013, 2016, 2020, 2022 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -22,9 +22,11 @@
 #ifndef _DB_H_INCLUDED
 #define _DB_H_INCLUDED
 
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <time.h>
 #include "db_config.h"
+#include "util.h"
 
 typedef enum {
     DB_TYPE_IN,

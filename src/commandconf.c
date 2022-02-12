@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006, 2010-2011, 2013, 2015-2016, 2019-2021 Rami Lehti,
+ * Copyright (C) 1999-2006, 2010-2011, 2013, 2015-2016, 2019-2022 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -24,9 +24,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <errno.h>
-#include <sys/param.h>
-
+#include <stdbool.h>
+#include <zlib.h>
+#include "attributes.h"
+#include "conf_ast.h"
+#include "config.h"
+#include "hashsum.h"
+#include "list.h"
+#include "rx_rule.h"
+#include "seltree_struct.h"
+#include "url.h"
 #include "commandconf.h"
 #include "conf_lex.h"
 #include "log.h"
@@ -34,12 +41,11 @@
 #include "db.h"
 #include "db_config.h"
 #include "report.h"
-#include "gen_list.h"
 #include "symboltable.h"
 #include "md.h"
 #include "util.h"
-#include "base64.h"
 #include "conf_eval.h"
+#include "seltree.h"
 /*for locale support*/
 #include "locale-aide.h"
 /*for locale support*/

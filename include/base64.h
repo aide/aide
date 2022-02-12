@@ -2,6 +2,7 @@
 **
 ** Copyright (C) 1994 Swedish University Network (SUNET)
 ** Modified by Rami Lehti (C) 1999
+** Modified by Hannes von Haugwitz (C) 2022
 **
 **
 ** This program is free software; you can redistribute it and/or modify
@@ -32,8 +33,9 @@
 #ifndef _BASE64_H_INCLUDED
 #define _BASE64_H_INCLUDED
 #include <sys/types.h>
-#include <assert.h>
-#include "types.h"
+#include "util.h"
+
+#define BUFSIZE 16384
 
 #define FAIL -1
 #define SKIP -2

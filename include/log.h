@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2020 Hannes von Haugwitz
+ * Copyright (C) 2020, 2022 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -21,7 +21,6 @@
 #ifndef _LOG_H_INCLUDED
 #define  _LOG_H_INCLUDED
 
-#include <stdarg.h>
 #include <stdbool.h>
 
 /* log levels */

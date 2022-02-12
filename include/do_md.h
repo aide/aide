@@ -1,8 +1,8 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2006, 2010-2011, 2019 Rami Lehti, Pablo Virolainen,
- *               Richard van den Berg, Hannes von Haugwitz
+ * Copyright (C) 1999-2002, 2006, 2010-2011, 2019, 2022 Rami Lehti, Pablo
+ *               Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -21,14 +21,10 @@
  
 #ifndef _DO_MD_H_INCLUDED
 #define _DO_MD_H_INCLUDED
-#ifdef WITH_MHASH
-#include "mhash.h"
-#endif
 
+#include "config.h"
 #include "list.h"
 #include "db_config.h"
-
-#define BUFSIZE 16384
 
 list* do_md(list* file_lst,db_config* conf);
 

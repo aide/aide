@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2010, 2020-2021 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002, 2010, 2020-2022 Rami Lehti, Pablo Virolainen,
  *               Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -21,10 +21,9 @@
 
 #ifndef _SELTREE_H_INCLUDED
 #define _SELTREE_H_INCLUDED
-#include "attributes.h"
-#include "seltree_struct.h"
-#include "rx_rule.h"
 #include "log.h"
+#include "rx_rule.h"
+#include "seltree_struct.h"
 
 seltree* init_tree();
 

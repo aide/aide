@@ -11,7 +11,7 @@ AC_DEFINE_UNQUOTED(AIDEVERSION, "AIDE_VERSION")
 AH_TEMPLATE([AIDEVERSION], [package version])
 
 dnl The name of the configure h-file.
-AC_CONFIG_HEADERS(config.h)
+AC_CONFIG_HEADERS(include/config.h)
 
 dnl Checks for programs.
 AC_PROG_CC

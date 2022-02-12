@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2005-2006, 2010, 2019-2021 Rami Lehti,
+ * Copyright (C) 1999-2002, 2005-2006, 2010, 2019-2022 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -19,13 +19,25 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "aide.h"
+#include "config.h"
 #include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include "attributes.h"
+#include "db_config.h"
+#include "hashsum.h"
+#include "log.h"
 #include "md.h"
 #include "util.h"
-#include "log.h"
 #include "errorcodes.h"
-#include <string.h>
+
+#ifdef WITH_MHASH
+#include <mhash.h>
+#endif
+
+#ifdef WITH_GCRYPT
+#include <gcrypt.h>
+#endif
 
 /*
   Initialise md_container according its todo_attr field

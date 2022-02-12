@@ -1,8 +1,8 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2005-2006 Rami Lehti, Pablo Virolainen,
- *               Richard van den Berg
+ * Copyright (C) 1999-2002, 2005-2006,2022 Rami Lehti, Pablo Virolainen,
+ *               Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -19,13 +19,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "aide.h"
 #include <stdio.h>
 #include <string.h>
+#include "list.h"
 #include "symboltable.h"
-/*for locale support*/
-#include "locale-aide.h"
-/*for locale support*/
 
 list* list_find(char* s,list* item){
 

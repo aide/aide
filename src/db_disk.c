@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006, 2010-2011, 2016-2017, 2019-2021 Rami Lehti,
+ * Copyright (C) 1999-2006, 2010-2011, 2016-2017, 2019-2022 Rami Lehti,
  *               Pablo Virolainen, Mike Markley, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -21,38 +21,24 @@
  */
 
 #include "aide.h"
-#ifndef _POSIX_C_SOURCE
-# define _POSIX_C_SOURCE 199506L
-#endif
-#include <unistd.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <stdlib.h>
-#include <time.h>
 #include <dirent.h>
-#include <limits.h>
 #include <errno.h>
-
+#include <stdbool.h>
+#include "db_config.h"
+#include "list.h"
+#include "log.h"
+#include "rx_rule.h"
+#include "seltree_struct.h"
 #include "seltree.h"
 #include "gen_list.h"
-#include "types.h"
-#include "base64.h"
+#include "db.h"
 #include "db_disk.h"
-#include "conf_yacc.h"
 #include "util.h"
-#include "commandconf.h"
-/*for locale support*/
-#include "locale-aide.h"
-/*for locale support*/
 
-#ifdef WITH_MHASH
-#include <mhash.h>
-#endif
-
-#ifdef WITH_ZLIB
-#include <zlib.h>
-#endif
 
 static DIR *dirh = NULL;
 static struct dirent *entp = NULL;

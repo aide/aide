@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2019-2021 Hannes von Haugwitz
+ * Copyright (C) 2019-2022 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -18,7 +18,18 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "config.h"
 #include "aide.h"
+
+#include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/stat.h>
+#include "attributes.h"
+#include "conf_ast.h"
+#include "db_config.h"
+#include "hashsum.h"
+#include "list.h"
 
 #include "conf_eval.h"
 #include "conf_yacc.h"
@@ -36,7 +47,6 @@
 
 #include <stdlib.h>
 #include <stddef.h>
-#include <sys/types.h>
 #include <sys/wait.h>
 #include <dirent.h>
 #include <errno.h>

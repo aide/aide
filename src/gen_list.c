@@ -20,22 +20,25 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "config.h"
 #include "aide.h"
-	       
 #include <string.h>
-#include <assert.h>
+#include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
-#include <dirent.h>
 #include <unistd.h>
 #include <limits.h>
 #include <sys/stat.h>
-#include <sys/types.h>
 #include <errno.h>
 #include <time.h>
 #define PCRE2_CODE_UNIT_WIDTH 8
 #include <pcre2.h>
 
 #include "attributes.h"
+#include "hashsum.h"
+#include "seltree_struct.h"
+#include "rx_rule.h"
+#include "url.h"
 #include "list.h"
 #include "gen_list.h"
 #include "seltree.h"
@@ -43,18 +46,12 @@
 #include "db_config.h"
 #include "db_disk.h"
 #include "db_lex.h"
-#include "commandconf.h"
+#include "do_md.h"
 #include "log.h"
 #include "util.h"
 /*for locale support*/
 #include "locale-aide.h"
 /*for locale support*/
-
-#ifdef WITH_MHASH
-#include <mhash.h>
-#endif
-#include "md.h"
-#include "do_md.h"
 
 void hsymlnk(db_line* line);
 void fs2db_line(struct stat* fs,db_line* line);

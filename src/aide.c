@@ -20,36 +20,37 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "aide.h"
+#include "config.h"
 
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <signal.h>
-#include <sys/types.h>
 #include <dirent.h>
 #include <time.h>
+#include <stdbool.h>
+#include <string.h>
 
 #if HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
-#include "md.h"
+#include "attributes.h"
+#include "hashsum.h"
+#include "rx_rule.h"
+#include "url.h"
 #include "commandconf.h"
 #include "report.h"
 #include "db_config.h"
 #include "db_disk.h"
 #include "db.h"
-#include "do_md.h"
 #include "log.h"
+#include "seltree.h"
 #include "errorcodes.h"
 #include "gen_list.h"
 #include "getopt.h"
-#include "list.h"
 #include "util.h"
-#include "base64.h"
 /*for locale support*/
 #include "locale-aide.h"
 /*for locale support*/

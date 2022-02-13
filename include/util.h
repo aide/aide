@@ -73,6 +73,8 @@ char* strnstr(char* haystack,char* needle,int n);
 size_t strnlen(const char *s, size_t maxlen);
 #endif
 
+#ifdef HAVE_SYSLOG
 int syslog_facility_lookup(char *);
+#endif
 
 #endif

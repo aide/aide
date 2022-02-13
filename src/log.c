@@ -60,13 +60,7 @@ static struct log_level log_level_array[] = {
 static void cache_line(LOG_LEVEL level, const char* format, va_list ap) {
     int n;
 
-    void * tmp = realloc(cached_lines, (ncachedlines+1) * sizeof(log_cache)); /* freed in log_cached_lines() */
-    if (tmp == NULL) {
-        log_msg(LOG_LEVEL_ERROR, "realloc() failed: %s", strerror(errno));
-        exit(EXIT_FAILURE);
-    } else {
-        cached_lines = tmp;
-    }
+    cached_lines = checked_realloc(cached_lines, (ncachedlines+1) * sizeof(log_cache)); /* freed in log_cached_lines() */
 
     cached_lines[ncachedlines].level = level;
     cached_lines[ncachedlines].message = NULL;
@@ -76,7 +70,7 @@ static void cache_line(LOG_LEVEL level, const char* format, va_list ap) {
     n = vsnprintf(NULL, 0, format, aq) + 1;
     va_end(aq);
 
-    cached_lines[ncachedlines].message = malloc(n * sizeof(char)); /* freed in log_cached_lines() */
+    cached_lines[ncachedlines].message = checked_malloc(n * sizeof(char)); /* freed in log_cached_lines() */
     vsnprintf(cached_lines[ncachedlines].message, n, format, ap);
     ncachedlines++;
 }

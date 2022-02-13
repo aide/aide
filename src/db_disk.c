@@ -87,13 +87,7 @@ static char *name_construct (const char *s)
 	}
 
 	ret = (char *) checked_malloc (len);
-	ret[0] = (char) 0;
-	strncpy(ret, conf->root_prefix, conf->root_prefix_length+1);
-	strncat (ret, r->path, len2);
-	if (r->path[len2 - 1] != '/') {
-		strcat (ret, "/");
-	}
-	strcat (ret, s);
+	snprintf(ret, len, "%s%s%s%s", conf->root_prefix, r->path, (r->path[len2 - 1] != '/')?"/":"", s);
 	return ret;
 }
 
@@ -169,9 +163,9 @@ db_line *db_readline_disk (bool dry_run)
 	/* root needs special handling */
 	if (!root_handled) {
 		root_handled = 1;
-		fullname=checked_malloc((conf->root_prefix_length+2)*sizeof(char));
-		strncpy(fullname, conf->root_prefix, conf->root_prefix_length+1);
-		strcat (fullname, "/");
+		int len = (conf->root_prefix_length+2)*sizeof(char);
+		fullname=checked_malloc(len);
+		snprintf(fullname, len, "%s/",  conf->root_prefix);
 		if (!get_file_status(fullname, &fs)) {
 		add = check_rxtree (&fullname[conf->root_prefix_length], conf->tree, &rule, get_restriction_from_perm(fs.st_mode), dry_run);
 
@@ -299,9 +293,9 @@ recursion:
 
 				log_msg (LOG_LEVEL_TRACE, "r->childs %p, r->parent %p,r->checked %i",
 							 r->childs, r->parent, r->checked);
-				fullname=checked_malloc((conf->root_prefix_length+strlen(r->path)+1)*sizeof(char));
-				strncpy(fullname, conf->root_prefix, conf->root_prefix_length+1);
-				strcat(fullname, r->path);
+				int len = (conf->root_prefix_length+strlen(r->path)+1)*sizeof(char);
+				fullname=checked_malloc(len);
+				snprintf(fullname, len, "%s%s",  conf->root_prefix, r->path);
 				dirh=open_dir(fullname);
 				if (! dirh) {
 
@@ -377,9 +371,9 @@ int db_disk_init ()
 
 	r = conf->tree;
 
-	char* fullname=checked_malloc((conf->root_prefix_length+2)*sizeof(char));
-	strncpy(fullname, conf->root_prefix, conf->root_prefix_length+1);
-	strcat (fullname, "/");
+	int len = (conf->root_prefix_length+2)*sizeof(char);
+	char* fullname=checked_malloc(len);
+	snprintf(fullname, len, "%s/",  conf->root_prefix);
 	dirh=open_dir(fullname);
 	free(fullname);
 

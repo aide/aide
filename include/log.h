@@ -50,9 +50,9 @@ void log_msg(LOG_LEVEL, const char* ,...);
 
 #define LOG_CONFIG_FORMAT_LINE(log_level, format, ...) \
     if (linebuf) { \
-        log_msg(log_level,"%s:%d: " #format " (line: '%s')", filename, linenumber, __VA_ARGS__, linebuf); \
+        log_msg(log_level,"%s:%d: " format " (line: '%s')", filename, linenumber, __VA_ARGS__, linebuf); \
     } else { \
-        log_msg(log_level,"%s: " #format, filename, __VA_ARGS__); \
+        log_msg(log_level,"%s: " format, filename, __VA_ARGS__); \
     }
 
 #endif

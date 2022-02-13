@@ -267,17 +267,16 @@ char* perm_to_char(mode_t perm)
 char *expand_tilde(char *path) {
     char *homedir = NULL;
     char *full = NULL;
-    size_t path_len, homedir_len, full_len;
 
     if (path != NULL) {
         if (path[0] == '~') {
             if((homedir=getenv("HOME")) != NULL) {
+                size_t path_len, homedir_len, full_len;
                 path_len = strlen(path+sizeof(char));
                 homedir_len = strlen(homedir);
-                full_len = homedir_len+path_len;
-                full = checked_malloc(sizeof(char) * (full_len+1));
-                strcpy(full, homedir);
-                strcat(full+homedir_len, path+sizeof(char));
+                full_len = (homedir_len+path_len+1) * sizeof(char);
+                full = checked_malloc(full_len);
+                snprintf(full, full_len, "%s%s", homedir, path+sizeof(char));
                 log_msg(LOG_LEVEL_DEBUG, "expanded '~' in '%s' to '%s'", path, full);
                 free(path);
                 /* Don't free(homedir); because it is not safe on some platforms */
@@ -341,6 +340,7 @@ size_t strnlen(const char *s, size_t maxlen)
 }
 #endif
 
+#ifdef HAVE_SYSLOG
 /* Lookup syslog facilities by name */
 int syslog_facility_lookup(char *s)
 {
@@ -422,3 +422,4 @@ int syslog_facility_lookup(char *s)
 	log_msg(LOG_LEVEL_WARNING, "Syslog facility \"%s\" is unknown, using default",s);
 	return(AIDE_SYSLOG_FACILITY);
 }
+#endif

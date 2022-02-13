@@ -39,7 +39,7 @@ database* db;
 LOG_LEVEL db_lex_log_level = LOG_LEVEL_DEBUG;
 
 #define LOG_AND_RETURN(token) \
-    LOG_DB_FORMAT_LINE(db_lex_log_level, db_lex: %s: '%s', #token, dbtext) \
+    LOG_DB_FORMAT_LINE(db_lex_log_level, "db_lex: %s: '%s'", #token, dbtext) \
     return (token);
 
 #define YY_INPUT(buf,result,max_size) \
@@ -57,21 +57,21 @@ LOG_LEVEL db_lex_log_level = LOG_LEVEL_DEBUG;
 %%
 <INITIAL>"#"[^\n]*"\n" {
             (db->lineno)++;
-            LOG_DB_FORMAT_LINE(db_lex_log_level, db_lex: skip comment line: '%.*s', strlen(dbtext)-1, dbtext)
+            LOG_DB_FORMAT_LINE(db_lex_log_level, "db_lex: skip comment line: '%.*s'", strlen(dbtext)-1, dbtext)
            }
 <INITIAL>^"\n" {
             (db->lineno)++;
-            LOG_DB_FORMAT_LINE(db_lex_log_level, %s, "db_lex: skip empty line")
+            LOG_DB_FORMAT_LINE(db_lex_log_level, "%s", "db_lex: skip empty line")
            }
 <INITIAL>^[^\n]*"\n" {
             (db->lineno)++;
-            LOG_DB_FORMAT_LINE(db_lex_log_level, db_lex: parse '%.*s', strlen(dbtext)-1, dbtext)
+            LOG_DB_FORMAT_LINE(db_lex_log_level, "db_lex: parse '%.*s'", strlen(dbtext)-1, dbtext)
             yyless(0);
             BEGIN(DB);
            }
 <INITIAL>^[^\n]* {
             (db->lineno)++;
-            LOG_DB_FORMAT_LINE(db_lex_log_level, db_lex: parse '%s', dbtext)
+            LOG_DB_FORMAT_LINE(db_lex_log_level, "db_lex: parse '%s'", dbtext)
             yyless(0);
             BEGIN(DB);
            }
@@ -94,7 +94,7 @@ LOG_LEVEL db_lex_log_level = LOG_LEVEL_DEBUG;
 }
 
 <DB>"#"[^\n]* { /* inline comment */
-    LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, db_lex: skip inline comment: '%s', dbtext)
+    LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, "db_lex: skip inline comment: '%s'", dbtext)
 }
 
 <DB>({C})+ {
@@ -102,22 +102,22 @@ LOG_LEVEL db_lex_log_level = LOG_LEVEL_DEBUG;
 }
 
 <DB>[ \t] {
-    LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, db_lex: skip tab/whitespace: '%s', dbtext)
+    LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, "db_lex: skip tab/whitespace: '%s'", dbtext)
 }
 
 <DB>"\n" {
-  LOG_DB_FORMAT_LINE(db_lex_log_level, db_lex: TNEWLINE: '\n', NULL)
+  LOG_DB_FORMAT_LINE(db_lex_log_level, "db_lex: TNEWLINE: '%s'", "\\n")
   BEGIN 0;
   return (TNEWLINE);
 }
 
 <*><<EOF>> {
-    LOG_DB_FORMAT_LINE(db_lex_log_level, db_lex: TEOF: '<<EOF>>', NULL)
+    LOG_DB_FORMAT_LINE(db_lex_log_level, "db_lex: TEOF: '<<EOF>>'", NULL)
     return (TEOF);
 }
 
 <*>. {
-    LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, skip unexpected character: '%c', *dbtext)
+    LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "skip unexpected character: '%c'", *dbtext)
 }
 
 %%

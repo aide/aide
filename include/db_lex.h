@@ -41,6 +41,6 @@ typedef enum {
 } DB_TOKEN;
 
 #define LOG_DB_FORMAT_LINE(log_level, format, ...) \
-    log_msg(log_level, "%s:%s:%li: " #format , get_url_type_string((db->url)->type), (db->url)->value, db->lineno, __VA_ARGS__);
+    log_msg(log_level, "%s:%s:%li: " format , get_url_type_string((db->url)->type), (db->url)->value, db->lineno, __VA_ARGS__);
 
 #endif

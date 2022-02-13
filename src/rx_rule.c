@@ -18,6 +18,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include <config.h>
 #include <string.h>
 #include <sys/stat.h>
 
@@ -114,11 +115,11 @@ static int generate_restriction_string(RESTRICTION_TYPE r, char *str) {
     return n;
 }
 
-char *get_restriction_string(RESTRICTION_TYPE rs) {
+char *get_restriction_string(RESTRICTION_TYPE r) {
     char *str = NULL;
-    int n = generate_restriction_string(rs, str);
+    int n = generate_restriction_string(r, str);
     str = checked_malloc(n);
-    generate_restriction_string(rs, str);
+    generate_restriction_string(r, str);
     return str;
 }
 

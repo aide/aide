@@ -65,7 +65,7 @@ void* be_init(bool readonly, url_t* u, bool iszipped, bool append, int linenumbe
     fd=open(u->value,readonly?O_RDONLY:O_CREAT|O_RDWR|(append?O_APPEND:O_TRUNC),0666);
 #endif
     if(fd==-1) {
-        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, open (%s) failed for file '%s': %s, readonly?"read-only":"read/write", u->value, strerror(errno));
+        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, "open (%s) failed for file '%s': %s", readonly?"read-only":"read/write", u->value, strerror(errno));
       return NULL;
     } else {
         log_msg(LOG_LEVEL_DEBUG, "opened file '%s' with fd=%i",u->value,fd);

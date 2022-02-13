@@ -70,7 +70,7 @@ char* after = NULL;
 static void usage(int exitvalue)
 {
   fprintf(stdout,
-	  _("Aide " AIDEVERSION" \n\n"
+	  _("Aide %s \n\n"
 	    "Usage: aide [options] command\n\n"
 	    "Commands:\n"
 	    "  -i, --init\t\tInitialize the database\n"
@@ -89,7 +89,7 @@ static void usage(int exitvalue)
 	    "  -B \"OPTION\"\t--before=\"OPTION\"\tBefore configuration file is read define OPTION\n"
 	    "  -A \"OPTION\"\t--after=\"OPTION\"\tAfter configuration file is read define OPTION\n"
 	    "  -L [level]\t--log-level=[level]\tSet log message level to [level]\n"
-	    "\n")
+	    "\n"), AIDEVERSION
 	  );
   
   exit(exitvalue);
@@ -193,14 +193,13 @@ static void print_version(void)
 static char *append_line_to_config(char *config, char *line) {
     size_t line_length = strlen(line);
     if (config == NULL) {
-        config = checked_malloc((line_length+2)*sizeof(char));
-        strcpy(config,line);
-        strcat(config,"\n");
+        int len = (line_length + 2)*sizeof(char);
+        config = checked_malloc(len);
+        snprintf(config, len, "%s\n", line);
     } else {
-        char *tmp = checked_malloc(sizeof(char) *(strlen(config)+line_length+2));
-        strcpy(tmp,config);
-        strcat(tmp,line);
-        strcat(tmp,"\n");
+        int len = (strlen(config) + line_length + 2) * sizeof(char);
+        char *tmp = checked_malloc(len);
+        snprintf(tmp, len, "%s%s\n", config, line);
         free(config);
         config=tmp;
     }
@@ -218,14 +217,12 @@ static char *append_line_to_config(char *config, char *line) {
                 log_msg(LOG_LEVEL_INFO,"(%s): %s command", longopt, desc); \
             } else { \
                 INVALID_ARGUMENT(longopt, %s, "cannot have multiple commands on a single commandline") \
-                exit(INVALID_ARGUMENT_ERROR); \
             } \
             break; \
         }
 
 static void read_param(int argc,char**argv)
 {
-  int option = -1;
   int i=0;
   
 
@@ -251,7 +248,7 @@ static void read_param(int argc,char**argv)
   };
 
   while(1){
-    option = getopt_long(argc, argv, "hL:V::vc:l:p:B:A:riCuDEn", options, &i);
+    int option = getopt_long(argc, argv, "hL:V::vc:l:p:B:A:riCuDEn", options, &i);
     if(option==-1)
       break;
     switch(option)
@@ -266,7 +263,6 @@ static void read_param(int argc,char**argv)
       }
       case 'V':{
         INVALID_ARGUMENT("--verbose", %s, "option no longer supported, use 'log_level' and 'report_level' options instead (see man aide.conf for details)")
-	break;
       }
       case 'c':{
 	  conf->config_file=optarg;
@@ -286,8 +282,9 @@ static void read_param(int argc,char**argv)
       case 'l': {
                 int pcre2_errorcode;
                 PCRE2_SIZE pcre2_erroffset;
-                conf->limit=checked_malloc(strlen(optarg)+1);
-                strcpy(conf->limit,optarg);
+                int len = (strlen(optarg)+1) * sizeof(char);
+                conf->limit=checked_malloc(len);
+                strncpy(conf->limit, optarg, len);
                 if((conf->limit_crx=pcre2_compile((PCRE2_SPTR) conf->limit, PCRE2_ZERO_TERMINATED, PCRE2_UTF|PCRE2_ANCHORED, &pcre2_errorcode, &pcre2_erroffset, NULL)) == NULL) {
                     PCRE2_UCHAR pcre2_error[128];
                     pcre2_get_error_message(pcre2_errorcode, pcre2_error, 128);
@@ -346,13 +343,11 @@ static void read_param(int argc,char**argv)
 
             } else {
                 INVALID_ARGUMENT("--path-check", %s, "cannot have multiple commands on a single commandline")
-                exit(INVALID_ARGUMENT_ERROR);
             }
             break;
       }
       case 'r': {
        INVALID_ARGUMENT("--report", %s, "option no longer supported, use 'report_url' config option instead (see man aide.conf for detail)")
-       break;
       }
       ACTION_CASE("--init", 'i', DO_INIT, "database init")
       ACTION_CASE("--dry-init", 'n', DO_INIT|DO_DRY_RUN, "dry init")

@@ -78,7 +78,7 @@ static int has_md_changed(byte* old,byte* new,int len) {
 }
 
 #ifdef WITH_ACL
-static int has_acl_changed(acl_type* old, acl_type* new) {
+static int has_acl_changed(const acl_type* old, const acl_type* new) {
     if (old==NULL && new==NULL) {
         return RETOK;
     }
@@ -351,7 +351,7 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const dat
     node=new_seltree_node(tree,file->filename,0,NULL);
     log_msg(LOG_LEVEL_DEBUG, "added new node '%s' (%p) for '%s' (reason: new entry)", node->path, node, file->filename);
   } else if (db && db_flags&DB_NEW?node->new_data:node->old_data) {
-      LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, duplicate database entry found for '%s' (skip line), file->filename)
+      LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "duplicate database entry found for '%s' (skip line)", file->filename)
       free_db_line(file);
       free(file);
       return;
@@ -428,12 +428,12 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const dat
     (file->attr & ATTR(attr_checkinode))) {
     log_msg(LOG_LEVEL_DEBUG, "'%s' has check inode group set, checking for moved file", file->filename);
     /* Check if file was moved (same inode, different name in the other DB)*/
-    db_line *oldData;
-    db_line *newData;
     seltree* moved_node;
 
     moved_node=get_seltree_inode(tree,file,db_flags==DB_OLD?DB_NEW:DB_OLD);
     if(!(moved_node == NULL || moved_node == node)) {
+      db_line *oldData;
+      db_line *newData;
       if(db_flags == DB_NEW) {
         newData = node->new_data;
         oldData = moved_node->old_data;
@@ -662,7 +662,6 @@ void write_tree(seltree* node) {
 void populate_tree(seltree* tree, bool dry_run)
 {
   /* FIXME this function could really use threads */
-  int add=0;
   db_line* old=NULL;
   db_line* new=NULL;
   int initdbwarningprinted=0;
@@ -677,7 +676,7 @@ void populate_tree(seltree* tree, bool dry_run)
         log_msg(LOG_LEVEL_INFO, "read new entries from database: %s:%s", get_url_type_string((conf->database_new.url)->type), (conf->database_new.url)->value);
       db_lex_buffer(&(conf->database_new));
       while((new=db_readline(&(conf->database_new))) != NULL){
-	if((add=check_rxtree(new->filename,tree, &rule, get_restriction_from_perm(new->perm), dry_run))>0){
+	if(check_rxtree(new->filename,tree, &rule, get_restriction_from_perm(new->perm), dry_run) > 0){
 	  add_file_to_tree(tree,new,DB_NEW, &(conf->database_new));
 	} else {
           free_db_line(new);
@@ -700,7 +699,7 @@ void populate_tree(seltree* tree, bool dry_run)
         log_msg(LOG_LEVEL_INFO, "read old entries from database: %s:%s", get_url_type_string((conf->database_in.url)->type), (conf->database_in.url)->value);
         db_lex_buffer(&(conf->database_in));
             while((old=db_readline(&(conf->database_in))) != NULL) {
-                add=check_rxtree(old->filename,tree, &rule, get_restriction_from_perm(old->perm), dry_run);
+                int add=check_rxtree(old->filename,tree, &rule, get_restriction_from_perm(old->perm), dry_run);
                 if(add > 0) {
                     add_file_to_tree(tree,old,DB_OLD, &(conf->database_in));
                 } else if (conf->limit!=NULL && add < 0) {

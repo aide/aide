@@ -395,13 +395,13 @@ bool add_report_url(url_t* url, int linenumber, char* filename, char* linebuf) {
     if(url==NULL) {
         return false;
     } else if (url->type==url_stdin) {
-        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, unsupported report URL-type: '%s', get_url_type_string(url->type))
+        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, "unsupported report URL-type: '%s'", get_url_type_string(url->type))
         return false;
     }
 
     for(report_urls=conf->report_urls; report_urls ; report_urls=report_urls->next) {
         if (cmp_url((url_t*) report_urls->data, url)) {
-            LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_WARNING, report_url '%s' already defined (ignoring) ,url->value)
+            LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_WARNING, "report_url '%s' already defined (ignoring) ",url->value)
             return true;
         }
     }

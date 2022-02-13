@@ -120,7 +120,7 @@ static int db_file_read_spec(database* db){
   db->fields = checked_malloc(1*sizeof(ATTRIBUTE));
   
   while ((i=db_scan())!=TNEWLINE){
-    LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, db_file_read_spec(): db_scan() returned token=%d, i);
+    LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, "db_file_read_spec(): db_scan() returned token=%d", i);
 
     switch (i) {
       
@@ -131,12 +131,12 @@ static int db_file_read_spec(database* db){
       for (l=0;l<num_attrs;l++){
           if (attributes[l].db_name && strcmp(attributes[l].db_name,dbtext)==0) {
               if (ATTR(l)&seen_attrs) {
-                  LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, @@dbspec: skip redefined field '%s' at position %i, dbtext, db->num_fields)
+                  LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "@@dbspec: skip redefined field '%s' at position %i", dbtext, db->num_fields)
                   db->fields[db->num_fields]=attr_unknown;
               } else {
                   db->fields[db->num_fields]=l;
                   seen_attrs |= ATTR(l);
-                  LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, @@dpspec: define field '%s' at position %i, dbtext, db->num_fields)
+                  LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, "@@dpspec: define field '%s' at position %i", dbtext, db->num_fields)
               }
               db->num_fields++;
               break;
@@ -144,7 +144,7 @@ static int db_file_read_spec(database* db){
       }
 
       if(l==attr_unknown){
-          LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, @@dbspec: skip unknown field '%s' at position %i, dbtext, db->num_fields);
+          LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "@@dbspec: skip unknown field '%s' at position %i", dbtext, db->num_fields);
           db->fields[db->num_fields]=attr_unknown;
           db->num_fields++;
       }
@@ -152,7 +152,7 @@ static int db_file_read_spec(database* db){
     }
 
     default : {
-      LOG_DB_FORMAT_LINE(LOG_LEVEL_ERROR, unexpected token while reading dbspec: '%s', dbtext);
+      LOG_DB_FORMAT_LINE(LOG_LEVEL_ERROR, "unexpected token while reading dbspec: '%s'", dbtext);
       return RETFAIL;
     }
     }
@@ -172,7 +172,7 @@ static int db_file_read_spec(database* db){
       conf->attr|=1LL<<db->fields[i];
     }
     char *str;
-    LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, missing attr field%c generated attr field from dbspec: %s (comparison may be incorrect), ',', str = diff_database_attributes(0, conf->attr))
+    LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "missing attr field, generated attr field from dbspec: %s (comparison may be incorrect)", str = diff_database_attributes(0, conf->attr))
     free(str);
   }
   return RETOK;
@@ -182,8 +182,8 @@ DB_TOKEN skip_line(database* db) {
     DB_TOKEN token;
     do {
         token = db_scan();
-        LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, db_readline_file(): db_scan() returned a=%d, token);
-        LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, skip_line(): skip '%s', token==TNEWLINE?"\n":dbtext)
+        LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, "db_readline_file(): db_scan() returned a=%d", token);
+        LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, "skip_line(): skip '%s'", token==TNEWLINE?"\n":dbtext)
     } while(token != TNEWLINE && token != TEOF);
     return token;
 }
@@ -199,22 +199,22 @@ char** db_readline_file(database* db) {
 
   do {
   token = db_scan();
-  LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, db_readline_file(): db_scan() returned token=%d, token);
+  LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, "db_readline_file(): db_scan() returned token=%d", token);
   if (db->fields) {
     switch (token) {
         case TUNKNOWN: {
-          LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, unknown token '%s' found inside database (skip line), dbtext)
+          LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "unknown token '%s' found inside database (skip line)", dbtext)
           skip_line(db);
           break;
         }
         case TDBSPEC:
         case TBEGIN_DB: {
-          LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, additional '%s' found inside database (skip line), dbtext)
+          LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "additional '%s' found inside database (skip line)", dbtext)
           skip_line(db);
           break;
         }
         case TEND_DB: {
-          LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, %s, "'@@end_db' found")
+          LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, "%s", "'@@end_db' found")
           found_enddb = true;
           break;
         }
@@ -222,7 +222,7 @@ char** db_readline_file(database* db) {
         case TNEWLINE: {
             if (s) {
                 if (i<db->num_fields-1) {
-                    LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, cutoff database line '%s' found (field '%s' (position: %d) is missing) (skip line), s[0], attributes[db->fields[i+1]].db_name, i+1);
+                    LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "cutoff database line '%s' found (field '%s' (position: %d) is missing) (skip line)", s[0], attributes[db->fields[i+1]].db_name, i+1);
                     for(a=0;a<i;a++){
                         free(s[db->fields[a]]);
                         s[db->fields[a]] = NULL;
@@ -234,10 +234,10 @@ char** db_readline_file(database* db) {
                 }
             }
             if (found_enddb) {
-                LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, %s, "stop reading database")
+                LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, "%s", "stop reading database")
                 return s;
             } else if (token == TEOF) {
-                LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, %s, "missing '@@end_db' in database")
+                LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "%s", "missing '@@end_db' in database")
                 return s;
             }
             break;
@@ -247,17 +247,17 @@ char** db_readline_file(database* db) {
             if (s) {
                 if (++i<db->num_fields) {
                     if (db->fields[i] != attr_unknown) {
-                        LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, '%s' set field '%s' (position %d): '%s', s[0], attributes[db->fields[i]].db_name, i, dbtext);
+                        LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, "'%s' set field '%s' (position %d): '%s'", s[0], attributes[db->fields[i]].db_name, i, dbtext);
                         s[db->fields[i]] = checked_strdup(dbtext);
                     } else {
-                        LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, skip unknown/redefined field at position: %d: '%s', i, dbtext);
+                        LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, "skip unknown/redefined field at position: %d: '%s'", i, dbtext);
                     }
                 } else {
-                    LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, expected newline or end of file (skip found string '%s'), dbtext);
+                    LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "expected newline or end of file (skip found string '%s')", dbtext);
                 }
             } else {
                 if (*dbtext != '/') {
-                    LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, invalid path found: '%s' (skip line), dbtext);
+                    LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "invalid path found: '%s' (skip line)", dbtext);
                     skip_line(db);
                 } else {
                     i = 0;
@@ -266,11 +266,11 @@ char** db_readline_file(database* db) {
                         s[j]=NULL;
                     }
                     s[i] = checked_strdup(dbtext);
-                    LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, '%s' set field '%s' (position %d): '%s', s[0], attributes[db->fields[i]].db_name, i, dbtext);
+                    LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, "'%s' set field '%s' (position %d): '%s'", s[0], attributes[db->fields[i]].db_name, i, dbtext);
                 }
             }
             } else {
-                LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, expected newline or end of file (skip found string '%s'), dbtext)
+                LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "expected newline or end of file (skip found string '%s')", dbtext)
             }
             break;
         }
@@ -278,33 +278,33 @@ char** db_readline_file(database* db) {
   } else {
       if (token == TEOF) {
           /* allow empty database */
-          LOG_DB_FORMAT_LINE(LOG_LEVEL_INFO, db_readline_file(): empty database file, NULL);
+          LOG_DB_FORMAT_LINE(LOG_LEVEL_INFO, "db_readline_file(): empty database file", NULL);
           return s;
       }
       while (token != TBEGIN_DB) {
           if (token == TEOF) {
-              LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, db_readline_file(): '@@begin_db' NOT found (stop reading database), NULL);
+              LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "db_readline_file(): '@@begin_db' NOT found (stop reading database)", NULL);
               return s;
           }
-          LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, db_readline_file(): skip '%s', dbtext);
+          LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, "db_readline_file(): skip '%s'", dbtext);
           token = db_scan();
-          LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, db_readline_file(): db_scan() returned token=%d, token);
+          LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, "db_readline_file(): db_scan() returned token=%d", token);
       }
-      LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, '@@begin_db' found, NULL)
+      LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, "'@@begin_db' found", NULL)
       token = db_scan();
-      LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, db_readline_file(): db_scan() returned token=%d, token);
+      LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, "db_readline_file(): db_scan() returned token=%d", token);
       if (token != TNEWLINE) {
-              LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, db_readline_file(): missing newline after '@@begin_db' (stop reading database), NULL);
+              LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "db_readline_file(): missing newline after '@@begin_db' (stop reading database)", NULL);
               return s;
 
       } else {
           token = db_scan();
-          LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, db_readline_file(): db_scan() returned token=%d, token);
+          LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, "db_readline_file(): db_scan() returned token=%d", token);
           if (token != TDBSPEC) {
-              LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, db_readline_file(): unexpected token '%s'%c expected '@@db_spec' (stop reading database), dbtext, 'c');
+              LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "db_readline_file(): unexpected token '%s'%c expected '@@db_spec' (stop reading database)", dbtext, 'c');
               return s;
           } else {
-              LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, '@@dbspec' found, NULL)
+              LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, "'@@dbspec' found", NULL)
               if (db_file_read_spec(db)!=0) {
                   /* something went wrong */
                   return s;
@@ -395,7 +395,6 @@ int db_write_byte_base64(byte*data,size_t len,FILE* file,int i,
                          DB_ATTR_TYPE th, DB_ATTR_TYPE attr )
 {
   char* tmpstr=NULL;
-  int retval=0;
   
   (void)file;  
   if (data && !len)
@@ -411,7 +410,7 @@ int db_write_byte_base64(byte*data,size_t len,FILE* file,int i,
   }
 
   if(tmpstr){
-    retval=dofprintf("%s", tmpstr);
+    int retval=dofprintf("%s", tmpstr);
     free(tmpstr);
     return retval;
   }else {
@@ -439,11 +438,12 @@ int db_write_time_base64(time_t i,FILE* file,int a)
   }
 
 
-  ptr=(char*)checked_malloc(sizeof(char)*TIMEBUFSIZE);
+  int len = sizeof(char)*TIMEBUFSIZE;
+  ptr=(char*)checked_malloc(len);
 
-  memset((void*)ptr,0,sizeof(char)*TIMEBUFSIZE);
+  memset((void*)ptr,0,len);
 
-  sprintf(ptr,"%li",i);
+  snprintf(ptr, len, "%li",i);
 
 
   tmpstr=encode_base64((byte *)ptr,strlen(ptr));

@@ -552,7 +552,7 @@ void xattrs2line(db_line *line) {
 
     while (((xret = llistxattr(line->fullpath, xatrs, xsz)) == -1) && (errno == ERANGE)) {
         xsz <<= 1;
-        xatrs = realloc(xatrs, xsz);
+        xatrs = checked_realloc(xatrs, xsz);
     }
 
     if ((xret == -1) && ((errno == ENOSYS) || (errno == ENOTSUP))) {
@@ -580,7 +580,7 @@ void xattrs2line(db_line *line) {
             while (((aret = getxattr(line->fullpath, attr, val, asz)) ==
                         -1) && (errno == ERANGE)) {
                 asz <<= 1;
-                val = realloc (val, asz);
+                val = checked_realloc (val, asz);
             }
 
             if (aret != -1)

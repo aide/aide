@@ -77,7 +77,6 @@ void log_tree(LOG_LEVEL log_level, seltree* tree, int depth) {
 static char* strrxtok(char* rx)
 {
   char*p=NULL;
-  char*t=NULL;
   size_t i=0;
 
   /* The following code assumes that the first character is a slash */
@@ -101,10 +100,9 @@ static char* strrxtok(char* rx)
 	i=strlen(p);
 	break;
       case '\\':
-	t=checked_strdup(p);
-	strcpy(p+i,t+i+1);
-	free(t);
-	t=NULL;
+        for (int j = i; p[j]; j++) {
+            p[j] = p[j+1];
+        }
 	break;
       default:
 	break;
@@ -545,11 +543,8 @@ int check_seltree(seltree *tree, char *filename, RESTRICTION_TYPE file_type, rx_
   if(tmp!=parentname){
     *tmp='\0';
   }else {
-
-    if(parentname[1]!='\0'){
       /* we are in the root dir */
       parentname[1]='\0';
-    }
   }
 
   pnode=get_seltree_node(tree,parentname);

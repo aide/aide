@@ -53,7 +53,7 @@ void do_replevdef(char*);
 
 bool do_repurldef(char*, int, char*, char*);
 
-void do_rootprefix(char*, int, char*, char*);
+bool do_rootprefix(char*, int, char*, char*);
 
 #ifdef WITH_E2FSATTRS
 void do_report_ignore_e2fsattrs(char*, int, char*, char*);

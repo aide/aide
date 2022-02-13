@@ -52,7 +52,7 @@ static long readoct(char* s, database* db, char* field_name){
   char* e;
   i=strtol(s,&e,8);
   if (e[0]!='\0') {
-      LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, could not read '%s' from database: strtol (base: 8) failed for '%s', field_name, s)
+      LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "could not read '%s' from database: strtol (base: 8) failed for '%s'", field_name, s)
   }
   return i;
 }
@@ -62,7 +62,7 @@ static long readlong(char* s, database* db, char* field_name){
   char* e;
   i=strtol(s,&e,10);
   if (e[0]!='\0') {
-      LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, could not read '%s' from database: strtol failed for '%s', field_name, s)
+      LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "could not read '%s' from database: strtol failed for '%s'", field_name, s)
   }
   return i;
 }
@@ -72,7 +72,7 @@ static long long readlonglong(char* s, database* db, char* field_name){
   char* e;
   i=strtoll(s,&e,10);
   if (e[0]!='\0') {
-      LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, could not read '%s' from database: strtoll failed for '%s', field_name, s)
+      LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "could not read '%s' from database: strtoll failed for '%s'", field_name, s)
   }
   return i;
 }
@@ -447,7 +447,7 @@ time_t base64totime_t(char* s, database* db, const char* field_name){
     time_t t = strtol((char *)b,&endp,10);
     
     if (endp[0]!='\0') {
-      LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, could not read '%s' from database: strtoll failed for '%s' (base64 encoded value: '%s'), field_name, b, s)
+      LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "could not read '%s' from database: strtoll failed for '%s' (base64 encoded value: '%s')", field_name, b, s)
       free(b);
       return 0;
     }

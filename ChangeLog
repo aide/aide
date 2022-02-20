@@ -1,3 +1,6 @@
+2022-02-20 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Fix handling of duplicate database entries (closes: #122)
+
 2022-02-13 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix compiler warnings and clean up code
 

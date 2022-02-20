@@ -350,7 +350,7 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const dat
   if(!node){
     node=new_seltree_node(tree,file->filename,0,NULL);
     log_msg(LOG_LEVEL_DEBUG, "added new node '%s' (%p) for '%s' (reason: new entry)", node->path, node, file->filename);
-  } else if (db && db_flags&DB_NEW?node->new_data:node->old_data) {
+  } else if (db && node->checked&db_flags) {
       LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "duplicate database entry found for '%s' (skip line)", file->filename)
       free_db_line(file);
       free(file);

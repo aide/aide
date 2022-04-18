@@ -338,6 +338,7 @@ void calc_md(struct stat* old_fs,db_line* line) {
       while ((size=TEMP_FAILURE_RETRY(read(filedes,buf,READ_BLOCK_SIZE)))>0) {
 	if (update_md(&mdc,buf,size)!=RETOK) {
 	   log_msg(LOG_LEVEL_WARNING, "hash calculation: update_md() failed for '%s'", line->fullpath);
+      free(buf);
 	  close(filedes);
 	  close_md(&mdc);
 	  return;
@@ -351,6 +352,7 @@ void calc_md(struct stat* old_fs,db_line* line) {
         (void) waitpid(pid, &status, 0);
         if (!WIFEXITED(status) || WEXITSTATUS(status)) {
 	     log_msg(LOG_LEVEL_WARNING, "hash calculation: error on exit of prelink child process for '%s'", line->fullpath);
+      free(buf);
 	  close(filedes);
 	  close_md(&mdc);
           return;

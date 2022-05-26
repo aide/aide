@@ -9,16 +9,19 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, ubuntu-18.04]
+        os: [ubuntu-latest]
+        compiler: [gcc, clang]
 
     steps:
-      - uses: actions/checkout@v1
-      - name: Install deps
+      - uses: actions/checkout@v3
+      - name: Install dependencies
         run: sudo apt install bison flex libmhash-dev libpcre3-dev zlib1g-dev check
       - name: autoconf
         run: sh autogen.sh
       - name: configure
         run: ./configure
+        env:
+          CC: ${{ matrix.compiler }}
       - name: make
         run: make
       - name: make check

@@ -38,6 +38,7 @@
 #include <errno.h>
 
 #include "base64.h"
+#include "db_line.h"
 #include "db_lex.h"
 #include "db_file.h"
 #include "util.h"

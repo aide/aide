@@ -6,6 +6,7 @@ Version 0.18 (UNRELEASED)
         - '@@ifndef', macro is now deprecated, use '@@if not defined' instead
         - '@@ifhost', macro is now deprecated, use '@@if hostame' instead
         - '@@ifnhost', macro is now deprecated, use '@@if not hostname' instead
+    * Add 'report_format' option (available formats: `plain`, `json`)
     * Add @@if macro
     * Add 'exists' boolean function
     * Add 'config_check_warn_unrestricted_rules' option

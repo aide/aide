@@ -30,6 +30,7 @@
 #include "url.h"
 #include <stdlib.h>
 #include "db.h"
+#include "db_line.h"
 #include "db_lex.h"
 #include "db_file.h"
 #include "md.h"

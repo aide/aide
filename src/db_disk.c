@@ -36,6 +36,7 @@
 #include "seltree.h"
 #include "gen_list.h"
 #include "db.h"
+#include "db_line.h"
 #include "db_disk.h"
 #include "util.h"
 

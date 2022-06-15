@@ -238,6 +238,16 @@ column shows the new value (e.g. from the file system).
 
 \fBadded_removed_entries\fP: additionally print details about added and removed entries
 .RE
+
+.IP "report_format (type: report format, default: \fBplain\fR, added in AIDE \fIv0.18\fR)"
+The report format to use. The available report formats are as follows:
+
+.RS
+\fBplain\fP: Print report in plain human-readable format.
+
+\fBjson\fP: Print report in json machine-readable format.
+.RE
+
 .IP "report_base16 (type: bool, default: \fBfalse\fR)"
 Base16 encode the checksums in the report. The default is to
 report checksums in base64 encoding.

@@ -29,6 +29,38 @@
 
 LOG_LEVEL ast_log_level = LOG_LEVEL_DEBUG;
 
+config_option_t config_options[] = {
+    { ACL_NO_SYMLINK_FOLLOW_OPTION,             "acl_no_symlink_follow",        NULL },
+    { DATABASE_ADD_METADATA_OPTION,             NULL,                           NULL },
+    { DATABASE_ATTRIBUTES_OPTION,               NULL,                           NULL },
+    { DATABASE_GZIP_OPTION,                     NULL,                           NULL },
+    { DATABASE_IN_OPTION,                       NULL,                           NULL },
+    { DATABASE_OUT_OPTION,                      NULL,                           NULL },
+    { DATABASE_NEW_OPTION,                      NULL,                           NULL },
+    { LOG_LEVEL_OPTION,                         NULL,                           NULL },
+    { REPORT_BASE16_OPTION,                     NULL,                           NULL },
+    { REPORT_DETAILED_INIT_OPTION,              NULL,                           NULL },
+    { REPORT_FORCE_ATTRS_OPTION,                "report_force_attrs",           "Forced attributes" },
+    { REPORT_GROUPED_OPTION,                    NULL,                           NULL },
+    { REPORT_IGNORE_ADDED_ATTRS_OPTION,         "report_ignore_added_attrs",    "Ignored added attributes" },
+    { REPORT_IGNORE_REMOVED_ATTRS_OPTION,       "report_ignore_removed_attrs",  "Ignored removed attributes" },
+    { REPORT_IGNORE_CHANGED_ATTRS_OPTION,       "report_ignore_changed_attrs",  "Ignored changed attributes" },
+    { REPORT_IGNORE_E2FSATTRS_OPTION,           "report_ignore_e2fsattrs",      "Ignored e2fs attributes" },
+    { REPORT_LEVEL_OPTION,                      "report_level",                 "Report level" },
+    { REPORT_QUIET_OPTION,                      NULL,                           NULL },
+    { REPORT_APPEND_OPTION,                     NULL,                           NULL },
+    { REPORT_SUMMARIZE_CHANGES_OPTION,          NULL,                           NULL },
+    { REPORT_URL_OPTION,                        NULL,                           NULL },
+    { ROOT_PREFIX_OPTION,                       NULL,                           NULL },
+    { WARN_DEAD_SYMLINKS_OPTION,                NULL,                           NULL },
+    { VERBOSE_OPTION,                           NULL,                           NULL },
+    { CONFIG_VERSION,                           "config_version",               "Config version used" },
+    { CONFIG_CHECK_WARN_UNRESTRICTED_RULES,     NULL,                           NULL },
+    { REPORT_FORMAT_OPTION,                     NULL,                           NULL },
+    { LIMIT_CMDLINE_OPTION,                     "limit",                        "Limit" },
+    { ROOT_PREFIX_CMDLINE_OPTION,               "root_prefix",                  "Root prefix" },
+};
+
 static ast* new_ast_node() {
     ast* a = checked_malloc(sizeof(ast));
 

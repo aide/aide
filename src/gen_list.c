@@ -43,6 +43,7 @@
 #include "gen_list.h"
 #include "seltree.h"
 #include "db.h"
+#include "db_line.h"
 #include "db_config.h"
 #include "db_disk.h"
 #include "db_lex.h"

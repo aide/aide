@@ -61,6 +61,7 @@
 #include "md.h"
 
 #include "hashsum.h"
+#include "db_line.h"
 #include "db_config.h"
 #include "util.h"
 #include "log.h"

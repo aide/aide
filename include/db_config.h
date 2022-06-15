@@ -34,6 +34,7 @@
 #endif
 #include "attributes.h"
 #include "hashsum.h"
+#include "db_line.h"
 #include "list.h"
 #include "report.h"
 #include "rx_rule.h"
@@ -42,27 +43,6 @@
 
 
 #define E2O(n) (1<<n)
-
-typedef struct acl_type {
- char *acl_a; /* ACCESS */
- char *acl_d; /* DEFAULT, directories only */
-} acl_type;
-
-#ifdef WITH_XATTR
-typedef struct xattr_node 
-{
- char *key;
- byte *val;
- size_t vsz;
-} xattr_node;
-
-typedef struct xattrs_type
-{
-  size_t num;
-  size_t sz;
-  struct xattr_node *ents;
-} xattrs_type;
-#endif
 
 #define RETOK 0
 #define RETFAIL -1
@@ -97,44 +77,6 @@ typedef struct xattrs_type
 /*    DB_FIELD* db_order; */
 /*    void* local; */  
 /*  }_db_config ; */
-
-typedef struct db_line {
-  byte* hashsums[num_hashes];
-
-#ifdef WITH_POSIX_ACL
-  acl_type* acl;
-#endif
-
-  mode_t perm;
-  mode_t perm_o; /* Permission for tree traverse */
-  long uid; /* uid_t */
-  long gid; /* gid_t */
-  time_t atime;
-  time_t ctime;
-  time_t mtime;
-  long inode; /* ino_t */
-  long nlink; /* nlink_t */
-
-  long long size; /* off_t */
-  long long bcount; /* blkcnt_t */
-  char* filename;
-  char* fullpath;
-  char* linkname;
-
-  char *cntx;
-
-#ifdef WITH_XATTR
-  xattrs_type* xattrs;
-#endif
-
-  unsigned long e2fsattrs;
-
-  char* capabilities;
-
-  /* Attributes .... */
-  DB_ATTR_TYPE attr;
-
-} db_line;
 
 typedef struct database {
     url_t* url;
@@ -198,6 +140,7 @@ typedef struct db_config {
 
   list* report_urls;
   REPORT_LEVEL report_level;
+  REPORT_FORMAT report_format;
 
   /* defsyms is a list of symba*s */
   list* defsyms;

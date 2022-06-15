@@ -394,7 +394,8 @@ static void setdefaults_before_config()
   conf->check_file_type = FT_REG;
 
   conf->report_urls=NULL;
-  conf->report_level=REPORT_LEVEL_CHANGED_ATTRIBUTES;
+  conf->report_level=default_report_options.level;
+  conf->report_format=default_report_options.format;
 
   conf->config_file=
 #ifdef CONFIG_FILE
@@ -717,6 +718,8 @@ int main(int argc,char**argv)
     }
 
     db_close();
+
+    conf->end_time=time(NULL);
 
     log_msg(LOG_LEVEL_INFO, "generate reports");
 

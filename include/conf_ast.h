@@ -51,7 +51,18 @@ typedef enum config_option {
     VERBOSE_OPTION,
     CONFIG_VERSION,
     CONFIG_CHECK_WARN_UNRESTRICTED_RULES,
+    REPORT_FORMAT_OPTION,
+    LIMIT_CMDLINE_OPTION,
+    ROOT_PREFIX_CMDLINE_OPTION,
 } config_option;
+
+typedef struct {
+    config_option option;
+    char *config_name;
+    char *report_string;
+} config_option_t;
+
+extern config_option_t config_options[];
 
 typedef enum attribute_operator {
         ATTR_OP_PLUS = 0,

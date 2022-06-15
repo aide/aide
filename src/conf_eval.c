@@ -30,6 +30,7 @@
 #include "db_config.h"
 #include "hashsum.h"
 #include "list.h"
+#include "report.h"
 
 #include "conf_eval.h"
 #include "conf_yacc.h"
@@ -254,6 +255,18 @@ static void eval_config_statement(config_option_statement statement, int linenum
         case REPORT_LEVEL_OPTION:
             str = eval_string_expression(statement.e, linenumber, filename, linebuf);
             if(!do_reportlevel(str, linenumber, filename, linebuf)) {
+                exit(INVALID_CONFIGURELINE_ERROR);
+            }
+            free(str);
+            break;
+        case REPORT_FORMAT_OPTION:
+            str = eval_string_expression(statement.e, linenumber, filename, linebuf);
+            REPORT_FORMAT report_format = get_report_format(str);
+            if (report_format) {
+                conf->report_format = report_format;
+                LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, "set 'report_format' option to '%s' (raw: %d)", str, report_format)
+            } else {
+                LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, "invalid report format: '%s'", str);
                 exit(INVALID_CONFIGURELINE_ERROR);
             }
             free(str);

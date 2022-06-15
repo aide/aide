@@ -28,12 +28,14 @@ aide_SOURCES = src/aide.c include/aide.h \
 	include/commandconf.h src/commandconf.c \
 	include/attributes.h src/attributes.c \
 	include/report.h src/report.c \
+	include/report_plain.h src/report_plain.c \
+	include/report_json.h src/report_json.c \
 	include/conf_ast.h src/conf_ast.c \
 	include/conf_eval.h src/conf_eval.c \
 	include/conf_lex.h src/conf_lex.l  \
 	src/conf_yacc.h src/conf_yacc.y \
 	include/db.h src/db.c \
-	include/db_config.h \
+	include/db_line.h include/db_config.h \
 	include/db_disk.h src/db_disk.c \
 	include/db_file.h src/db_file.c \
 	include/db_lex.h src/db_lex.l \

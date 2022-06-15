@@ -76,6 +76,7 @@ typedef struct {
     char *config_name;
     char *details_string;
     char *db_name;
+    char *field_name;
     char summary_char;
 } attributes_t;
 

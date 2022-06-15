@@ -24,6 +24,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include "attributes.h"
+#include "db_line.h"
 #include "db_config.h"
 #include "hashsum.h"
 #include "log.h"

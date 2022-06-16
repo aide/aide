@@ -46,19 +46,19 @@ void log_tree(LOG_LEVEL log_level, seltree* tree, int depth) {
 
     for(r=tree->equ_rx_lst;r!=NULL;r=r->next) {
         rxc=r->data;
-        log_msg(log_level, "%-*s  '=%s %s %s' (%s:%d: '%s')", depth+2, "\u2502", rxc->rx, rs_str = get_restriction_string(rxc->restriction), attr_str = diff_attributes(0, rxc->attr), rxc->config_filename, rxc->config_linenumber, rxc->config_line);
+        log_msg(log_level, "%-*s  '=%s %s %s' (%s:%d: '%s%s%s')", depth+2, "\u2502", rxc->rx, rs_str = get_restriction_string(rxc->restriction), attr_str = diff_attributes(0, rxc->attr), rxc->config_filename, rxc->config_linenumber, rxc->config_line, rxc->prefix?"', prefix: '":"", rxc->prefix?rxc->prefix:"");
         free(rs_str);
         free(attr_str);
     }
     for(r=tree->sel_rx_lst;r!=NULL;r=r->next) {
         rxc=r->data;
-        log_msg(log_level, "%-*s  '%s %s %s' (%s:%d: '%s')", depth+2, "\u2502", rxc->rx, rs_str = get_restriction_string(rxc->restriction), attr_str = diff_attributes(0, rxc->attr), rxc->config_filename, rxc->config_linenumber, rxc->config_line);
+        log_msg(log_level, "%-*s  '%s %s %s' (%s:%d: '%s%s%s')", depth+2, "\u2502", rxc->rx, rs_str = get_restriction_string(rxc->restriction), attr_str = diff_attributes(0, rxc->attr), rxc->config_filename, rxc->config_linenumber, rxc->config_line, rxc->prefix?"', prefix: '":"", rxc->prefix?rxc->prefix:"");
         free(rs_str);
         free(attr_str);
     }
     for(r=tree->neg_rx_lst;r!=NULL;r=r->next) {
         rxc=r->data;
-        log_msg(log_level, "%-*s  '!%s %s' (%s:%d: '%s')", depth+2, "\u2502", rxc->rx, rs_str = get_restriction_string(rxc->restriction), rxc->config_filename, rxc->config_linenumber, rxc->config_line);
+        log_msg(log_level, "%-*s  '!%s %s' (%s:%d: '%s%s%s')", depth+2, "\u2502", rxc->rx, rs_str = get_restriction_string(rxc->restriction), rxc->config_filename, rxc->config_linenumber, rxc->config_line, rxc->prefix?"', prefix: '":"", rxc->prefix?rxc->prefix:"");
         free(rs_str);
     }
 
@@ -337,7 +337,7 @@ rx_rule * add_rx_to_tree(char * rx, RESTRICTION_TYPE restriction, int rule_type,
 }
 
 #define LOG_MATCH(log_level, border, format, ...) \
-    log_msg(log_level, "%s %*c'%s' " #format " of %s (%s:%d: '%s')", border, depth+2, ' ', text, __VA_ARGS__, get_rule_type_long_string(rule_type), rx->config_filename, rx->config_linenumber, rx->config_line);
+    log_msg(log_level, "%s %*c'%s' " #format " of %s (%s:%d: '%s%s%s')", border, depth+2, ' ', text, __VA_ARGS__, get_rule_type_long_string(rule_type), rx->config_filename, rx->config_linenumber, rx->config_line, rx->prefix?"', prefix: '":"", rx->prefix?rx->prefix:"");
 
 static int check_list_for_match(list* rxrlist,char* text, rx_rule* *rule, RESTRICTION_TYPE file_type, int rule_type, int depth, bool unrestricted_only)
 {

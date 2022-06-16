@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2019-2021 Hannes von Haugwitz
+ * Copyright (C) 2019-2022 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -23,6 +23,6 @@
 
 #include "conf_ast.h"
 
-void eval_config(ast*, int);
+void eval_config(ast*, int, char*);
 
 #endif

@@ -363,18 +363,18 @@ static bool evaL_if_condition(if_condition* c) {
     return cond_result;
 }
 
-static void eval_if_statement(if_statement statement, int include_depth, int linenumber, char *filename, char* linebuf) {
+static void eval_if_statement(if_statement statement, int include_depth, char* rule_prefix, int linenumber, char *filename, char* linebuf) {
     bool condition = evaL_if_condition(statement.condition);
 
     if (condition) {
         log_msg(eval_log_level, "eval(%p): if branch", statement.if_branch);
         if (statement.if_branch) {
-            eval_config(statement.if_branch, include_depth);
+            eval_config(statement.if_branch, include_depth, rule_prefix);
         }
     } else {
         log_msg(eval_log_level, "eval(%p): else branch", statement.else_branch);
         if (statement.else_branch) {
-            eval_config(statement.else_branch, include_depth);
+            eval_config(statement.else_branch, include_depth, rule_prefix);
         }
     }
     LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, "%s", "endif")
@@ -430,7 +430,7 @@ static void eval_x_include_setenv_statement(x_include_setenv_statement statement
     }
 }
 
-static void include_file(const char* file, bool execute, int include_depth) {
+static void include_file(const char* file, bool execute, int include_depth, char* rule_prefix) {
     if (execute) {
         int p_stdout[2];
         int p_stderr[2];
@@ -509,7 +509,7 @@ static void include_file(const char* file, bool execute, int include_depth) {
                 }
                 conf_lex_delete_buffer();
                 free(source_name);
-                eval_config(config_ast, include_depth);
+                eval_config(config_ast, include_depth, rule_prefix);
                 deep_free(config_ast);
             }
             free(config_str);
@@ -521,7 +521,7 @@ static void include_file(const char* file, bool execute, int include_depth) {
         exit(INVALID_CONFIGURELINE_ERROR);
     }
     conf_lex_delete_buffer();
-    eval_config(config_ast, include_depth);
+    eval_config(config_ast, include_depth, rule_prefix);
     deep_free(config_ast);
     }
 }
@@ -533,8 +533,8 @@ void check_permissions(const char* path, struct stat *st, int linenumber, char *
     }
 }
 
-static void include_directory(const char* dir, const char* rx, bool execute, int include_depth, int linenumber, char *filename, char* linebuf) {
-    LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, "include directory '%s' (regex: '%s', depth: %d)", dir, rx, include_depth)
+static void include_directory(const char* dir, const char* rx, bool execute, char* new_rule_prefix, int include_depth, char* rule_prefix, int linenumber, char *filename, char* linebuf) {
+    LOG_CONFIG_FORMAT_LINE_PREFIX(LOG_LEVEL_CONFIG, "include directory '%s' (regex: '%s', execute: %s , prefix: '%s', depth: %d)", dir, rx, btoa(execute), new_rule_prefix?new_rule_prefix:"", include_depth)
 
     struct dirent **namelist;
     int n;
@@ -571,6 +571,21 @@ static void include_directory(const char* dir, const char* rx, bool execute, int
         exit(INVALID_CONFIGURELINE_ERROR);
     }
 
+    /* not to be freed, reused in add_rx_rule_to_tree */
+    char* nested_rule_prefix = NULL;
+    if (rule_prefix && new_rule_prefix) {
+        int length = strlen(rule_prefix)+strlen(new_rule_prefix);
+        nested_rule_prefix = checked_malloc(length+1);
+        strncpy(nested_rule_prefix, rule_prefix, length+1);
+        strncat(nested_rule_prefix, new_rule_prefix, length-strlen(rule_prefix)+1);
+        log_msg(LOG_LEVEL_DEBUG, "concatenate current prefix '%s' and new prefix '%s': '%s'", rule_prefix, new_rule_prefix, nested_rule_prefix);
+        free(new_rule_prefix);
+    } else if (rule_prefix) {
+        nested_rule_prefix = rule_prefix;
+    } else if (new_rule_prefix) {
+        nested_rule_prefix = new_rule_prefix;
+    }
+
     int dir_len = strlen(dir);
     for (int i = 0 ; i < n ; ++i) {
 
@@ -591,7 +606,7 @@ static void include_directory(const char* dir, const char* rx, bool execute, int
                     check_permissions(filepath, &fs, linenumber, filename, linebuf);
                 }
                 log_msg(LOG_LEVEL_CONFIG,"%s: %s '%s'", dir, exec?"execute":"include", namelist[i]->d_name);
-                include_file(filepath, exec, include_depth);
+                include_file(filepath, exec, include_depth, nested_rule_prefix);
             }
         } else {
             log_msg(LOG_LEVEL_DEBUG,"%s: skip '%s' (reason: file is not a regular file)", dir, namelist[i]->d_name);
@@ -605,7 +620,7 @@ static void include_directory(const char* dir, const char* rx, bool execute, int
     pcre2_code_free(crx);
 }
 
-static void eval_include_statement(include_statement statement, int include_depth, int linenumber, char *filename, char* linebuf) {
+static void eval_include_statement(include_statement statement, int include_depth, char* rule_prefix, int linenumber, char *filename, char* linebuf) {
     if (include_depth >= 16) {
         LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, "%s", "include files are nested too deeply")
         exit(INVALID_CONFIGURELINE_ERROR);
@@ -614,7 +629,16 @@ static void eval_include_statement(include_statement statement, int include_dept
     char* rx = statement.rx?eval_string_expression(statement.rx, linenumber, filename, linebuf):NULL;
 
     if (rx) {
-        include_directory(path, rx, statement.execute, include_depth, linenumber, filename, linebuf);
+        char* new_rule_prefix = NULL;
+        if (statement.prefix) {
+            new_rule_prefix = eval_string_expression(statement.prefix, linenumber, filename, linebuf);
+            int prefix_length = strlen(new_rule_prefix);
+            if (prefix_length && new_rule_prefix[prefix_length-1] == '/') {
+                new_rule_prefix[prefix_length-1] = '\0';
+                LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_NOTICE, "%s: removed trailing '/' from prefix: '%s'", statement.execute?"@@x_include":"@@include", new_rule_prefix);
+            }
+        }
+        include_directory(path, rx, statement.execute, new_rule_prefix, include_depth, rule_prefix, linenumber, filename, linebuf);
         free(rx);
     } else {
     struct stat fs;
@@ -623,8 +647,8 @@ static void eval_include_statement(include_statement statement, int include_dept
         exit(INVALID_CONFIGURELINE_ERROR);
     }
     if (S_ISREG(fs.st_mode)) {
-        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, "include file '%s' (depth: %d)", path, include_depth)
-        include_file(path, statement.execute && S_IXUSR&fs.st_mode, include_depth);
+        LOG_CONFIG_FORMAT_LINE_PREFIX(LOG_LEVEL_CONFIG, "include file '%s' (depth: %d)", path, include_depth)
+        include_file(path, statement.execute && S_IXUSR&fs.st_mode, include_depth, rule_prefix);
     } else {
         LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, "'@@include': '%s' is not a regular file", path);
         exit(INVALID_CONFIGURELINE_ERROR);
@@ -654,14 +678,14 @@ static RESTRICTION_TYPE eval_restriction_expression(restriction_expression *expr
     return rs;
 }
 
-static void eval_rule_statement(rule_statement statement, int linenumber, char *filename, char* linebuf) {
-    /* not to be freed, reused in add_rx_rule_to_tree */
+static void eval_rule_statement(rule_statement statement, char* rule_prefix, int linenumber, char *filename, char* linebuf) {
     char *rx = eval_string_expression(statement.path, linenumber, filename, linebuf);
      if (conf->action&DO_DRY_RUN && conf->config_check_warn_unrestricted_rules && !statement.restriction) {
          LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_WARNING, "%s '%s' is unrestricted", get_rule_type_long_string(statement.type), rx)
      }
     if(!add_rx_rule_to_tree(
             rx,
+            rule_prefix,
             eval_restriction_expression(statement.restriction, linenumber, filename, linebuf),
             eval_attribute_expression(statement.attributes, linenumber, filename, linebuf),
             statement.type,
@@ -669,9 +693,10 @@ static void eval_rule_statement(rule_statement statement, int linenumber, char *
             linenumber, filename, linebuf)) {
         exit(INVALID_CONFIGURELINE_ERROR);
     }
+    free(rx);
 }
 
-void eval_config(ast* config_ast, int include_depth) {
+void eval_config(ast* config_ast, int include_depth, char *rule_prefix) {
     ast* node = NULL;
     for(node = config_ast; node != NULL; node = node->next) {
         log_msg(eval_log_level, "eval(%p): ast node (next: %p)", node, node->next);
@@ -680,13 +705,13 @@ void eval_config(ast* config_ast, int include_depth) {
                 eval_config_statement(node->statement._config, node->linenumber, node->filename, node->linebuf);
                 break;
             case include_statement_type:
-                eval_include_statement(node->statement._include, include_depth+1, node->linenumber, node->filename, node->linebuf);
+                eval_include_statement(node->statement._include, include_depth+1, rule_prefix, node->linenumber, node->filename, node->linebuf);
                 break;
             case x_include_setenv_statement_type:
                 eval_x_include_setenv_statement(node->statement._x_include_setenv, node->linenumber, node->filename, node->linebuf);
                 break;
             case if_statement_type:
-                eval_if_statement(node->statement._if, include_depth, node->linenumber, node->filename, node->linebuf);
+                eval_if_statement(node->statement._if, include_depth, rule_prefix, node->linenumber, node->filename, node->linebuf);
                 break;
             case define_statement_type:
                 eval_define_statement(node->statement._define, node->linenumber, node->filename, node->linebuf);
@@ -698,7 +723,7 @@ void eval_config(ast* config_ast, int include_depth) {
                 eval_group_statement(node->statement._group, node->linenumber, node->filename, node->linebuf);
                 break;
             case rule_statement_type:
-                eval_rule_statement(node->statement._rule, node->linenumber, node->filename, node->linebuf);
+                eval_rule_statement(node->statement._rule, rule_prefix, node->linenumber, node->filename, node->linebuf);
                 break;
         }
     }

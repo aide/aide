@@ -1,3 +1,6 @@
+2022-06-16 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Add prefix option to directory include macros (closes: #112)
+
 2022-06-15 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Add `report_format` option (closes: #18)
 	  - available formats: `plain`, `json`

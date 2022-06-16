@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2019-2021 Hannes von Haugwitz
+ * Copyright (C) 2019-2022 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -135,6 +135,7 @@ typedef struct include_statement {
     string_expression *path;
     string_expression *rx;
     bool execute;
+    string_expression *prefix;
 } include_statement;
 
 typedef struct x_include_setenv_statement {
@@ -210,7 +211,7 @@ ast* new_undefine_statement(char*);
 
 ast* new_group_statement(char*, attribute_expression*);
 
-ast* new_include_statement(string_expression*, string_expression*, bool);
+ast* new_include_statement(string_expression*, string_expression*, bool, string_expression*);
 ast* new_x_include_setenv_statement(char*, string_expression*);
 
 ast* new_if_statement(struct if_condition*, struct ast*, struct ast*);

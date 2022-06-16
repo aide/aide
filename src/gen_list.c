@@ -515,7 +515,7 @@ int check_rxtree(char* filename,seltree* tree, rx_rule* *rule, RESTRICTION_TYPE 
       fprintf(stdout, "[%c] %c '%s': ", match?'X':' ', get_restriction_char(file_type), filename);
       if (match > 0) {
           char* attr_str;
-          fprintf(stdout, "%s: '%s%s %s %s' (%s:%d: '%s')\n", get_rule_type_long_string(match), match == EQUAL_MATCH?"=":"", (*rule)->rx, str = get_restriction_string((*rule)->restriction), attr_str = diff_attributes(0, (*rule)->attr), (*rule)->config_filename, (*rule)->config_linenumber, (*rule)->config_line);
+          fprintf(stdout, "%s: '%s%s %s %s' (%s:%d: '%s%s%s')\n", get_rule_type_long_string(match), match == EQUAL_MATCH?"=":"", (*rule)->rx, str = get_restriction_string((*rule)->restriction), attr_str = diff_attributes(0, (*rule)->attr), (*rule)->config_filename, (*rule)->config_linenumber, (*rule)->config_line, (*rule)->prefix?"', prefix: '":"", (*rule)->prefix?(*rule)->prefix:"");
           free(attr_str);
           free(str);
       } else {

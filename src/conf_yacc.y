@@ -140,10 +140,12 @@ config_statement: CONFIGOPTION '=' string_expression { $$ = new_string_option_st
 
 group_statement: TGROUP '=' attribute_expression { $$ = new_group_statement($1, $3); }
 
-include_statement: TINCLUDE TSPACE string_expression { $$ = new_include_statement($3, NULL, false); }
-                 | TINCLUDE TSPACE string_expression TSPACE string_expression { $$ = new_include_statement($3, $5, false); }
-                 | TXINCLUDE TSPACE string_expression { $$ = new_include_statement($3, NULL, true); }
-                 | TXINCLUDE TSPACE string_expression TSPACE string_expression { $$ = new_include_statement($3, $5, true); }
+include_statement: TINCLUDE TSPACE string_expression { $$ = new_include_statement($3, NULL, false, NULL); }
+                 | TINCLUDE TSPACE string_expression TSPACE string_expression { $$ = new_include_statement($3, $5, false, NULL); }
+                 | TINCLUDE TSPACE string_expression TSPACE string_expression TSPACE string_expression{ $$ = new_include_statement($3, $5, false, $7); }
+                 | TXINCLUDE TSPACE string_expression { $$ = new_include_statement($3, NULL, true, NULL); }
+                 | TXINCLUDE TSPACE string_expression TSPACE string_expression { $$ = new_include_statement($3, $5, true, NULL); }
+                 | TXINCLUDE TSPACE string_expression TSPACE string_expression TSPACE string_expression { $$ = new_include_statement($3, $5, true, $7); }
 
 x_include_setenv_statement: TSETENV TVARIABLE string_expression { $$ = new_x_include_setenv_statement($2, $3); }
 

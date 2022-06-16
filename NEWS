@@ -10,6 +10,7 @@ Version 0.18 (UNRELEASED)
     * Add @@if macro
     * Add 'exists' boolean function
     * Add 'config_check_warn_unrestricted_rules' option
+    * Add prefix option to directory include macros
     * Support CRLF line-endings in config files
     * Improve logging
     * Improve error message during config parsing

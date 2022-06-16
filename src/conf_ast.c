@@ -94,15 +94,16 @@ ast* new_attribute_option_statement(config_option option, attribute_expression* 
       return a;
 }
 
-ast* new_include_statement(string_expression* path, string_expression* rx, bool execute) {
+ast* new_include_statement(string_expression* path, string_expression* rx, bool execute, string_expression* prefix) {
       ast* a = new_ast_node();
 
       a->type = include_statement_type;
       a->statement._include.path = path;
       a->statement._include.rx = rx;
       a->statement._include.execute = execute;
+      a->statement._include.prefix = prefix;
 
-      log_msg(ast_log_level, "ast: new include statement (%p): path: %p, rx: %p, execute: %s", a, path, rx, btoa(execute));
+      log_msg(ast_log_level, "ast: new include statement (%p): path: %p, rx: %p, execute: %s, prefix: %p", a, path, rx, btoa(execute), prefix);
       return a;
 }
 
@@ -332,6 +333,7 @@ void deep_free(ast* config_ast) {
             case include_statement_type:
                 free_string_expression(node->statement._include.path);
                 free_string_expression(node->statement._include.rx);
+                free_string_expression(node->statement._include.prefix);
                 break;
             case x_include_setenv_statement_type:
                 free_string_expression(node->statement._x_include_setenv.value);

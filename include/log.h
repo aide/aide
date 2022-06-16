@@ -55,4 +55,11 @@ void log_msg(LOG_LEVEL, const char* ,...);
         log_msg(log_level,"%s: " format, filename, __VA_ARGS__); \
     }
 
+#define LOG_CONFIG_FORMAT_LINE_PREFIX(log_level, format, ...) \
+    if (rule_prefix) { \
+        log_msg(log_level,"%s:%d: " format " (line: '%s', prefix: '%s')", filename, linenumber, __VA_ARGS__, linebuf, rule_prefix); \
+    } else { \
+        log_msg(log_level,"%s:%d: " format " (line: '%s')", filename, linenumber, __VA_ARGS__, linebuf); \
+    }
+
 #endif

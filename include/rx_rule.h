@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2006, 2016, 2020-2021 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002, 2006, 2016, 2020-2022 Rami Lehti, Pablo Virolainen,
  *               Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -49,6 +49,7 @@ typedef struct rx_rule {
   char *config_filename;
   int config_linenumber;
   char *config_line;
+  char *prefix;
   RESTRICTION_TYPE restriction;
 } rx_rule;
 

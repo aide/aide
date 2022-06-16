@@ -166,7 +166,7 @@ int parse_config(char *before, char *config, char* after) {
           return RETFAIL;
         }
         conf_lex_delete_buffer();
-        eval_config(config_ast, 0);
+        eval_config(config_ast, 0, NULL);
         deep_free(config_ast);
         config_ast = NULL;
     }
@@ -176,7 +176,7 @@ int parse_config(char *before, char *config, char* after) {
           return RETFAIL;
         }
         conf_lex_delete_buffer();
-        eval_config(config_ast, 0);
+        eval_config(config_ast, 0, NULL);
         deep_free(config_ast);
         config_ast = NULL;
     }
@@ -186,7 +186,7 @@ int parse_config(char *before, char *config, char* after) {
           return RETFAIL;
         }
         conf_lex_delete_buffer();
-        eval_config(config_ast, 0);
+        eval_config(config_ast, 0, NULL);
         deep_free(config_ast);
         config_ast = NULL;
     }
@@ -305,7 +305,7 @@ void do_undefine(char* name, int linenumber, char* filename, char* linebuf)
   }
 }
 
-bool add_rx_rule_to_tree(char* rx, RESTRICTION_TYPE restriction, DB_ATTR_TYPE attr, int type, seltree *tree, int linenumber, char* filename, char* linebuf) {
+bool add_rx_rule_to_tree(char* rx, char* rule_prefix, RESTRICTION_TYPE restriction, DB_ATTR_TYPE attr, int type, seltree *tree, int linenumber, char* filename, char* linebuf) {
 
     rx_rule* r=NULL;
 
@@ -314,12 +314,24 @@ bool add_rx_rule_to_tree(char* rx, RESTRICTION_TYPE restriction, DB_ATTR_TYPE at
     char *attr_str = NULL;
     char *rs_str = NULL;
 
-    if ((r = add_rx_to_tree(rx, restriction, type, tree, linenumber, filename, linebuf)) == NULL) {
+    char *regex;
+    if (rule_prefix) {
+        int length = strlen(rule_prefix)+strlen(rx);
+        regex = checked_malloc(length+1);
+        strncpy(regex, rule_prefix, length+1);
+        strncat(regex, rx, length-strlen(rule_prefix)+1);
+        log_msg(LOG_LEVEL_DEBUG, "prepend regex '%s' with prefix '%s': '%s'", rx, rule_prefix, regex);
+    } else {
+        regex = checked_strdup(rx);
+    }
+
+    if ((r = add_rx_to_tree(regex, restriction, type, tree, linenumber, filename, linebuf)) == NULL) {
         retval = false;
     }else {
         r->config_linenumber = linenumber;
         r->config_filename = filename;
         r->config_line = checked_strdup(linebuf);
+        r->prefix = rule_prefix;
 
         DB_ATTR_TYPE unsupported_hashes = attr&(get_hashes(true)&~get_hashes(false));
         if (unsupported_hashes) {
@@ -332,7 +344,7 @@ bool add_rx_rule_to_tree(char* rx, RESTRICTION_TYPE restriction, DB_ATTR_TYPE at
         r->attr=attr;
         conf->db_out_attrs |= attr;
 
-        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, "add %s '%s%s %s %s' to node '%s'", get_rule_type_long_string(type), get_rule_type_char(type), r->rx, rs_str = get_restriction_string(r->restriction), attr_str = diff_attributes(0, r->attr),  (r->node)->path)
+        LOG_CONFIG_FORMAT_LINE_PREFIX(LOG_LEVEL_CONFIG, "add %s '%s%s %s %s' to node '%s'", get_rule_type_long_string(type), get_rule_type_char(type), r->rx, rs_str = get_restriction_string(r->restriction), attr_str = diff_attributes(0, r->attr),  (r->node)->path)
         free(rs_str);
         free(attr_str);
 

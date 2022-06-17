@@ -31,9 +31,9 @@ These lines have the format parameter=value. See URLS for a list of
 valid urls.
 .PP
 .TP
-database_in (type: URL, default: see \fB--version\fP output)
+database_in (type: URL, default: see \fB--version\fP output, added in AIDE v0.17)
 .TQ
-database (DEPRECATED, will be removed in a future release)
+database (DEPRECATED since AIDE v0.17, will be removed in AIDE v0.19)
 The url from which database is read. There can only be one of these
 lines. If there are multiple database lines then the first is used.
 
@@ -81,19 +81,19 @@ of these lines. If there are multiple database_out lines then the
 first is used.
 .IP "database_new (type: URL, default: \fB<none>\fP)"
 The url from which the other database for \-\-compare is read.
-.IP "database_attrs (type: attribute expression, default: \fBH\fP)"
+.IP "database_attrs (type: attribute expression, default: \fBH\fP, added in AIDE v0.16)"
 The attributes of the (uncompressed) database files which are to be added to
 the reports in report level >= \fBdatabase_attributes\fP . Only checksum attributes are
 supported. To disable set
 .I database_attrs
 to
 .RB ' E '.
-.IP "database_add_metadata (type: bool, default: \fBtrue\fR)"
+.IP "database_add_metadata (type: bool, default: \fBtrue\fR, added in AIDE v0.16)"
 Whether to add the AIDE version and the time of database generation as comments
 to the database file or not. This option may be set to false by default in a
 future release.
 
-.IP "log_level (type: log level, default: \fBwarning\fR)"
+.IP "log_level (type: log level, default: \fBwarning\fR, added in AIDE v0.17)"
 The log level to use. Log messages are written to \fIstderr\fR. If there are
 multiple \fIlog_level\fR lines then the first one is used. The \-\-log-level or
 \-L command line option overwrites this option.
@@ -122,12 +122,12 @@ The following log levels are available:
 
 .RE
 
-.IP "verbose (type: number, range: 0 - 255, default: \fB5\fR)"
-Removed in AIDE v0.17, use \fBlog_level\fR and \fBreport_level\fR options instead
+.IP "verbose (type: number, range: 0 - 255, default: \fB5\fR, REMOVED in AIDE v0.17)"
+Remvoed, use \fBlog_level\fR and \fBreport_level\fR options instead
 .IP "gzip_dbout (type: bool, default: \fBfalse\fR)"
 Whether the output to the database is gzipped or not. This option is available
 only if zlib support is compiled in.
-.IP "root_prefix (type: path, default: \fB<empty>\fR)"
+.IP "root_prefix (type: path, default: \fB<empty>\fR, added in AIDE v0.16)"
 The prefix to strip from each file name in the file system before applying the
 rules and writing to database. AIDE removes a trailing slash from the prefix.
 If there are multiple root_prefix lines then the first one is used. This option
@@ -141,7 +141,7 @@ Whether to warn about dead symlinks or not.
 The value of config_version is printed in the report and also printed
 to the database. This is for informational purposes only. It has no
 other functionality.
-.IP "config_check_warn_unrestricted_rules (type: bool, default: \fBfalse\fR)"
+.IP "config_check_warn_unrestricted_rules (type: bool, default: \fBfalse\fR, added in AIDE v0.18)"
 Whether to warn on unrestricted rules during config check.
 .IP "Group definitions"
 If the parameter is not one of the previous parameters then it is
@@ -202,7 +202,7 @@ The following report options are available (to take effect they
 have to be set before \fBreport_url\fR):
 .PP
 
-.IP "report_level (type: report level, default: \fBchanged_attributes\fR)"
+.IP "report_level (type: report level, default: \fBchanged_attributes\fR, added in AIDE v0.17)"
 
 The report level to use. The available report levels are as follows:
 
@@ -239,7 +239,7 @@ column shows the new value (e.g. from the file system).
 \fBadded_removed_entries\fP: additionally print details about added and removed entries
 .RE
 
-.IP "report_format (type: report format, default: \fBplain\fR, added in AIDE \fIv0.18\fR)"
+.IP "report_format (type: report format, default: \fBplain\fR, added in AIDE v0.18)"
 The report format to use. The available report formats are as follows:
 
 .RS
@@ -248,25 +248,25 @@ The report format to use. The available report formats are as follows:
 \fBjson\fP: Print report in json machine-readable format.
 .RE
 
-.IP "report_base16 (type: bool, default: \fBfalse\fR)"
+.IP "report_base16 (type: bool, default: \fBfalse\fR, added in AIDE v0.17)"
 Base16 encode the checksums in the report. The default is to
 report checksums in base64 encoding.
-.IP "report_detailed_init (type: bool, default: \fBfalse\fR)"
+.IP "report_detailed_init (type: bool, default: \fBfalse\fR, added in AIDE v0.16)"
 Report added files (report level >= \fBlist_entries\fP) and their details (report
 level >= \fBadded_removed_entries\fP) in initialization mode.
-.IP "report_quiet (type: bool, default: \fBfalse\fR)"
+.IP "report_quiet (type: bool, default: \fBfalse\fR, added in AIDE v0.16)"
 Suppress report output if no differences to the database have been found.
-.IP "report_append (type: bool, default: \fBfalse\fR)"
+.IP "report_append (type: bool, default: \fBfalse\fR, added in AIDE v0.17)"
 Append to the report URL.
 .TP
-report_grouped (type: bool, default: \fBtrue\fR)
+report_grouped (type: bool, default: \fBtrue\fR, added in AIDE v0.17)
 .TQ
-grouped (DEPRECATED, will be removed in a future release)
+grouped (DEPRECATED since AIDE v0.17, will be removed in AIDE v0.19)
 Group the files in the report by added, removed and changed files.
 .TP
-report_summarize_changes (type: bool, default: \fBtrue\fR)
+report_summarize_changes (type: bool, default: \fBtrue\fR, added in AIDE v0.17)
 .TQ
-summarize_changes (DEPRECATED, will be removed in a future release)
+summarize_changes (DEPRECATED since AIDE v0.17, will be removed in AIDE v0.19)
 Summarize changes in the added, removed and changed files
 sections of the report.
 
@@ -330,22 +330,22 @@ A \fBE\fP means that the file attributes on a second extended file system have c
 .IP o
 A \fBC\fP means that the file capabilities have changed.
 .RE
-.IP "report_ignore_added_attrs (type: attribute expression, default: \fBempty\fR)"
+.IP "report_ignore_added_attrs (type: attribute expression, default: \fBempty\fR, added in AIDE v0.16)"
 Attributes whose addition is to be ignored in the report.
-.IP "report_ignore_removed_attrs (type: attribute expression, default: \fBempty\fR)"
+.IP "report_ignore_removed_attrs (type: attribute expression, default: \fBempty\fR, added in AIDE v0.16)"
 Attributes whose removal is to be ignored in the report.
 .TP
-report_ignore_changed_attrs (type: attribute expression, default: \fBempty\fR)
+report_ignore_changed_attrs (type: attribute expression, default: \fBempty\fR, added in AIDE v0.16)
 .TQ
-ignore_list (removed in AIDE v0.17)
+ignore_list (REMOVED in AIDE v0.17)
 Attributes whose change is to be ignored in the report.
 .TP
-report_force_attrs (type: attribute expression, default: \fBempty\fR)
+report_force_attrs (type: attribute expression, default: \fBempty\fR, added in AIDE v0.16)
 .TQ
-report_attributes (removed in AIDE v0.17)
+report_attributes (REMOVED in AIDE v0.17)
 Attributes which are always printed in the report for changed files. If an attribute is both ignored and forced the
 attribute is not considered for file change but printed in the final report as long as the file has been otherwise changed.
-.IP "report_ignore_e2fsattrs (type: string, default: \fB0\fR)"
+.IP "report_ignore_e2fsattrs (type: string, default: \fB0\fR, added in AIDE v0.16)"
 List (no delimiter) of ext2 file attributes which are to be ignored in the report.
 See
 .BR chattr (1)
@@ -427,7 +427,7 @@ the AIDE manual.
 .SH "RESTRICTED RULES"
 .PP
 Restricted rules are like normal rules but can be
-restricted to file types. The following file types are supported:
+restricted to file types (added in AIDE v0.16). The following file types are supported:
 
 .RS
 
@@ -515,7 +515,7 @@ Define variable \fBVAR\fR to value \fBval\fR.
 .IP "@@undef \fBVAR\fR"
 Undefine variable \fBVAR\fR.
 .TP
-@@if \fBboolean_expression\fR
+@@if \fBboolean_expression\fR (added in AIDE v0.18)
 .TQ
 @@else
 .TQ
@@ -573,13 +573,13 @@ Evaluates to \fBtrue\fR if \fIPATH\fR exists.
 
 .RE
 
-.IP "@@ifdef \fBVARIABLE\fR (DEPRECATED, will be removed in a future release)"
+.IP "@@ifdef \fBVARIABLE\fR (DEPRECATED since AIDE v0.18, will be removed in AIDE v0.20)"
 same as \fB@@if defined VARIABLE\fR
-.IP "@@ifndef \fBVARIABLE\fR (DEPRECATED, will be removed in a future release)"
+.IP "@@ifndef \fBVARIABLE\fR (DEPRECATED since AIDE v0.18, will be removed in AIDE v0.20)"
 same as \fB@@if not defined VARIABLE\fR
-.IP "@@ifhost \fBHOSTNAME\fR (DEPRECATED, will be removed in a future release)"
+.IP "@@ifhost \fBHOSTNAME\fR (DEPRECATED since AIDE v0.18, will be removed in AIDE v0.20)"
 same as \fB@@if hostname HOSTNAME\fR
-.IP "@@ifnhost \fBHOSTNAME\fR (DEPRECATED, will be removed in a future release)"
+.IP "@@ifnhost \fBHOSTNAME\fR (DEPRECATED since AIDE v0.18, will be removed in AIDE v0.20)"
 same as \fB@@if not hostname HOSTNAME\fR
 
 .IP "@@{\fBVAR\fR}"
@@ -606,7 +606,7 @@ config file.
 
 The maximum depth of nested includes is 16.
 
-.IP "@@include \fBDIRECTORY\fR \fBREGEX\fR [\fBRULE_PREFIX\fR]"
+.IP "@@include \fBDIRECTORY\fR \fBREGEX\fR [\fBRULE_PREFIX\fR] (added in AIDE v0.17)"
 Include all (regular) files found in \fBDIRECTORY\fR matching regular
 expression \fBREGEX\fR (sub-directories are ignored). The file are included in
 lexical sort order.
@@ -619,9 +619,9 @@ The content of the files is used as if it were inserted in this
 part of the config file.
 
 .TP
-@@x_include \fBFILE\fR
+@@x_include \fBFILE\fR (added in AIDE v0.17)
 .TQ
-@@x_include \fBDIRECTORY\fR \fBREGEX\fR [\fBRULE_PREFIX\fR]
+@@x_include \fBDIRECTORY\fR \fBREGEX\fR [\fBRULE_PREFIX\fR]  (added in AIDE v0.17)
 \fB@x_include\fR is identical to \fB@@include\fR, except that if a config file
 is executable is is run and the output is used as config.
 
@@ -631,7 +631,7 @@ aide stops with an error.
 For security reasons \fBDIRECTORY\fR and each executable config file must be
 owned by the current user and must not be group- or world-writable.
 
-.IP "@@x_include_setenv \fBVAR\fR \fBVALUE\fR"
+.IP "@@x_include_setenv \fBVAR\fR \fBVALUE\fR (added in AIDE v0.17)"
 
 Adds the variable \fBVAR\fR with the value \fBVALUE\fR to the environment used
 for config file execution.
@@ -687,7 +687,7 @@ Output is written to syslog using \fILOG_FACILITY\fR.
 .PP
 .B File attribute groups
 .RS 3
-.IP "\fBftype\fR: file type"
+.IP "\fBftype\fR: file type (added in AIDE v0.15)"
 .IP "\fBp\fR: permissions"
 .IP "\fBi\fR: inode"
 .IP "\fBl\fR: link name"
@@ -702,8 +702,8 @@ Output is written to syslog using \fILOG_FACILITY\fR.
 .IP "\fBacl\fR: access control list (requires \fIlibacl\fR)"
 .IP "\fBselinux\fR: selinux attributes (requires \fIlibselinux\fR)"
 .IP "\fBxattrs\fR: extended attributes (requires \fIlibattr\fR)"
-.IP "\fBe2fsattrs\fR: file attributes on a second extended file system, see also \fB report_ignore_e2fsattrs \fP option (requires \fIlibext2fs\fR)"
-.IP "\fBcaps\fR: file capabilities (requires \fIlibcap2\fR)"
+.IP "\fBe2fsattrs\fR: file attributes on a second extended file system, see also \fB report_ignore_e2fsattrs \fP option (requires \fIlibext2fs\fR, added in AIDE v0.15)"
+.IP "\fBcaps\fR: file capabilities (requires \fIlibcap2\fR, added in AIDE v0.17)"
 .RE
 
 Use 'aide --version' to show which compiled in groups are available.
@@ -741,8 +741,8 @@ but are ignored in the report.
 .IP "crc32b:	crc32 checksum (\fIlibmhash\fR only)"
 .IP "gost: GOST R 34.11-94 checksum"
 .IP "whirlpool: whirlpool checksum"
-.IP "stribog256: GOST R 34.11-2012, 256 bit checksum (\fIlibgcrypt\fR only)"
-.IP "stribog512: GOST R 34.11-2012, 512 bit checksum (\fIlibgcrypt\fR only)"
+.IP "stribog256: GOST R 34.11-2012, 256 bit checksum (\fIlibgcrypt\fR only, added in AIDE v0.17)"
+.IP "stribog512: GOST R 34.11-2012, 512 bit checksum (\fIlibgcrypt\fR only, added in AIDE v0.17)"
 .RE
 
 Use 'aide --version' to show which compiled hashsums are available.
@@ -752,8 +752,8 @@ Use 'aide --version' to show which compiled hashsums are available.
 .IP "R:	p+ftype+i+l+n+u+g+s+m+c+md5+X"
 .IP "L:	p+ftype+i+l+n+u+g+X"
 .IP ">:	Growing file p+ftype+l+u+g+i+n+S+X"
-.IP "H:	all compiled in hashsums"
-.IP "X:	acl+selinux+xattrs+e2fsattrs+caps (if groups are compiled in)"
+.IP "H:	all compiled in hashsums (added in AIDE v0.17)"
+.IP "X:	acl+selinux+xattrs+e2fsattrs+caps (if groups are compiled in, added in AIDE v0.16)"
 .IP "E:	Empty group"
 .RE
 .LP

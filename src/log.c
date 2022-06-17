@@ -57,6 +57,11 @@ static struct log_level log_level_array[] = {
     { 0,                       NULL,            NULL      },
 };
 
+static void cache_line(LOG_LEVEL, const char*, va_list)
+#ifdef __GNUC__
+    __attribute__ ((format (printf, 2, 0)));
+#endif
+;
 static void cache_line(LOG_LEVEL level, const char* format, va_list ap) {
     int n;
 
@@ -88,6 +93,11 @@ static void log_cached_lines(void) {
     free(cached_lines);
 }
 
+static void vlog_msg(LOG_LEVEL, const char*, va_list)
+#ifdef __GNUC__
+    __attribute__ ((format (printf, 2, 0)));
+#endif
+;
 static void vlog_msg(LOG_LEVEL level,const char* format, va_list ap) {
     FILE* url = stderr;
 
@@ -138,6 +148,11 @@ LOG_LEVEL toogle_log_level(LOG_LEVEL level) {
     return log_level;
 }
 
+void log_msg(LOG_LEVEL, const char*, ...)
+#ifdef __GNUC__
+    __attribute__ ((format (printf, 2, 3)));
+#endif
+;
 void log_msg(LOG_LEVEL level, const char* format, ...) {
     va_list argp;
     va_start(argp, format);

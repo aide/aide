@@ -300,6 +300,9 @@ static void eval_config_statement(config_option_statement statement, int linenum
             log_msg(LOG_LEVEL_ERROR, "%s:%d: 'verbose' option is no longer supported, use 'log_level' and 'report_level' options instead (see man aide.conf for details) (line: '%s')", conf_filename, conf_linenumber, conf_linebuf);
             exit(INVALID_CONFIGURELINE_ERROR);
             break;
+        case LIMIT_CMDLINE_OPTION:
+            /* command-line options are ignored here */
+            break;
     }
 }
 

@@ -374,7 +374,7 @@ void print_report_config_options(report_t *report, void (*print_config_option)(r
         print_config_option(report, LIMIT_CMDLINE_OPTION, conf->limit);
     }
     if (conf->action&(DO_INIT|DO_COMPARE) && conf->root_prefix_length > 0) {
-        print_config_option(report, ROOT_PREFIX_CMDLINE_OPTION, conf->root_prefix);
+        print_config_option(report, ROOT_PREFIX_OPTION, conf->root_prefix);
     }
     if (report->level != default_report_options.level) {
         print_config_option(report, REPORT_LEVEL_OPTION, get_report_level_string(report->level));

@@ -85,7 +85,7 @@ typedef struct database {
     int linenumber;
     char *linebuf;
 
-    FILE *fp;
+    void *fp;
 #ifdef WITH_ZLIB
     gzFile gzp;
 #endif

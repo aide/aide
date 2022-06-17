@@ -53,7 +53,6 @@ typedef enum config_option {
     CONFIG_CHECK_WARN_UNRESTRICTED_RULES,
     REPORT_FORMAT_OPTION,
     LIMIT_CMDLINE_OPTION,
-    ROOT_PREFIX_CMDLINE_OPTION,
 } config_option;
 
 typedef struct {

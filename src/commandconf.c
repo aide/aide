@@ -492,7 +492,7 @@ bool do_rootprefix(char* val, int linenumber, char* filename, char* linebuf) {
         conf->root_prefix_length=strlen(conf->root_prefix);
         if (conf->root_prefix_length && conf->root_prefix[conf->root_prefix_length-1] == '/') {
             conf->root_prefix[--conf->root_prefix_length] = '\0';
-            log_msg(LOG_LEVEL_NOTICE, "%s:%d: removed trailing '/' from root prefix", filename, linenumber);
+            LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_NOTICE, "removed trailing '/' from root prefix: '%s'", conf->root_prefix);
         }
         LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, "set 'root_prefix' option to '%s'", conf->root_prefix)
         return true;

@@ -298,7 +298,7 @@ rx_rule * add_rx_to_tree(char * rx, RESTRICTION_TYPE restriction, int rule_type,
             pcre2_get_error_message(pcre2_jit, pcre2_error, 128);
             log_msg(LOG_LEVEL_NOTICE, "JIT compilation for regex '%s' failed: %s (fall back to interpreted matching)", r->rx, pcre2_error);
         } else {
-            log_msg(LOG_LEVEL_DEBUG, "JIT compilation for reges '%s' successful", r->rx);
+            log_msg(LOG_LEVEL_DEBUG, "JIT compilation for regex '%s' successful", r->rx);
         }
 
         rxtok=strrxtok(r->rx);

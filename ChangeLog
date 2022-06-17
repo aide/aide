@@ -2,6 +2,7 @@
 	* Adjust some log messages
 	* Update aide.conf.5 manual page
 	* Fix compiler warnings and clean up code
+	* Improve error message for unknown config options
 
 2022-06-16 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Add prefix option to directory include macros (closes: #112)

@@ -128,7 +128,7 @@ int update_md(struct md_container* md,void* data,ssize_t size) {
   After this calling update_db is not a good idea.
 */
 
-int close_md(struct md_container* md) {
+int close_md(struct md_container* md, md_hashsums * hs) {
 #ifdef _PARAMETER_CHECK_
   if (md==NULL) {
     return RETFAIL;
@@ -147,7 +147,7 @@ int close_md(struct md_container* md) {
 
   for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
       if (md->calc_attr&ATTR(hashsums[i].attribute)) {
-          memcpy(md->hashsums[i],gcry_md_read(md->mdh, algorithms[i]), hashsums[i].length);
+          memcpy(hs->hashsums[i],gcry_md_read(md->mdh, algorithms[i]), hashsums[i].length);
       }
   }
 
@@ -157,10 +157,11 @@ int close_md(struct md_container* md) {
 #ifdef WITH_MHASH
   for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
       if(md->mhash_mdh[i]!=MHASH_FAILED){
-          mhash_deinit(md->mhash_mdh[i],md->hashsums[i]);
+          mhash_deinit(md->mhash_mdh[i],hs?hs->hashsums[i]:NULL);
       }
   }
 #endif
+  hs->attrs = md->calc_attr;
   return RETOK;
 }
 
@@ -168,7 +169,7 @@ int close_md(struct md_container* md) {
   Writes md_container to db_line.
  */
 
-void md2line(struct md_container* md,struct db_line* line) {
+void hashsums2line(md_hashsums *hs, struct db_line* line) {
   
 #ifdef _PARAMETER_CHECK_
   if (md==NULL||line==NULL) {
@@ -179,9 +180,9 @@ void md2line(struct md_container* md,struct db_line* line) {
    for (int i = 0 ; i < num_hashes ; ++i) {
        DB_ATTR_TYPE attr = ATTR(hashsums[i].attribute);
        if (line->attr&attr) {
-           if (md->calc_attr&attr) {
+           if (hs->attrs&attr) {
                line->hashsums[i] = checked_malloc(hashsums[i].length);
-               memcpy(line->hashsums[i],md->hashsums[i],hashsums[i].length);
+               memcpy(line->hashsums[i],hs->hashsums[i],hashsums[i].length);
            } else {
                line->attr&=~attr;
            }

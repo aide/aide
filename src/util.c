@@ -22,12 +22,14 @@
 
 #include "config.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <ctype.h>
 #include <syslog.h>
 #include <stdbool.h>
 #include <strings.h>
+#include <unistd.h>
 #include "url.h"
 /*for locale support*/
 #include "locale-aide.h"
@@ -289,6 +291,21 @@ char *expand_tilde(char *path) {
         }
     }
     return path;
+}
+
+char* pipe2string(int fd) {
+    int nbytes;
+    char buffer[1024];
+
+    char* str = NULL;
+    while ((nbytes = read(fd, buffer, sizeof(buffer))) > 0) {
+        int str_len = str?strlen(str):0U;
+        int len = str_len+nbytes;
+        str = checked_realloc(str, (len+1)*sizeof(char));
+        strncpy(str+str_len, buffer, nbytes);
+        str[len] = '\0';
+    }
+    return str;
 }
 
 /* Like strstr but only do search for maximum of n chars.

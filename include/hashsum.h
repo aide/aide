@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2020 Hannes von Haugwitz
+ * Copyright (C) 2020,2022 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -45,6 +45,9 @@ typedef enum {
     hash_stribog512,
     num_hashes,
 } HASHSUM;
+
+/* max length of hashsum in hashsums[] defined in hashsum.c */
+#define HASHSUM_MAX_LENGTH 64
 
 extern hashsum_t hashsums[];
 

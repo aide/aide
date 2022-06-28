@@ -122,16 +122,6 @@ static void init_crypto_lib() {
 static void sig_handler(int signum)
 {
   switch(signum){
-  case SIGBUS  : {
-    if(conf->catch_mmap==1){
-      log_msg(LOG_LEVEL_NOTICE, "Caught SIGBUS while mmapping. File was truncated while aide was running?");
-      conf->catch_mmap=0;
-    } else {
-      log_msg(LOG_LEVEL_ERROR, "Caught SIGBUS. Exiting");
-      exit(EXIT_FAILURE);
-    }
-    break;
-  }
   case SIGHUP : {
     log_msg(LOG_LEVEL_INFO, "Caught SIGHUP");
     break;
@@ -466,7 +456,6 @@ static void setdefaults_before_config()
 #endif
 
   conf->action=0;
-  conf->catch_mmap=0;
 
   conf->warn_dead_symlinks=0;
 

@@ -40,8 +40,6 @@ struct db_line;
  */
 
 typedef struct md_container {
-  char hashsums[num_hashes][64];
-
   /* 
      Attr which are to be calculated.
   */
@@ -65,9 +63,14 @@ typedef struct md_container {
 
 } md_container;
 
+typedef struct md_hashsums {
+  char hashsums[num_hashes][HASHSUM_MAX_LENGTH];
+  DB_ATTR_TYPE attrs;
+} md_hashsums;
+
 int init_md(struct md_container*, const char*);
 int update_md(struct md_container*,void*,ssize_t);
-int close_md(struct md_container*);
-void md2line(struct md_container*,struct db_line*);
+int close_md(struct md_container*, md_hashsums *);
+void hashsums2line(md_hashsums*, struct db_line*);
 
 #endif /*_MD_H_INCLUDED*/

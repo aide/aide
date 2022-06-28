@@ -102,9 +102,17 @@ static void vlog_msg(LOG_LEVEL level,const char* format, va_list ap) {
     FILE* url = stderr;
 
     if (level == LOG_LEVEL_ERROR || level <= log_level) {
-        fprintf(url, "%s: ", log_level_array[level-1].log_string );
-        vfprintf(url, format, ap);
-        fprintf(url, "\n");
+
+        va_list aqc;
+        va_copy(aqc, ap);
+        int n = vsnprintf(NULL, 0, format, aqc) + 1;
+        va_end(aqc);
+        char *msg = checked_malloc(n * sizeof(char));
+        vsnprintf(msg, n, format, ap);
+
+        fprintf(url, "%s: %s\n", log_level_array[level-1].log_string, msg);
+
+        free(msg);
     } else if (log_level == LOG_LEVEL_UNSET) {
         cache_line(level, format, ap);
     }
@@ -158,4 +166,16 @@ void log_msg(LOG_LEVEL level, const char* format, ...) {
     va_start(argp, format);
     vlog_msg(level, format, argp);
     va_end(argp);
+}
+
+void stderr_msg(const char* format, ...)
+#ifdef __GNUC__
+    __attribute__ ((format (printf, 1, 2)));
+#endif
+;
+void stderr_msg(const char* format, ...) {
+    va_list ap;
+    va_start(ap, format);
+    vfprintf(stderr, format, ap);
+    va_end(ap);
 }

@@ -18,15 +18,17 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
- 
+
 #ifndef _DO_MD_H_INCLUDED
 #define _DO_MD_H_INCLUDED
 
 #include "config.h"
 #include "list.h"
 #include "db_config.h"
+#include "md.h"
 
 list* do_md(list* file_lst,db_config* conf);
+md_hashsums calc_hashsums(char*, DB_ATTR_TYPE, struct stat*);
 
 #ifdef WITH_ACL
 void acl2line(db_line* line);

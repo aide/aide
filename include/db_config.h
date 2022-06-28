@@ -150,9 +150,6 @@ typedef struct db_config {
   /* What are we supposed to do */
   int action;
 
-  /* Should we catch errors from mmapping */
-  int catch_mmap;
-
   time_t start_time;
   time_t end_time;
 

@@ -94,10 +94,10 @@ static struct md_container *init_db_attrs(url_t *u) {
                 mdc->todo_attr = conf->db_attrs;
 
                 int length = snprintf(NULL, 0, "%s:%s", get_url_type_string(u->type), u->value) + 1;
-                char *str = checked_malloc(length * sizeof(char));
-                snprintf(str, length, "%s:%s", get_url_type_string(u->type), u->value);
-                init_md(mdc, str);
-                free(str);
+                char *db = checked_malloc(length * sizeof(char));
+                snprintf(db, length, "%s:%s", get_url_type_string(u->type), u->value);
+                init_md(mdc, db);
+                free(db);
 
                 break;
             }
@@ -114,12 +114,13 @@ static struct md_container *init_db_attrs(url_t *u) {
 static db_line *close_db_attrs (database *db) {
     db_line *line = NULL;
     if (db->mdc != NULL) {
-        close_md(db->mdc);
+        md_hashsums hs;
+        close_md(db->mdc, &hs);
         line = checked_malloc(sizeof(struct db_line));
         line->filename = (db->url)->value;
         line->perm = 0;
         line->attr = conf->db_attrs;
-        md2line(db->mdc, line);
+        hashsums2line(&hs, line);
         free(db->mdc);
     }
     return line;

@@ -286,6 +286,9 @@ AS_IF([test "x$with_mmap" != xno],
 AC_CHECK_FUNCS(fcntl ftruncate posix_fadvise asprintf snprintf \
 	vasprintf vsnprintf va_copy __va_copy)
 
+AC_CHECK_FUNCS(sigabbrev_np)
+AC_CHECK_HEADERS(sys/prctl.h)
+
 # Linux has the O_NOATIME flag, sometimes
 AC_CACHE_CHECK([for open/O_NOATIME], db_cv_open_o_noatime, [
 echo "test for working open/O_NOATIME" > __o_noatime_file

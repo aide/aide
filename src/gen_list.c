@@ -42,6 +42,7 @@
 #include "list.h"
 #include "gen_list.h"
 #include "seltree.h"
+#include "md.h"
 #include "db.h"
 #include "db_line.h"
 #include "db_config.h"
@@ -56,7 +57,6 @@
 
 void hsymlnk(db_line* line);
 void fs2db_line(struct stat* fs,db_line* line);
-void calc_md(struct stat* old_fs,db_line* line);
 void no_hash(db_line* line);
 
 static int bytecmp(byte *b1, byte *b2, size_t len) {
@@ -627,7 +627,12 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct stat *fs, bool 
 #endif
 
   if (line->attr&get_hashes(true) && S_ISREG(fs->st_mode)) {
-    calc_md(fs,line);
+    md_hashsums hs = calc_hashsums(line->fullpath, line->attr, fs);
+    if (hs.attrs) {
+        hashsums2line(&hs,line);
+    } else {
+        no_hash(line);
+    }
   } else {
     /*
       We cannot calculate hash for nonfile.

@@ -48,6 +48,8 @@ LOG_LEVEL toogle_log_level(LOG_LEVEL);
 
 void log_msg(LOG_LEVEL, const char* ,...);
 
+void stderr_msg(const char* ,...);
+
 #define LOG_CONFIG_FORMAT_LINE(log_level, format, ...) \
     if (linebuf) { \
         log_msg(log_level,"%s:%d: " format " (line: '%s')", filename, linenumber, __VA_ARGS__, linebuf); \

@@ -32,7 +32,10 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <signal.h>
 #include <sys/mman.h>
+#include <sys/wait.h>
+
 #ifdef WITH_XATTR
 #include <sys/xattr.h>
 #include <attr/attributes.h>
@@ -51,6 +54,9 @@
 #endif
 #ifdef WITH_E2FSATTRS
 #include <e2p/e2p.h>
+#endif
+#ifdef HAVE_SYS_PRCTL_H
+#include <sys/prctl.h>
 #endif
 
 #ifdef WITH_CAPABILITIES
@@ -172,6 +178,17 @@ pid_t open_prelinked(const char * path, int * fd) {
 
 #endif
 
+pid_t pid = -1;
+int p_parent_to_child[2];
+int p_child_to_parent[2];
+int p_stderr[2];
+
+static void write_empty_md_hashsums(int fd) {
+    md_hashsums md_hash;
+    md_hash.attrs = 0LU;
+    write(fd, &md_hash, sizeof(md_hash));
+}
+
 int stat_cmp(struct stat* f1,struct stat* f2) {
   if (f1==NULL || f2==NULL) {
     return RETFAIL;
@@ -192,204 +209,289 @@ int stat_cmp(struct stat* f1,struct stat* f2) {
 	  stat_cmp_helper(st_dev,attr_dev));
 }
 
+md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs) {
+    int wstatus;
+    md_hashsums md_hash;
+    md_hash.attrs = 0LU;
 
-void no_hash(db_line* line);
-
-void calc_md(struct stat* old_fs,db_line* line) {
-  /*
-    We stat after opening just to make sure that the file
-    from we are about to calculate the hash is the correct one,
-    and we don't read from a pipe :)
-   */
-  struct stat fs;
-  int sres=0;
-  int stat_diff,filedes;
-#ifdef WITH_PRELINK
-  pid_t pid;
+    bool fork_child = false;
+    if (pid == -1) {
+        log_msg(LOG_LEVEL_DEBUG, " calc_hashsums(parent): child not yet started", pid);
+        fork_child = true;
+    } else if (waitpid(pid, &wstatus, WNOHANG) < 0) {
+        if (WTERMSIG(wstatus) == SIGBUS) {
+#ifdef HAVE_SIGABBREV_NP
+            log_msg(LOG_LEVEL_DEBUG, " calc_hashsums(parent): child process %d caught signal 'SIG%s'", pid, sigabbrev_np(WTERMSIG(wstatus)));
+#else
+            log_msg(LOG_LEVEL_DEBUG, " calc_hashsums(parent): child process %d caught signal '%s'", pid, strsignal(WTERMSIG(wstatus)));
 #endif
+        }
+        close(p_parent_to_child[1]);
+        close(p_child_to_parent[0]);
+        close(p_stderr[0]);
+        log_msg(LOG_LEVEL_DEBUG, " calc_hashsums(parent): child process %d not running, forking new child", pid);
+        fork_child = true;
+    } else {
+        log_msg(LOG_LEVEL_DEBUG, " calc_hashsums(parent): child process %d running", pid);
+    }
+    if (fork_child) {
+        if (pipe(p_parent_to_child) == -1) {
+            log_msg(LOG_LEVEL_WARNING, "calc_hashsums(parent): pipe() (parent_to_child) failed: %s (hashsums for '%s' could not be calculated)", strerror(errno), fullpath);
+            return md_hash;
+        }
+        if (pipe(p_child_to_parent) == -1) {
+            log_msg(LOG_LEVEL_WARNING, "calc_hashsums(parent): pipe() (child_to_parent) failed: %s (hashsums for '%s' could not be calculated)", strerror(errno), fullpath);
+            return md_hash;
+        }
+        if (pipe(p_stderr) == -1) {
+            log_msg(LOG_LEVEL_WARNING, "calc_hashsums(parent): pipe() (stderr) failed: %s (hashsums for '%s' could not be calculated)", strerror(errno), fullpath);
+            return md_hash;
+        }
+        if (fcntl(p_stderr[0], F_SETFL, O_NONBLOCK) == -1) {
+            log_msg(LOG_LEVEL_WARNING, "calc_hashsums(parent): fcntl() for stderr pipe failed: %s (hashsums for '%s' could not be calculated)", strerror(errno), fullpath);
+            return md_hash;
+        }
+        if ((pid = fork()) == -1) {
+            log_msg(LOG_LEVEL_WARNING, "calc_hashsums(parent): fork failed: %s (hashsums for '%s' could not be calculated)", strerror(errno), fullpath);
+            return md_hash;
+        }
+    }
+    if(pid == 0) { /* child */
+        pid_t child_pid = getpid();
+#ifdef HAVE_SYS_PRCTL_H
+        prctl(PR_SET_PDEATHSIG, SIGKILL);
+        if (getppid() == 1) {
+            exit(0);
+        }
+#endif
+        close(p_parent_to_child[1]);
+        close(p_child_to_parent[0]);
+        close(p_stderr[0]);
+        dup2 (p_stderr[1], STDERR_FILENO);
+        close(p_stderr[1]);
 
-#ifdef _PARAMETER_CHECK_
-  if (line==NULL) {
-    abort();
-  }
-#endif  
+        char child_fullpath[PATH_MAX];
+        struct stat child_old_fs;
+        DB_ATTR_TYPE child_attr;
+        log_msg(LOG_LEVEL_DEBUG, " calc_hashsums(child:%d): forked child", child_pid);
+
+        while(true) {
+            read(p_parent_to_child[0], &child_attr, sizeof(DB_ATTR_TYPE));
+            read(p_parent_to_child[0], &child_old_fs, sizeof(struct stat));
+            read(p_parent_to_child[0], child_fullpath,  PATH_MAX);
+            log_msg(LOG_LEVEL_DEBUG, " calc_hashsums(child:%d): got filename: '%s' (attr: %lu)", child_pid, child_fullpath, child_attr);
+
+            struct stat new_fs;
+            int sres=0;
+            int stat_diff,filedes;
+
+#ifdef WITH_PRELINK
+            pid_t prelink_pid;
+#endif
 
 #ifdef HAVE_O_NOATIME
-  filedes=open(line->fullpath,O_RDONLY|O_NOATIME);
-  if(filedes<0)
+            filedes=open(child_fullpath,O_RDONLY|O_NOATIME);
+            if(filedes<0) {
 #endif
-    filedes=open(line->fullpath,O_RDONLY);
-
-  if (filedes==-1) {
-    char* er=strerror(errno);
-    if (er!=NULL) {
-      log_msg(LOG_LEVEL_WARNING, "hash calculation: open() failed for %s: %s",
-	    line->fullpath,er);
-    } else {
-      log_msg(LOG_LEVEL_WARNING, "hash calculation: open() failed for %s: %i",
-	    line->fullpath,errno);
-    }
-    /*
-      Nop. Cannot cal hashes. Mark it.
-     */
-    no_hash(line);
-    return;
-  }
-  
-  sres=fstat(filedes,&fs);
-  if (sres != 0) {
-      log_msg(LOG_LEVEL_WARNING, "hash calculation: fstat() failed for '%s': %s", line->fullpath, strerror(errno));
-  }
-  if(!(line->attr&ATTR(attr_rdev)))
-	  fs.st_rdev=0;
-  
+                filedes=open(child_fullpath,O_RDONLY);
+#ifdef HAVE_O_NOATIME
+            }
+#endif
+            if (filedes==-1) {
+                log_msg(LOG_LEVEL_WARNING, "hash calculation(child:%d): open() failed for %s: %s (hashsums could not be calculated)", child_pid, child_fullpath, strerror(errno));
+                write_empty_md_hashsums(p_child_to_parent[1]);
+                continue;
+            }
+            sres=fstat(filedes,&new_fs);
+            if (sres != 0) {
+                log_msg(LOG_LEVEL_WARNING, "hash calculation(child:%d): fstat() failed for '%s': %s (hashsums could not be calculated)", child_pid, child_fullpath, strerror(errno));
+                write_empty_md_hashsums(p_child_to_parent[1]);
+                continue;
+            }
+            if(!(child_attr&ATTR(attr_rdev))) {
+                new_fs.st_rdev=0;
+            }
 #ifdef HAVE_POSIX_FADVISE
-  if (posix_fadvise(filedes,0,fs.st_size,POSIX_FADV_NOREUSE)!=0) {
-    log_msg(LOG_LEVEL_DEBUG, "hash calculation: posix_fadvise error for '%s': %s", line->fullpath, strerror(errno));
-  }
+            if (posix_fadvise(filedes,0,new_fs.st_size,POSIX_FADV_NOREUSE)!=0) {
+                log_msg(LOG_LEVEL_DEBUG, " calc_hashsums(child:%d): posix_fadvise error for '%s': %s", child_pid, child_fullpath, strerror(errno));
+            }
 #endif
-  if ((stat_diff=stat_cmp(&fs,old_fs))==RETOK) {
-    /*
-      Now we have a 'valid' filehandle to read from a file.
-     */
-
+            if ((stat_diff=stat_cmp(&new_fs,&child_old_fs)) != RETOK) {
+                DB_ATTR_TYPE changed_attribures = 0ULL;
+                for(ATTRIBUTE i=0;i<num_attrs;i++) {
+                    if (((1<<i)&stat_diff)!=0) {
+                        changed_attribures |= 1<<i;
+                    }
+                }
+                char *str;
+                log_msg(LOG_LEVEL_WARNING, "hash calculation(child:%d): '%s' has been changed (changed attributes: %s, hash could not be calculated)", child_pid, child_fullpath, str = diff_attributes(0, changed_attribures));
+                free(str);
+                close(filedes);
+                write_empty_md_hashsums(p_child_to_parent[1]);
+                continue;
+            } else {
 #ifdef WITH_PRELINK
-    /*
-     * Let's take care of prelinked libraries/binaries 	
-     */
-    pid=0;
-    if ( is_prelinked(filedes) ) {
-      close(filedes);
-      pid = open_prelinked(line->fullpath, &filedes);
-      if (pid == 0) {
-        log_msg(LOG_LEVEL_WARNING, "hash calculation: error on starting prelink for '%s'", line->fullpath);
-	return;
-      }
-    }
+                prelink_pid=0;
+                log_msg(LOG_LEVEL_DEBUG, " calc_hashsums(child:%d): check if '%s' is prelinked", child_pid, child_fullpath);
+                if ( is_prelinked(filedes) ) {
+                    close(filedes);
+                    log_msg(LOG_LEVEL_DEBUG, " calc_hashsums(child:%d): open prelinked file '%s'", child_pid, child_fullpath);
+                    prelink_pid = open_prelinked(child_fullpath, &filedes);
+                    if (prelink_pid == 0) {
+                        log_msg(LOG_LEVEL_WARNING, "hash calculation(child:%d): error on starting prelink for '%s' (hashsums could not be calculated)", child_pid, child_fullpath);
+                        write_empty_md_hashsums(p_child_to_parent[1]);
+                        continue;
+                    }
+                }
 #endif
+                off_t r_size=0;
+                off_t size=0;
+                char* buf;
 
-    off_t r_size=0;
-    off_t size=0;
-    char* buf;
-
-    struct md_container mdc;
-    
-    mdc.todo_attr=line->attr;
-    
-    if (init_md(&mdc, line->filename)==RETOK) {
-        log_msg(LOG_LEVEL_DEBUG," calculate hashes for '%s'", line->filename);
+                struct md_container mdc;
+                mdc.todo_attr = child_attr;
+                if (init_md(&mdc, child_fullpath)==RETOK) {
+                    log_msg(LOG_LEVEL_DEBUG, " calculate hashes for '%s'", child_fullpath);
 #ifdef HAVE_MMAP
 #ifdef WITH_PRELINK
-      if (pid == 0) {
+                    if (prelink_pid == 0) {
 #endif
-        off_t curpos=0;
+                        off_t curpos=0;
 
-        r_size=fs.st_size;
-        /* in mmap branch r_size is used as size remaining */
-        while(r_size>0){
-         if(r_size<MMAP_BLOCK_SIZE){
+                        r_size=new_fs.st_size; /* in mmap branch r_size is used as size remaining */
+                        while (r_size>0) {
+                            if (r_size<MMAP_BLOCK_SIZE) {
 #ifdef __hpux
-           buf = mmap(0,r_size,PROT_READ,MAP_PRIVATE,filedes,curpos);
+                                buf = mmap(0,r_size,PROT_READ,MAP_PRIVATE,filedes,curpos);
 #else
-           buf = mmap(0,r_size,PROT_READ,MAP_SHARED,filedes,curpos);
+                                buf = mmap(0,r_size,PROT_READ,MAP_SHARED,filedes,curpos);
 #endif
-           curpos+=r_size;
-           size=r_size;
-           r_size=0;
-         }else {
+                                curpos+=r_size;
+                                size=r_size;
+                                r_size=0;
+                            } else {
 #ifdef __hpux
-	   buf = mmap(0,MMAP_BLOCK_SIZE,PROT_READ,MAP_PRIVATE,filedes,curpos);
+                                buf = mmap(0,MMAP_BLOCK_SIZE,PROT_READ,MAP_PRIVATE,filedes,curpos);
 #else
-	   buf = mmap(0,MMAP_BLOCK_SIZE,PROT_READ,MAP_SHARED,filedes,curpos);
+                                buf = mmap(0,MMAP_BLOCK_SIZE,PROT_READ,MAP_SHARED,filedes,curpos);
 #endif
-	   curpos+=MMAP_BLOCK_SIZE;
-	   size=MMAP_BLOCK_SIZE;
-	   r_size-=MMAP_BLOCK_SIZE;
-	 }
-	 if ( buf == MAP_FAILED ) {
-	   log_msg(LOG_LEVEL_WARNING, "hash calculation: error mmap'ing '%s': %s", line->fullpath, strerror(errno));
-	   close(filedes);
-	   close_md(&mdc);
-	   return;
-	 }
-	 conf->catch_mmap=1;
-	 if (update_md(&mdc,buf,size)!=RETOK) {
-	   log_msg(LOG_LEVEL_WARNING, "hash calculation: update_md() failed for '%s'", line->fullpath);
-	   close(filedes);
-	   close_md(&mdc);
-	   munmap(buf,size);
-	   return;
-	 }
-	 munmap(buf,size);
-	 conf->catch_mmap=0;
-        }
-	/* we have used MMAP, let's return */
-        close_md(&mdc);
-        md2line(&mdc,line);
-        close(filedes);
-        return;
+                                curpos+=MMAP_BLOCK_SIZE;
+                                size=MMAP_BLOCK_SIZE;
+                                r_size-=MMAP_BLOCK_SIZE;
+                            }
+                            if ( buf == MAP_FAILED ) {
+                                log_msg(LOG_LEVEL_WARNING, "hash calculation(child:%d): error mmap'ing '%s': %s (hashsums could not be calculated)", child_pid, child_fullpath, strerror(errno));
+                                close(filedes);
+                                close_md(&mdc, NULL);
+                                write_empty_md_hashsums(p_child_to_parent[1]);
+                                continue;
+                            }
+
+                            if (update_md(&mdc,buf,size)!=RETOK) {
+                                log_msg(LOG_LEVEL_WARNING, "hash calculation(child:%d): update_md() failed for '%s' (hashsums could not be calculated)", child_pid, child_fullpath);
+                                close(filedes);
+                                close_md(&mdc, NULL);
+                                munmap(buf,size);
+                                write_empty_md_hashsums(p_child_to_parent[1]);
+                                continue;
+                            }
+                            munmap(buf,size);
+                        }
+                        close_md(&mdc, &md_hash);
+                        close(filedes);
+                        write(p_child_to_parent[1], &md_hash, sizeof(md_hash));
+                        continue;
 #ifdef WITH_PRELINK
-      }
+                    }
 #endif
-#endif /* not HAVE_MMAP */
-      buf=checked_malloc(READ_BLOCK_SIZE);
+#endif /* HAVE_MMAP */
+                    buf=checked_malloc(READ_BLOCK_SIZE);
 #if READ_BLOCK_SIZE>SSIZE_MAX
 #error "READ_BLOCK_SIZE" is too large. Max value is SSIZE_MAX, and current is READ_BLOCK_SIZE
 #endif
-      while ((size=TEMP_FAILURE_RETRY(read(filedes,buf,READ_BLOCK_SIZE)))>0) {
-	if (update_md(&mdc,buf,size)!=RETOK) {
-	   log_msg(LOG_LEVEL_WARNING, "hash calculation: update_md() failed for '%s'", line->fullpath);
-      free(buf);
-	  close(filedes);
-	  close_md(&mdc);
-	  return;
-	}
-	r_size+=size;
-      }
+                    while ((size=TEMP_FAILURE_RETRY(read(filedes,buf,READ_BLOCK_SIZE)))>0) {
+                        if (update_md(&mdc,buf,size)!=RETOK) {
+                            log_msg(LOG_LEVEL_WARNING, "hash calculation: update_md() failed for '%s' (hashsums could not be calculated)", fullpath);
+                            free(buf);
+                            close(filedes);
+                            close_md(&mdc, NULL);
+                            write_empty_md_hashsums(p_child_to_parent[1]);
+                            continue;
+                        }
+                        r_size+=size;
+                    }
 
 #ifdef WITH_PRELINK
-      if (pid) {
-        int status;
-        (void) waitpid(pid, &status, 0);
-        if (!WIFEXITED(status) || WEXITSTATUS(status)) {
-	     log_msg(LOG_LEVEL_WARNING, "hash calculation: error on exit of prelink child process for '%s'", line->fullpath);
-      free(buf);
-	  close(filedes);
-	  close_md(&mdc);
-          return;
-        }
-      }
+                    if (prelink_pid) {
+                        int status;
+                        (void) waitpid(prelink_pid, &status, 0);
+                        if (!WIFEXITED(status) || WEXITSTATUS(status)) {
+                            log_msg(LOG_LEVEL_WARNING, "hash calculation: error on exit of prelink child process for '%s' (hashsums could not be calculated)", fullpath);
+                            free(buf);
+                            close(filedes);
+                            close_md(&mdc, NULL);
+                            write_empty_md_hashsums(p_child_to_parent[1]);
+                            continue;
+                        }
+                    }
 #endif
-      free(buf);
-      close_md(&mdc);
-      md2line(&mdc,line);
+                    free(buf);
+                    close_md(&mdc, &md_hash);
+                    write(p_child_to_parent[1], &md_hash, sizeof(md_hash));
+                } else {
+                    log_msg(LOG_LEVEL_WARNING, "hash calculation(child:%d): init_md() failed for '%s' (hashsums could not be calculated)", child_pid, child_fullpath);
+                    close(filedes);
+                    write_empty_md_hashsums(p_child_to_parent[1]);
+                    continue;
+                }
+            }
+            close(filedes);
+        }
+    } else { /* parent */
+        if (fork_child) {
+            close(p_parent_to_child[0]);
+            close(p_child_to_parent[1]);
+            close(p_stderr[1]);
+        }
 
-    } else {
-	  log_msg(LOG_LEVEL_WARNING, "hash calculation: init_md() failed for '%s'", line->fullpath);
-      no_hash(line);
-      close(filedes);
-      return;
+        log_msg(LOG_LEVEL_DEBUG, " hash calculation(parent): send filename '%s' (attr: %lu) to child process %d", fullpath, attr, pid);
+        write(p_parent_to_child[1], &attr, sizeof(DB_ATTR_TYPE));
+        write(p_parent_to_child[1], old_fs, sizeof(struct stat));
+        write(p_parent_to_child[1], fullpath, strlen(fullpath)+1);
+
+        read(p_child_to_parent[0], &md_hash, sizeof(md_hash));
+
+        char* child_stderr = pipe2string(p_stderr[0]);
+
+        char* newline;
+        char* buffer = child_stderr;
+        while (buffer && *buffer != '\0') {
+            newline = strchr(buffer, '\n');
+            if (newline != NULL) {
+                stderr_msg("%.*s\n", newline-buffer, buffer);
+                buffer = newline+1;
+            } else {
+                stderr_msg("%s\n", buffer);
+                break;
+            }
+        }
+        free(child_stderr);
+
+        int wpid_result = waitpid(pid, &wstatus, WNOHANG);
+        log_msg(LOG_LEVEL_TRACE, " calc_hashsums(parent): waitpid returns %d for child pid %d", wpid_result, pid);
+        if (wpid_result > 0 && WIFSIGNALED(wstatus)) {
+            if (WTERMSIG(wstatus) == SIGBUS) {
+                log_msg(LOG_LEVEL_WARNING, "hash calculation failed for '%s': child process %d caught 'SIGBUS' (was file truncated while AIDE was running?, hash could not be calculated)", fullpath, pid);
+            } else {
+#ifdef HAVE_SIGABBREV_NP
+                log_msg(LOG_LEVEL_WARNING, "hash calculation failed for '%s': child process %d caught signal 'SIG%s' (hash could not be calculated)", fullpath, pid, sigabbrev_np(WTERMSIG(wstatus)));
+#else
+                log_msg(LOG_LEVEL_WARNING, "hash calculation failed for '%s': child process %d caught signal '%s' (hash could not be calculated)", fullpath, pid, strsignal(WTERMSIG(wstatus)));
+#endif
+            }
+        }
     }
-  } else {
-    /*
-      Something just wasn't correct, so no hash calculated.
-    */
-    
-      DB_ATTR_TYPE changed_attribures = 0ULL;
-    for(ATTRIBUTE i=0;i<num_attrs;i++) {
-      if (((1<<i)&stat_diff)!=0) {
-          changed_attribures |= 1<<i;
-      }
-    }
-    char *str;
-    log_msg(LOG_LEVEL_WARNING, "hash calculation: '%s' has been changed (changed attributes: %s), hash could not be calculated", line->fullpath, str = diff_attributes(0, changed_attribures));
-    free(str);
-    no_hash(line);
-    close(filedes);
-    return;
-  }
-  close(filedes);
-  return;
+    return md_hash;
 }
 
 void fs2db_line(struct stat* fs,db_line* line) {

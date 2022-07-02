@@ -145,9 +145,11 @@ int close_md(struct md_container* md, md_hashsums * hs) {
 #ifdef WITH_GCRYPT
   gcry_md_final(md->mdh); 
 
-  for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
-      if (md->calc_attr&ATTR(hashsums[i].attribute)) {
-          memcpy(hs->hashsums[i],gcry_md_read(md->mdh, algorithms[i]), hashsums[i].length);
+  if (hs) {
+      for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
+          if (md->calc_attr&ATTR(hashsums[i].attribute)) {
+              memcpy(hs->hashsums[i],gcry_md_read(md->mdh, algorithms[i]), hashsums[i].length);
+          }
       }
   }
 
@@ -161,7 +163,9 @@ int close_md(struct md_container* md, md_hashsums * hs) {
       }
   }
 #endif
-  hs->attrs = md->calc_attr;
+  if (hs) {
+      hs->attrs = md->calc_attr;
+  }
   return RETOK;
 }
 

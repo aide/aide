@@ -99,7 +99,6 @@ static void sig_handler(int);
 
 static void init_sighandler()
 {
-  signal(SIGBUS,sig_handler);
   signal(SIGTERM,sig_handler);
   signal(SIGUSR1,sig_handler);
   signal(SIGHUP,sig_handler);

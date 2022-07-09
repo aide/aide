@@ -603,12 +603,18 @@ int main(int argc,char**argv)
 
   if (conf->check_path) {
       rx_rule* rule = NULL;
-      int match = check_rxtree(conf->check_path, conf->tree, &rule, conf->check_file_type, true);
-      if (match < 0) {
-        fprintf(stdout, "[ ] %c '%s': outside of limit '%s'\n", get_restriction_char(conf->check_file_type), conf->check_path, conf->limit);
-        exit(2);
-      } else {
-        exit(match?0:1);
+      match_result match = check_rxtree(conf->check_path, conf->tree, &rule, conf->check_file_type);
+      print_match(conf->check_path, rule, match, conf->check_file_type);
+      switch (match) {
+          case RESULT_PARTIAL_LIMIT_MATCH:
+          case RESULT_NO_LIMIT_MATCH:
+              exit(2);
+          case RESULT_EQUAL_MATCH:
+          case RESULT_SELECTIVE_MATCH:
+              exit(0);
+          case RESULT_NO_MATCH:
+          case RESULT_PARTIAL_MATCH:
+              exit(1);
       }
   }
 
@@ -646,11 +652,8 @@ int main(int argc,char**argv)
   }
 
   if (conf->action&DO_INIT && conf->action&DO_DRY_RUN) {
-      if(db_disk_init()==RETFAIL) {
-          exit(IO_ERROR);
-      }
-      log_msg(LOG_LEVEL_INFO, "populate tree (dry-run)");
-      populate_tree(conf->tree, true);
+      log_msg(LOG_LEVEL_INFO, "scan file system (dry-run)");
+      db_scan_disk(true);
       exit (0);
   }
 
@@ -684,10 +687,6 @@ int main(int argc,char**argv)
 	exit(IO_ERROR);
       }
     }
-    if((conf->action&DO_INIT)||(conf->action&DO_COMPARE)){
-      if(db_disk_init()==RETFAIL)
-	exit(IO_ERROR);
-    }
     if((conf->action&DO_COMPARE)||(conf->action&DO_DIFF)){
       if(db_init(&(conf->database_in), true, false)==RETFAIL)
 	exit(IO_ERROR);
@@ -698,7 +697,7 @@ int main(int argc,char**argv)
     }
       
     log_msg(LOG_LEVEL_INFO, "populate tree");
-    populate_tree(conf->tree, false);
+    populate_tree(conf->tree);
 
     if(conf->action&DO_INIT) {
         log_msg(LOG_LEVEL_INFO, "write new entries to database: %s:%s", get_url_type_string((conf->database_out.url)->type), (conf->database_out.url)->value);

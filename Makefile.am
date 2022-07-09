@@ -51,6 +51,7 @@ aide_SOURCES = src/aide.c include/aide.h \
 	include/log.h src/log.c \
 	include/locale-aide.h \
 	include/md.h src/md.c \
+	include/queue.h src/queue.c \
 	include/seltree_struct.h \
 	include/seltree.h src/seltree.c \
 	include/symboltable.h src/symboltable.c \

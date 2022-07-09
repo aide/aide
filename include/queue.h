@@ -1,8 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2011, 2021-2022 Rami Lehti, Pablo Virolainen,
- *               Hannes von Haugwitz
+ * Copyright (C) 2022 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -19,11 +18,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _DB_DISK_H_INCLUDED
-#define _DB_DISK_H_INCLUDED
+#ifndef _QUEUE_H_INCLUDED
+#define _QUEUE_H_INCLUDED
 
-#include <stdbool.h>
-#include "db_config.h"
+typedef struct queue_s queue_ts_t;
 
-void db_scan_disk(bool);
+queue_ts_t *queue_init(int (*) (const void*, const void*));
+void queue_free(queue_ts_t *);
+
+void  queue_enqueue(queue_ts_t * const, void * const);
+void *queue_dequeue(queue_ts_t * const);
+
 #endif

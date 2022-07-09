@@ -1,3 +1,6 @@
+2022-07-09 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Refactor code to scan file system
+
 2022-07-02 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix SIGBUS handling
 	* Fix segfault in close_md function

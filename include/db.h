@@ -58,8 +58,6 @@ void free_db_line(db_line* dl);
 #define NODE_FREE         (1<<7)
 #define DB_DISK           (1<<8)
 
-#define NODE_TRAVERSE     (1<<9)
-#define NODE_CHECKED      (1<<10)
 #define NODE_MOVED_OUT    (1<<11)
 #define NODE_MOVED_IN     (1<<12)
 #define NODE_ALLOW_NEW    (1<<13)

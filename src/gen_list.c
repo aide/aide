@@ -255,10 +255,40 @@ static seltree* get_seltree_inode(seltree* tree, db_line* file, int db)
   return node;
 }
 
-
-
-
-
+void print_match(char* filename, rx_rule *rule, match_result match, RESTRICTION_TYPE restriction) {
+    char * str;
+    char* attr_str;
+    char file_type = get_restriction_char(restriction);
+    switch (match) {
+        case RESULT_SELECTIVE_MATCH:
+            str = get_restriction_string(rule->restriction);
+            attr_str = diff_attributes(0, rule->attr);
+            fprintf(stdout, "[X] %c '%s': selective rule: '%s %s %s' (%s:%d: '%s%s%s')\n", file_type, filename, rule->rx, str, attr_str, rule->config_filename, rule->config_linenumber, rule->config_line, rule->prefix?"', prefix: '":"", rule->prefix?rule->prefix:"");
+            free(attr_str);
+            free(str);
+            break;
+        case RESULT_EQUAL_MATCH:
+            str = get_restriction_string(rule->restriction);
+            attr_str = diff_attributes(0, rule->attr);
+            fprintf(stdout, "[X] %c '%s': equal rule: '=%s %s %s' (%s:%d: '%s%s%s')\n", file_type, filename, rule->rx, str, attr_str, rule->config_filename, rule->config_linenumber, rule->config_line, rule->prefix?"', prefix: '":"", rule->prefix?rule->prefix:"");
+            free(attr_str);
+            free(str);
+            break;
+        case RESULT_PARTIAL_MATCH:
+        case RESULT_NO_MATCH:
+            if (rule) {
+                fprintf(stdout, "[ ] %c '%s': negative rule: '!%s %s' (%s:%d: '%s%s%s')\n", file_type, filename, rule->rx, str = get_restriction_string(rule->restriction), rule->config_filename, rule->config_linenumber, rule->config_line, rule->prefix?"', prefix: '":"", rule->prefix?rule->prefix:"");
+                free(str);
+            } else {
+                fprintf(stdout, "[ ] %c '%s': no matching rule\n", file_type, filename);
+            }
+            break;
+        case RESULT_PARTIAL_LIMIT_MATCH:
+        case RESULT_NO_LIMIT_MATCH:
+            fprintf(stdout, "[ ] %c '%s': outside of limit '%s'\n", file_type, filename, conf->limit);
+            break;
+    }
+}
 
 /*
  * strip_dbline()
@@ -342,7 +372,7 @@ void strip_dbline(db_line* line)
 /*
  * add_file_to_tree
  */
-static void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *db)
+void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *db)
 {
   seltree* node=NULL;
 
@@ -488,7 +518,7 @@ static void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const dat
   }
 }
 
-int check_rxtree(char* filename,seltree* tree, rx_rule* *rule, RESTRICTION_TYPE file_type, bool dry_run)
+match_result check_rxtree(char* filename,seltree* tree, rx_rule* *rule, RESTRICTION_TYPE file_type)
 {
   log_msg(LOG_LEVEL_RULE, "\u252c process '%s' (filetype: %c)", filename, get_restriction_char(file_type));
 
@@ -502,36 +532,19 @@ int check_rxtree(char* filename,seltree* tree, rx_rule* *rule, RESTRICTION_TYPE 
               log_msg(LOG_LEVEL_DEBUG, "added new node '%s' (%p) for '%s' (reason: partial limit match)", node->path, node, filename);
           }
           log_msg(LOG_LEVEL_RULE, "\u2534 skip '%s' (reason: partial limit match, limit: '%s')", filename, conf->limit);
-          return PARTIAL_LIMIT_MATCH;
+          return RESULT_PARTIAL_LIMIT_MATCH;
       } else {
           log_msg(LOG_LEVEL_RULE, "\u2534 skip '%s' (reason: no limit match, limit '%s')", filename, conf->limit);
-          return NO_LIMIT_MATCH;
+          return RESULT_NO_LIMIT_MATCH;
       }
   }
 
-  int match = check_seltree(tree, filename, file_type, rule);
-  if (dry_run) {
-      char * str;
-      fprintf(stdout, "[%c] %c '%s': ", match?'X':' ', get_restriction_char(file_type), filename);
-      if (match > 0) {
-          char* attr_str;
-          fprintf(stdout, "%s: '%s%s %s %s' (%s:%d: '%s%s%s')\n", get_rule_type_long_string(match), match == EQUAL_MATCH?"=":"", (*rule)->rx, str = get_restriction_string((*rule)->restriction), attr_str = diff_attributes(0, (*rule)->attr), (*rule)->config_filename, (*rule)->config_linenumber, (*rule)->config_line, (*rule)->prefix?"', prefix: '":"", (*rule)->prefix?(*rule)->prefix:"");
-          free(attr_str);
-          free(str);
-      } else {
-          if (*rule) {
-              fprintf(stdout, "negative rule: '!%s %s' (%s:%d: '%s')\n", (*rule)->rx, str = get_restriction_string((*rule)->restriction), (*rule)->config_filename, (*rule)->config_linenumber, (*rule)->config_line);
-              free(str);
-          } else {
-              fprintf(stdout, "no matching rule\n");
-          }
-      }
-  }
-  return match;
+  return check_seltree(tree, filename, file_type, rule);
 }
 
-db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct stat *fs, bool dry_run)
+db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct stat *fs)
 {
+  log_msg(LOG_LEVEL_DEBUG, "get file attributes '%s' (fullpath: '%s')", &filename[conf->root_prefix_length], filename);
   db_line* line=NULL;
   time_t cur_time;
 
@@ -584,11 +597,6 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct stat *fs, bool 
   line->filename=&filename[conf->root_prefix_length];
   line->perm_o=fs->st_mode;
   line->linkname=NULL;
-
-  if (dry_run) {
-    log_msg(LOG_LEVEL_DEBUG, " skip file attribute calculation for '%s' (reason: dry-run)", line->filename);
-    return line;
-  }
 
   /*
     Handle symbolic link
@@ -665,9 +673,8 @@ void write_tree(seltree* node) {
     }
 }
 
-void populate_tree(seltree* tree, bool dry_run)
+void populate_tree(seltree* tree)
 {
-  /* FIXME this function could really use threads */
   db_line* old=NULL;
   db_line* new=NULL;
   int initdbwarningprinted=0;
@@ -682,7 +689,8 @@ void populate_tree(seltree* tree, bool dry_run)
         log_msg(LOG_LEVEL_INFO, "read new entries from database: %s:%s", get_url_type_string((conf->database_new.url)->type), (conf->database_new.url)->value);
       db_lex_buffer(&(conf->database_new));
       while((new=db_readline(&(conf->database_new))) != NULL){
-	if(check_rxtree(new->filename,tree, &rule, get_restriction_from_perm(new->perm), dry_run) > 0){
+    match_result add = check_rxtree(new->filename,tree, &rule, get_restriction_from_perm(new->perm));
+    if (add == RESULT_SELECTIVE_MATCH || add == RESULT_EQUAL_MATCH) {
 	  add_file_to_tree(tree,new,DB_NEW, &(conf->database_new));
 	} else {
           free_db_line(new);
@@ -696,19 +704,18 @@ void populate_tree(seltree* tree, bool dry_run)
     if((conf->action&DO_INIT)||(conf->action&DO_COMPARE)){
       /* FIXME  */
       new=NULL;
-      log_msg(LOG_LEVEL_INFO, "read new entries from disk (root: '%s', limit: '%s')", conf->root_prefix, conf->limit?conf->limit:"(none)");
-      while((new=db_readline_disk(dry_run)) != NULL) {
-	    add_file_to_tree(tree,new,DB_NEW, NULL);
-      }
+      log_msg(LOG_LEVEL_INFO, "read new entries from disk (limit: '%s', root prefix: '%s')", conf->limit?conf->limit:"(none)", conf->root_prefix);
+
+      db_scan_disk(false);
     }
     if((conf->action&DO_COMPARE)||(conf->action&DO_DIFF)){
         log_msg(LOG_LEVEL_INFO, "read old entries from database: %s:%s", get_url_type_string((conf->database_in.url)->type), (conf->database_in.url)->value);
         db_lex_buffer(&(conf->database_in));
             while((old=db_readline(&(conf->database_in))) != NULL) {
-                int add=check_rxtree(old->filename,tree, &rule, get_restriction_from_perm(old->perm), dry_run);
-                if(add > 0) {
+                match_result add=check_rxtree(old->filename,tree, &rule, get_restriction_from_perm(old->perm));
+                if (add == RESULT_SELECTIVE_MATCH || add == RESULT_EQUAL_MATCH) {
                     add_file_to_tree(tree,old,DB_OLD, &(conf->database_in));
-                } else if (conf->limit!=NULL && add < 0) {
+                } else if (conf->limit!=NULL && (add == RESULT_NO_LIMIT_MATCH || add == RESULT_PARTIAL_LIMIT_MATCH)) {
                     add_file_to_tree(tree,old,DB_OLD|DB_NEW, &(conf->database_in));
                 }else{
                     if(!initdbwarningprinted){

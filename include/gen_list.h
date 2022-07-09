@@ -38,18 +38,23 @@ int compare_node_by_path(const void *n1, const void *n2);
  * Populate tree with data from disk and db 
  * Also do comparing while adding to the tree
  */
-void populate_tree(seltree*, bool);
+void populate_tree(seltree*);
 
 void write_tree(seltree*);
 
-#define NO_LIMIT_MATCH -2
-#define PARTIAL_LIMIT_MATCH -1
-#define NO_MATCH 0
-#define SELECTIVE_MATCH 1
-#define EQUAL_MATCH 2
+typedef enum match_result {
+    RESULT_NO_MATCH = 0,
+    RESULT_SELECTIVE_MATCH = 2,
+    RESULT_EQUAL_MATCH = 4,
+    RESULT_PARTIAL_MATCH = 16,
+    RESULT_NO_LIMIT_MATCH = 32,
+    RESULT_PARTIAL_LIMIT_MATCH = 64,
+} match_result;
 
-int check_rxtree(char*,seltree*, rx_rule* *, RESTRICTION_TYPE, bool);
+match_result check_rxtree(char*,seltree*, rx_rule* *, RESTRICTION_TYPE);
 
-struct db_line* get_file_attrs(char*,DB_ATTR_TYPE, struct stat *, bool);
+struct db_line* get_file_attrs(char*,DB_ATTR_TYPE, struct stat *);
+void add_file_to_tree(seltree*, db_line*, int, const database *);
 
+void print_match(char*, rx_rule*, match_result, RESTRICTION_TYPE);
 #endif /*_GEN_LIST_H_INCLUDED*/

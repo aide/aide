@@ -120,23 +120,22 @@ static void init_crypto_lib() {
 
 static void sig_handler(int signum)
 {
-  switch(signum){
-  case SIGHUP : {
-    log_msg(LOG_LEVEL_INFO, "Caught SIGHUP");
-    break;
-  }
-  case SIGTERM : {
-    log_msg(LOG_LEVEL_INFO, "Caught SIGTERM. Use SIGKILL to terminate");
-    break;
-  }
-  case SIGUSR1 : {
-    log_msg(LOG_LEVEL_INFO, "Caught SIGUSR1, toggle debug level: set log level to %s", get_log_level_name(toogle_log_level(LOG_LEVEL_DEBUG)));
-    break;
-  }
-  }
-  init_sighandler();
-
-  return;
+    char *str;
+    switch(signum){
+        case SIGHUP :
+          str = "Caught SIGHUP. Ignoring\n";
+          write(STDERR_FILENO ,str, strlen(str));
+          break;
+        case SIGTERM :
+           str = "Caught SIGTERM. Use SIGKILL to terminate\n";
+           write(STDERR_FILENO ,str, strlen(str));
+           break;
+        case SIGUSR1 :
+           str = "Caught SIGUSR1, toggle debug level\n";
+           write(STDERR_FILENO ,str, strlen(str));
+           toogle_log_level(LOG_LEVEL_DEBUG);
+           break;
+    }
 }
 
 static void print_version(void)

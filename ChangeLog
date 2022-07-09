@@ -1,5 +1,6 @@
 2022-07-09 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Refactor code to scan file system
+	* Use signal-safe write function in signal handler (closes: #100)
 
 2022-07-02 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix SIGBUS handling

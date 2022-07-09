@@ -559,6 +559,10 @@ static void include_directory(const char* dir, const char* rx, bool execute, cha
         exit(INVALID_CONFIGURELINE_ERROR);
     }
 
+    if (new_rule_prefix && *new_rule_prefix != '/') {
+        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, "'%s': invalid rule prefix '%s': unexpected first character '%c', expected '/'", execute?"@@x_include":"@@include", new_rule_prefix, *new_rule_prefix)
+        exit(INVALID_CONFIGURELINE_ERROR);
+    }
     /* not to be freed, reused in add_rx_rule_to_tree */
     char* nested_rule_prefix = NULL;
     if (rule_prefix && new_rule_prefix) {

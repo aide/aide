@@ -47,8 +47,10 @@ O	[a-z_]
 #define LOG_CONFIG_LINE(log_level, msg) \
      log_msg(log_level, "%s:%d: %s (line: '%s')", conf_filename, conf_linenumber, msg, conf_linebuf);
 
+#define DEPRECATION_NOTICE(deprecated_option, new_option) \
+     log_msg(LOG_LEVEL_NOTICE, "%s:%d: Using '%s' is DEPRECATED and will be removed in the release after next. Update your config and use '%s' instead (line: '%s')", conf_filename, conf_linenumber, deprecated_option, new_option ,conf_linebuf);
 #define DEPRECATION_WARNING(deprecated_option, new_option) \
-     log_msg(LOG_LEVEL_WARNING, "%s:%d: Using '%s' is DEPRECATED. Update your config and use '%s' instead (line: '%s')", conf_filename, conf_linenumber, deprecated_option, new_option ,conf_linebuf); \
+     log_msg(LOG_LEVEL_WARNING, "%s:%d: Using '%s' is DEPRECATED and will be removed in the next release.. Update your config and use '%s' instead (line: '%s')", conf_filename, conf_linenumber, deprecated_option, new_option ,conf_linebuf);
 
 int conf_linenumber = 0;
 char *conf_filename;
@@ -194,14 +196,14 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
 }
 
 <CONFIG>"\@\@ifdef" {
-  DEPRECATION_WARNING("@@ifdef", "@@if defined")
+  DEPRECATION_NOTICE("@@ifdef", "@@if defined")
   LOG_LEX_TOKEN(lex_log_level, TIFDEF, conftext)
   BEGIN(STRINGHUNT);
   return (TIFDEF);
 }
 
 <CONFIG>"\@\@ifndef" {
-  DEPRECATION_WARNING("@@ifndef", "@@if not defined")
+  DEPRECATION_NOTICE("@@ifndef", "@@if not defined")
   LOG_LEX_TOKEN(lex_log_level, TIFNDEF, conftext)
   BEGIN(STRINGHUNT);
   return (TIFNDEF);
@@ -220,14 +222,14 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
 }
 
 <CONFIG>"\@\@ifhost" {
-  DEPRECATION_WARNING("@@ifhost", "@@if hostname")
+  DEPRECATION_NOTICE("@@ifhost", "@@if hostname")
   LOG_LEX_TOKEN(lex_log_level, TIFHOST, conftext)
   BEGIN(STRINGHUNT);
   return (TIFHOST);
 }
 
 <CONFIG>"\@\@ifnhost" {
-  DEPRECATION_WARNING("@@ifnhost", "@@if not hostname")
+  DEPRECATION_NOTICE("@@ifnhost", "@@if not hostname")
   LOG_LEX_TOKEN(lex_log_level, TIFNHOST, conftext)
   BEGIN(STRINGHUNT);
   return (TIFNHOST);

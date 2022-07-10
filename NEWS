@@ -1,7 +1,7 @@
 Version 0.18 (UNRELEASED)
     * Switch from PCRE to PCRE2
     * Enable dynamic linking by default
-    * Deprecations:
+    * Deprecations (to be removed in the release after next):
         - '@@ifdef', macro is now deprecated, use '@@if defined' instead
         - '@@ifndef', macro is now deprecated, use '@@if not defined' instead
         - '@@ifhost', macro is now deprecated, use '@@if hostame' instead

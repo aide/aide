@@ -19,7 +19,7 @@ command \fBaide\fP does a check.
 Initialize the database. You must initialize a database and move it to
 the appropriate place (see \fBdatabase_in\fR config option) before you can use
 the \-\-check command.
-.IP "--dry-init, -n"
+.IP "--dry-init, -n (added in AIDE v0.17)"
 Traverse the file system, match each file against the rule tree and report to stdout.
 
 Neither reports nor the database are written in this mode.
@@ -38,7 +38,7 @@ database=<url> and database_new=<url>.
 Stops after reading in the configuration file. Any errors will be reported.
 To change the log level in this mode please use the \fB--log-level\fR
 command line parameter.
-.IP "--path-check=\fIfile_type\fR:\fIpath\fR, -p \fIfile_type\fR:\fIpath\fR"
+.IP "--path-check=\fIfile_type\fR:\fIpath\fR, -p \fIfile_type\fR:\fIpath\fR (added in AIDE v0.17)"
 Read configuration and match provided file_type and path against rule tree. The
 path is independent of what is in the actual file system and needs to be
 absolute. See RESTRICTED RULES section in aide.conf (5) for supported file
@@ -53,7 +53,7 @@ if not and 2 if the file does not match a specified limit.
 .IP "--config=\fBconfigfile\fR , -c \fBconfigfile\fR"
 Configuration is read from file \fBconfigfile\fR (see \fB--version\fP output for default value).
 Use '-' for stdin.
-.IP "--limit=\fBREGEX\fR , -l \fBREGEX\fR"
+.IP "--limit=\fBREGEX\fR , -l \fBREGEX\fR (added in AIDE v0.16)"
 Limit command to entries matching REGEX. Note that the REGEX only matches
 at the first position.
 
@@ -79,13 +79,13 @@ here.
 These \fBconfigparameters\fR are handled after the reading of the
 configuration file. See aide.conf (5) for more details on what to put
 here.
-.IP --log-level=\fBlog_level\fR,-L\fBlog_level\fR
+.IP "--log-level=\fBlog_level\fR,-L\fBlog_level\fR (added in AIDE v0.17)"
 The log level to use (see aide.conf (5) for available log levels and more details).
 This overwrites the log_level value set in any configuration file.
-.IP --verbose=\fBverbosity_level\fR,-V\fBverbosity_level\fR
-Removed in AIDE v0.17, use \fBlog_level\fR and \fBreport_level\fR config options instead (see aide.conf (5) for details).
-.IP "--report=\fBreporter\fR,-r \fBreporter\fR"
-Removed in AIDE v0.17, use \fBreport_url\fR config option instead (see aide.conf (5) for details).
+.IP "--verbose=\fBverbosity_level\fR,-V\fBverbosity_level\fR (REMOVED in AIDE v0.17)"
+Removed, use \fBlog_level\fR and \fBreport_level\fR config options instead (see aide.conf (5) for details).
+.IP "--report=\fBreporter\fR,-r \fBreporter\fR (REMOVED in AIDE v0.17)"
+Removed, use \fBreport_url\fR config option instead (see aide.conf (5) for details).
 .IP "--version,-v"
 \fBaide\fP prints out its version number
 .IP "--help,-h"
@@ -119,6 +119,8 @@ conditions:
 .SH SIGNAL HANDLING
 Please note that due to mmap issues, aide cannot be terminated with
 SIGTERM. Use SIGKILL to terminate.
+
+SIGHUP is also ignored.
 
 SIGUSR1 toggles the log_level between current and debug level.
 .PP

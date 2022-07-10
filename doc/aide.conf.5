@@ -271,21 +271,24 @@ Summarize changes in the added, removed and changed files
 sections of the report.
 
 The general format is like the string YlZbpugamcinHAXSEC, where Y is
-replaced by the file-type (\fBf\fP for a regular file, \fBd\fP for a
-directory, \fBl\fP for a symbolic link, \fBc\fP for a character device,
-\fBb\fP for a block device, \fBp\fP for a FIFO, \fBs\fP for a unix
-socket, \fBD\fP for a Solaris door, \fBP\fP for a Solaris event port, \fB!\fP
-if file type has changed and \fB?\fP otherwise).
+replaced by the file-type ('\fBf\fP' for a regular file, '\fBd\fP' for a
+directory, '\fBl\fP' for a symbolic link, '\fBc\fP' for a character device,
+'\fBb\fP' for a block device, '\fBp\fP' for a FIFO, '\fBs\fP' for a unix
+socket, '\fBD\fP' for a Solaris door, '\fBP\fP' for a Solaris event port, '\fB!\fP'
+if file type has changed and '\fB?\fP' otherwise).
 
-The Z is replaced as follows: A \fB=\fP means that the size has not changed,
-a \fB<\fP reports a shrinked size and a \fB>\fP reports a grown size.
-
+The Z is replaced as follows: A '\fB=\fP' means that the size has not changed,
+a '\fB<\fP' reports a shrinked size and a '\fB>\fP' reports a grown size.
 The other letters in the string are the actual letters that will be output
-if the associated attribute for the item has been changed or a "." for no
-change, a "+" if the attribute has been added, a "-" if it has been removed,
-a ":" if the attribute is ignored (but not forced) or a " " if the attribute has
-not been checked. The exceptions to this are: (1) a newly created file replaces
-each letter with a "+", and (2) a removed file replaces each letter with a "-".
+if the associated attribute for the item has been changed or a '\fB.\fP' for no
+change.
+
+Otherwise a '\fB+\fP' is shown if the attribute has been added, a '\fB-\fP' if
+it has been removed, a '\fB:\fP' if the attribute is ignored (but not forced)
+or a ' ' if the attribute has not been checked.
+
+The exceptions to this are: (1) a newly created file replaces each letter with
+a '\fB+\fP', and (2) a removed file replaces each letter with a '\fB-\fP'.
 
 The attribute that is associated with each letter is as follows:
 
@@ -360,12 +363,12 @@ By default AIDE also reports changes of the read-only attributes mentioned in
 .B Example:
 
 .RS 3
-Ignore changes of the read-only ext2 file attributes encrypted (E), indexed directory
-(I), inline data (N), and verity (V):
+Ignore changes of the read-only ext2 file attributes verify (V), inline data
+(N), indexed directory (I) and encrypted (E):
 
 .RS 3
 .nf
-report_ignore_e2fsattrs=EINV
+report_ignore_e2fsattrs=VNIE
 .fi
 .RE
 .RE
@@ -418,7 +421,10 @@ matched at the first position against the complete filename (i.e. including the
 path). Special characters in your filenames can be escaped using two-digit URL
 encoding (for example, %20 to represent a space).
 
-See EXAMPLES and doc/aide.conf for examples.
+AIDE uses a deepest-match algorithm to find the tree node to search, but a
+first-match algorithm inside the node. (see also  \fB rule \fP log level).
+
+See EXAMPLES for examples.
 .PP
 More in-depth discussion of the selection algorithm can be found in
 the AIDE manual.

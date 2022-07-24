@@ -439,8 +439,8 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
   /* We'll use retval to pass information on whether to recurse
    * the dir or not */
 
-  /* If 4 and 8 are not set, we will check for matches */
-  if(!(retval&(EQUAL_RULE_MATCH|DEEP_EQUAL_MATCH))){
+  /* If we have no deep matches, we will check for matches */
+  if(!(retval&(DEEP_EQUAL_MATCH|DEEP_SELECTIVE_MATCH))){
       if (node->sel_rx_lst) {
           log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': check selective list", depth, ' ', node->path);
           switch (check_list_for_match(node->sel_rx_lst, text, rule, file_type, AIDE_SELECTIVE_RULE, depth, false)) {

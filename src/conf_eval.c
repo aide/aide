@@ -331,7 +331,7 @@ static bool eval_bool_expression(struct bool_expression* expression, int linenum
             if (conf->hostname) {
                 result = strcmp(str, conf->hostname) == 0;
             } else {
-                LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_WARNING, "%s", "hostname not avaiable; ifhost and ifnhost always evaluate to 'false'")
+                LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_WARNING, "%s", "hostname not available; ifhost and ifnhost always evaluate to 'false'")
             }
             log_msg(eval_log_level, "eval(%p): bool hostname '%s' (hostname: '%s'): %s", expression, str, conf->hostname, btoa(result));
             free(str);

@@ -2,6 +2,7 @@
 	* Refactor configure.ac
 	  - improve --version output
 	  - use pkg-config to get link flags
+	* Fix typo in log message (closes: #129)
 
 2022-07-10 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Change log level for some deprecations

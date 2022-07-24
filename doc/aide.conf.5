@@ -12,10 +12,10 @@ configuration aide uses to initialize or check the AIDE database.
 aide.conf is case-sensitive. Leading and trailing white spaces are
 ignored. Each config lines must end with new line.
 .PP
-AIDE uses the backslash character (\fB\\\fR) as escape character for ' '
-(space), '@' and '\\' (backslash) (e.g. '\\ ' or '\\@'). To literally match a '\fB\\\fR'
+AIDE uses the backslash character (\fB\e\fR) as escape character for ' '
+(space), '@' and '\e' (backslash) (e.g. '\e ' or '\e@'). To literally match a '\fB\e\fR'
 in a file path with a regular expression you have to escape the backslash
-twice (i.e. '\fB\\\\\\\\\fR').
+twice (i.e. '\fB\e\e\e\e\fR').
 .PP
 There are three types of lines in \fBaide.conf\fP. First there are the
 configuration options which are used to set configuration parameters and
@@ -272,10 +272,10 @@ sections of the report.
 
 The general format is like the string YlZbpugamcinHAXSEC, where Y is
 replaced by the file-type ('\fBf\fP' for a regular file, '\fBd\fP' for a
-directory, '\fBl\fP' for a symbolic link, '\fBc\fP' for a character device,
-'\fBb\fP' for a block device, '\fBp\fP' for a FIFO, '\fBs\fP' for a unix
-socket, '\fBD\fP' for a Solaris door, '\fBP\fP' for a Solaris event port, '\fB!\fP'
-if file type has changed and '\fB?\fP' otherwise).
+directory, '\fBl\fP' for a symbolic link, '\fBc\fP' for a character
+device, '\fBb\fP' for a block device, '\fBp\fP' for a FIFO, '\fBs\fP' for
+a unix socket, '\fBD\fP' for a Solaris door, '\fBP\fP' for a Solaris
+event port, '\fB!\fP' if file type has changed and '\fB?\fP' otherwise).
 
 The Z is replaced as follows: A '\fB=\fP' means that the size has not changed,
 a '\fB<\fP' reports a shrinked size and a '\fB>\fP' reports a grown size.

@@ -3,6 +3,9 @@
 	  - improve --version output
 	  - use pkg-config to get link flags
 	* Fix typo in log message (closes: #129)
+	* Update aide.conf.5 manual page
+	  - fix backslash escaping (closes: #130)
+	  - do not start line with ' (closes: #131)
 
 2022-07-10 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Change log level for some deprecations

@@ -259,7 +259,7 @@ AC_CHECK_SIZEOF(unsigned long, 4)
 AC_CHECK_SIZEOF(unsigned long long, 8)
 
 AC_CHECK_SIZEOF(int)
-AC_CHECK_SIZEOF(long)
+
 AC_CHECK_SIZEOF(long long)
 
 AC_CHECK_SIZEOF(uid_t)
@@ -271,17 +271,6 @@ AC_CHECK_SIZEOF(blkcnt_t)
 
 AC_CHECK_FUNCS(strtoll strtoimax readdir)
 AC_CHECK_FUNCS(stricmp strnstr strnlen)
-
-AC_ARG_WITH([mmap],
-	[AS_HELP_STRING([--with-mmap],[use mmap @<:@default=check@:>@])],
-	[],
-	[with_mmap=check]
-)
-
-AS_IF([test "x$with_mmap" != xno],
-	[AC_CHECK_FUNCS(mmap)]
-	compoptionstring="${compoptionstring}WITH_MMAP\\n"
-)
 
 AC_CHECK_FUNCS(fcntl ftruncate posix_fadvise asprintf snprintf \
 	vasprintf vsnprintf va_copy __va_copy)
@@ -326,191 +315,77 @@ fi
 
 AC_CHECK_HEADERS(syslog.h inttypes.h fcntl.h ctype.h)
 
-if test "$aide_static_choice" = "yes"; then
-   PKG_CHECK_MODULES_STATIC(PCRE2, [libpcre2-8], , [AC_MSG_RESULT([libpcre2-8 not found by pkg-config - Try to add directory containing libpcre2-8.pc to PKG_CONFIG_PATH environment variable])])
-else
-   PKG_CHECK_MODULES(PCRE2, [libpcre2-8], , [AC_MSG_RESULT([libpcre2-8 not found by pkg-config - Try to add directory containing libpcre2-8.pc to PKG_CONFIG_PATH environment variable])])
+AIDE_PKG_CHECK_MANDATORY(pcre2, PCRE2, libpcre2-8)
+
+AIDE_PKG_CHECK(zlib, zlib compression, yes, ZLIB, zlib)
+
+AIDE_PKG_CHECK([posix-acl], POSIX ACLs, no, POSIX_ACL, libacl, acl)
+if test "x$with_libacl" = xyes; then
+    AC_DEFINE(WITH_ACL, 1, [use ACL])
 fi
-compoptionstring="${compoptionstring}WITH_PCRE2\\n"
 
-AC_ARG_WITH([locale],
-	[AS_HELP_STRING([--with-locale],[use locale stuff])],
-	[],
-	[with_locale=no]
-)
+AIDE_PKG_CHECK(selinux, SELinux, no, SELINUX, libselinux, selinux)
 
-AS_IF([test "x$with_locale" != xno],
-	[AC_CHECK_HEADERS(libintl.h,
-		[AC_DEFINE(USE_LOCALE,1,[Define if LOCALE support should be used])
-		AIDE_USE_LOCALE=""
-		compoptionstring="${compoptionstring}WITH_LOCALE\\n"
-dnl        	AC_DEFINE_UNQUOTED(LOCALEDIR,"$prefix/lib/locale",[Localedir to use])],
-	)]
-)
+AIDE_PKG_CHECK(xattr, xattr, no, XATTR, libattr, xattrs)
 
-AC_SUBST(AIDE_USE_LOCALE)
+AIDE_PKG_CHECK(capabilities, POSIX 1003.1e capabilities, no, CAPABILITIES, libcap, caps)
 
-AC_ARG_WITH([syslog_ident],
-	AS_HELP_STRING([--with-syslog-ident],[syslog ident]),
-  	[AC_DEFINE_UNQUOTED(AIDE_IDENT,"$withval",[syslog ident])]
-		compoptionstring="${compoptionstring}AIDE_IDENT=${withval}\\n",
-  	[AC_DEFINE_UNQUOTED(AIDE_IDENT,"aide",[syslog ident])]
-)
+AIDE_PKG_CHECK(e2fsattrs, e2fsattrs, no, E2FSATTRS, e2p, e2fsattrs)
 
-AC_ARG_WITH([syslog_facility],
-	AS_HELP_STRING([--with-syslog-facility],[Specify syslog facility, see man syslog for options]),
-	[AC_DEFINE_UNQUOTED(AIDE_SYSLOG_FACILITY,$withval,[syslog facility])]
-	compoptionstring="${compoptionstring}AIDE_SYSLOG_FACILITY=${withval}\\n",
-	[AC_DEFINE_UNQUOTED(AIDE_SYSLOG_FACILITY,LOG_LOCAL0,[syslog facility])]
-)
+AIDE_PKG_CHECK(curl, cURL, no, CURL, libcurl)
 
-AC_ARG_WITH([syslog_logopt],
-	AS_HELP_STRING([--with-syslog-logopt],[Specify syslog logopt, see man syslog for options]),
-	[AC_DEFINE_UNQUOTED(AIDE_LOGOPT,$withval,[syslog logopt])],
-	[AC_DEFINE_UNQUOTED(AIDE_LOGOPT,LOG_CONS,[syslog logopt])]
-)
+AIDE_COMPILE_TIME_OPTION(mhash, mhash, [use mhash], yes)
+AIDE_COMPILE_TIME_OPTION(gcrypt, gcrypt, [use gcrypt], no)
+AS_IF([test x"$with_mhash" != xno && test x"$with_gcrypt" != xno], [
+    AC_MSG_ERROR([Using gcrypt together with mhash makes no sense. To disable mhash use --without-mhash])
+])
+AS_IF([test x"$with_mhash" == xno && test x"$with_gcrypt" == xno], [
+    AC_MSG_ERROR([AIDE requires mhash or libcrypt for hashsum calculation])
+])
+AS_IF([test x"$with_mhash" = xyes], [
+    AIDE_PKG_CHECK_MODULES(mhash, MHASH, mhash)
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+        [[#include <mhash.h>
+        int i=MHASH_WHIRLPOOL;
+        ]]
+    )],AC_DEFINE(HAVE_MHASH_WHIRLPOOL,1,[mhash has whirlpool]))
+])
+AM_CONDITIONAL(HAVE_MHASH, [test x"$MHASH_LIBS" != "x"])
+AS_IF([test x"$with_gcrypt" = xyes], [
+    AIDE_PKG_CHECK_MODULES(gcrypt, GCRYPT, libgcrypt)
+])
+AM_CONDITIONAL(HAVE_GCRYPT, [test x"$GCRYPT_LIBS" != "x"])
 
-AC_ARG_WITH([syslog_priority],
-	AS_HELP_STRING([--with-syslog-priority],[Specify syslog priority, see man syslog for options]),
-	[AC_DEFINE_UNQUOTED(SYSLOG_PRIORITY,$withval,[syslog priority])]
-	compoptionstring="${compoptionstring}SYSLOG_PRIORITY=${withval}\\n",
-	[AC_DEFINE_UNQUOTED(SYSLOG_PRIORITY,LOG_NOTICE,[syslog priority])]
-)
+AIDE_PKG_CHECK(audit, Linux Auditing Framework, no, AUDIT, audit)
 
+AIDE_PKG_CHECK_HEADERS(mmap, mmap, check, MMAP, [sys/mman.h])
 
-AC_ARG_WITH([zlib],
-	AS_HELP_STRING([--with-zlib],[use zlib compression]),
-	,
-	[with_zlib=yes]
-)
+AC_MSG_CHECKING(for prelink)
+AC_ARG_WITH([prelink], AS_HELP_STRING([--with-prelink], [use prelink (default: no)]), [with_prelink=$withval], [with_prelink=no])
+AS_IF([test x"$with_prelink" = xyes], [prelink_path="/usr/sbin/prelink"], [prelink_path="$with_prelink"])
+AC_MSG_RESULT([$prelink_path])
+AS_IF([test x"$with_prelink" != xno], [
+    AIDE_PKG_CHECK_MODULES(prelink, ELF, libelf)
+    AC_DEFINE_UNQUOTED(PRELINK_PATH, "$prelink_path", [path to prelink])
+])
+compoptionstring="${compoptionstring}use prelink: $prelink_path\\n"
 
-AC_MSG_CHECKING(for posix-acl-support)
-AC_ARG_WITH([posix-acl],
-	[AS_HELP_STRING([--with-posix-acl],[use POSIX ACLs (no checking)])],
-	[with_posix_acl_support="$withval"],
-	[with_posix_acl_support=no]
-)
+AIDE_PKG_CHECK_HEADERS(locale, locale, no, LOCALE, [libintl.h])
+if test "x$with_locale" = xyes; then
+    AC_DEFINE_UNQUOTED(LOCALEDIR,"$prefix/lib/locale",[Localedir to use])
+fi
 
-AS_IF([test "x$with_posix_acl_support" != xno],
-	[AC_DEFINE(WITH_POSIX_ACL,1,[use POSIX ACLs])
-	AC_DEFINE(WITH_ACL,1,[use ACL])
-	ACLLIB="-lacl"
-	compoptionstring="${compoptionstring}WITH_POSIX_ACL\\n"
-	AC_MSG_RESULT(yes)],
-	[AC_MSG_RESULT(no)]
-)
+AIDE_COMPILE_TIME_OPTION(syslog_ident, syslog-ident, syslog ident, "aide")
+AC_DEFINE_UNQUOTED(AIDE_IDENT, "$with_syslog_ident", [syslog ident])
 
-AC_SUBST(ACLLIB)
+AIDE_COMPILE_TIME_OPTION(syslog_logopt, syslog-logopt, syslog logopt, LOG_CONS)
+AC_DEFINE_UNQUOTED(AIDE_LOGOPT, $with_syslog_logopt, [syslog logopt])
 
-AC_MSG_CHECKING(for selinux-support)
-AC_ARG_WITH([selinux],
-	[AS_HELP_STRING([--with-selinux],[use SELinux (no checking)])],
-	[with_selinux_support="$withval"],
-	[with_selinux_support=no]
-)
+AIDE_COMPILE_TIME_OPTION(syslog_priority, syslog-priority, syslog priority, LOG_NOTICE)
+AC_DEFINE_UNQUOTED(AIDE_SYSLOG_PRIORITY, $with_syslog_priority, [syslog priority])
 
-AS_IF([test "x$with_selinux_support" != xno],
-    AC_DEFINE(WITH_SELINUX,1,[use SELinux])
-    [AC_MSG_RESULT(yes)
-    if test "x$PKG_CONFIG" != xno && $PKG_CONFIG --exists libselinux; then
-        if test "$aide_static_choice" = "yes"; then
-            SELINUXLIB=$(${PKG_CONFIG} --libs libselinux --static)
-        else
-            SELINUXLIB=$(${PKG_CONFIG} --libs libselinux)
-        fi
-    else
-    SELINUXLIB="-lselinux"
-    if test "$aide_static_choice" = "yes"; then
-        saveLIBS=$LIBS
-        LIBS="-static $SELINUXLIB"
-        AC_SEARCH_LIBS([lgetfilecon_raw], [], [], [SELINUXLIB="$SELINUXLIB -lpthread"])
-        LIBS=$saveLIBS
-    fi
-    fi
-	compoptionstring="${compoptionstring}WITH_SELINUX\\n"
-    ],
-	[AC_MSG_RESULT(no)]
-)
-
-AC_SUBST(SELINUXLIB)
-
-
-AC_MSG_CHECKING(for prelink-support)
-AC_ARG_WITH([prelink], 
-            [AS_HELP_STRING([--with-prelink],[use prelink (no checking)])],
-            [case $with_prelink in 
-		yes) AC_DEFINE_UNQUOTED(PRELINK_PATH, "/usr/sbin/prelink", [path to prelink])
-		     AC_DEFINE(WITH_PRELINK,1,[use prelink])
-		     ELFLIB="-lelf"
-		     compoptionstring="${compoptionstring}WITH_PRELINK\\n"
-		     AC_MSG_RESULT([/usr/sbin/prelink])
-		     ;;
-		no)  AC_MSG_RESULT(no)
-		     ;;
-		*)   AC_DEFINE_UNQUOTED(PRELINK_PATH, "$with_prelink", [path to prelink])
-		     AC_DEFINE(WITH_PRELINK,1,[use prelink])
-		     ELFLIB="-lelf"
-		     compoptionstring="${compoptionstring}WITH_PRELINK\\n"
-		     AC_MSG_RESULT([$with_prelink])
-		     ;;
-	     esac],
-	    [with_prelink=no
-			AC_MSG_RESULT(no)
-			]
-)
-AC_SUBST(ELFLIB)
-
-AC_MSG_CHECKING(for xattr-support)
-AC_ARG_WITH([xattr],
-	[AS_HELP_STRING([--with-xattr],[use xattr (no checking)])],
-	[with_xattr_support="$withval"],
-	[with_xattr_support=no]
-)
-	
-AS_IF([test "x$with_xattr_support" != xno],
-	[AC_DEFINE(WITH_XATTR,1,[use xattr])
-	ATTRLIB=-lattr
-	compoptionstring="${compoptionstring}WITH_XATTR\\n"
-	AC_MSG_RESULT(yes)],
-	[AC_MSG_RESULT(no)]
-)
-
-AC_SUBST(ATTRLIB)
-
-AC_MSG_CHECKING(for capabilities-support)
-AC_ARG_WITH([capabilities],
-        [AS_HELP_STRING([--with-capabilities],[use caps (no checking)])],
-        [with_capabilities_support="$withval"],
-        [with_capabilities_support=no]
-)
-
-AS_IF([test "x$with_capabilities_support" != xno],
-        [AC_DEFINE(WITH_CAPABILITIES,1,[use capabilities])
-        CAPLIB=-lcap
-        compoptionstring="${compoptionstring}WITH_CAPABILITIES\\n"
-        AC_MSG_RESULT(yes)],
-        [AC_MSG_RESULT(no)]
-)
-
-AC_SUBST(CAPLIB)
-
-AC_MSG_CHECKING(for e2fsattrs-support)
-AC_ARG_WITH([e2fsattrs],
-	[AS_HELP_STRING([--with-e2fsattrs],[use e2fsattrs (no checking)])],
-	[with_e2fsattrs_support="$withval"],
-	[with_e2fsattrs_support=no]
-)
-
-AS_IF([test "x$with_e2fsattrs_support" != xno],
-	[AC_DEFINE(WITH_E2FSATTRS,1,[use e2fsattrs])
-	E2FSATTRSLIB=-le2p
-	compoptionstring="${compoptionstring}WITH_E2FSATTRS\\n"
-	AC_MSG_RESULT(yes)],
-	[AC_MSG_RESULT(no)]
-)
-AM_CONDITIONAL(HAVE_E2FSATTRS, [test "x$E2FSATTRSLIB" != "x"])
-
-AC_SUBST(E2FSATTRSLIB)
+AIDE_COMPILE_TIME_OPTION(syslog_facility, syslog-facility, default syslog facility, LOG_LOCAL0)
+AC_DEFINE_UNQUOTED(AIDE_SYSLOG_FACILITY, $with_syslog_facility, [syslog facility])
 
 PKG_CHECK_MODULES(CHECK, [check >= 0.9.4], , [AC_MSG_RESULT([Check not found (testing via 'make check' disabled)])])
 AM_CONDITIONAL(HAVE_CHECK, [test "x$CHECK_LIBS" != "x"])
@@ -557,116 +432,6 @@ AC_DEFINE_UNQUOTED(DEFAULT_DB_OUT,"file:$default_db_out",[Default output locatio
 
 fi
 
-dnl Do the library tests with the static flag
-LDFLAGS="$LDFLAGS $LD_STATIC_FLAG"
-if test x$with_zlib = xyes; then
-  AC_CHECK_HEADERS(zlib.h,[],
- 	[AC_MSG_ERROR([You don't have zlib properly installed. Install it or try --without-zlib.])])
-  save_LDFLAGS=$LDFLAGS
-  AC_CHECK_LIB(z, deflate,[],
- 	  [AC_MSG_ERROR([You don't have zlib properly installed. Install it or try --without-zlib.])]
-  )
-  AC_DEFINE(WITH_ZLIB,1,[use zlib])
-  compoptionstring="${compoptionstring}WITH_ZLIB\\n"
-fi
-
-AC_ARG_WITH([curl],
- AS_HELP_STRING([--with-curl],
-  [use curl library for http, https and ftp database backend (default: no)]),
- [with_curl=$withval], [with_curl=no])
-AS_IF([test "x$with_curl" = "xyes"], [
-       if test "$aide_static_choice" = "yes"; then
-           PKG_CHECK_MODULES_STATIC(CURL, [libcurl], , [AC_MSG_RESULT([libcurl not found by pkg-config - Try --without-curl or add directory containing libcurl.pc to PKG_CONFIG_PATH environment variable])])
-        else
-           PKG_CHECK_MODULES(CURL, [libcurl], , [AC_MSG_RESULT([libcurl not found by pkg-config - Try --without-curl or add directory containing libcurl.pc to PKG_CONFIG_PATH environment variable])])
-        fi
-        AC_DEFINE(WITH_CURL,1,[Define to 1 if libcurl is available])
-        compoptionstring="${compoptionstring}WITH_CURL\\n"
-])
-AM_CONDITIONAL(USE_CURL, [test "x$CURL_LIBS" != "x"])
-
-AC_ARG_WITH(mhash,
-	AS_HELP_STRING([--with-mhash],[use libmhash, needed for hmacs @<:@default=check@:>@]),
-	[],
-	[with_mhash=check]
-)
-
-AS_IF([test "x$with_mhash" != xno],
-	AC_CHECK_LIB([mhash],[mhash_get_block_size],
-		[CRYPTLIB="${CRYPTLIB} -lmhash"
-		compoptionstring="${compoptionstring}WITH_MHASH\\n"
-		with_mhash=yes
-		AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-		[[#include <mhash.h>
-		int i=MHASH_WHIRLPOOL;
-		]])],AC_DEFINE(HAVE_MHASH_WHIRLPOOL,1,[mhash has whirlpool]))
-		AC_DEFINE(WITH_MHASH,1,[use mhash library])],
-		[AC_MSG_WARN(No mhash means no hmac.)]
-	)
-)
-
-AC_ARG_WITH([gcrypt],
-	[AS_HELP_STRING([--with-gcrypt],[use gcrypt library])],
-		[],
-		[if test "x$with_mhash" != xyes; then
-			with_gcrypt=check
-		else
-			with_gcrypt=no
-		fi]
-)
-
-AS_IF([test "x$with_gcrypt" != xno],
-	[AC_DEFINE(WITH_GCRYPT,1,[use gcrypt library])
-	if test "x$with_mhash" = xyes; then
-		AC_MSG_ERROR([Using gcrypt together with mhash makes no sense. To disable mhash use --without-mhash])
-	fi
-	AC_CHECK_LIB([gpg-error], [gpg_strerror],
-		[saveLIBS="$LIBS"
-		LIBS="$LIBS -lgpg-error"
-		AC_CHECK_LIB([gcrypt], [gcry_md_hash_buffer],[],
-			AC_MSG_ERROR([Aide requires mhash or libcrypt to be installed with static libraries.])
-		)
-		LIBS="$saveLIBS"],
-		[AC_MSG_ERROR([You need to have libgpg-error.a installed to use libgcrypt.])]
-	)
-	CRYPTLIB="${CRYPTLIB} -lgcrypt -lgpg-error"
-	with_gcrypt=yes
-	compoptionstring="${compoptionstring}WITH_GCRYPT\\n"],
-	[with_gcrypt=no]
-)
-
-AC_SUBST(CRYPTLIB)
-
-# Check for Linux auditing API
-#
-AC_ARG_WITH([audit],
-	[AS_HELP_STRING([--with-audit],[use audit library])],
-	[],
-	[with_audit=no]
-)
-
-AS_IF([test "x$with_audit" != xno],
-	[AC_DEFINE(WITH_AUDIT,1,[use audit library])
-	AC_CHECK_HEADER(libaudit.h,,
-		AC_MSG_ERROR(You don't have libaudit properly installed. Install it if you need it.)
-	)
-	AUDITLIB="-laudit"
-	if test "$aide_static_choice" = "yes"; then
-		saveLIBS=$LIBS
-		LIBS="-static $AUDITLIB"
-		AC_CHECK_LIB([audit], [audit_log_user_message], [], [
-			LIBS="$LIBS -lcap-ng"
-			AC_CHECK_LIB([cap-ng], [audit_log_user_message], [AUDITLIB="$AUDITLIB -lcap-ng"],
-			AC_MSG_ERROR([You don't have libaudit properly installed. Install it or try --without-audit.])
-			, [])
-		], [])
-		LIBS=$saveLIBS
-	fi
-	compoptionstring="${compoptionstring}WITH_AUDIT\\n"],
-	[with_audit=no]
-)
-AC_SUBST(AUDITLIB)
-
 extrasub="s&@AIDEVERSION@&$PACKAGE_VERSION&;t t"
 
 AC_DEFINE_UNQUOTED(AIDECOMPILEOPTIONS, "${compoptionstring}",[Compile-time options displayed in -v output])
@@ -678,4 +443,3 @@ CFLAGS="$CFLAGS $EXTRA_CFLAGS"
 AC_SUBST(AIDE_DEFS)
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
-

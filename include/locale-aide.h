@@ -1,7 +1,8 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2000-2002 Rami Lehti, Pablo Virolainen
+ * Copyright (C) 2000-2002, 2022 Rami Lehti, Pablo Virolainen,
+ *                               Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -21,7 +22,7 @@
 #ifndef _LOCALE_AIDE_H_INCLUDED
 #define _LOCALE_AIDE_H_INCLUDED
 
-#ifdef USE_LOCALE
+#ifdef WITH_LOCALE
 
 #include <locale.h>
 #include <libintl.h>
@@ -31,6 +32,6 @@
 
 #define _(Text) Text
 
-#endif /* USE_LOCALE */
+#endif /* WITH_LOCALE */
 
 #endif /* _LOCALE_AIDE_H_INCLUDED*/

@@ -140,10 +140,8 @@ static void sig_handler(int signum)
 
 static void print_version(void)
 {
-  fprintf(stdout,
-	  "Aide " AIDEVERSION "\n\n"
-	  "Compiled with the following options:\n\n" AIDECOMPILEOPTIONS "\n");
-
+  fprintf(stdout, "AIDE %s\n\n", AIDEVERSION );
+  fprintf(stdout, "Compile-time options:\n%s\n", AIDECOMPILEOPTIONS);
   fprintf(stdout, "Default config values:\n");
   fprintf(stdout, "config file: %s\n", conf->config_file?conf->config_file:"<none>");
   fprintf(stdout, "database_in: %s\n",
@@ -559,7 +557,7 @@ int main(int argc,char**argv)
 {
   int errorno=0;
 
-#ifdef USE_LOCALE
+#ifdef WITH_LOCALE
   setlocale(LC_ALL,"");
   bindtextdomain(PACKAGE,LOCALEDIR);
   textdomain(PACKAGE);

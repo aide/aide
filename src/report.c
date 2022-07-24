@@ -298,11 +298,11 @@ if (!r->quiet || (r->nadd || r->nchg || r->nrem)) {
 #ifdef HAVE_SYSLOG
         case url_syslog: {
 #ifdef HAVE_VSYSLOG
-            vsyslog(SYSLOG_PRIORITY,format,ap);
+            vsyslog(AIDE_SYSLOG_PRIORITY,format,ap);
 #else
             char buf[1024];
             vsnprintf(buf,1024,format,ap);
-            syslog(SYSLOG_PRIORITY,"%s",buf);
+            syslog(AIDE_SYSLOG_PRIORITY,"%s",buf);
 #endif
             break;
         }

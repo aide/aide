@@ -1,5 +1,6 @@
 2022-07-30 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Check for gcrypt if mhash is not available
+	* Require gpg-error when using libgcrypt
 
 2022-07-24 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Refactor configure.ac

@@ -334,27 +334,36 @@ AIDE_PKG_CHECK(e2fsattrs, e2fsattrs, no, E2FSATTRS, e2p, e2fsattrs)
 
 AIDE_PKG_CHECK(curl, cURL, no, CURL, libcurl)
 
-AIDE_COMPILE_TIME_OPTION(mhash, mhash, [use mhash], yes)
-AIDE_COMPILE_TIME_OPTION(gcrypt, gcrypt, [use gcrypt], no)
+AC_MSG_CHECKING(for Mhash)
+AC_ARG_WITH([mhash], AS_HELP_STRING([--with-mhash], [use Mhash (default: check)]), [with_mhash=$withval], [with_mhash=check])
+AC_MSG_RESULT([$with_mhash])
+
+AC_MSG_CHECKING(for GNU crypto library)
+AC_ARG_WITH([gcrypt], AS_HELP_STRING([--with-gcrypt], [use GNU crypto library (default: check)]), [with_gcrypt=$withval], [with_gcrypt=check])
+AC_MSG_RESULT([$with_gcrypt])
+
+AIDE_PKG_CHECK_MODULES_OPTIONAL(mhash, MHASH, mhash)
+AS_IF([test x"$with_mhash" = xyes], [
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+        [[#include <mhash.h>
+        int i=MHASH_WHIRLPOOL;
+        ]]
+    )],AC_DEFINE(HAVE_MHASH_WHIRLPOOL,1,[mhash has whirlpool]))
+    AS_IF([test x"$with_gcrypt" = xcheck], [
+    with_gcrypt=no
+    ])
+])
+AIDE_PKG_CHECK_MODULES_OPTIONAL(gcrypt, GCRYPT, libgcrypt)
 AS_IF([test x"$with_mhash" != xno && test x"$with_gcrypt" != xno], [
     AC_MSG_ERROR([Using gcrypt together with mhash makes no sense. To disable mhash use --without-mhash])
 ])
 AS_IF([test x"$with_mhash" == xno && test x"$with_gcrypt" == xno], [
     AC_MSG_ERROR([AIDE requires mhash or libcrypt for hashsum calculation])
 ])
-AS_IF([test x"$with_mhash" = xyes], [
-    AIDE_PKG_CHECK_MODULES(mhash, MHASH, mhash)
-    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-        [[#include <mhash.h>
-        int i=MHASH_WHIRLPOOL;
-        ]]
-    )],AC_DEFINE(HAVE_MHASH_WHIRLPOOL,1,[mhash has whirlpool]))
-])
-AM_CONDITIONAL(HAVE_MHASH, [test x"$MHASH_LIBS" != "x"])
-AS_IF([test x"$with_gcrypt" = xyes], [
-    AIDE_PKG_CHECK_MODULES(gcrypt, GCRYPT, libgcrypt)
-])
-AM_CONDITIONAL(HAVE_GCRYPT, [test x"$GCRYPT_LIBS" != "x"])
+compoptionstring="${compoptionstring}use Mhash: $with_mhash\\n"
+AM_CONDITIONAL(HAVE_MHASH, [test "x$MHASH_LIBS" != "x"])
+compoptionstring="${compoptionstring}use GNU crypto library: $with_gcrypt\\n"
+AM_CONDITIONAL(HAVE_GCRYPT, [test "x$GCRYPT_LIBS" != "x"])
 
 AIDE_PKG_CHECK(audit, Linux Auditing Framework, no, AUDIT, audit)
 

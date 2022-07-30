@@ -8,6 +8,34 @@ AC_DEFUN([AIDE_PKG_CHECK_MODULES],
     AC_DEFINE(WITH_$2,1,[Define to 1 if $3 is available])
 ])
 
+AC_DEFUN([AIDE_PKG_CHECK_MODULES_OPTIONAL],
+[
+    AS_IF([test x"$with_$1" != xno], [
+   if test "$aide_static_choice" == "yes"; then
+       PKG_CHECK_MODULES_STATIC($2, [$3], [
+            with_$1=yes
+       ], [
+           AS_IF([test x"$with_$1" = xyes], [
+               AC_MSG_ERROR([$3 not found by pkg-config - Try to add directory containing $3.pc to PKG_CONFIG_PATH environment variable])
+           ])
+           with_$1=no
+       ])
+    else
+       PKG_CHECK_MODULES($2, [$3], [
+            with_$1=yes
+       ], [
+           AS_IF([test x"$with_$1" = xyes], [
+               AC_MSG_ERROR([$3 not found by pkg-config - Try to add directory containing $3.pc to PKG_CONFIG_PATH environment variable])
+           ])
+           with_$1=no
+       ])
+    fi
+    AS_IF([test x"$with_$1" = xyes], [
+        AC_DEFINE(WITH_$2,1,[Define to 1 if $3 is available])
+    ])
+    ])
+])
+
 AC_DEFUN([AIDE_PKG_CHECK],
 [
     AC_MSG_CHECKING(for $2)

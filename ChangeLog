@@ -1,3 +1,6 @@
+2022-07-31 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Fix configure check for headers
+
 2022-07-30 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Check for gcrypt if mhash is not available
 

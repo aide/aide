@@ -66,7 +66,10 @@ AC_DEFUN([AIDE_PKG_CHECK_MANDATORY],
 
 AC_DEFUN([AIDE_PKG_CHECK_HEADERS],
 [
+    AC_MSG_CHECKING(for $1)
     AC_ARG_WITH([$1], AS_HELP_STRING([--with-$1], [$2 (default: $3)]), [with_$1=$withval], [with_$1=$3])
+    AC_MSG_RESULT([$with_$1])
+    AS_IF([test x"$with_$1" != xno], [
     AC_CHECK_HEADERS($5, [
             AS_IF([test x"$3" != xno], [
                 AC_DEFINE(WITH_$4,1,[Define to 1 if $1 is available])
@@ -77,6 +80,7 @@ AC_DEFUN([AIDE_PKG_CHECK_HEADERS],
                 AC_MSG_ERROR([headers $5 for $1 not found])
             ])
         ])
+    ])
     compoptionstring="${compoptionstring}use $2: $with_$1\\n"
     AM_CONDITIONAL(HAVE_$4, [test "x$with_$1" = "xyes"])
 ])

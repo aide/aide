@@ -360,9 +360,6 @@ AS_IF([test x"$with_mhash" != xno && test x"$with_gcrypt" != xno], [
 AS_IF([test x"$with_mhash" == xno && test x"$with_gcrypt" == xno], [
     AC_MSG_ERROR([AIDE requires mhash or libcrypt for hashsum calculation])
 ])
-AS_IF([test x"$with_gcrypt" = xyes], [
-    AIDE_PKG_CHECK_MODULES(gpg-error, GPGERROR, gpg-error)
-])
 compoptionstring="${compoptionstring}use Mhash: $with_mhash\\n"
 AM_CONDITIONAL(HAVE_MHASH, [test "x$MHASH_LIBS" != "x"])
 compoptionstring="${compoptionstring}use GNU crypto library: $with_gcrypt\\n"

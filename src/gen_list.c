@@ -374,6 +374,7 @@ void strip_dbline(db_line* line)
  */
 void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *db)
 {
+  log_msg(LOG_LEVEL_TRACE, "add_file_to_tree: '%s'", file->filename);
   seltree* node=NULL;
 
   node=get_seltree_node(tree,file->filename);

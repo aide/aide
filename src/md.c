@@ -91,7 +91,7 @@ int init_md(struct md_container* md, const char *filename) {
   }
 #endif
   char *str;
-  log_msg(LOG_LEVEL_DEBUG, " initialised md_container (%s) for '%s'", str = diff_attributes(0, md->calc_attr), filename);
+  log_msg(LOG_LEVEL_DEBUG, " initialized md_container (%s) for '%s'", str = diff_attributes(0, md->calc_attr), filename);
   free(str);
   return RETOK;
 }

@@ -99,6 +99,7 @@ static void sig_handler(int);
 
 static void init_sighandler()
 {
+  log_msg(LOG_LEVEL_DEBUG, "initialize signal handler for SIGTERM, SIGUSR1 and SIGHUP");
   signal(SIGTERM,sig_handler);
   signal(SIGUSR1,sig_handler);
   signal(SIGHUP,sig_handler);
@@ -361,7 +362,7 @@ static void setdefaults_before_config()
 
   /* Setting some defaults */
 
-  log_msg(LOG_LEVEL_INFO, "initialise rule tree");
+  log_msg(LOG_LEVEL_INFO, "initialize rule tree");
   conf->tree=init_tree();
   conf->database_add_metadata=1;
   conf->report_detailed_init=0;

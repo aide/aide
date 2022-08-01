@@ -425,11 +425,11 @@ static void include_file(const char* file, bool execute, int include_depth, char
         pid_t pid;
 
         if (pipe(p_stdout)==-1) {
-            log_msg(LOG_LEVEL_ERROR, "%s: pipe failed: %s", file, strerror(errno));
+            log_msg(LOG_LEVEL_ERROR, "%s: pipe stdout failed: %s", file, strerror(errno));
             exit(EXEC_ERROR);
         }
         if (pipe(p_stderr)==-1) {
-            log_msg(LOG_LEVEL_ERROR, "%s: pipe failed: %s", file, strerror(errno));
+            log_msg(LOG_LEVEL_ERROR, "%s: pipe stderr failed: %s", file, strerror(errno));
             exit(EXEC_ERROR);
         }
         if ((pid = fork()) == -1) {

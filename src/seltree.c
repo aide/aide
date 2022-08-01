@@ -186,15 +186,18 @@ int compare_node_by_path(const void *n1, const void *n2)
 
 seltree* get_seltree_node(seltree* tree,char* path)
 {
+  LOG_LEVEL log_level = LOG_LEVEL_TRACE;
   seltree* node=NULL;
   list* r=NULL;
   char* tmp=NULL;
 
   if(tree==NULL){
+    log_msg(log_level, "get_seltree_node(): return NULL (tree == NULL)");
     return NULL;
   }
 
   if(strncmp(path,tree->path,strlen(path)+1)==0){
+    log_msg(log_level, "get_seltree_node(): return %p (path: %s)", tree, tree->path);
     return tree;
   }
   else{
@@ -205,12 +208,14 @@ seltree* get_seltree_node(seltree* tree,char* path)
 	if(node!=NULL){
 	  /* Don't leak memory */
 	  free(tmp);
+	  log_msg(log_level, "get_seltree_node(): return '%s' (%p, path: '%s')", node->path, node, path);
 	  return node;
 	}
       }
     }
     free(tmp);
   }
+  log_msg(log_level, "get_seltree_node(): return NULL (path: '%s')", path);
   return NULL;
 }
 
@@ -260,7 +265,7 @@ seltree* new_seltree_node(
   }else {
     node->parent=NULL;
   }
-  log_msg(LOG_LEVEL_DEBUG, "new node '%s' (%p, parent: %p)", node->path, node, node->parent);
+  log_msg(LOG_LEVEL_TRACE, "new node '%s' (%p, parent: %p)", node->path, node, node->parent);
   return node;
 }
 
@@ -549,6 +554,7 @@ int check_seltree(seltree *tree, char *filename, RESTRICTION_TYPE file_type, rx_
       parentname[1]='\0';
   }
 
+  log_msg(LOG_LEVEL_TRACE, "\u2502 search for parent node '%s' (tree: '%s' (%p))", parentname, tree->path, tree);
   pnode=get_seltree_node(tree,parentname);
   if (pnode == NULL) {
     retval |= RECURSED_CALL;
@@ -556,23 +562,24 @@ int check_seltree(seltree *tree, char *filename, RESTRICTION_TYPE file_type, rx_
 
   } while (pnode == NULL);
 
-  log_msg(LOG_LEVEL_DEBUG, "got parent node '%s' (%p) for parentname '%s'", pnode->path, pnode, parentname);
+  log_msg(LOG_LEVEL_DEBUG, "\u2502 got parent node '%s' (%p) for parentname '%s'", pnode->path, pnode, parentname);
 
   free(parentname);
 
   retval = check_node_for_match(pnode, filename, file_type, retval|TOP_LEVEL_CALL ,rule, 0);
 
   if (retval&(SELECtIVE_RULE_MATCH|EQUAL_RULE_MATCH)) {
+    if(get_seltree_node(tree,filename)==NULL) {
+        seltree *new_node = new_seltree_node(tree,filename,0,NULL);
+        log_msg(LOG_LEVEL_DEBUG, "\u2502 added new node '%s', (%p) for '%s' (reason: full match)", new_node->path, new_node, filename);
+    }
+
     char *str;
     log_msg(LOG_LEVEL_RULE, "\u2534 ADD '%s' (attr: '%s')", filename, str = diff_attributes(0, (*rule)->attr));
     free(str);
-
-    if(get_seltree_node(tree,filename)==NULL) {
-        seltree *new_node = new_seltree_node(tree,filename,0,NULL);
-        log_msg(LOG_LEVEL_DEBUG, "added new node '%s', (%p) for '%s' (reason: full match)", new_node->path, new_node, filename);
-    }
   } else {
     log_msg(LOG_LEVEL_RULE, "\u2534 do NOT add '%s'", filename);
   }
+  log_msg(LOG_LEVEL_TRACE, "check_seltree: return %d for '%s'", retval, filename);
   return retval;
 }

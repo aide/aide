@@ -411,7 +411,7 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
 #endif
                     while ((size=TEMP_FAILURE_RETRY(read(filedes,buf,READ_BLOCK_SIZE)))>0) {
                         if (update_md(&mdc,buf,size)!=RETOK) {
-                            log_msg(LOG_LEVEL_WARNING, "hash calculation: update_md() failed for '%s' (hashsums could not be calculated)", fullpath);
+                            log_msg(LOG_LEVEL_WARNING, "hash calculation: update_md() failed for '%s' (hashsums could not be calculated)", child_fullpath);
                             free(buf);
                             close(filedes);
                             close_md(&mdc, NULL);
@@ -426,7 +426,7 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
                         int status;
                         (void) waitpid(prelink_pid, &status, 0);
                         if (!WIFEXITED(status) || WEXITSTATUS(status)) {
-                            log_msg(LOG_LEVEL_WARNING, "hash calculation: error on exit of prelink child process for '%s' (hashsums could not be calculated)", fullpath);
+                            log_msg(LOG_LEVEL_WARNING, "hash calculation: error on exit of prelink child process for '%s' (hashsums could not be calculated)", child_fullpath);
                             free(buf);
                             close(filedes);
                             close_md(&mdc, NULL);

@@ -29,6 +29,7 @@
 #include "seltree.h"
 #include "seltree_struct.h"
 #include "util.h"
+#include "errorcodes.h"
 
 #define NO_RULE_MATCH               0
 #define NEGATIVE_RULE_MATCH     (1<<0)
@@ -303,7 +304,7 @@ rx_rule * add_rx_to_tree(char * rx, RESTRICTION_TYPE restriction, int rule_type,
         r->md = pcre2_match_data_create_from_pattern(r->crx, NULL);
         if (r->md == NULL) {
             log_msg(LOG_LEVEL_ERROR, "pcre2_match_data_create_from_pattern: failed to allocate memory");
-            exit(EXIT_FAILURE);
+            exit(MEMORY_ALLOCATION_FAILURE);
         }
         int pcre2_jit = pcre2_jit_compile(r->crx, PCRE2_JIT_PARTIAL_SOFT);
         if (pcre2_jit < 0) {

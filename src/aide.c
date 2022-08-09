@@ -281,7 +281,7 @@ static void read_param(int argc,char**argv)
                 conf->limit_md = pcre2_match_data_create_from_pattern(conf->limit_crx, NULL);
                 if (conf->limit_md == NULL) {
                     log_msg(LOG_LEVEL_ERROR, "pcre2_match_data_create_from_pattern: failed to allocate memory");
-                    exit(EXIT_FAILURE);
+                    exit(MEMORY_ALLOCATION_FAILURE);
                 }
 
                 int pcre2_jit = pcre2_jit_compile(conf->limit_crx, PCRE2_JIT_PARTIAL_SOFT);

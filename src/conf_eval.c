@@ -540,7 +540,7 @@ static void include_directory(const char* dir, const char* rx, bool execute, cha
     pcre2_match_data *match_data = pcre2_match_data_create_from_pattern(crx, NULL);
     if (match_data == NULL) {
         log_msg(LOG_LEVEL_ERROR, "pcre2_match_data_create_from_pattern: failed to allocate memory");
-        exit(EXIT_FAILURE);
+        exit(MEMORY_ALLOCATION_FAILURE);
     }
 
     struct stat fs;

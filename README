@@ -124,6 +124,9 @@
     AIDE requires the following development tools:
 
        o  C99 compatible compiler.
+       o  GNU Autoconf
+       o  GNU Autoconf Macro Archive
+       o  GNU Automake
        o  GNU flex.
        o  GNU yacc (bison).
        o  GNU make.

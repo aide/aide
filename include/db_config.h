@@ -23,12 +23,12 @@
 #ifndef _DB_CONFIG_H_INCLUDED
 #define _DB_CONFIG_H_INCLUDED
 
+#include "config.h"
 #define PCRE2_CODE_UNIT_WIDTH 8
 #include <pcre2.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <sys/types.h>
-#include "config.h"
 #ifdef WITH_ZLIB
 #include <zlib.h>
 #endif
@@ -149,6 +149,10 @@ typedef struct db_config {
 
   /* What are we supposed to do */
   int action;
+
+#ifdef WITH_PTHREAD
+  long num_workers;
+#endif
 
   time_t start_time;
   time_t end_time;

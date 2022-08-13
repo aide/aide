@@ -550,7 +550,7 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct stat *fs)
   time_t cur_time;
 
   char *str;
-  log_msg(LOG_LEVEL_DEBUG, " requested attributes: %s", str = diff_attributes(0, attr));
+  log_msg(LOG_LEVEL_DEBUG, "%s> requested attributes: %s", filename, str = diff_attributes(0, attr));
   free(str);
 
   if(!(attr&ATTR(attr_rdev))) {
@@ -650,10 +650,10 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct stat *fs)
     no_hash(line);
   }
 
-  log_msg(LOG_LEVEL_DEBUG, " returned attributes: %llu (%s)", line->attr, str = diff_attributes(0, line->attr));
+  log_msg(LOG_LEVEL_DEBUG, "%s> returned attributes: %llu (%s)", filename, line->attr, str = diff_attributes(0, line->attr));
   free(str);
       if (~attr|line->attr) {
-          log_msg(LOG_LEVEL_DEBUG, " requested and returned attributes are not equal: %s", str = diff_attributes(attr, line->attr));
+          log_msg(LOG_LEVEL_DEBUG, "%s> requested and returned attributes are not equal: %s", filename, str = diff_attributes(attr, line->attr));
           free(str);
       }
   return line;
@@ -708,6 +708,13 @@ void populate_tree(seltree* tree)
       log_msg(LOG_LEVEL_INFO, "read new entries from disk (limit: '%s', root prefix: '%s')", conf->limit?conf->limit:"(none)", conf->root_prefix);
 
       db_scan_disk(false);
+#ifdef WITH_PTHREAD
+      if (conf->num_workers) {
+          while((new=db_readline_disk()) != NULL) {
+              add_file_to_tree(tree,new,DB_NEW, NULL);
+          }
+      }
+#endif
     }
     if((conf->action&DO_COMPARE)||(conf->action&DO_DIFF)){
         log_msg(LOG_LEVEL_INFO, "read old entries from database: %s:%s", get_url_type_string((conf->database_in.url)->type), (conf->database_in.url)->value);

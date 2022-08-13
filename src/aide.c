@@ -89,6 +89,7 @@ static void usage(int exitvalue)
 	    "  -B \"OPTION\"\t--before=\"OPTION\"\tBefore configuration file is read define OPTION\n"
 	    "  -A \"OPTION\"\t--after=\"OPTION\"\tAfter configuration file is read define OPTION\n"
 	    "  -L [level]\t--log-level=[level]\tSet log message level to [level]\n"
+	    "  -W WORKERS\t--workers=WORKERS\tNumber of simultaneous workers (threads) for file attribute processing (i.a. hashsum calculation)"
 	    "\n"), AIDEVERSION
 	  );
   
@@ -211,7 +212,9 @@ static char *append_line_to_config(char *config, char *line) {
 static void read_param(int argc,char**argv)
 {
   int i=0;
-  
+#ifdef WITH_PTHREAD
+  char *err;
+#endif
 
   static struct option options[] =
   {
@@ -230,12 +233,13 @@ static void read_param(int argc,char**argv)
     { "path-check", required_argument, NULL, 'p'},
     { "limit", required_argument, NULL, 'l'},
     { "log-level", required_argument, NULL, 'L'},
+    { "workers", required_argument, NULL, 'W'},
     { "compare", no_argument, NULL, 'E'},
     { NULL,0,NULL,0 }
   };
 
   while(1){
-    int option = getopt_long(argc, argv, "hL:V::vc:l:p:B:A:riCuDEn", options, &i);
+    int option = getopt_long(argc, argv, "hL:V::vc:l:p:B:A:W:riCuDEn", options, &i);
     if(option==-1)
       break;
     switch(option)
@@ -306,6 +310,18 @@ static void read_param(int argc,char**argv)
             }
            break;
                }
+      case 'W':{
+#ifdef WITH_PTHREAD
+           conf->num_workers=strtol(optarg,&err,10);
+           if(*err != '\0' || conf->num_workers < 0 || errno == ERANGE){
+               INVALID_ARGUMENT("--workers", invalid number of workers %s, optarg)
+           }
+           log_msg(LOG_LEVEL_INFO,"(--workers): set number of workers to %d", conf->num_workers);
+#else
+           INVALID_ARGUMENT("--workers", %s, "pthread support not compiled in, recompile AIDE with '--with-pthread'")
+#endif
+           break;
+      }
       case 'p':{
             if(conf->action==0){
                 conf->action=DO_DRY_RUN;
@@ -454,6 +470,10 @@ static void setdefaults_before_config()
 
   conf->action=0;
 
+#ifdef WITH_PTHREAD
+  conf->num_workers = 0;
+#endif
+
   conf->warn_dead_symlinks=0;
 
   conf->report_grouped=1;
@@ -557,6 +577,10 @@ static void setdefaults_after_config()
 int main(int argc,char**argv)
 {
   int errorno=0;
+
+#ifdef WITH_PTHREAD
+  log_init();
+#endif
 
 #ifdef WITH_LOCALE
   setlocale(LC_ALL,"");
@@ -693,9 +717,23 @@ int main(int argc,char**argv)
       if(db_init(&(conf->database_new), true, false)==RETFAIL)
 	exit(IO_ERROR);
     }
-      
+
+#ifdef WITH_PTHREAD
+    if((conf->action&DO_INIT || conf->action&DO_COMPARE) && conf->num_workers){
+      if(db_disk_start_threads()==RETFAIL)
+          exit(THREAD_ERROR);
+    }
+#endif
+
     log_msg(LOG_LEVEL_INFO, "populate tree");
     populate_tree(conf->tree);
+
+#ifdef WITH_PTHREAD
+    if((conf->action&DO_INIT || conf->action&DO_COMPARE) && conf->num_workers){
+      if(db_disk_finish_threads() == RETFAIL)
+          exit(THREAD_ERROR);
+    }
+#endif
 
     if(conf->action&DO_INIT) {
         log_msg(LOG_LEVEL_INFO, "write new entries to database: %s:%s", get_url_type_string((conf->database_out.url)->type), (conf->database_out.url)->value);

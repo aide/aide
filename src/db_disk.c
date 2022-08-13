@@ -20,6 +20,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "config.h"
 #include "aide.h"
 #include <stdio.h>
 #include <string.h>
@@ -40,6 +41,9 @@
 #include "util.h"
 #include "queue.h"
 
+#ifdef WITH_PTHREAD
+#include <pthread.h>
+#endif
 
 static int get_file_status(char *filename, struct stat *fs) {
     int sres = 0;
@@ -55,6 +59,17 @@ static int get_file_status(char *filename, struct stat *fs) {
     return sres;
 }
 
+#ifdef WITH_PTHREAD
+queue_ts_t *queue_worker_files = NULL;
+queue_ts_t *queue_database_entries = NULL;
+
+pthread_t wait_for_workers_thread;
+
+pthread_t *file_attributes_threads;
+
+const char *whoami_main = "(main)";
+#endif
+
 static char *name_construct (const char *dirpath, const char *filename) {
     int dirpath_len = strlen (dirpath);
     int len = dirpath_len + strlen(filename) + (dirpath[dirpath_len-1] != '/'?1:0) + 1;
@@ -64,10 +79,32 @@ static char *name_construct (const char *dirpath, const char *filename) {
     return ret;
 }
 
+#ifdef WITH_PTHREAD
+typedef struct scan_dir_entry {
+    char *filename;
+    DB_ATTR_TYPE attr;
+    struct stat fs;
+} scan_dir_entry;
+#endif
+
 static void handle_matched_file(char *entry_full_path, DB_ATTR_TYPE attr, struct stat fs) {
     char *filename = checked_strdup(entry_full_path); /* not te be freed, reused as fullname in db_line */;
-    db_line *line = get_file_attrs(filename, attr, &fs);
-    add_file_to_tree(conf->tree, line, DB_NEW, NULL);
+#ifdef WITH_PTHREAD
+    if (conf->num_workers) {
+        scan_dir_entry *data;
+        data = checked_malloc(sizeof(scan_dir_entry)); /* freed in file_attrs_worker */
+        data->filename = filename;
+        data->attr = attr;
+        data->fs = fs;
+        log_msg(LOG_LEVEL_THREAD, "%10s: scan_dir: add entry %p to list of worker files (filename: '%s' (%p))", whoami_main,  data, data->filename, data->filename);
+        queue_ts_enqueue(queue_worker_files, data, whoami_main);
+    } else {
+#endif
+        db_line *line = get_file_attrs(filename, attr, &fs);
+        add_file_to_tree(conf->tree, line, DB_NEW, NULL);
+#ifdef WITH_PTHREAD
+    }
+#endif
 }
 
 void scan_dir(char *root_path, bool dry_run) {
@@ -162,6 +199,11 @@ void scan_dir(char *root_path, bool dry_run) {
         free(full_path);
         full_path = NULL;
     }
+#ifdef WITH_PTHREAD
+    if (conf->num_workers && !dry_run) {
+        queue_ts_release(queue_worker_files, whoami_main);
+    }
+#endif
     queue_free(stack);
 }
 
@@ -175,3 +217,89 @@ void db_scan_disk(bool dry_run) {
     free(full_path);
 }
 
+#ifdef WITH_PTHREAD
+static void * file_attrs_worker( __attribute__((unused)) void *arg) {
+    long worker_index = (long) arg;
+    char whoami[32];
+    snprintf(whoami, 32, "(work-%03li)", worker_index );
+
+    log_msg(LOG_LEVEL_THREAD, "%10s: file_attrs_worker: initialized worker thread #%d", whoami, worker_index);
+
+    while (1) {
+        log_msg(LOG_LEVEL_THREAD, "%10s: file_attrs_worker: check/wait for files", whoami);
+        scan_dir_entry *data = queue_ts_dequeue_wait(queue_worker_files, whoami);
+        if (data) {
+            log_msg(LOG_LEVEL_THREAD, "%10s: file_attrs_workers: got entry %p from list of files (filename: '%s' (%p))", whoami, data, data->filename, data->filename);
+
+            db_line *line = get_file_attrs (data->filename, data->attr, &data->fs);
+            log_msg(LOG_LEVEL_THREAD, "%10s: file_attrs_worker: add entry %p to list of database entries (filename: '%s')", whoami, line, line->filename);
+            queue_ts_enqueue(queue_database_entries, line, whoami);
+
+            free(data);
+        } else {
+            log_msg(LOG_LEVEL_THREAD, "%10s: file_attrs_worker: queue empty, exit thread", whoami);
+            break;
+        }
+    }
+
+    return (void *) pthread_self();
+}
+
+static void * wait_for_workers( __attribute__((unused)) void *arg) {
+    const char *whoami = "(wait)";
+    log_msg(LOG_LEVEL_THREAD, "%10s: wait for file_attrs_worker threads to be finished", whoami);
+    for (int i = 0 ; i < conf->num_workers ; ++i) {
+        if (pthread_join(file_attributes_threads[i], NULL) != 0) {
+            log_msg(LOG_LEVEL_WARNING, "failed to join file attributes thread #%d: %s", i, strerror(errno));
+        }
+        log_msg(LOG_LEVEL_THREAD, "%10s: file_attrs_worker thread #%d finished", whoami, i);
+    }
+    free(file_attributes_threads);
+    queue_ts_release(queue_database_entries, whoami);
+    queue_ts_free(queue_worker_files);
+    return (void *) pthread_self();
+}
+
+int db_disk_start_threads() {
+    queue_database_entries = queue_ts_init(NULL); /* freed in db_readline_disk */
+    log_msg(LOG_LEVEL_THREAD, "%10s: initialized database entries queue %p", whoami_main, queue_database_entries);
+    queue_worker_files = queue_ts_init(NULL); /* freed in wait_for_workers */
+    log_msg(LOG_LEVEL_THREAD, "%10s: initialized worker files queue %p", whoami_main, queue_worker_files);
+
+    file_attributes_threads = checked_malloc(conf->num_workers * sizeof(pthread_t)); /* freed in wait_for_workers */
+
+    for (int i = 0 ; i < conf->num_workers ; ++i) {
+        if (pthread_create(&file_attributes_threads[i], NULL, &file_attrs_worker, (void *) (i+1L)) != 0) {
+            log_msg(LOG_LEVEL_ERROR, "failed to start file attributes worker thread #%d: %s", i+1, strerror(errno));
+            return RETFAIL;
+        }
+    }
+    if (pthread_create(&wait_for_workers_thread, NULL, &wait_for_workers, NULL) != 0) {
+        log_msg(LOG_LEVEL_ERROR, "failed to start wait_for_workers thread: %s", strerror(errno));
+        return RETFAIL;
+    }
+    return RETOK;
+}
+
+int db_disk_finish_threads() {
+    if (pthread_join(wait_for_workers_thread, NULL) != 0) {
+        log_msg(LOG_LEVEL_ERROR, "failed to join wait_for_workers thread: %s", strerror(errno));
+        return RETFAIL;
+    }
+    log_msg(LOG_LEVEL_THREAD, "%10s: wait_for_workers thread finished", whoami_main);
+    return RETOK;
+}
+
+db_line *db_readline_disk (void) {
+    db_line *line = NULL;
+    log_msg(LOG_LEVEL_THREAD, "%10s: db_readline_disk_thread: wait for next db_line", whoami_main);
+    line = (db_line *) queue_ts_dequeue_wait(queue_database_entries, whoami_main);
+    if (line) {
+        log_msg(LOG_LEVEL_THREAD, "%10s: db_readline_disk_thread: got line '%s'", whoami_main, line->filename);
+    } else {
+        queue_ts_free(queue_database_entries);
+        log_msg(LOG_LEVEL_TRACE, "%10s: db_readline_disk_thread: return NULL", whoami_main);
+    }
+    return line;
+}
+#endif

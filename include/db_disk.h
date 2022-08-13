@@ -22,8 +22,15 @@
 #ifndef _DB_DISK_H_INCLUDED
 #define _DB_DISK_H_INCLUDED
 
+#include "config.h"
 #include <stdbool.h>
 #include "db_config.h"
 
 void db_scan_disk(bool);
+
+#ifdef WITH_PTHREAD
+int db_disk_start_threads();
+int db_disk_finish_threads();
+db_line* db_readline_disk(void);
+#endif
 #endif

@@ -91,7 +91,7 @@ int init_md(struct md_container* md, const char *filename) {
   }
 #endif
   char *str;
-  log_msg(LOG_LEVEL_DEBUG, " initialized md_container (%s) for '%s'", str = diff_attributes(0, md->calc_attr), filename);
+  log_msg(LOG_LEVEL_DEBUG, "%s> initialized md_container: %s (%p)", filename, str = diff_attributes(0, md->calc_attr), md);
   free(str);
   return RETOK;
 }
@@ -128,13 +128,13 @@ int update_md(struct md_container* md,void* data,ssize_t size) {
   After this calling update_db is not a good idea.
 */
 
-int close_md(struct md_container* md, md_hashsums * hs) {
+int close_md(struct md_container* md, md_hashsums * hs, const char *filename) {
 #ifdef _PARAMETER_CHECK_
   if (md==NULL) {
     return RETFAIL;
   }
 #endif
-  log_msg(LOG_LEVEL_DEBUG," free md_container");
+  log_msg(LOG_LEVEL_DEBUG, "%s> free md_container (%p)", filename, md);
 #ifdef WITH_MHASH
   for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
       if(md->mhash_mdh[i] != MHASH_FAILED){

@@ -18,7 +18,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "config.h"
 #include <stdlib.h>
+#include <stdbool.h>
+
+#ifdef WITH_PTHREAD
+#include <pthread.h>
+#endif
 
 #include "queue.h"
 #include "log.h"
@@ -36,6 +42,13 @@ struct qnode_s {
 struct queue_s {
     qnode_t *head;
     qnode_t *tail;
+
+#ifdef WITH_PTHREAD
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+
+    bool release;
+#endif
 
     int (*sort_func) (const void*, const void*);
 };
@@ -60,10 +73,12 @@ void queue_free(queue_ts_t *queue) {
     }
 }
 
-void queue_enqueue(queue_ts_t * const queue, void * const data) {
+bool queue_enqueue(queue_ts_t * const queue, void * const data) {
     qnode_t *new, *current;
     new = checked_malloc(sizeof(qnode_t)); /* freed in queue_dequeue */
     new->data = data;
+
+    bool new_head_tail = false;
 
     if (queue->head == NULL) {
         /* new node is first element in empty queue */
@@ -71,6 +86,7 @@ void queue_enqueue(queue_ts_t * const queue, void * const data) {
         queue->tail = new;
         new->next = NULL;
         new->prev = NULL;
+        new_head_tail = true;
         log_msg(queue_log_level, "queue(%p): add node %p with payload %p as new head and new tail", queue, new, new->data);
     } else if (queue->sort_func) {
         /* add element in sorted, non-empty queue (use insertion sort) */
@@ -110,7 +126,7 @@ void queue_enqueue(queue_ts_t * const queue, void * const data) {
         queue->tail = new;
         log_msg(queue_log_level, "queue(%p): add node %p with payload %p as new tail", queue, new, new->data);
     }
-
+    return new_head_tail;
 }
 
 void *queue_dequeue(queue_ts_t * const queue) {
@@ -129,3 +145,83 @@ void *queue_dequeue(queue_ts_t * const queue) {
     }
     return data;
 }
+
+#ifdef WITH_PTHREAD
+queue_ts_t *queue_ts_init(int (*sort_func) (const void*, const void*)) {
+    queue_ts_t *queue = checked_malloc (sizeof(queue_ts_t));
+
+    pthread_mutexattr_t attr;
+    pthread_mutexattr_init (&attr);
+    pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE_NP);
+    pthread_mutex_init(&queue->mutex, &attr);
+    pthread_cond_init(&queue->cond, NULL);
+
+    pthread_mutex_lock(&queue->mutex);
+
+    queue->release = false;
+
+    queue->head = NULL;
+    queue->tail = NULL;
+
+    queue->sort_func = sort_func;
+
+    pthread_mutex_unlock(&queue->mutex);
+
+    log_msg(queue_log_level, "queue(%p): create new queue (sorted: %s)", queue, btoa(sort_func != NULL));
+    return queue;
+}
+
+void queue_ts_free(queue_ts_t *queue) {
+    if (queue) {
+        pthread_cond_destroy(&queue->cond);
+        pthread_mutex_destroy(&queue->mutex);
+        queue_free(queue);
+    }
+}
+
+bool queue_ts_enqueue(queue_ts_t * const queue, void * const data, const char *whoami) {
+    pthread_mutex_lock(&queue->mutex);
+    bool new_head_tail = queue_enqueue(queue,data);
+    pthread_mutex_unlock(&queue->mutex);
+
+    if (new_head_tail) {
+        pthread_cond_broadcast(&queue->cond);
+        log_msg(LOG_LEVEL_THREAD, "%10s: queue(%p): broadcast waiting threads for new head node in queue", whoami, queue);
+    }
+    return new_head_tail;
+}
+
+void *queue_ts_dequeue_wait(queue_ts_t * const queue, const char *whoami) {
+    qnode_t *head;
+    void *data = NULL;
+    pthread_mutex_lock(&queue->mutex);
+
+    while ((head = queue->head) == NULL && queue->release == false){
+        log_msg(LOG_LEVEL_THREAD, "%10s: queue(%p): waiting for new node", whoami, queue);
+        pthread_cond_wait(&queue->cond, &queue->mutex);
+        log_msg(LOG_LEVEL_THREAD, "%10s: queue(%p): got broadcast (head: %p)", whoami, queue, queue->head);
+    }
+    if (head != NULL) {
+        if ((queue->head = head->prev) == NULL) {
+            queue->tail = NULL;
+        } else {
+            (queue->head)->next = NULL;
+        }
+        data = head->data;
+        log_msg(queue_log_level, "queue(%p): return head node %p with payload %p", queue, head, head->data);
+        free(head);
+    } else {
+        log_msg(queue_log_level, "queue(%p): return NULL from empty, released queue", queue);
+    }
+    pthread_mutex_unlock(&queue->mutex);
+    return data;
+}
+
+void queue_ts_release(queue_ts_t * const queue, const char *whoami) {
+    pthread_mutex_lock(&queue->mutex);
+    queue->release = true;
+    pthread_mutex_unlock(&queue->mutex);
+    pthread_cond_broadcast(&queue->cond);
+    log_msg(LOG_LEVEL_THREAD, "%10s: queue(%p): release queue and broadcast waiting threads", whoami, queue);
+}
+#endif

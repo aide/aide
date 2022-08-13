@@ -18,15 +18,18 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "config.h"
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <errno.h>
+#ifdef WITH_PTHREAD
+#include <pthread.h>
+#endif
 
 #include "log.h"
-#include "util.h"
+#include "errorcodes.h"
 
 LOG_LEVEL prev_log_level = LOG_LEVEL_UNSET;
 LOG_LEVEL log_level = LOG_LEVEL_UNSET;
@@ -38,6 +41,17 @@ typedef struct log_cache {
 
 log_cache *cached_lines = NULL;
 int ncachedlines = 0;
+
+#ifdef WITH_PTHREAD
+pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+void log_init() {
+    pthread_mutexattr_t mutex_attrs;
+    pthread_mutexattr_init(&mutex_attrs);
+    pthread_mutexattr_settype(&mutex_attrs, PTHREAD_MUTEX_RECURSIVE);
+    pthread_mutex_init(&log_mutex, &mutex_attrs);
+}
+#endif
 
 struct log_level {
     LOG_LEVEL log_level;
@@ -53,6 +67,7 @@ static struct log_level log_level_array[] = {
     { LOG_LEVEL_RULE,          "rule",          "   RULE" },
     { LOG_LEVEL_CONFIG,        "config",        " CONFIG" },
     { LOG_LEVEL_DEBUG,         "debug",         "  DEBUG" },
+    { LOG_LEVEL_THREAD,        "thread",        " THREAD" },
     { LOG_LEVEL_TRACE,         "trace",         "  TRACE" },
     { 0,                       NULL,            NULL      },
 };
@@ -65,7 +80,13 @@ static void cache_line(LOG_LEVEL, const char*, va_list)
 static void cache_line(LOG_LEVEL level, const char* format, va_list ap) {
     int n;
 
-    cached_lines = checked_realloc(cached_lines, (ncachedlines+1) * sizeof(log_cache)); /* freed in log_cached_lines() */
+    FILE* url = stderr;
+
+    cached_lines = realloc(cached_lines, (ncachedlines+1) * sizeof(log_cache)); /* freed in log_cached_lines() */
+    if (cached_lines == NULL) {
+        fprintf(url, "%s: realloc: failed to allocate memory\n", log_level_array[LOG_LEVEL_ERROR-1].log_string);
+        exit(MEMORY_ALLOCATION_FAILURE);
+    }
 
     cached_lines[ncachedlines].level = level;
     cached_lines[ncachedlines].message = NULL;
@@ -75,7 +96,13 @@ static void cache_line(LOG_LEVEL level, const char* format, va_list ap) {
     n = vsnprintf(NULL, 0, format, aq) + 1;
     va_end(aq);
 
-    cached_lines[ncachedlines].message = checked_malloc(n * sizeof(char)); /* freed in log_cached_lines() */
+    int size = n * sizeof(char);
+    cached_lines[ncachedlines].message = malloc(size); /* freed in log_cached_lines() */
+    if (cached_lines[ncachedlines].message == NULL) {
+        fprintf(url, "%s: malloc: failed to allocate %d bytes of memory\n", log_level_array[LOG_LEVEL_ERROR-1].log_string, size);
+        exit(MEMORY_ALLOCATION_FAILURE);
+    }
+
     vsnprintf(cached_lines[ncachedlines].message, n, format, ap);
     ncachedlines++;
 }
@@ -85,8 +112,13 @@ const char * get_log_level_name(LOG_LEVEL level) {
 }
 
 static void log_cached_lines(void) {
+    FILE* url = stderr;
+
     for(int i = 0; i < ncachedlines; ++i) {
-        log_msg(cached_lines[i].level, "%s", cached_lines[i].message);
+        LOG_LEVEL level = cached_lines[i].level;
+        if (level == LOG_LEVEL_ERROR || level <= log_level) {
+            fprintf(url, "%s: %s\n", log_level_array[level-1].log_string, cached_lines[i].message);
+        }
         free(cached_lines[i].message);
     }
     ncachedlines = 0;
@@ -102,17 +134,9 @@ static void vlog_msg(LOG_LEVEL level,const char* format, va_list ap) {
     FILE* url = stderr;
 
     if (level == LOG_LEVEL_ERROR || level <= log_level) {
-
-        va_list aqc;
-        va_copy(aqc, ap);
-        int n = vsnprintf(NULL, 0, format, aqc) + 1;
-        va_end(aqc);
-        char *msg = checked_malloc(n * sizeof(char));
-        vsnprintf(msg, n, format, ap);
-
-        fprintf(url, "%s: %s\n", log_level_array[level-1].log_string, msg);
-
-        free(msg);
+        fprintf(url, "%s: ", log_level_array[level-1].log_string );
+        vfprintf(url, format, ap);
+        fprintf(url, "\n");
     } else if (log_level == LOG_LEVEL_UNSET) {
         cache_line(level, format, ap);
     }
@@ -162,10 +186,16 @@ void log_msg(LOG_LEVEL, const char*, ...)
 #endif
 ;
 void log_msg(LOG_LEVEL level, const char* format, ...) {
+#ifdef WITH_PTHREAD
+    pthread_mutex_lock(&log_mutex);
+#endif
     va_list argp;
     va_start(argp, format);
     vlog_msg(level, format, argp);
     va_end(argp);
+#ifdef WITH_PTHREAD
+    pthread_mutex_unlock(&log_mutex);
+#endif
 }
 
 void stderr_msg(const char* format, ...)
@@ -174,8 +204,14 @@ void stderr_msg(const char* format, ...)
 #endif
 ;
 void stderr_msg(const char* format, ...) {
+#ifdef WITH_PTHREAD
+    pthread_mutex_lock(&log_mutex);
+#endif
     va_list ap;
     va_start(ap, format);
     vfprintf(stderr, format, ap);
     va_end(ap);
+#ifdef WITH_PTHREAD
+    pthread_mutex_unlock(&log_mutex);
+#endif
 }

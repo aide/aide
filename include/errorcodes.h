@@ -31,6 +31,7 @@
 #define EXEC_ERROR 20
 #define LOCK_ERROR 21
 #define MEMORY_ALLOCATION_FAILURE 22
+#define THREAD_ERROR 23
 #define HASH_ALGO_ERROR 30
 
 #endif

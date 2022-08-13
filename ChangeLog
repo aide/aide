@@ -1,3 +1,10 @@
+2022-08-13 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Support multithreading for hashsum calculation (closes: #12)
+	  - add --without-pthread configure option
+	  - add new log level 'thread'
+	  - add new '--workers' parameter
+	  - add new exit code 23 for thread errors
+
 2022-08-09 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Add exit code 22 for memory allocation errors
 

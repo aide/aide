@@ -70,7 +70,7 @@ typedef struct md_hashsums {
 
 int init_md(struct md_container*, const char*);
 int update_md(struct md_container*,void*,ssize_t);
-int close_md(struct md_container*, md_hashsums *);
+int close_md(struct md_container*, md_hashsums *, const char*);
 void hashsums2line(md_hashsums*, struct db_line*);
 
 #endif /*_MD_H_INCLUDED*/

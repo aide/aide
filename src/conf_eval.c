@@ -652,18 +652,23 @@ static RESTRICTION_TYPE eval_restriction_expression(restriction_expression *expr
     RESTRICTION_TYPE rs = FT_NULL, rs_r;
 
     if (expression) {
-        rs_r = (strlen(expression->right) == 1)?get_restriction_from_char(*(expression->right)):FT_NULL;
-        log_msg(eval_log_level, "eval(%p): restriction file type '%s' evaluates to %d", expression, expression->right, rs_r);
-        if (rs_r == FT_NULL) {
-            LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, "invalid restriction '%s'", expression->right)
-            exit(INVALID_CONFIGURELINE_ERROR);
+        char *unrestricted = "0";
+        if (strncmp(expression->right, unrestricted, strlen(unrestricted)) == 0) {
+            rs_r = FT_NULL;
+            log_msg(eval_log_level, "eval(%p): restriction '%s', evaluates to %d", expression, unrestricted, rs);
+        } else {
+            rs_r = (strlen(expression->right) == 1)?get_restriction_from_char(*(expression->right)):FT_NULL;
+            log_msg(eval_log_level, "eval(%p): restriction file type '%s' evaluates to %d", expression, expression->right, rs_r);
+            if (rs_r == FT_NULL) {
+                LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, "invalid restriction '%s'", expression->right)
+                    exit(INVALID_CONFIGURELINE_ERROR);
+            }
         }
         if (expression->left == NULL) {
             rs = rs_r;
         } else {
             rs = eval_restriction_expression(expression->left, linenumber, filename, linebuf) | rs_r;
         }
-
     } else {
         log_msg(eval_log_level, "eval(%p): restriction is NULL, returning %d", expression, rs);
     }

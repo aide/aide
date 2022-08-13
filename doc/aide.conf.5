@@ -144,7 +144,8 @@ The value of config_version is printed in the report and also printed
 to the database. This is for informational purposes only. It has no
 other functionality.
 .IP "config_check_warn_unrestricted_rules (type: bool, default: \fBfalse\fR, added in AIDE v0.18)"
-Whether to warn on unrestricted rules during config check.
+Whether to warn on unrestricted rules during config check. To explicitly
+define unrestricted rules use \fB0\fR (zero) as restriction character.
 .IP "Group definitions"
 If the parameter is not one of the previous parameters then it is
 regarded as a group definition. Value is then regarded as an
@@ -456,6 +457,8 @@ restricted to file types (added in AIDE v0.16). The following file types are sup
 \fBD\fP: restrict rule to Solaris doors
 
 \fBP\fP: restrict rule to Solaris event ports
+
+\fB0\fR: empty restriction, i.e. don't restrict rule (added in AIDE v0.18)
 .RE
 
 The file types are separated by comma. The syntax of restricted

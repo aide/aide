@@ -16,6 +16,7 @@ Version 0.18 (UNRELEASED)
     * Add @@if macro
     * Add 'exists' boolean function
     * Add 'config_check_warn_unrestricted_rules' option
+    * Support restricted rules with empty restriction
     * Add prefix option to directory include macros
     * Add exit code 22 for memory allocation errors
     * Support CRLF line-endings in config files

@@ -152,7 +152,7 @@ queue_ts_t *queue_ts_init(int (*sort_func) (const void*, const void*)) {
 
     pthread_mutexattr_t attr;
     pthread_mutexattr_init (&attr);
-    pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE_NP);
+    pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE);
     pthread_mutex_init(&queue->mutex, &attr);
     pthread_cond_init(&queue->cond, NULL);
 

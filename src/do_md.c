@@ -186,10 +186,61 @@ int p_parent_to_child[2];
 int p_child_to_parent[2];
 int p_stderr[2];
 
-static void write_empty_md_hashsums(int fd) {
+static void  read_from_parent(int fd, void *buf, ssize_t count, int child_pid) {
+    ssize_t bytes_read = read(fd, buf, count);
+    if (bytes_read != count) {
+        if (bytes_read < 0) {
+            log_msg(LOG_LEVEL_WARNING, "hash calculation(child:%d): failed to read %d bytes from pipe: %s", count, child_pid, strerror(errno));
+        } else {
+            log_msg(LOG_LEVEL_WARNING, "hash calculation(child:%d): only %d of %d bytes read from pipe", bytes_read, count, child_pid);
+        }
+        exit(1);
+    }
+}
+
+static void write_to_parent(int fd, void *buf, ssize_t count, int child_pid) {
+    ssize_t bytes_written = write(fd, buf, count);
+    if (bytes_written != count) {
+        if (bytes_written < 0) {
+            log_msg(LOG_LEVEL_WARNING, "hash calculation(child:%d): failed to write %d bytes to pipe: %s", count, child_pid, strerror(errno));
+        } else {
+            log_msg(LOG_LEVEL_WARNING, "hash calculation(child:%d): only %d of %d bytes written to pipe", bytes_written, count, child_pid);
+        }
+        exit(1);
+    }
+}
+
+static bool read_from_child(int fd, void *buf, ssize_t count, const char* path) {
+    ssize_t bytes_read = read(fd, buf, count);
+    if (bytes_read != count) {
+        if (bytes_read < 0) {
+            log_msg(LOG_LEVEL_WARNING, "hash calculation(parent): failed to read %d bytes from pipe: %s (hash for '%s' could not be calculated)", count, strerror(errno), path);
+        } else {
+            log_msg(LOG_LEVEL_WARNING, "hash calculation(parent): only %d of %d bytes read from pipe (hash for '%s' could not be calculated)", bytes_read, count, path);
+        }
+        return false;
+    }
+    return true;
+
+}
+
+static bool write_to_child(int fd, void *buf, ssize_t count, const char* path) {
+    ssize_t bytes_written = write(fd, buf, count);
+    if (bytes_written != count) {
+        if (bytes_written < 0) {
+            log_msg(LOG_LEVEL_WARNING, "hash calculation(parent): failed to write %d bytes to pipe: %s (hash for '%s' could not be calculated)", count, strerror(errno), path);
+        } else {
+            log_msg(LOG_LEVEL_WARNING, "hash calculation(parent): only %d of %d bytes written to pipe (hash for '%s' could not be calculated)", bytes_written, count, path);
+        }
+        return false;
+    }
+    return true;
+}
+
+static void write_empty_md_hashsums(int fd, int child_pid) {
     md_hashsums md_hash;
     md_hash.attrs = 0LU;
-    write(fd, &md_hash, sizeof(md_hash));
+    write_to_parent(fd, &md_hash, sizeof(md_hash), child_pid);
 }
 
 int stat_cmp(struct stat* f1,struct stat* f2) {
@@ -394,9 +445,12 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
             log_msg(LOG_LEVEL_DEBUG, "calc_hashsums(child:%d): forked child", child_pid);
 
             while(true) {
-                read(p_parent_to_child[0], &child_attr, sizeof(DB_ATTR_TYPE));
-                read(p_parent_to_child[0], &child_old_fs, sizeof(struct stat));
-                read(p_parent_to_child[0], child_fullpath,  PATH_MAX);
+                read_from_parent(p_parent_to_child[0], &child_attr, sizeof(DB_ATTR_TYPE), child_pid);
+                read_from_parent(p_parent_to_child[0], &child_old_fs, sizeof(struct stat), child_pid);
+                if (read(p_parent_to_child[0], child_fullpath,  PATH_MAX) < 1) {
+                    log_msg(LOG_LEVEL_WARNING, "hash calculation(child:%d): failed to read from pipe: %s", child_pid, strerror(errno));
+                    exit(1);
+                }
                 log_msg(LOG_LEVEL_DEBUG, "%s> calc_hashsums(child:%d): got filename: '%s' (attr: %lu)", child_fullpath, child_pid, child_fullpath, child_attr);
 
                 struct stat new_fs;
@@ -417,13 +471,13 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
 #endif
                 if (filedes==-1) {
                     log_msg(LOG_LEVEL_WARNING, "hash calculation(child:%d): open() failed for %s: %s (hashsums could not be calculated)", child_pid, child_fullpath, strerror(errno));
-                    write_empty_md_hashsums(p_child_to_parent[1]);
+                    write_empty_md_hashsums(p_child_to_parent[1], child_pid);
                     continue;
                 }
                 sres=fstat(filedes,&new_fs);
                 if (sres != 0) {
                     log_msg(LOG_LEVEL_WARNING, "hash calculation(child:%d): fstat() failed for '%s': %s (hashsums could not be calculated)", child_pid, child_fullpath, strerror(errno));
-                    write_empty_md_hashsums(p_child_to_parent[1]);
+                    write_empty_md_hashsums(p_child_to_parent[1], child_pid);
                     continue;
                 }
                 if(!(child_attr&ATTR(attr_rdev))) {
@@ -445,7 +499,7 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
                     log_msg(LOG_LEVEL_WARNING, "hash calculation(child:%d): '%s' has been changed (changed attributes: %s, hash could not be calculated)", child_pid, child_fullpath, str = diff_attributes(0, changed_attribures));
                     free(str);
                     close(filedes);
-                    write_empty_md_hashsums(p_child_to_parent[1]);
+                    write_empty_md_hashsums(p_child_to_parent[1], child_pid);
                     continue;
                 } else {
 #ifdef WITH_PRELINK
@@ -457,7 +511,7 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
                         prelink_pid = open_prelinked(child_fullpath, &filedes);
                         if (prelink_pid == 0) {
                             log_msg(LOG_LEVEL_WARNING, "hash calculation(child:%d): error on starting prelink for '%s' (hashsums could not be calculated)", child_pid, child_fullpath);
-                            write_empty_md_hashsums(p_child_to_parent[1]);
+                            write_empty_md_hashsums(p_child_to_parent[1], child_pid);
                             continue;
                         }
                     }
@@ -501,7 +555,7 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
                                     log_msg(LOG_LEVEL_WARNING, "hash calculation(child:%d): error mmap'ing '%s': %s (hashsums could not be calculated)", child_pid, child_fullpath, strerror(errno));
                                     close(filedes);
                                     close_md(&mdc, NULL, child_fullpath);
-                                    write_empty_md_hashsums(p_child_to_parent[1]);
+                                    write_empty_md_hashsums(p_child_to_parent[1], child_pid);
                                     continue;
                                 }
 
@@ -510,7 +564,7 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
                                     close(filedes);
                                     close_md(&mdc, NULL, child_fullpath);
                                     munmap(buf,size);
-                                    write_empty_md_hashsums(p_child_to_parent[1]);
+                                    write_empty_md_hashsums(p_child_to_parent[1], child_pid);
                                     continue;
                                 }
                                 munmap(buf,size);
@@ -533,7 +587,7 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
                                 free(buf);
                                 close(filedes);
                                 close_md(&mdc, NULL, child_fullpath);
-                                write_empty_md_hashsums(p_child_to_parent[1]);
+                                write_empty_md_hashsums(p_child_to_parent[1], child_pid);
                                 continue;
                             }
                             r_size+=size;
@@ -544,7 +598,7 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
                             free(buf);
                             close(filedes);
                             close_md(&mdc, NULL, child_fullpath);
-                            write_empty_md_hashsums(p_child_to_parent[1]);
+                            write_empty_md_hashsums(p_child_to_parent[1], child_pid);
                             continue;
                         }
 
@@ -557,7 +611,7 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
                                 free(buf);
                                 close(filedes);
                                 close_md(&mdc, NULL, child_fullpath);
-                                write_empty_md_hashsums(p_child_to_parent[1]);
+                                write_empty_md_hashsums(p_child_to_parent[1], child_pid);
                                 continue;
                             }
                         }
@@ -565,12 +619,12 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
                         free(buf);
                         close(filedes);
                         close_md(&mdc, &md_hash, child_fullpath);
-                        write(p_child_to_parent[1], &md_hash, sizeof(md_hash));
+                        write_to_parent(p_child_to_parent[1], &md_hash, sizeof(md_hash), child_pid);
                         continue;
                     } else {
                         log_msg(LOG_LEVEL_WARNING, "hash calculation(child:%d): init_md() failed for '%s' (hashsums could not be calculated)", child_pid, child_fullpath);
                         close(filedes);
-                        write_empty_md_hashsums(p_child_to_parent[1]);
+                        write_empty_md_hashsums(p_child_to_parent[1], child_pid);
                         continue;
                     }
                 }
@@ -583,11 +637,15 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
             }
 
             log_msg(LOG_LEVEL_DEBUG, "%s> hash calculation(parent): send filename '%s' (attr: %lu) to child process %d", fullpath, fullpath, attr, pid);
-            write(p_parent_to_child[1], &attr, sizeof(DB_ATTR_TYPE));
-            write(p_parent_to_child[1], old_fs, sizeof(struct stat));
-            write(p_parent_to_child[1], fullpath, strlen(fullpath)+1);
-
-            read(p_child_to_parent[0], &md_hash, sizeof(md_hash));
+            if (write_to_child(p_parent_to_child[1], &attr, sizeof(DB_ATTR_TYPE), fullpath)) {
+                if (write_to_child(p_parent_to_child[1], old_fs, sizeof(struct stat), fullpath)) {
+                    if (write_to_child(p_parent_to_child[1], fullpath, strlen(fullpath)+1, fullpath)) {
+                        if (!read_from_child(p_child_to_parent[0], &md_hash, sizeof(md_hash), fullpath)) {
+                            md_hash.attrs = 0LU;
+                        };
+                    }
+                }
+            }
 
             char* child_stderr = pipe2string(p_stderr[0]);
 

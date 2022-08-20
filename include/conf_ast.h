@@ -53,6 +53,7 @@ typedef enum config_option {
     CONFIG_CHECK_WARN_UNRESTRICTED_RULES,
     REPORT_FORMAT_OPTION,
     LIMIT_CMDLINE_OPTION,
+    NUM_WORKERS,
 } config_option;
 
 typedef struct {

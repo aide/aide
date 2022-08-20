@@ -476,6 +476,13 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
   return (CONFIGOPTION);
 }
 
+<CONFIG>"num_workers" {
+  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (NUM_WORKERS), conftext)
+  conflval.option = NUM_WORKERS;
+  BEGIN (STRINGEQHUNT);
+  return (CONFIGOPTION);
+}
+
 <CONFIG>({O})+ {
   log_msg(LOG_LEVEL_ERROR,"%s:%d: unknown config option: '%s' (line: '%s')", conf_filename, conf_linenumber, conftext, conf_linebuf);
   exit(INVALID_CONFIGURELINE_ERROR);

@@ -146,6 +146,23 @@ other functionality.
 .IP "config_check_warn_unrestricted_rules (type: bool, default: \fBfalse\fR, added in AIDE v0.18)"
 Whether to warn on unrestricted rules during config check. To explicitly
 define unrestricted rules use \fB0\fR (zero) as restriction character.
+.IP "num_workers (type: number|percentage, default: \fB0\fR, added in AIDE v0.18)"
+Specifies the number of simultaneous workers (threads) for file attribute
+processing (i.a. hashsum calculation).
+
+The number of workers can be a positive integer (e.g. '4') or the percentage of
+the available processors (e.g. '60%'). The resulting number of workers is
+rounded up to the next integer (e.g. '60%' of 8 processors results in 5
+workers).
+
+If there are multiple \fInum_workers\fR lines then the first one is used.  Use
+0 to disable multi-threading.
+
+The default value 0 (zero) may be changed in a future release.
+
+Please note that the file content is read via \fIfread\fR instead of \fImmap\fR
+when threads are used.
+
 .IP "Group definitions"
 If the parameter is not one of the previous parameters then it is
 regarded as a group definition. Value is then regarded as an

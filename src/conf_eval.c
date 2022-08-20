@@ -303,6 +303,26 @@ static void eval_config_statement(config_option_statement statement, int linenum
         case LIMIT_CMDLINE_OPTION:
             /* command-line options are ignored here */
             break;
+        case NUM_WORKERS:
+#ifdef WITH_PTHREAD
+            str = eval_string_expression(statement.e, linenumber, filename, linebuf);
+
+            if (conf->num_workers < 0) {
+                long num_workers = do_num_workers(str);
+                if (num_workers < 0) {
+                    LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, "invalid number of workers: '%s'", str);
+                    exit(INVALID_CONFIGURELINE_ERROR);
+                }
+                conf->num_workers = num_workers;
+                LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, "set 'num_workers' option to %ld (config value: '%s')", conf->num_workers, str)
+            } else {
+                    LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_NOTICE, "'num_workers' option already set (ignore new value '%s')", str)
+            }
+#else
+            LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, "%s", "pthreads support not compiled in, recompile AIDE with '--with-pthread'")
+            exit(INVALID_CONFIGURELINE_ERROR);
+#endif
+            break;
     }
 }
 

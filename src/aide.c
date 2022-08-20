@@ -212,9 +212,6 @@ static char *append_line_to_config(char *config, char *line) {
 static void read_param(int argc,char**argv)
 {
   int i=0;
-#ifdef WITH_PTHREAD
-  char *err;
-#endif
 
   static struct option options[] =
   {
@@ -312,11 +309,12 @@ static void read_param(int argc,char**argv)
                }
       case 'W':{
 #ifdef WITH_PTHREAD
-           conf->num_workers=strtol(optarg,&err,10);
-           if(*err != '\0' || conf->num_workers < 0 || errno == ERANGE){
-               INVALID_ARGUMENT("--workers", invalid number of workers %s, optarg)
+           long num_workers = do_num_workers(optarg);
+           if (num_workers < 0) {
+               INVALID_ARGUMENT("--workers", invalid number of workers '%s', optarg)
            }
-           log_msg(LOG_LEVEL_INFO,"(--workers): set number of workers to %d", conf->num_workers);
+           conf->num_workers = num_workers;
+           log_msg(LOG_LEVEL_INFO,"(--workers): set number of workers to %ld (argument value: '%s')", conf->num_workers, optarg);
 #else
            INVALID_ARGUMENT("--workers", %s, "pthread support not compiled in, recompile AIDE with '--with-pthread'")
 #endif
@@ -471,7 +469,7 @@ static void setdefaults_before_config()
   conf->action=0;
 
 #ifdef WITH_PTHREAD
-  conf->num_workers = 0;
+  conf->num_workers = -1;
 #endif
 
   conf->warn_dead_symlinks=0;
@@ -566,6 +564,13 @@ static void setdefaults_after_config()
   if(conf->action==0){
     conf->action=DO_COMPARE;
   }
+
+#ifdef WITH_PTHREAD
+  if(conf->num_workers < 0) {
+      conf->num_workers = 0;
+      log_msg(LOG_LEVEL_CONFIG, "(default): set 'num_workers' option to %lu", conf->num_workers);
+  }
+#endif
 
   if (is_log_level_unset()) {
           set_log_level(LOG_LEVEL_WARNING);

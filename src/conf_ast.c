@@ -58,6 +58,7 @@ config_option_t config_options[] = {
     { CONFIG_CHECK_WARN_UNRESTRICTED_RULES,     NULL,                           NULL },
     { REPORT_FORMAT_OPTION,                     NULL,                           NULL },
     { LIMIT_CMDLINE_OPTION,                     "limit",                        "Limit" },
+    { NUM_WORKERS,                              NULL,                           NULL },
 };
 
 static ast* new_ast_node() {

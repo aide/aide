@@ -55,6 +55,11 @@
 #ifdef WITH_E2FSATTRS
 #include "e2fsattrs.h"
 #endif
+#ifdef WITH_PTHREAD
+#include <math.h>
+#include <errno.h>
+#include <unistd.h>
+#endif
 
 #define BUFSIZE 4096
 #define ZBUFSIZE 16384
@@ -501,6 +506,24 @@ bool do_rootprefix(char* val, int linenumber, char* filename, char* linebuf) {
         return false;
     }
 }
+
+#ifdef WITH_PTHREAD
+long do_num_workers(const char *str) {
+    char *err;
+    long number = strtol(str,&err,10);
+    if (err[0] == '%' && err[1] == '\0') {
+        if (number >= 0 && number <= 100) {
+            long num_of_processors = sysconf(_SC_NPROCESSORS_ONLN);
+            return ceill(num_of_processors * number / 100.0);
+        } else {
+            return -1;
+        }
+    } else if(*err != '\0' || number < 0 || errno == ERANGE) {
+        return -1;
+    }
+    return number;
+}
+#endif
 
 #ifdef WITH_E2FSATTRS
 void do_report_ignore_e2fsattrs(char* val, int linenumber, char* filename, char* linebuf) {

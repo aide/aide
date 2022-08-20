@@ -87,14 +87,8 @@ Removed, use \fBlog_level\fR and \fBreport_level\fR config options instead (see 
 .IP "--report=\fBreporter\fR,-r \fBreporter\fR (REMOVED in AIDE v0.17)"
 Removed, use \fBreport_url\fR config option instead (see aide.conf (5) for details).
 .IP "--workers=\fBWORKERS\fR , -W \fBWORKERS\fR (added in AIDE v0.18)"
-Specifies the number of simultaneous workers (threads) for file attribute
-processing (i.a. hashsum calculation). Use 0 to disable multithreading.
-
-The default number of workers is 0 (no threading). This default value may be
-changed in a future release.
-
-Please note that the file content is read via \fIfread\fR instead of \fImmap\fR
-when threads are used.
+Specifies the number of workers (see aide.conf (5) for details). This
+overwrites the num_workers value set in any configuration file.
 .IP "--version,-v"
 \fBaide\fP prints out its version number
 .IP "--help,-h"

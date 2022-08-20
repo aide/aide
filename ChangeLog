@@ -2,6 +2,9 @@
 	* Fix some compiler warnings
 	* Handle read/write errors in parent/child communication
 	* Escape backslash in JSON strings (closes: #136)
+	* Improve configurability of workers
+	  - add num_workers config option (closes: #134)
+	  - accept percentage of available processors (closes: #135)
 
 2022-08-13 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Support multithreading for hashsum calculation (closes: #12)

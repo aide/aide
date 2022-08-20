@@ -4,6 +4,7 @@ Version 0.18 (UNRELEASED)
     * Support multithreading for hashsum calculation
       - add --without-pthread configure option
       - add new log level 'thread'
+      * add num_workers config option
       - add new '--workers' parameter
       - add new exit code 23 for thread errors
       - require Autoconf Macro Archive (autoconf-archive)

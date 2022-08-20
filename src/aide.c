@@ -126,15 +126,15 @@ static void sig_handler(int signum)
     switch(signum){
         case SIGHUP :
           str = "Caught SIGHUP. Ignoring\n";
-          write(STDERR_FILENO ,str, strlen(str));
+          (void) !write(STDERR_FILENO ,str, strlen(str));
           break;
         case SIGTERM :
            str = "Caught SIGTERM. Use SIGKILL to terminate\n";
-           write(STDERR_FILENO ,str, strlen(str));
+           (void) !write(STDERR_FILENO ,str, strlen(str));
            break;
         case SIGUSR1 :
            str = "Caught SIGUSR1, toggle debug level\n";
-           write(STDERR_FILENO ,str, strlen(str));
+           (void) !write(STDERR_FILENO ,str, strlen(str));
            toogle_log_level(LOG_LEVEL_DEBUG);
            break;
     }

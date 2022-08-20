@@ -98,4 +98,4 @@ DB_ATTR_TYPE get_hashes(bool include_unsupported) {
         }
     }
     return attr;
-};
+}

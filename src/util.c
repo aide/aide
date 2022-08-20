@@ -103,7 +103,7 @@ int cmpurl(url_t* u1,url_t* u2)
   }
 
   return RETOK;
-};
+}
 
 /* Returns 1 if the string contains unsafe characters, 0 otherwise.  */
 int contains_unsafe (const char *s)

@@ -74,7 +74,7 @@ static struct log_level log_level_array[] = {
 
 static void cache_line(LOG_LEVEL, const char*, va_list)
 #ifdef __GNUC__
-    __attribute__ ((format (printf, 2, 0)));
+    __attribute__ ((format (printf, 2, 0)))
 #endif
 ;
 static void cache_line(LOG_LEVEL level, const char* format, va_list ap) {
@@ -127,7 +127,7 @@ static void log_cached_lines(void) {
 
 static void vlog_msg(LOG_LEVEL, const char*, va_list)
 #ifdef __GNUC__
-    __attribute__ ((format (printf, 2, 0)));
+    __attribute__ ((format (printf, 2, 0)))
 #endif
 ;
 static void vlog_msg(LOG_LEVEL level,const char* format, va_list ap) {
@@ -182,7 +182,7 @@ LOG_LEVEL toogle_log_level(LOG_LEVEL level) {
 
 void log_msg(LOG_LEVEL, const char*, ...)
 #ifdef __GNUC__
-    __attribute__ ((format (printf, 2, 3)));
+    __attribute__ ((format (printf, 2, 3)))
 #endif
 ;
 void log_msg(LOG_LEVEL level, const char* format, ...) {
@@ -200,7 +200,7 @@ void log_msg(LOG_LEVEL level, const char* format, ...) {
 
 void stderr_msg(const char* format, ...)
 #ifdef __GNUC__
-    __attribute__ ((format (printf, 1, 2)));
+    __attribute__ ((format (printf, 1, 2)))
 #endif
 ;
 void stderr_msg(const char* format, ...) {

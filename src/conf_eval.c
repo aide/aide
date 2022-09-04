@@ -535,8 +535,8 @@ static void include_file(const char* file, bool execute, int include_depth, char
 }
 
 void check_permissions(const char* path, struct stat *st, int linenumber, char *filename, char* linebuf) {
-    if (st->st_uid != geteuid() || (st->st_mode & 002) != 0 || (st->st_mode & 020) != 0) {
-        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, "'@@x_include': bad ownership or modes for '%s' (please ensure it is neither group- nor world-writable and owned by the current user)", path)
+    if ((st->st_uid != geteuid() && st->st_uid != 0) || (st->st_mode & 002) != 0 || (st->st_mode & 020) != 0) {
+        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, "'@@x_include': bad ownership or modes for '%s' (please ensure it is neither group- nor world-writable and owned by the current user or root)", path)
         exit(INVALID_CONFIGURELINE_ERROR);
     }
 }

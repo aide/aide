@@ -657,7 +657,7 @@ If the executable file exits with status greater than zero or writes to stderr
 aide stops with an error.
 
 For security reasons \fBDIRECTORY\fR and each executable config file must be
-owned by the current user and must not be group- or world-writable.
+owned by the current user or root. They must not be group- or world-writable.
 
 .IP "@@x_include_setenv \fBVAR\fR \fBVALUE\fR (added in AIDE v0.17)"
 

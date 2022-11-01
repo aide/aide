@@ -567,7 +567,7 @@ static void setdefaults_after_config()
 
 #ifdef WITH_PTHREAD
   if(conf->num_workers < 0) {
-      conf->num_workers = 0;
+      conf->num_workers = 1;
       log_msg(LOG_LEVEL_CONFIG, "(default): set 'num_workers' option to %lu", conf->num_workers);
   }
 #endif

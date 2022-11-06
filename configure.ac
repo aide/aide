@@ -377,16 +377,6 @@ AIDE_PKG_CHECK(audit, Linux Auditing Framework, no, AUDIT, audit)
 
 AIDE_PKG_CHECK_HEADERS(mmap, mmap, check, MMAP, [sys/mman.h])
 
-AC_MSG_CHECKING(for prelink)
-AC_ARG_WITH([prelink], AS_HELP_STRING([--with-prelink], [use prelink (default: no)]), [with_prelink=$withval], [with_prelink=no])
-AS_IF([test x"$with_prelink" = xyes], [prelink_path="/usr/sbin/prelink"], [prelink_path="$with_prelink"])
-AC_MSG_RESULT([$prelink_path])
-AS_IF([test x"$with_prelink" != xno], [
-    AIDE_PKG_CHECK_MODULES(prelink, ELF, libelf)
-    AC_DEFINE_UNQUOTED(PRELINK_PATH, "$prelink_path", [path to prelink])
-])
-compoptionstring="${compoptionstring}use prelink: $prelink_path\\n"
-
 AIDE_PKG_CHECK_HEADERS(locale, locale, no, LOCALE, [libintl.h])
 if test "x$with_locale" = xyes; then
     AC_DEFINE_UNQUOTED(LOCALEDIR,"$prefix/lib/locale",[Localedir to use])

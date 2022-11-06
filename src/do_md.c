@@ -91,96 +91,6 @@
 /*
 #include <gcrypt.h>
 */
-
-#ifdef WITH_PRELINK
-#include <sys/wait.h>
-#include <gelf.h>
-
-/*
- *  Is file descriptor prelinked binary/library?
- *  Return: 1(yes) / 0(no)
- *  
- */
-int is_prelinked(int fd) {
-        Elf *elf = NULL;
-        Elf_Scn *scn = NULL;
-        Elf_Data *data = NULL;
-        GElf_Ehdr ehdr;
-        GElf_Shdr shdr;
-        GElf_Dyn dyn;
-        int bingo;
-
-        (void) elf_version(EV_CURRENT);
-
-        if ((elf = elf_begin (fd, ELF_C_READ, NULL)) == NULL
-            || elf_kind(elf) != ELF_K_ELF
-            || gelf_getehdr(elf, &ehdr) == NULL
-            || !(ehdr.e_type == ET_DYN || ehdr.e_type == ET_EXEC)) {
-                elf_end(elf);
-                return 0;
-        }
-
-        bingo = 0;
-        while (!bingo && (scn = elf_nextscn(elf, scn)) != NULL) {
-                (void) gelf_getshdr(scn, &shdr);
-
-                if (shdr.sh_type != SHT_DYNAMIC || shdr.sh_entsize == 0)
-                        continue;
-
-                while (!bingo && (data = elf_getdata (scn, data)) != NULL) {
-                        int maxndx = data->d_size / shdr.sh_entsize;
-                        int ndx;
-
-                        for (ndx = 0; ndx < maxndx; ++ndx) {
-                                (void) gelf_getdyn (data, ndx, &dyn);
-                                if (!(dyn.d_tag == DT_GNU_PRELINKED || dyn.d_tag == DT_GNU_LIBLIST))
-                                        continue;
-                                bingo = 1;
-                                break;
-                        }
-                }
-        }
-        elf_end(elf);
-
-        return bingo;
-}
-
-/*
- * Open path via prelink -y, set fd
- * Return: 0 failure / > 0 success
- *
- */
-pid_t open_prelinked(const char * path, int * fd) {
-        const char *cmd = PRELINK_PATH;
-        pid_t pid = 0;
-        int pipes[2];
-
-        pipes[0] = pipes[1] = -1;
-        if (pipe(pipes) < 0)
-           return 0;
-        pid = fork();
-        switch (pid) {
-           case 0:
-              /* child */
-              close(pipes[0]);
-              dup2(pipes[1], STDOUT_FILENO);
-              close(pipes[1]);
-              execl(cmd, cmd, "--verify", path, (char *) NULL);
-              exit(1);
-              break;
-           case -1:
-              close(pipes[0]);
-              close(pipes[1]);
-              return 0;
-        }
-        /* parent */
-        close(pipes[1]);
-        *fd = pipes[0];
-        return pid;
-}
-
-#endif
-
 pid_t pid = -1;
 int p_parent_to_child[2];
 int p_child_to_parent[2];
@@ -272,9 +182,6 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
         struct stat new_fs;
         int sres=0;
         int stat_diff,filedes;
-#ifdef WITH_PRELINK
-        pid_t prelink_pid;
-#endif
 
 #ifdef HAVE_O_NOATIME
         filedes=open(fullpath,O_RDONLY|O_NOATIME);
@@ -314,19 +221,6 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
             close(filedes);
             return md_hash;
         } else {
-#ifdef WITH_PRELINK
-            prelink_pid=0;
-            log_msg(LOG_LEVEL_DEBUG, "%s> calc_hashsums: check if '%s' is prelinked", fullpath, fullpath);
-            if ( is_prelinked(filedes) ) {
-                close(filedes);
-                log_msg(LOG_LEVEL_DEBUG, "%s> calc_hashsums: open prelinked file '%s'", fullpath, fullpath);
-                prelink_pid = open_prelinked(fullpath, &filedes);
-                if (prelink_pid == 0) {
-                    log_msg(LOG_LEVEL_WARNING, "hash calculation: error on starting prelink for '%s' (hashsums could not be calculated)", fullpath);
-                    return md_hash;
-                }
-            }
-#endif
             off_t r_size=0;
             off_t size=0;
             char* buf;
@@ -357,19 +251,6 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
                     close_md(&mdc, NULL, fullpath);
                     return md_hash;
                 }
-#ifdef WITH_PRELINK
-                if (prelink_pid) {
-                    int status;
-                    (void) waitpid(prelink_pid, &status, 0);
-                    if (!WIFEXITED(status) || WEXITSTATUS(status)) {
-                        log_msg(LOG_LEVEL_WARNING, "hash calculation: error on exit of prelink child process for '%s' (hashsums could not be calculated)", fullpath);
-                        free(buf);
-                        close(filedes);
-                        close_md(&mdc, NULL, fullpath);
-                        return md_hash;
-                    }
-                }
-#endif
                 free(buf);
                 close_md(&mdc, &md_hash, fullpath);
                 close(filedes);
@@ -457,10 +338,6 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
                 int sres=0;
                 int stat_diff,filedes;
 
-#ifdef WITH_PRELINK
-                pid_t prelink_pid;
-#endif
-
 #ifdef HAVE_O_NOATIME
                 filedes=open(child_fullpath,O_RDONLY|O_NOATIME);
                 if(filedes<0) {
@@ -502,20 +379,6 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
                     write_empty_md_hashsums(p_child_to_parent[1], child_pid);
                     continue;
                 } else {
-#ifdef WITH_PRELINK
-                    prelink_pid=0;
-                    log_msg(LOG_LEVEL_DEBUG, "%s> calc_hashsums(child:%d): check if '%s' is prelinked", child_fullpath, child_pid, child_fullpath);
-                    if ( is_prelinked(filedes) ) {
-                        close(filedes);
-                        log_msg(LOG_LEVEL_DEBUG, "%s> calc_hashsums(child:%d): open prelinked file '%s'", child_fullpath, child_pid, child_fullpath);
-                        prelink_pid = open_prelinked(child_fullpath, &filedes);
-                        if (prelink_pid == 0) {
-                            log_msg(LOG_LEVEL_WARNING, "hash calculation(child:%d): error on starting prelink for '%s' (hashsums could not be calculated)", child_pid, child_fullpath);
-                            write_empty_md_hashsums(p_child_to_parent[1], child_pid);
-                            continue;
-                        }
-                    }
-#endif
                     off_t r_size=0;
                     off_t size=0;
                     char* buf;
@@ -525,9 +388,6 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
                     if (init_md(&mdc, child_fullpath)==RETOK) {
                         log_msg(LOG_LEVEL_DEBUG, "%s> calculate hashes for '%s'", child_fullpath, child_fullpath);
 #ifdef HAVE_MMAP
-#ifdef WITH_PRELINK
-                        if (prelink_pid == 0) {
-#endif
                             off_t curpos=0;
 
                             r_size=new_fs.st_size; /* in mmap branch r_size is used as size remaining */
@@ -573,9 +433,6 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
                             close(filedes);
                             write(p_child_to_parent[1], &md_hash, sizeof(md_hash));
                             continue;
-#ifdef WITH_PRELINK
-                        }
-#endif
 #endif /* HAVE_MMAP */
                         buf=checked_malloc(READ_BLOCK_SIZE);
 #if READ_BLOCK_SIZE>SSIZE_MAX
@@ -602,20 +459,6 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
                             continue;
                         }
 
-#ifdef WITH_PRELINK
-                        if (prelink_pid) {
-                            int status;
-                            (void) waitpid(prelink_pid, &status, 0);
-                            if (!WIFEXITED(status) || WEXITSTATUS(status)) {
-                                log_msg(LOG_LEVEL_WARNING, "hash calculation: error on exit of prelink child process for '%s' (hashsums could not be calculated)", child_fullpath);
-                                free(buf);
-                                close(filedes);
-                                close_md(&mdc, NULL, child_fullpath);
-                                write_empty_md_hashsums(p_child_to_parent[1], child_pid);
-                                continue;
-                            }
-                        }
-#endif
                         free(buf);
                         close(filedes);
                         close_md(&mdc, &md_hash, child_fullpath);

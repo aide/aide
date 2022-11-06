@@ -1,3 +1,6 @@
+2022-11-06 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Remove Prelink support (--with-prelink configure option)
+
 2022-11-01 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Change default number of workers to 1 (single-thread)
 	* Fix typo in aide.conf manual page

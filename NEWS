@@ -1,4 +1,7 @@
 Version 0.18 (UNRELEASED)
+    * BACKWARDS INCOMPATIBLE CHANGES
+        - remove Prelink support (--with-prelink configure option)
+
     * Switch from PCRE to PCRE2
     * Enable dynamic linking by default
     * Support multithreading for hashsum calculation

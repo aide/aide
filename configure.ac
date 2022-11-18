@@ -365,7 +365,7 @@ AIDE_PKG_CHECK_MODULES_OPTIONAL(gcrypt, GCRYPT, libgcrypt)
 AS_IF([test x"$with_mhash" != xno && test x"$with_gcrypt" != xno], [
     AC_MSG_ERROR([Using gcrypt together with mhash makes no sense. To disable mhash use --without-mhash])
 ])
-AS_IF([test x"$with_mhash" == xno && test x"$with_gcrypt" == xno], [
+AS_IF([test x"$with_mhash" = xno && test x"$with_gcrypt" = xno], [
     AC_MSG_ERROR([AIDE requires mhash or libcrypt for hashsum calculation])
 ])
 compoptionstring="${compoptionstring}use Mhash: $with_mhash\\n"

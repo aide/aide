@@ -1,6 +1,6 @@
 AC_DEFUN([AIDE_PKG_CHECK_MODULES],
 [
-   if test "$aide_static_choice" == "yes"; then
+   if test "$aide_static_choice" = "yes"; then
        PKG_CHECK_MODULES_STATIC($2, [$3], [], [AC_MSG_ERROR([$3 not found by pkg-config - Try --without-$1 or add directory containing $3.pc to PKG_CONFIG_PATH environment variable])])
     else
        PKG_CHECK_MODULES($2, [$3], [], [AC_MSG_ERROR([$3 not found by pkg-config - Try --without-$1 or add directory containing $3.pc to PKG_CONFIG_PATH environment variable])])
@@ -11,7 +11,7 @@ AC_DEFUN([AIDE_PKG_CHECK_MODULES],
 AC_DEFUN([AIDE_PKG_CHECK_MODULES_OPTIONAL],
 [
     AS_IF([test x"$with_$1" != xno], [
-   if test "$aide_static_choice" == "yes"; then
+   if test "$aide_static_choice" = "yes"; then
        PKG_CHECK_MODULES_STATIC($2, [$3], [
             with_$1=yes
        ], [
@@ -56,7 +56,7 @@ AC_DEFUN([AIDE_PKG_CHECK],
 
 AC_DEFUN([AIDE_PKG_CHECK_MANDATORY],
 [
-   if test "$aide_static_choice" == "yes"; then
+   if test "$aide_static_choice" = "yes"; then
        PKG_CHECK_MODULES_STATIC($2, [$3], [], [AC_MSG_ERROR([$3 not found by pkg-config - Try to add directory containing $3.pc to PKG_CONFIG_PATH environment variable])])
     else
        PKG_CHECK_MODULES($2, [$3], [], [AC_MSG_ERROR([$3 not found by pkg-config - Try to add directory containing $3.pc to PKG_CONFIG_PATH environment variable])])

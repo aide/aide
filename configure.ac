@@ -282,8 +282,11 @@ AC_CHECK_HEADERS(sys/prctl.h)
 AC_CACHE_CHECK([for open/O_NOATIME], db_cv_open_o_noatime, [
 echo "test for working open/O_NOATIME" > __o_noatime_file
 AC_RUN_IFELSE([AC_LANG_SOURCE([
-#include <sys/types.h>
 #include <fcntl.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #ifndef O_NOATIME
 #if defined(__linux__) && (defined(__i386__) || defined(__PPC__))
 #define O_NOATIME 01000000
@@ -291,13 +294,14 @@ AC_RUN_IFELSE([AC_LANG_SOURCE([
 #define O_NOATIME 0
 #endif
 #endif
-main() {
+int main(void) {
 int c, fd = open("__o_noatime_file", O_RDONLY | O_NOATIME, 0);
 exit ((!O_NOATIME) || (fd == -1) || (read(fd, &c, 1) != 1));
 } ]) ], [db_cv_open_o_noatime=yes], [db_cv_open_o_noatime=no],
 AC_LINK_IFELSE([AC_LANG_PROGRAM([
-#include <sys/types.h>   
 #include <fcntl.h>
+#include <sys/types.h
+#include <sys/stat.h>>
 #ifndef O_NOATIME
 #if defined(__linux__) && (defined(__i386__) || defined(__PPC__))
 #define O_NOATIME 01000000

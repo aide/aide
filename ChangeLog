@@ -1,3 +1,7 @@
+2022-11-20 Sam James <sam@gentoo.org>
+	* Fix bashisms in build system
+	* Fix configure.ac compatibility with Clang 16
+
 2022-11-06 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Remove Prelink support (--with-prelink configure option)
 

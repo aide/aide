@@ -1,3 +1,6 @@
+2023-01-15 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Do not show 'different attributes' message for ignored attributes
+
 2022-11-20 Sam James <sam@gentoo.org>
 	* Fix bashisms in build system
 	* Fix configure.ac compatibility with Clang 16

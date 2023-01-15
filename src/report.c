@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2007, 2010-2013, 2015-2016, 2018-2022 Rami Lehti,
+ * Copyright (C) 1999-2007, 2010-2013, 2015-2016, 2018-2023 Rami Lehti,
  *               Pablo Virolainen, Mike Markley, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -717,7 +717,7 @@ static void terse_report(seltree* node) {
             /* File is in both db's and the data is still there. (CHANGED) */
             if (!(node->checked&(NODE_MOVED_IN|NODE_MOVED_OUT))){
                 if (r->level >= REPORT_LEVEL_LIST_ENTRIES
-                  && (node->old_data->attr&~(r->ignore_removed_attrs))^(node->new_data->attr&~(r->ignore_added_attrs)) ) {
+                  && ((node->old_data->attr&~(r->ignore_removed_attrs))^(node->new_data->attr&~(r->ignore_added_attrs)))&((node->old_data->attr)^(node->new_data->attr)) ) {
                     r->diff_attrs_entries = checked_realloc(r->diff_attrs_entries, (r->num_diff_attrs_entries+1) * sizeof(diff_attrs_entry));
                     r->diff_attrs_entries[r->num_diff_attrs_entries].entry = node->old_data->filename;
                     r->diff_attrs_entries[r->num_diff_attrs_entries].old_attrs = node->old_data->attr&~(r->ignore_removed_attrs);
@@ -818,10 +818,10 @@ void print_report_details(report_t *report, seltree* node, void (*print_attribut
     }
     if (report->level >= REPORT_LEVEL_ADDED_REMOVED_ENTRIES) {
         if (node->checked&NODE_ADDED) {
-            print_attributes(report, NULL, node->new_data, (node->new_data)->attr);
+            print_attributes(report, NULL, node->new_data, (node->new_data)->attr&~(report->ignore_added_attrs));
         }
         if (node->checked&NODE_REMOVED) {
-            print_attributes(report, node->old_data, NULL, (node->old_data)->attr);
+            print_attributes(report, node->old_data, NULL, (node->old_data)->attr&~(report->ignore_removed_attrs));
         }
     }
     for(r=node->childs;r;r=r->next){

@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2020, 2022 Hannes von Haugwitz
+ * Copyright (C) 2020, 2022, 2023 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -32,10 +32,11 @@ typedef enum { /* preserve order */
     LOG_LEVEL_NOTICE = 3,
     LOG_LEVEL_INFO = 4,
     LOG_LEVEL_RULE = 5,
-    LOG_LEVEL_CONFIG = 6,
-    LOG_LEVEL_DEBUG = 7,
-    LOG_LEVEL_THREAD = 8,
-    LOG_LEVEL_TRACE = 9,
+    LOG_LEVEL_COMPARE = 6,
+    LOG_LEVEL_CONFIG = 7,
+    LOG_LEVEL_DEBUG = 8,
+    LOG_LEVEL_THREAD = 9,
+    LOG_LEVEL_TRACE = 10,
 } LOG_LEVEL;
 
 #ifdef WITH_PTHREAD

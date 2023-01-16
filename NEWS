@@ -12,10 +12,15 @@ Version 0.18 (UNRELEASED)
       - add new exit code 23 for thread errors
       - require Autoconf Macro Archive (autoconf-archive)
     * Deprecations (to be removed in the release after next):
+        - 'S' attribute is now deprecated, use 'growing+s' attributes instead
         - '@@ifdef', macro is now deprecated, use '@@if defined' instead
         - '@@ifndef', macro is now deprecated, use '@@if not defined' instead
         - '@@ifhost', macro is now deprecated, use '@@if hostame' instead
         - '@@ifnhost', macro is now deprecated, use '@@if not hostname' instead
+    * add new 'growing' attribute
+    * add new 'compression' attribute
+    * add new log level 'compare'
+    * replace 'S' attribute in '>' compound group with 'growing+s'
     * Add 'report_format' option (available formats: `plain`, `json`)
     * Add @@if macro
     * Add 'exists' boolean function

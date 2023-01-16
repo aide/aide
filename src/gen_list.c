@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006, 2009-2012, 2015-2016, 2019-2022 Rami Lehti,
+ * Copyright (C) 1999-2006, 2009-2012, 2015-2016, 2019-2023 Rami Lehti,
  *               Pablo Virolainen, Mike Markley, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -58,6 +58,8 @@
 void hsymlnk(db_line* line);
 void fs2db_line(struct stat* fs,db_line* line);
 void no_hash(db_line* line);
+
+LOG_LEVEL compare_log_level = LOG_LEVEL_COMPARE;
 
 static int bytecmp(byte *b1, byte *b2, size_t len) {
   return strncmp((char *)b1, (char *)b2, len);
@@ -158,12 +160,36 @@ static int has_e2fsattrs_changed(unsigned long old, unsigned long new) {
 }
 #endif
 
+static DB_ATTR_TYPE get_changed_hashsums(DB_ATTR_TYPE hashes, byte** old, byte** new) {
+    DB_ATTR_TYPE changed_hashsums = 0;
+    for (int i = 0 ; i < num_hashes ; ++i) {
+        DB_ATTR_TYPE attr = ATTR(hashsums[i].attribute);
+        if(attr&hashes && has_md_changed(old[i], new[i], hashsums[i].length)) {
+            changed_hashsums|=attr;
+        }
+    }
+    return changed_hashsums;
+}
+
 /*
  * Returns the changed attributes for two database lines.
  *
  * Attributes are only compared if they exist in both database lines.
 */
-static DB_ATTR_TYPE get_changed_attributes(db_line* l1,db_line* l2) {
+static DB_ATTR_TYPE get_changed_attributes(db_line* l1,db_line* l2, DB_ATTR_TYPE ignore_attrs, struct stat* fs, bool compare_hashsums) {
+
+#define easy_growing_compare(a,b) \
+    if(((a&l1->attr) && (a&l2->attr))) { \
+        if (l1->attr&ATTR(attr_growing)) { \
+            if (l1->b < l2->b) { \
+                log_msg(compare_log_level, "│ ignore growing " #b " change of '%s' and '%s'", l1->filename, l2->filename); \
+            } else if (l1->b > l2->b) { \
+                ret|=a; \
+            } \
+        } else if (l1->b != l2->b) { \
+            ret|=a; \
+        } \
+    }
 
 #define easy_compare(a,b) \
     if((a&l1->attr && (a&l2->attr)) && l1->b!=l2->b){\
@@ -177,26 +203,73 @@ static DB_ATTR_TYPE get_changed_attributes(db_line* l1,db_line* l2) {
 
     DB_ATTR_TYPE ret=0;
 
+    if (l1->attr&ATTR(attr_growing)) {
+        log_msg(compare_log_level, "│ '%s' has growing attribute set, ignore growing changes", l1->filename);
+    }
+
     if ((ATTR(attr_ftype)&l1->attr && ATTR(attr_ftype)&l2->attr) && (l1->perm&S_IFMT)!=(l2->perm&S_IFMT)) { ret|=ATTR(attr_ftype); }
     easy_function_compare(ATTR(attr_linkname),linkname,has_str_changed);
     if ((ATTR(attr_sizeg)&l1->attr && ATTR(attr_sizeg)&l2->attr) && l1->size>l2->size){ ret|=ATTR(attr_sizeg); }
-    easy_compare(ATTR(attr_size),size);
-    easy_compare(ATTR(attr_bcount),bcount);
+    easy_growing_compare(ATTR(attr_size),size);
+    easy_growing_compare(ATTR(attr_bcount),bcount);
     easy_compare(ATTR(attr_perm),perm);
     easy_compare(ATTR(attr_uid),uid);
     easy_compare(ATTR(attr_gid),gid);
-    easy_compare(ATTR(attr_atime),atime);
-    easy_compare(ATTR(attr_mtime),mtime);
-    easy_compare(ATTR(attr_ctime),ctime);
+    easy_growing_compare(ATTR(attr_atime),atime);
+    easy_growing_compare(ATTR(attr_mtime),mtime);
+    easy_growing_compare(ATTR(attr_ctime),ctime);
     easy_compare(ATTR(attr_inode),inode);
     easy_compare(ATTR(attr_linkcount),nlink);
 
-  for (int i = 0 ; i < num_hashes ; ++i) {
-    DB_ATTR_TYPE attr = ATTR(hashsums[i].attribute);
-    if((attr&l1->attr && (attr&l2->attr)) && has_md_changed(l1->hashsums[i],l2->hashsums[i], hashsums[i].length)){
-        ret|=attr;
+    if (compare_hashsums) {
+        DB_ATTR_TYPE changed_hashsums = get_changed_hashsums(l1->attr&l2->attr, l1->hashsums, l2->hashsums);
+        if (changed_hashsums) {
+            char *str;
+            str = diff_attributes(0,changed_hashsums);
+            log_msg(compare_log_level, "│ '%s' and '%s' have CHANGED hashsum(s): %s", l1->filename, l2->filename, str);
+            free(str);
+            if (l1->attr&ATTR(attr_growing)) {
+                if (conf->action&DO_COMPARE) {
+                    if(l1->size < l2->size) {
+                        log_msg(compare_log_level, "┝ '%s' has growing attribute set, check for growing hashsums", l1->filename);
+                        log_msg(compare_log_level, "│ compare hashsums of '%s' and '%s' limited to old size %d", l1->filename, l2->filename, l1->size);
+                        md_hashsums hs = calc_hashsums(l2->fullpath, l2->attr, fs, l1->size, false);
+
+                        byte* new_hashsums[num_hashes];
+                        for (int i = 0 ; i < num_hashes ; ++i) {
+                            DB_ATTR_TYPE attr = ATTR(hashsums[i].attribute);
+                            if (hs.attrs&attr) {
+                                new_hashsums[i] = checked_malloc(hashsums[i].length);
+                                memcpy(new_hashsums[i],hs.hashsums[i],hashsums[i].length);
+                            } else {
+                                new_hashsums[i] = NULL;
+                            }
+                        }
+
+                        DB_ATTR_TYPE new_changed = get_changed_hashsums(l1->attr&l2->attr, l1->hashsums, new_hashsums);
+
+                        for (int i = 0 ; i < num_hashes ; ++i) {
+                            free(new_hashsums[i]);
+                        }
+
+                        if (new_changed) {
+                            str = diff_attributes(0,new_changed);
+                            log_msg(compare_log_level, "│ keep hashsums as CHANGED (hashsums of '%s' limited to old size %d have been changed: %s)", l2->filename, l1->size, str);
+                            free(str);
+                        } else {
+                            log_msg(compare_log_level, "│ set hashsums as UNCHANGED (hashsums of '%s' limited to old size %d have NOT been changed)", l2->filename, l1->size);
+                            changed_hashsums = 0;
+                        }
+                    } else {
+                        log_msg(compare_log_level, "┝ '%s' has growing attribute set, but skip hashsum calculation (old size is greater than or equal to new size)", l1->filename);
+                    }
+                } else {
+                    log_msg(compare_log_level, "┝ '%s' has growing attribute set, but skip hashsum calculation (NOT supported in dataase compare mode)", l1->filename);
+                }
+            }
+        }
+        ret |= changed_hashsums;
     }
-  }
 
 #ifdef WITH_ACL
     easy_function_compare(ATTR(attr_acl),acl,has_acl_changed);
@@ -214,45 +287,46 @@ static DB_ATTR_TYPE get_changed_attributes(db_line* l1,db_line* l2) {
     easy_function_compare(ATTR(attr_capabilities),capabilities,has_str_changed);
 #endif
 
+    char *str;
+    if (ignore_attrs) {
+        str = diff_attributes(0, ignore_attrs);
+        log_msg(compare_log_level, "│ attribute changes to ignore: %s", str);
+        free(str);
+    }
+    DB_ATTR_TYPE ignored_attributes = ret&ignore_attrs;
+    char *ignored_attrs_str = ignored_attributes?diff_attributes(0, ignored_attributes):NULL;
+    ret &= ~ignore_attrs;
+    if (ret) {
+        str = diff_attributes(0, ret);
+        log_msg(compare_log_level, "│ '%s' and '%s' have CHANGED attributes: %s (ignored attributes: %s)", l1->filename, l2->filename, str, ignored_attrs_str?ignored_attrs_str:"<none>");
+        free(str);
+    } else {
+        log_msg(compare_log_level, "│ '%s' and '%s' have NO changed attributes (ignored attributes: %s)", l1->filename, l2->filename, ignored_attrs_str?ignored_attrs_str:"<none>");
+    }
+    free(ignored_attrs_str);
     return ret;
 }
 
-/* This function returns a node with the same inode value as the 'file' */
-/* The only place it is used is in add_file_to_tree() function */
-static seltree* get_seltree_inode(seltree* tree, db_line* file, int db)
-{
-  seltree* node=NULL;
-  list* r=NULL;
-  char* tmp=NULL;
-
-  if(tree==NULL){
-    return NULL;
-  }
-
-  /* found the match */
-  if((db == DB_NEW &&
-      tree->new_data != NULL &&
-      file->inode == tree->new_data->inode) ||
-     (db == DB_OLD &&
-      tree->old_data != NULL &&
-      file->inode == tree->old_data->inode)) {
-    return tree;
-  }
-
-  /* tmp is the directory of the file->filename */
-  tmp=strgetndirname(file->filename,treedepth(tree)+1);
-  for(r=tree->childs;r;r=r->next){
-    /* We are interested only in files with the same regexp specification */
-    if(strlen(tmp) == strlen(file->filename) ||
-       strncmp(((seltree*)r->data)->path,tmp,strlen(tmp)+1)==0){
-      node=get_seltree_inode((seltree*)r->data,file,db);
-      if(node!=NULL){
-	break;
-      }
+static DB_ATTR_TYPE get_different_attributes(db_line* l1, db_line* l2, DB_ATTR_TYPE ignore_attrs) {
+    DB_ATTR_TYPE ret = l1->attr^l2->attr;
+    char *str;
+    if (ignore_attrs) {
+        str = diff_attributes(0, ignore_attrs);
+        log_msg(compare_log_level, "│ attribute differences to ignore: %s", str);
+        free(str);
     }
-  }
-  free(tmp);
-  return node;
+    DB_ATTR_TYPE ignored_attributes = ret&ignore_attrs;
+    char *ignored_attrs_str = ignored_attributes?diff_attributes(0, ignored_attributes):NULL;
+    ret &= ~ignore_attrs;
+    if (ret) {
+        str = diff_attributes(l1->attr&~ignore_attrs, l2->attr&~ignore_attrs);
+        log_msg(compare_log_level, "│ '%s' and '%s' have different attributes: %s (ignored attributes: %s)", l1->filename, l2->filename, str, ignored_attrs_str?ignored_attrs_str:"<none>");
+        free(str);
+    } else {
+        log_msg(compare_log_level, "│ '%s' and '%s' have NO different attributes (ignored attributes: %s)", l1->filename, l2->filename, ignored_attrs_str?ignored_attrs_str:"<none>");
+    }
+    free(ignored_attrs_str);
+    return ret;
 }
 
 void print_match(char* filename, rx_rule *rule, match_result match, RESTRICTION_TYPE restriction) {
@@ -326,7 +400,10 @@ void strip_dbline(db_line* line)
   if(!(attr&ATTR(attr_linkcount))){
     line->nlink=0;
   }
-  if(!(attr&ATTR(attr_size))&&!(attr&ATTR(attr_sizeg))){
+  if(!(attr&ATTR(attr_size))
+    && !(attr&ATTR(attr_sizeg))
+    && !(attr&ATTR(attr_growing) && attr&get_hashes(true))
+    ){
     line->size=0;
   }
   if(!(attr&ATTR(attr_bcount))){
@@ -372,7 +449,7 @@ void strip_dbline(db_line* line)
 /*
  * add_file_to_tree
  */
-void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *db)
+void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *db, struct stat* fs)
 {
   log_msg(LOG_LEVEL_TRACE, "add_file_to_tree: '%s'", file->filename);
   seltree* node=NULL;
@@ -400,6 +477,11 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
     node->old_data=file;
     break;
   }
+  case DB_NEW|DB_DISK: {
+    log_msg(LOG_LEVEL_DEBUG, "add disk entry '%s' (%c) to node '%s' (%p) as new data", file->filename, get_file_type_char_from_perm(file->perm), node->path, node);
+    node->new_data=file;
+    break;
+  }
   case DB_NEW: {
     log_msg(LOG_LEVEL_DEBUG, "add new entry '%s' (%c) to node '%s' (%p) as new data", file->filename, get_file_type_char_from_perm(file->perm), node->path, node);
     node->new_data=file;
@@ -420,18 +502,15 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
   }
   }
 
-  if((node->checked&DB_OLD)&&(node->checked&DB_NEW)){
-    node->changed_attrs=get_changed_attributes(node->old_data,node->new_data);
-    char *str;
-    str = node->changed_attrs?diff_attributes(0, node->changed_attrs):NULL;
-    log_msg(LOG_LEVEL_DEBUG,"changed attributes for entry '%s': %s", (node->old_data)->filename, str?str:"(none)");
-    free(str);
-    str = ((node->old_data)->attr^(node->new_data)->attr)?diff_attributes((node->old_data)->attr, (node->new_data)->attr):NULL;
-    log_msg(LOG_LEVEL_DEBUG,"different attributes for entry '%s': %s", (node->old_data)->filename, str?str:"(none)");
-    free(str);
+    if (conf->action&(DO_COMPARE|DO_DIFF)) {
+        log_msg(compare_log_level, "┬ handle '%s' from %s", node->path, db_flags==DB_OLD ? "old database": (db_flags==DB_NEW ? "new database": "disk"));
+        if((node->checked&DB_OLD)&&(node->checked&DB_NEW)){
+    log_msg(compare_log_level, "┝ compare attributes of '%s'", node->path);
+    get_different_attributes(node->old_data,node->new_data, 0);
+    node->changed_attrs=get_changed_attributes(node->old_data,node->new_data, 0, fs, true);
     /* Free the data if same else leave as is for report_tree */
     if(node->changed_attrs==RETOK && !((node->old_data)->attr^(node->new_data)->attr)) {
-      log_msg(LOG_LEVEL_DEBUG, "free old data (node '%s' is unchanged)", node->path);
+      log_msg(LOG_LEVEL_DEBUG, "│ free old data (node '%s' is unchanged)", node->path);
       node->changed_attrs=0;
 
       free_db_line(node->old_data);
@@ -440,88 +519,147 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
 
       /* Free new data if not needed for write_tree */
       if(conf->action&DO_INIT) {
-          log_msg(LOG_LEVEL_DEBUG, "keep new data (node '%s' is unchanged, but keep it for database_out)", node->path);
+          log_msg(LOG_LEVEL_DEBUG, "│ keep new data (node '%s' is unchanged, but keep it for database_out)", node->path);
           node->checked|=NODE_FREE;
       } else {
-          log_msg(LOG_LEVEL_DEBUG, "free new data (node '%s' is unchanged)", node->path);
+          log_msg(LOG_LEVEL_DEBUG, "│ free new data (node '%s' is unchanged)", node->path);
           free_db_line(node->new_data);
           free(node->new_data);
           node->new_data=NULL;
       }
+      log_msg(compare_log_level, "┴ finished '%s'", node->path);
       return;
     }
+  } else if(node->checked&DB_NEW) {
+      log_msg(LOG_LEVEL_DEBUG, "│ '%s' is new (no old data exists)", node->path);
   }
 
-  /* Do verification if file was moved only if we are asked for it.
-   * old and new data are NULL only if file present in both DBs
-   * and has not been changed.
-   */
-  if( (node->old_data!=NULL || node->new_data!=NULL) &&
-    (file->attr & ATTR(attr_checkinode))) {
-    log_msg(LOG_LEVEL_DEBUG, "'%s' has check inode group set, checking for moved file", file->filename);
-    /* Check if file was moved (same inode, different name in the other DB)*/
-    seltree* moved_node;
+  DB_ATTR_TYPE move_ignored_attr = ATTR(attr_allownewfile)|ATTR(attr_allowrmfile)|ATTR(attr_checkinode)|ATTR(attr_compressed)|ATTR(attr_growing);
+  if (db_flags&DB_NEW) {
+      db_line *new_file = node->new_data;
+      if (new_file->attr&ATTR(attr_compressed)) {
+          if (new_file->attr&get_hashes(false)) {
+              if (conf->action&DO_COMPARE) {
+                  log_msg(compare_log_level, "┝ '%s' has compressed attribute set, calculate uncompressed hashsums", new_file->filename);
 
-    moved_node=get_seltree_inode(tree,file,db_flags==DB_OLD?DB_NEW:DB_OLD);
-    if(!(moved_node == NULL || moved_node == node)) {
-      db_line *oldData;
-      db_line *newData;
-      if(db_flags == DB_NEW) {
-        newData = node->new_data;
-        oldData = moved_node->old_data;
-        log_msg(LOG_LEVEL_DEBUG, "checking old data of node '%s' with new data of '%s'", moved_node->path, node->path);
+                  seltree *moved_node = NULL;
+
+                  md_hashsums hs = calc_hashsums(new_file->fullpath, new_file->attr, fs, -1, true);
+                  if (hs.attrs) {
+                      byte* new_hashsums[num_hashes];
+                      for (int i = 0 ; i < num_hashes ; ++i) {
+                          DB_ATTR_TYPE attr = ATTR(hashsums[i].attribute);
+                          if (hs.attrs&attr) {
+                              new_hashsums[i] = checked_malloc(hashsums[i].length);
+                              memcpy(new_hashsums[i],hs.hashsums[i],hashsums[i].length);
+                          } else {
+                              new_hashsums[i] = NULL;
+                          }
+                      }
+                      log_msg(compare_log_level, "│ search for original file with uncompressed hashsums of '%s;", new_file->filename);
+
+                      for(list* r=(node->parent)->childs ; r ; r=r->next) {
+                          if (((seltree*)r->data)->old_data && get_changed_hashsums(new_file->attr, (((seltree*)r->data)->old_data)->hashsums, new_hashsums) == 0) {
+                              moved_node = r->data;
+                              break;
+                          }
+                      }
+
+                      for (int i = 0 ; i < num_hashes ; ++i) {
+                          free(new_hashsums[i]);
+                      }
+                      if (moved_node) {
+                          log_msg(compare_log_level, "│ found '%s' with same hashsum(s) as uncompressed file '%s'", (moved_node->old_data)->filename, new_file->filename);
+                          log_msg(compare_log_level, "│ compare attributes of original file '%s' and compressed file '%s'", (moved_node->old_data)->filename, new_file->filename);
+                          if (get_different_attributes(moved_node->old_data, new_file, move_ignored_attr)) {
+                              log_msg(compare_log_level, "│ ignore '%s' as original file of compressed file '%s' (due to different attributes)", (moved_node->old_data)->filename, new_file->filename);
+                          } else if (get_changed_attributes((moved_node->old_data), new_file, ATTR(attr_ctime)|ATTR(attr_size)|ATTR(attr_inode), fs, false) == RETOK) {
+                              node->checked |= NODE_MOVED_IN;
+                              moved_node->checked |= NODE_MOVED_OUT;
+                              log_msg(compare_log_level,_("│ accept '%s' as original file of compressed file '%s'"), (moved_node->old_data)->filename, new_file->filename);
+                              log_msg(compare_log_level, "┴ finished '%s'", node->path);
+                              return;
+                          } else {
+                              log_msg(compare_log_level,"│ ignore '%s' as original file of compressed file '%s' (due to changed attributes)", (moved_node->old_data)->filename, new_file->filename);
+                          }
+                      } else {
+                          log_msg(compare_log_level, "│ NO original file with same hashsum(s) found for compressed file '%s'", new_file->filename);
+                      }
+                  } else {
+                      log_msg(compare_log_level, "│ calculation of uncompressed hashsums for comprressed file '%s' FAILED", new_file->filename);
+                  }
+              } else {
+                  log_msg(compare_log_level, "┝ '%s' has compressed attribute set, but skip hashsum calculation (NOT supported in dataase compare mode)", new_file->filename);
+              }
+          } else {
+              log_msg(compare_log_level, "┝ '%s' has compressed attribute set, but skip hashsum calculation (file has no hashsums set)", new_file->filename);
+          }
+      }
+  }
+
+  if (node->parent != NULL) { /* root (/) has no parent */
+      if (db_flags&DB_OLD) {
+          if(file->attr & ATTR(attr_checkinode)) {
+              log_msg(LOG_LEVEL_DEBUG, "│ '%s' has check inode attribute set, set NODE_CHECK_INODE_CHILD for parent '%s'", file->filename, (node->parent)->path);
+              (node->parent)->checked |= NODE_CHECK_INODE_CHILDS;
+          }
       } else {
-        newData = moved_node->new_data;
-        oldData = node->old_data;
-        log_msg(LOG_LEVEL_DEBUG, "checking old data of node '%s' with new data of '%s'", node->path, moved_node->path);
-      }
+          if( (node->parent)->checked&NODE_CHECK_INODE_CHILDS && node->new_data != NULL ) {
+              log_msg(compare_log_level, "┝ parent directory (%s) of '%s' has entries with check inode attribute set, search for source file with same inode", (node->parent)->path, (node->new_data)->filename);
+              seltree* moved_node = NULL;
+              for (list* c = (node->parent)->childs ; c ; c = c->next) {
+                  seltree* child =  c->data;
+                  if (child != node && !(child->checked&NODE_MOVED_OUT) && child->old_data != NULL && (child->old_data)->attr & ATTR(attr_checkinode)) {
+                      if ((child->old_data)->inode == (node->new_data)->inode) {
+                          moved_node=child;
+                          break;
+                      } else {
+                        log_msg(LOG_LEVEL_DEBUG, "│ '%s' has check inode attribute set and not already been moved but different inode", (child->old_data)->filename);
+                      }
+                  }
+              }
+             if(moved_node != NULL) {
+                  log_msg(compare_log_level, "│ found '%s' with check inode attribute set and same inode as file '%s'", moved_node->path, (node->new_data)->filename);
+                  db_line *newData = node->new_data;
+                  db_line *oldData = moved_node->old_data;
+                  log_msg(compare_log_level, "│ compare attributes of source file '%s' and target file '%s'", oldData->filename, newData->filename);
 
-      DB_ATTR_TYPE move_attr = ATTR(attr_allownewfile)|ATTR(attr_allowrmfile)|ATTR(attr_checkinode);
-
-      if((oldData->attr^newData->attr)&(~move_attr)) {
-         char *str;
-         log_msg(LOG_LEVEL_DEBUG, "ignoring moved entry ('%s' => '%s') due to different attributes: %s",
-                 oldData->filename, newData->filename, str = diff_attributes(oldData->attr&(~move_attr), newData->attr&(~move_attr)));
-         free(str);
-     } else {
-         /* Free the data if same else leave as is for report_tree */
-         DB_ATTR_TYPE changed_attr_moved_file = get_changed_attributes(oldData, newData);
-         if ((changed_attr_moved_file&~(ATTR(attr_ctime))) == RETOK) {
-             node->checked |= db_flags==DB_NEW ? NODE_MOVED_IN : NODE_MOVED_OUT;
-             moved_node->checked |= db_flags==DB_NEW ? NODE_MOVED_OUT : NODE_MOVED_IN;
-             if (changed_attr_moved_file & (ATTR(attr_ctime))) {
-                log_msg(LOG_LEVEL_DEBUG,_("  ctime is ignored, due to filename change: '%s' => '%s'"), oldData->filename, newData->filename);
-             }
-             log_msg(LOG_LEVEL_DEBUG,_("  entry has been moved: '%s' => '%s'"), oldData->filename, newData->filename);
-         } else {
-             log_msg(LOG_LEVEL_DEBUG,"  ignoring moved entry ('%s' => '%s') because the entries mismatch\n",
-                     oldData->filename, newData->filename);
-         }
+                  if (get_different_attributes(oldData, newData, move_ignored_attr)) {
+                      log_msg(compare_log_level, "│ ignore '%s' as source file of target file '%s' (due to different attributes)", oldData->filename, newData->filename);
+                  } else if (get_changed_attributes(oldData, newData, ATTR(attr_ctime), fs, true) == RETOK) {
+                      node->checked |= NODE_MOVED_IN;
+                      moved_node->checked |= NODE_MOVED_OUT;
+                      log_msg(compare_log_level, "│ accept '%s' as source file of target file '%s'", oldData->filename, newData->filename);
+                      log_msg(compare_log_level, "┴ finished '%s'", node->path);
+                      return;
+                  } else {
+                      log_msg(compare_log_level, "│ ignore '%s' as source file of target file '%s' (due to changed attributes)", oldData->filename, newData->filename);
+                  }
+              } else {
+                  log_msg(compare_log_level, "│ no source file found for target file '%s'", (node->new_data)->filename);
+              }
+          }
       }
-    } else {
-        /* There's mo match for inode or it matches the node with the same name.
-         * In first case we don't have a match to compare with.
-         * In the second - we already compared those files. */
-        log_msg(LOG_LEVEL_DEBUG, "no moved file found for '%s'", file->filename);
-    }
   }
-  if( (db_flags == DB_NEW) &&
+  if( (db_flags&DB_NEW) &&
       (node->new_data!=NULL) &&
       (file->attr & ATTR(attr_allownewfile)) ){
 	 node->checked|=NODE_ALLOW_NEW;
-     log_msg(LOG_LEVEL_DEBUG,_(" mark node '%s' as NODE_ALLOW_NEW (reason: entry '%s' has ANF attribute set)"), node->path, file->filename);
+     log_msg(compare_log_level,_("│ '%s' has ANF attribute set, ignore addition of entry in the report"), file->filename);
   }
-  if( (db_flags == DB_OLD) &&
+  if( (db_flags&DB_OLD) &&
       (node->old_data!=NULL) &&
       (file->attr & ATTR(attr_allowrmfile)) ){
 	  node->checked|=NODE_ALLOW_RM;
-     log_msg(LOG_LEVEL_DEBUG,_(" mark node '%s' as NODE_ALLOW_RM (reason: entry '%s' has ARF attribute set)"), node->path, file->filename);
+     log_msg(compare_log_level,_("│ '%s' has ARF attribute set, ignore removal of entry in the report"), file->filename);
   }
+  log_msg(compare_log_level,"┴ finished '%s'", node->path);
+    }
 }
 
-match_result check_rxtree(char* filename,seltree* tree, rx_rule* *rule, RESTRICTION_TYPE file_type)
+match_result check_rxtree(char* filename,seltree* tree, rx_rule* *rule, RESTRICTION_TYPE file_type, char* source)
 {
-  log_msg(LOG_LEVEL_RULE, "\u252c process '%s' (filetype: %c)", filename, get_restriction_char(file_type));
+  log_msg(LOG_LEVEL_RULE, "\u252c process '%s' from %s (filetype: %c)", filename, source, get_restriction_char(file_type));
 
   if(conf->limit!=NULL) {
       int match=pcre2_match(conf->limit_crx, (PCRE2_SPTR) filename, PCRE2_ZERO_TERMINATED, 0, PCRE2_PARTIAL_SOFT, conf->limit_md, NULL);
@@ -636,7 +774,7 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct stat *fs)
 #endif
 
   if (line->attr&get_hashes(true) && S_ISREG(fs->st_mode)) {
-    md_hashsums hs = calc_hashsums(line->fullpath, line->attr, fs);
+    md_hashsums hs = calc_hashsums(line->fullpath, line->attr, fs, -1, false);
     if (hs.attrs) {
         hashsums2line(&hs,line);
     } else {
@@ -686,45 +824,15 @@ void populate_tree(seltree* tree)
     initdbwarningprinted=1;
   }
   
-    if(conf->action&DO_DIFF){
-        log_msg(LOG_LEVEL_INFO, "read new entries from database: %s:%s", get_url_type_string((conf->database_new.url)->type), (conf->database_new.url)->value);
-      db_lex_buffer(&(conf->database_new));
-      while((new=db_readline(&(conf->database_new))) != NULL){
-    match_result add = check_rxtree(new->filename,tree, &rule, get_restriction_from_perm(new->perm));
-    if (add == RESULT_SELECTIVE_MATCH || add == RESULT_EQUAL_MATCH) {
-	  add_file_to_tree(tree,new,DB_NEW, &(conf->database_new));
-	} else {
-          free_db_line(new);
-          free(new);
-          new=NULL;
-	}
-      }
-      db_lex_delete_buffer(&(conf->database_new));
-    }
-    
-    if((conf->action&DO_INIT)||(conf->action&DO_COMPARE)){
-      /* FIXME  */
-      new=NULL;
-      log_msg(LOG_LEVEL_INFO, "read new entries from disk (limit: '%s', root prefix: '%s')", conf->limit?conf->limit:"(none)", conf->root_prefix);
-
-      db_scan_disk(false);
-#ifdef WITH_PTHREAD
-      if (conf->num_workers) {
-          while((new=db_readline_disk()) != NULL) {
-              add_file_to_tree(tree,new,DB_NEW, NULL);
-          }
-      }
-#endif
-    }
     if((conf->action&DO_COMPARE)||(conf->action&DO_DIFF)){
         log_msg(LOG_LEVEL_INFO, "read old entries from database: %s:%s", get_url_type_string((conf->database_in.url)->type), (conf->database_in.url)->value);
         db_lex_buffer(&(conf->database_in));
             while((old=db_readline(&(conf->database_in))) != NULL) {
-                match_result add=check_rxtree(old->filename,tree, &rule, get_restriction_from_perm(old->perm));
+                match_result add=check_rxtree(old->filename,tree, &rule, get_restriction_from_perm(old->perm), "database_in");
                 if (add == RESULT_SELECTIVE_MATCH || add == RESULT_EQUAL_MATCH) {
-                    add_file_to_tree(tree,old,DB_OLD, &(conf->database_in));
+                    add_file_to_tree(tree,old,DB_OLD, &(conf->database_in), NULL);
                 } else if (conf->limit!=NULL && (add == RESULT_NO_LIMIT_MATCH || add == RESULT_PARTIAL_LIMIT_MATCH)) {
-                    add_file_to_tree(tree,old,DB_OLD|DB_NEW, &(conf->database_in));
+                    add_file_to_tree(tree,old,DB_OLD|DB_NEW, &(conf->database_in), NULL);
                 }else{
                     if(!initdbwarningprinted){
                         log_msg(LOG_LEVEL_WARNING, _("%s:%s: old database entry '%s' has no matching rule, run --init or --update (this warning is only shown once)"), get_url_type_string((conf->database_in.url)->type), (conf->database_in.url)->value, old->filename);
@@ -736,6 +844,29 @@ void populate_tree(seltree* tree)
                 }
             }
             db_lex_delete_buffer(&(conf->database_in));
+    }
+    if(conf->action&DO_DIFF){
+        log_msg(LOG_LEVEL_INFO, "read new entries from database: %s:%s", get_url_type_string((conf->database_new.url)->type), (conf->database_new.url)->value);
+      db_lex_buffer(&(conf->database_new));
+      while((new=db_readline(&(conf->database_new))) != NULL){
+    match_result add = check_rxtree(new->filename,tree, &rule, get_restriction_from_perm(new->perm), "database_new");
+    if (add == RESULT_SELECTIVE_MATCH || add == RESULT_EQUAL_MATCH) {
+	  add_file_to_tree(tree,new,DB_NEW, &(conf->database_new), NULL);
+	} else {
+          free_db_line(new);
+          free(new);
+          new=NULL;
+	}
+      }
+      db_lex_delete_buffer(&(conf->database_new));
+    }
+
+    if((conf->action&DO_INIT)||(conf->action&DO_COMPARE)){
+      /* FIXME  */
+      new=NULL;
+      log_msg(LOG_LEVEL_INFO, "read new entries from disk (limit: '%s', root prefix: '%s')", conf->limit?conf->limit:"(none)", conf->root_prefix);
+
+      db_scan_disk(false);
     }
 }
 

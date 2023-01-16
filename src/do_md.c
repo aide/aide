@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2004-2006, 2009-2011, 2013, 2018-2022 Rami Lehti,
+ * Copyright (C) 1999-2002, 2004-2006, 2009-2011, 2013, 2018-2023 Rami Lehti,
  *               Pablo Virolainen, Mike Markley, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -38,6 +38,10 @@
 #include <signal.h>
 #include <sys/mman.h>
 #include <sys/wait.h>
+
+#ifdef WITH_ZLIB
+#include <zlib.h>
+#endif
 
 #ifdef WITH_XATTR
 #include <sys/xattr.h>
@@ -96,8 +100,28 @@ int p_parent_to_child[2];
 int p_child_to_parent[2];
 int p_stderr[2];
 
-static void  read_from_parent(int fd, void *buf, ssize_t count, int child_pid) {
-    ssize_t bytes_read = read(fd, buf, count);
+typedef union fd {
+    int plain;
+#ifdef WITH_ZLIB
+    gzFile gzip;
+#endif
+} fd;
+
+typedef enum compression {
+    COMPRESSION_PLAIN,
+#ifdef WITH_ZLIB
+    COMPRESSION_GZIP,
+#endif
+    COMPRESSION_ERROR
+} compression;
+
+typedef struct hashsums_file {
+    fd fd;
+    compression compression;
+} hashsums_file;
+
+static void  read_from_parent(int filedes, void *buf, ssize_t count, int child_pid) {
+    ssize_t bytes_read = read(filedes, buf, count);
     if (bytes_read != count) {
         if (bytes_read < 0) {
             log_msg(LOG_LEVEL_WARNING, "hash calculation(child:%d): failed to read %d bytes from pipe: %s", count, child_pid, strerror(errno));
@@ -108,8 +132,8 @@ static void  read_from_parent(int fd, void *buf, ssize_t count, int child_pid) {
     }
 }
 
-static void write_to_parent(int fd, void *buf, ssize_t count, int child_pid) {
-    ssize_t bytes_written = write(fd, buf, count);
+static void write_to_parent(int filedes, void *buf, ssize_t count, int child_pid) {
+    ssize_t bytes_written = write(filedes, buf, count);
     if (bytes_written != count) {
         if (bytes_written < 0) {
             log_msg(LOG_LEVEL_WARNING, "hash calculation(child:%d): failed to write %d bytes to pipe: %s", count, child_pid, strerror(errno));
@@ -120,8 +144,8 @@ static void write_to_parent(int fd, void *buf, ssize_t count, int child_pid) {
     }
 }
 
-static bool read_from_child(int fd, void *buf, ssize_t count, const char* path) {
-    ssize_t bytes_read = read(fd, buf, count);
+static bool read_from_child(int filedes, void *buf, ssize_t count, const char* path) {
+    ssize_t bytes_read = read(filedes, buf, count);
     if (bytes_read != count) {
         if (bytes_read < 0) {
             log_msg(LOG_LEVEL_WARNING, "hash calculation(parent): failed to read %d bytes from pipe: %s (hash for '%s' could not be calculated)", count, strerror(errno), path);
@@ -134,8 +158,8 @@ static bool read_from_child(int fd, void *buf, ssize_t count, const char* path) 
 
 }
 
-static bool write_to_child(int fd, void *buf, ssize_t count, const char* path) {
-    ssize_t bytes_written = write(fd, buf, count);
+static bool write_to_child(int filedes, void *buf, ssize_t count, const char* path) {
+    ssize_t bytes_written = write(filedes, buf, count);
     if (bytes_written != count) {
         if (bytes_written < 0) {
             log_msg(LOG_LEVEL_WARNING, "hash calculation(parent): failed to write %d bytes to pipe: %s (hash for '%s' could not be calculated)", count, strerror(errno), path);
@@ -147,10 +171,10 @@ static bool write_to_child(int fd, void *buf, ssize_t count, const char* path) {
     return true;
 }
 
-static void write_empty_md_hashsums(int fd, int child_pid) {
+static void write_empty_md_hashsums(int filedes, int child_pid) {
     md_hashsums md_hash;
     md_hash.attrs = 0LU;
-    write_to_parent(fd, &md_hash, sizeof(md_hash), child_pid);
+    write_to_parent(filedes, &md_hash, sizeof(md_hash), child_pid);
 }
 
 int stat_cmp(struct stat* f1,struct stat* f2) {
@@ -173,12 +197,77 @@ int stat_cmp(struct stat* f1,struct stat* f2) {
 	  stat_cmp_helper(st_dev,attr_dev));
 }
 
-md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs) {
+static hashsums_file hashsum_open(int filedes, char* fullpath, bool uncompress) {
+    hashsums_file file;
+
+    if (uncompress) {
+        char head[2];
+        char *magic_gzip = "\037\213";
+        ssize_t magic_length = strlen(magic_gzip);
+        ssize_t bytes = read(filedes, head, magic_length);
+        if (bytes == magic_length && strncmp(head, magic_gzip, magic_length) == 0) {
+            log_msg(LOG_LEVEL_COMPARE, "│ '%s' is gzip compressed", fullpath);
+            lseek(filedes, 0, SEEK_SET);
+#ifdef WITH_ZLIB
+            file.fd.gzip = gzdopen(filedes, "rb");
+            if (file.fd.gzip == NULL){
+                log_msg(LOG_LEVEL_WARNING, "hash calculation: gzdopen() failed for %s (uncompressed hashsums could not be calculated)", fullpath);
+                file.compression = COMPRESSION_ERROR;
+                return file;
+            }
+            file.compression = COMPRESSION_GZIP;
+            return file;
+#else
+            log_msg(LOG_LEVEL_WARNING, "'%s': gzip support not compiled in, recompile AIDE with '--with-zlib' (uncompressed hashsums could not be calculated)", fullpath);
+            file.compression = COMPRESSION_ERROR;
+            return file;
+#endif
+        } else {
+            log_msg(LOG_LEVEL_NOTICE, "'%s': no supported compression algorithm found (uncompressed hashsums could not be calculated)", fullpath);
+            file.compression = COMPRESSION_ERROR;
+            return file;
+        }
+    } else {
+        file.fd.plain = filedes;
+        file.compression = COMPRESSION_PLAIN;
+        return file;
+    }
+}
+
+static size_t hashsum_read(hashsums_file file, void *buf, size_t count) {
+    switch (file.compression) {
+        case COMPRESSION_PLAIN:
+             return read(file.fd.plain, buf, count);
+#ifdef WITH_ZLIB
+        case COMPRESSION_GZIP:
+             return gzread(file.fd.gzip, buf, count);
+#endif
+        case COMPRESSION_ERROR:
+             return -1;
+    }
+    return -1;
+}
+
+static int hashsum_close(hashsums_file file) {
+    switch (file.compression) {
+        case COMPRESSION_PLAIN:
+             return close(file.fd.plain);
+#ifdef WITH_ZLIB
+        case COMPRESSION_GZIP:
+             return gzclose(file.fd.gzip);
+#endif
+        case COMPRESSION_ERROR:
+             return -1;
+    }
+    return -1;
+}
+
+md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs, ssize_t limit_size, bool uncompress) {
     md_hashsums md_hash;
     md_hash.attrs = 0LU;
 
 #ifdef WITH_PTHREAD
-    if (conf->num_workers) {
+    if (conf->num_workers || limit_size > 0) {
         struct stat new_fs;
         int sres=0;
         int stat_diff,filedes;
@@ -221,6 +310,12 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
             close(filedes);
             return md_hash;
         } else {
+            hashsums_file file = hashsum_open(filedes, fullpath, uncompress);
+            if (file.compression == COMPRESSION_ERROR) {
+                close(filedes);
+                return md_hash;
+            }
+
             off_t r_size=0;
             off_t size=0;
             char* buf;
@@ -233,31 +328,43 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
 #if READ_BLOCK_SIZE>SSIZE_MAX
 #error "READ_BLOCK_SIZE" is too large. Max value is SSIZE_MAX, and current is READ_BLOCK_SIZE
 #endif
-                while ((size=TEMP_FAILURE_RETRY(read(filedes,buf,READ_BLOCK_SIZE)))>0) {
-                    if (update_md(&mdc,buf,size)!=RETOK) {
+                while ((size=TEMP_FAILURE_RETRY(hashsum_read(file,buf,READ_BLOCK_SIZE)))>0) {
+
+                    off_t update_md_size;
+                    if (limit_size > 0 && r_size+size > limit_size) {
+                        update_md_size = limit_size-r_size;
+                    } else {
+                        update_md_size = size;
+                    }
+
+                    if (update_md(&mdc,buf,update_md_size)!=RETOK) {
                         log_msg(LOG_LEVEL_WARNING, "hash calculation: update_md() failed for '%s' (hashsums could not be calculated)", fullpath);
                         free(buf);
-                        close(filedes);
+                        hashsum_close(file);
                         close_md(&mdc, NULL, fullpath);
                         return md_hash;
                     }
                     r_size+=size;
+                    if (limit_size > 0 && r_size > limit_size) {
+                        log_msg(LOG_LEVEL_DEBUG, "hash calculation: limited size reached '%s'", fullpath);
+                        break;
+                    }
                 }
-                if (r_size != new_fs.st_size) {
+                if (uncompress == false && limit_size <= 0 && (attr&ATTR(attr_growing)?r_size < new_fs.st_size:(r_size != new_fs.st_size))) {
                     log_msg(LOG_LEVEL_WARNING, "hash calculation: number of bytes read (%lld) mismatches stat size (%lld) for '%s' (%shashsums could not be calculated)",
                             (long long) r_size, (long long) old_fs->st_size, fullpath, r_size<new_fs.st_size?"was file truncated while AIDE was running?, ":"");
                     free(buf);
-                    close(filedes);
+                    hashsum_close(file);
                     close_md(&mdc, NULL, fullpath);
                     return md_hash;
                 }
                 free(buf);
                 close_md(&mdc, &md_hash, fullpath);
-                close(filedes);
+                hashsum_close(file);
                 return md_hash;
             } else {
                 log_msg(LOG_LEVEL_WARNING, "hash calculation: init_md() failed for '%s' (hashsums could not be calculated)", fullpath);
-                close(filedes);
+                hashsum_close(file);
                 return md_hash;
             }
         }

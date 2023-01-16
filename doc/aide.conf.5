@@ -112,6 +112,8 @@ The following log levels are available:
 
 \fBrule\fP: additionally show messages to help to debug the path rule matching
 
+\fBcompare\fP: additionally show messages to help to debug file comparison and (special) attribute handling
+
 \fBconfig\fP: additionally show messages to help to debug config and rule parsing
 
 \fBdebug\fP: additionally show messages that are useful to debug the application (very verbose)
@@ -738,16 +740,65 @@ Use 'aide --version' to show which compiled in groups are available.
 
 .B Special groups
 .RS 3
-.IP "S:	check for growing size"
-.IP "I:	ignore changed filename"
-\fBNote\fR: when c is also set in the same rule a ctime change is ignored when the name of a file is changed
 
-.IP "ANF:	allow new files
+.IP "\fBS\fR:	check for growing size (DEPRECATED since AIDE v0.18, will be removed in AIDE v0.20)"
+
+Deprecated, use \fBgrowing+s\fR attributes instead
+
+.IP "\fBI\fR:	ignore changed filename"
+
+When \fBI\fR is used, the inode of the old file is used to search for
+a moved file in the new database.
+
+Source and target file have to be located in the same directory and must share
+the same attributes (except for special attributes
+\fBANF\fR+\fBARF\fR+\fBI\fR+\fBgrowing\fR+\fBcompressed\fR).
+
+For moved entries a change of the \fBctime\fR attribute is ignored.
+
+.IP "\fBgrowing\fR:	ignore growing file (added in AIDE v0.18)"
+
+When \fBgrowing\fR is used, changes of the following attributes are
+ignored:
+
+\fBsize\fR: if new size is greater than old size
+
+\fBbcount\fR: if new bcount is greater than old bcount
+
+\fBatime\fR: if new atime is greater than old atime
+
+\fBmtime\fR: if new mtime is greater than old mtime
+
+\fBctime\fR: if new ctime is greater than old ctime
+
+\fBhashsums\fR: if the hashsum of the new file restricted to the old size equals the hashsums of the old file
+
+For hashsum attributes the \fBgrowing\fR attribute is ignored in compare mode.
+
+.IP "\fBcompressed\fR:	ignore compressed file (added in AIDE v0.18)"
+
+When \fBcompressed\fR is used, the uncompressed hashsums of the
+new compressed file (supported compressions: \fBgzip\fR) are used to search for the
+uncompressed file in the old database.
+
+The old uncompressed and the new compressed file have to be located in the same
+directory and must share the same attributes (except for special attributes
+\fBANF\fR+\fBARF\fR+\fBI\fR+\fBgrowing\fR+\fBcompressed\fR) including at least
+one hashsum.
+
+Changes of the \fBinode\fR, \fBsize\fR and \fBctime\fR attributes are ignored.
+
+The \fBgrowing\fR attribute (i.e. the old file size) is not considered for
+compressed files during the calculation of the uncompressed hashsums.
+
+The \fBcompressed\fR attribute is ignored in compare mode.
+
+.IP "\fBANF\fR:	allow new files
 When 'ANF' is used, new files are added to the new database, but are
 ignored in the report.
 
 
-.IP "ARF:	allow removed files
+.IP "\fBARF\fR:	allow removed files
 When 'ARF' is used, files missing on disk are omitted from the new database,
 but are ignored in the report.
 
@@ -779,7 +830,7 @@ Use 'aide --version' to show which compiled hashsums are available.
 .RS 3
 .IP "R:	p+ftype+i+l+n+u+g+s+m+c+md5+X"
 .IP "L:	p+ftype+i+l+n+u+g+X"
-.IP ">:	Growing file p+ftype+l+u+g+i+n+S+X"
+.IP ">:	Growing file p+ftype+l+u+g+i+n+s+growing+X"
 .IP "H:	all compiled in hashsums (added in AIDE v0.17)"
 .IP "X:	acl+selinux+xattrs+e2fsattrs+caps (if groups are compiled in, added in AIDE v0.16)"
 .IP "E:	Empty group"

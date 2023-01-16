@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2015,2016,2019-2022 Hannes von Haugwitz
+ * Copyright (C) 2015,2016,2019-2023 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -66,6 +66,8 @@ attributes_t attributes[] = {
     { ATTR(attr_capabilities),   "caps",         "Caps",        "capabilities", "capabilities", 'C'   },
     { ATTR(attr_stribog256),     "stribog256",   "STRIBOG256",  "stribog256",   "stribog256",   '\0'  },
     { ATTR(attr_stribog512),     "stribog512",   "STRIBOG512",  "stribog512",   "stribog512",   '\0'  },
+    { ATTR(attr_growing),        "growing",      NULL,          NULL,           NULL,           '\0'  },
+    { ATTR(attr_compressed),     "compressed",   NULL,          NULL,           NULL,           '\0'  },
 };
 
 DB_ATTR_TYPE num_attrs = sizeof(attributes)/sizeof(attributes_t);

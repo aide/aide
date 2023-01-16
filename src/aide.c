@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006, 2010-2013, 2015-2017, 2019-2022 Rami Lehti,
+ * Copyright (C) 1999-2006, 2010-2013, 2015-2017, 2019-2023 Rami Lehti,
  *               Pablo Virolainen, Mike Markley, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -531,7 +531,7 @@ static void setdefaults_before_config()
 
   do_groupdef("R",common_attrs|ATTR(attr_size)|ATTR(attr_linkname)|ATTR(attr_mtime)|ATTR(attr_ctime)|GROUP_R_HASHES|X);
   do_groupdef("L",common_attrs|ATTR(attr_linkname)|X);
-  do_groupdef(">",common_attrs|ATTR(attr_sizeg)|ATTR(attr_linkname)|X);
+  do_groupdef(">",common_attrs|ATTR(attr_size)|ATTR(attr_growing)|ATTR(attr_linkname)|X);
   do_groupdef("H",get_hashes(false));
   do_groupdef("X",X);
   do_groupdef("E",0);
@@ -630,7 +630,7 @@ int main(int argc,char**argv)
 
   if (conf->check_path) {
       rx_rule* rule = NULL;
-      match_result match = check_rxtree(conf->check_path, conf->tree, &rule, conf->check_file_type);
+      match_result match = check_rxtree(conf->check_path, conf->tree, &rule, conf->check_file_type, "disk (path-check)");
       print_match(conf->check_path, rule, match, conf->check_file_type);
       switch (match) {
           case RESULT_PARTIAL_LIMIT_MATCH:

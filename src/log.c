@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2020,2022 Hannes von Haugwitz
+ * Copyright (C) 2020,2022,2023 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -65,6 +65,7 @@ static struct log_level log_level_array[] = {
     { LOG_LEVEL_NOTICE,        "notice",        " NOTICE" },
     { LOG_LEVEL_INFO,          "info",          "   INFO" },
     { LOG_LEVEL_RULE,          "rule",          "   RULE" },
+    { LOG_LEVEL_COMPARE,       "compare",       "COMPARE" },
     { LOG_LEVEL_CONFIG,        "config",        " CONFIG" },
     { LOG_LEVEL_DEBUG,         "debug",         "  DEBUG" },
     { LOG_LEVEL_THREAD,        "thread",        " THREAD" },

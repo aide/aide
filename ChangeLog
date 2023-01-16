@@ -1,3 +1,12 @@
+2023-01-16 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Add 'growing' and 'compressed' special attributes
+	  - support uncompressed hashsum comparison for gzip files (closes: #33)
+	  - support hashsums for growing files (closes: #34)
+	  - 'S' attribute is now deprecated, use 'growing+s' attributes instead
+	  - replace 'S' attribute in '>' compound group with 'growing+s'
+	  - add new log level 'compare'
+	  - improve some logging
+
 2023-01-15 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Do not show 'different attributes' message for ignored attributes
 

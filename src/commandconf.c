@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006, 2010-2011, 2013, 2015-2016, 2019-2022 Rami Lehti,
+ * Copyright (C) 1999-2006, 2010-2011, 2013, 2015-2016, 2019-2023 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -347,6 +347,12 @@ bool add_rx_rule_to_tree(char* rx, char* rule_prefix, RESTRICTION_TYPE restricti
         }
 
         r->attr=attr;
+        if (attr&ATTR(attr_sizeg)) {
+            log_msg(LOG_LEVEL_NOTICE, "%s:%d: Using 'S' attribute is DEPRECATED and will be removed in the release after next. Update your config and use 'growing+s' instead (line: '%s')", filename, linenumber, linebuf);
+        }
+        if (attr&ATTR(attr_compressed) && !(attr&get_hashes(false))) {
+            log_msg(LOG_LEVEL_WARNING, "%s:%d: ignore 'comprressed' attribute (no hashsum attributes are set) (line: '%s')", filename, linenumber, linebuf);
+        }
         conf->db_out_attrs |= attr;
 
         LOG_CONFIG_FORMAT_LINE_PREFIX(LOG_LEVEL_CONFIG, "add %s '%s%s %s %s' to node '%s'", get_rule_type_long_string(type), get_rule_type_char(type), r->rx, rs_str = get_restriction_string(r->restriction), attr_str = diff_attributes(0, r->attr),  (r->node)->path)

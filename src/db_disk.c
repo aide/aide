@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006, 2010-2011, 2016-2017, 2019-2022 Rami Lehti,
+ * Copyright (C) 1999-2006, 2010-2011, 2016-2017, 2019-2023 Rami Lehti,
  *               Pablo Virolainen, Mike Markley, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -85,6 +85,11 @@ typedef struct scan_dir_entry {
     DB_ATTR_TYPE attr;
     struct stat fs;
 } scan_dir_entry;
+
+typedef struct database_entry {
+    db_line *line;
+    struct stat fs;
+} database_entry;
 #endif
 
 static void handle_matched_file(char *entry_full_path, DB_ATTR_TYPE attr, struct stat fs) {
@@ -101,7 +106,7 @@ static void handle_matched_file(char *entry_full_path, DB_ATTR_TYPE attr, struct
     } else {
 #endif
         db_line *line = get_file_attrs(filename, attr, &fs);
-        add_file_to_tree(conf->tree, line, DB_NEW, NULL);
+        add_file_to_tree(conf->tree, line, DB_NEW|DB_DISK, NULL, &fs);
 #ifdef WITH_PTHREAD
     }
 #endif
@@ -115,7 +120,7 @@ void scan_dir(char *root_path, bool dry_run) {
 
     log_msg(LOG_LEVEL_DEBUG,"scan_dir: process root directory '%s' (fullpath: '%s')", &root_path[conf->root_prefix_length], root_path);
     if (!get_file_status(root_path, &fs)) {
-        match_result match = check_rxtree (&root_path[conf->root_prefix_length], conf->tree, &rule, get_restriction_from_perm(fs.st_mode));
+        match_result match = check_rxtree (&root_path[conf->root_prefix_length], conf->tree, &rule, get_restriction_from_perm(fs.st_mode), "disk");
         if (dry_run) {
             print_match(&root_path[conf->root_prefix_length], rule, match, get_restriction_from_perm(fs.st_mode));
         }
@@ -146,7 +151,7 @@ void scan_dir(char *root_path, bool dry_run) {
                     if (!get_file_status(entry_full_path, &fs)) {
                         rule = NULL;
                         node = NULL;
-                        match_result match = check_rxtree (&entry_full_path[conf->root_prefix_length], conf->tree, &rule, get_restriction_from_perm(fs.st_mode));
+                        match_result match = check_rxtree (&entry_full_path[conf->root_prefix_length], conf->tree, &rule, get_restriction_from_perm(fs.st_mode), "disk");
                         switch (match) {
                             case RESULT_SELECTIVE_MATCH:
                                 if (S_ISDIR(fs.st_mode)) {
@@ -215,6 +220,19 @@ void db_scan_disk(bool dry_run) {
     scan_dir(full_path, dry_run);
 
     free(full_path);
+#ifdef WITH_PTHREAD
+    if (conf->num_workers) {
+        log_msg(LOG_LEVEL_THREAD, "%10s: nb_scan_disk: wait for database entries", whoami_main);
+        database_entry *data;
+        while ((data = queue_ts_dequeue_wait(queue_database_entries, whoami_main)) != NULL) {
+            log_msg(LOG_LEVEL_THREAD, "%10s: db_scan_disk: got line '%s'", whoami_main, (data->line)->filename);
+            add_file_to_tree(conf->tree, data->line, DB_NEW|DB_DISK, NULL, &data->fs);
+            free(data);
+        }
+        queue_ts_free(queue_database_entries);
+        log_msg(LOG_LEVEL_TRACE, "%10s: db_scan_disk: finished (queue empty)", whoami_main);
+    }
+#endif
 }
 
 #ifdef WITH_PTHREAD
@@ -232,8 +250,12 @@ static void * file_attrs_worker( __attribute__((unused)) void *arg) {
             log_msg(LOG_LEVEL_THREAD, "%10s: file_attrs_workers: got entry %p from list of files (filename: '%s' (%p))", whoami, data, data->filename, data->filename);
 
             db_line *line = get_file_attrs (data->filename, data->attr, &data->fs);
+            database_entry *db_data;
+            db_data = checked_malloc(sizeof(database_entry)); /* freed in db_scan_disk */
+            db_data->line = line;
+            db_data->fs = data->fs;
             log_msg(LOG_LEVEL_THREAD, "%10s: file_attrs_worker: add entry %p to list of database entries (filename: '%s')", whoami, line, line->filename);
-            queue_ts_enqueue(queue_database_entries, line, whoami);
+            queue_ts_enqueue(queue_database_entries, db_data, whoami);
 
             free(data);
         } else {
@@ -288,18 +310,5 @@ int db_disk_finish_threads() {
     }
     log_msg(LOG_LEVEL_THREAD, "%10s: wait_for_workers thread finished", whoami_main);
     return RETOK;
-}
-
-db_line *db_readline_disk (void) {
-    db_line *line = NULL;
-    log_msg(LOG_LEVEL_THREAD, "%10s: db_readline_disk_thread: wait for next db_line", whoami_main);
-    line = (db_line *) queue_ts_dequeue_wait(queue_database_entries, whoami_main);
-    if (line) {
-        log_msg(LOG_LEVEL_THREAD, "%10s: db_readline_disk_thread: got line '%s'", whoami_main, line->filename);
-    } else {
-        queue_ts_free(queue_database_entries);
-        log_msg(LOG_LEVEL_TRACE, "%10s: db_readline_disk_thread: return NULL", whoami_main);
-    }
-    return line;
 }
 #endif

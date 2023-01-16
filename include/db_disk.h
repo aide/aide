@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2011, 2021-2022 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002, 2011, 2021-2023 Rami Lehti, Pablo Virolainen,
  *               Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -31,6 +31,5 @@ void db_scan_disk(bool);
 #ifdef WITH_PTHREAD
 int db_disk_start_threads();
 int db_disk_finish_threads();
-db_line* db_readline_disk(void);
 #endif
 #endif

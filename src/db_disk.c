@@ -40,6 +40,7 @@
 #include "db_disk.h"
 #include "util.h"
 #include "queue.h"
+#include "errorcodes.h"
 
 #ifdef WITH_PTHREAD
 #include <pthread.h>
@@ -212,27 +213,52 @@ void scan_dir(char *root_path, bool dry_run) {
     queue_free(stack);
 }
 
+#ifdef WITH_PTHREAD
+static void * add2tree( __attribute__((unused)) void *arg) {
+    const char *whoami = "(add2tree)";
+
+    log_msg(LOG_LEVEL_THREAD, "%10s: wait for database entries", whoami);
+    database_entry *data;
+    while ((data = queue_ts_dequeue_wait(queue_database_entries, whoami)) != NULL) {
+        log_msg(LOG_LEVEL_THREAD, "%10s: got line '%s'", whoami, (data->line)->filename);
+        add_file_to_tree(conf->tree, data->line, DB_NEW|DB_DISK, NULL, &data->fs);
+        free(data);
+    }
+    queue_ts_free(queue_database_entries);
+    log_msg(LOG_LEVEL_TRACE, "%10s: finished (queue empty)", whoami);
+
+    return (void *) pthread_self();
+}
+#endif
+
 void db_scan_disk(bool dry_run) {
     char* full_path=checked_malloc((conf->root_prefix_length+2)*sizeof(char));
     strncpy(full_path, conf->root_prefix, conf->root_prefix_length+1);
     strcat (full_path, "/");
 
-    scan_dir(full_path, dry_run);
-
-    free(full_path);
 #ifdef WITH_PTHREAD
+    pthread_t add2tree_thread;
+
     if (conf->num_workers) {
-        log_msg(LOG_LEVEL_THREAD, "%10s: nb_scan_disk: wait for database entries", whoami_main);
-        database_entry *data;
-        while ((data = queue_ts_dequeue_wait(queue_database_entries, whoami_main)) != NULL) {
-            log_msg(LOG_LEVEL_THREAD, "%10s: db_scan_disk: got line '%s'", whoami_main, (data->line)->filename);
-            add_file_to_tree(conf->tree, data->line, DB_NEW|DB_DISK, NULL, &data->fs);
-            free(data);
+        if (pthread_create(&add2tree_thread, NULL, &add2tree, NULL) != 0) {
+            log_msg(LOG_LEVEL_ERROR, "failed to start add2tree thread: %s", strerror(errno));
+            exit(THREAD_ERROR);
         }
-        queue_ts_free(queue_database_entries);
-        log_msg(LOG_LEVEL_TRACE, "%10s: db_scan_disk: finished (queue empty)", whoami_main);
     }
 #endif
+
+    scan_dir(full_path, dry_run);
+
+#ifdef WITH_PTHREAD
+    if (conf->num_workers) {
+        if (pthread_join(add2tree_thread, NULL) != 0) {
+            log_msg(LOG_LEVEL_ERROR, "failed to join add2tree thread: %s", strerror(errno));
+            exit(THREAD_ERROR);
+        }
+    }
+#endif
+
+    free(full_path);
 }
 
 #ifdef WITH_PTHREAD
@@ -283,7 +309,7 @@ static void * wait_for_workers( __attribute__((unused)) void *arg) {
 }
 
 int db_disk_start_threads() {
-    queue_database_entries = queue_ts_init(NULL); /* freed in db_readline_disk */
+    queue_database_entries = queue_ts_init(NULL); /* freed in add2tree */
     log_msg(LOG_LEVEL_THREAD, "%10s: initialized database entries queue %p", whoami_main, queue_database_entries);
     queue_worker_files = queue_ts_init(NULL); /* freed in wait_for_workers */
     log_msg(LOG_LEVEL_THREAD, "%10s: initialized worker files queue %p", whoami_main, queue_worker_files);

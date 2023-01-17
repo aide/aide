@@ -266,8 +266,11 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
     md_hashsums md_hash;
     md_hash.attrs = 0LU;
 
+    if (
 #ifdef WITH_PTHREAD
-    if (conf->num_workers || limit_size > 0) {
+    conf->num_workers ||
+#endif
+    limit_size > 0 || uncompress) {
         struct stat new_fs;
         int sres=0;
         int stat_diff,filedes;
@@ -369,7 +372,6 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
             }
         }
     } else {
-#endif
         int wstatus;
         bool fork_child = false;
         if (pid == -1) {
@@ -627,9 +629,7 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
                 }
             }
         }
-#ifdef WITH_PTHREAD
     }
-#endif
     return md_hash;
 }
 

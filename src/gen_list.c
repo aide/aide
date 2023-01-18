@@ -573,7 +573,7 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
                           log_msg(compare_log_level, "│ compare attributes of original file '%s' and compressed file '%s'", (moved_node->old_data)->filename, new_file->filename);
                           if (get_different_attributes(moved_node->old_data, new_file, move_ignored_attr)) {
                               log_msg(compare_log_level, "│ ignore '%s' as original file of compressed file '%s' (due to different attributes)", (moved_node->old_data)->filename, new_file->filename);
-                          } else if (get_changed_attributes((moved_node->old_data), new_file, ATTR(attr_ctime)|ATTR(attr_size)|ATTR(attr_inode), fs, false) == RETOK) {
+                          } else if (get_changed_attributes((moved_node->old_data), new_file, ATTR(attr_ctime)|ATTR(attr_size)|ATTR(attr_bcount)|ATTR(attr_inode), fs, false) == RETOK) {
                               node->checked |= NODE_MOVED_IN;
                               moved_node->checked |= NODE_MOVED_OUT;
                               log_msg(compare_log_level,_("│ accept '%s' as original file of compressed file '%s'"), (moved_node->old_data)->filename, new_file->filename);

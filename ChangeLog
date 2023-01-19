@@ -1,3 +1,6 @@
+2023-01-19 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Fix hash calculation for growing files
+
 2023-01-18 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Also ignore bcount attribute for compressed files
 

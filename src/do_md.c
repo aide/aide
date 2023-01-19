@@ -177,19 +177,21 @@ static void write_empty_md_hashsums(int filedes, int child_pid) {
     write_to_parent(filedes, &md_hash, sizeof(md_hash), child_pid);
 }
 
-int stat_cmp(struct stat* f1,struct stat* f2) {
+int stat_cmp(struct stat* f1,struct stat* f2, bool growing) {
   if (f1==NULL || f2==NULL) {
     return RETFAIL;
   }
 #define stat_cmp_helper(n,attribute) ((f1->n!=f2->n)*ATTR(attribute))
 
+#define stat_growing_cmp_helper(n,attribute) ((growing?f1->n<f2->n:f1->n!=f2->n)*ATTR(attribute))
+
   return (stat_cmp_helper(st_ino,attr_inode)|
 	  stat_cmp_helper(st_mode,attr_perm)|
 	  stat_cmp_helper(st_nlink,attr_linkcount)|
-	  stat_cmp_helper(st_size,attr_size)|
-	  stat_cmp_helper(st_mtime,attr_mtime)|
-	  stat_cmp_helper(st_ctime,attr_ctime)|
-	  stat_cmp_helper(st_blocks,attr_bcount)|
+	  stat_growing_cmp_helper(st_size,attr_size)|
+	  stat_growing_cmp_helper(st_mtime,attr_mtime)|
+	  stat_growing_cmp_helper(st_ctime,attr_ctime)|
+	  stat_growing_cmp_helper(st_blocks,attr_bcount)|
 	  stat_cmp_helper(st_blksize,attr_bsize)|
 	  stat_cmp_helper(st_rdev,attr_rdev)|
 	  stat_cmp_helper(st_gid,attr_gid)|
@@ -300,7 +302,7 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
             log_msg(LOG_LEVEL_DEBUG, "%s> calc_hashsums: posix_fadvise error for '%s': %s", fullpath, fullpath, strerror(errno));
         }
 #endif
-        if ((stat_diff=stat_cmp(&new_fs, old_fs)) != RETOK) {
+        if ((stat_diff=stat_cmp(&new_fs, old_fs, attr&ATTR(attr_growing))) != RETOK) {
             DB_ATTR_TYPE changed_attribures = 0ULL;
             for(ATTRIBUTE i=0;i<num_attrs;i++) {
                 if (((1<<i)&stat_diff)!=0) {
@@ -474,7 +476,7 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
                     log_msg(LOG_LEVEL_DEBUG, "%s> calc_hashsums(child:%d): posix_fadvise error for '%s': %s", child_fullpath, child_pid, child_fullpath, strerror(errno));
                 }
 #endif
-                if ((stat_diff=stat_cmp(&new_fs,&child_old_fs)) != RETOK) {
+                if ((stat_diff=stat_cmp(&new_fs,&child_old_fs, attr&ATTR(attr_growing))) != RETOK) {
                     DB_ATTR_TYPE changed_attribures = 0ULL;
                     for(ATTRIBUTE i=0;i<num_attrs;i++) {
                         if (((1<<i)&stat_diff)!=0) {

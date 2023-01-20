@@ -682,7 +682,7 @@ void fs2db_line(struct stat* fs,db_line* line) {
 
   line->perm=fs->st_mode;
 
-  if(ATTR(attr_size)&line->attr||ATTR(attr_sizeg)&line->attr){
+  if(ATTR(attr_size)&line->attr||ATTR(attr_sizeg)&line->attr||ATTR(attr_growing)&line->attr){
     line->size=fs->st_size;
   }else{
     line->size=0;

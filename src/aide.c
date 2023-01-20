@@ -673,8 +673,8 @@ int main(int argc,char**argv)
     exit(INVALID_ARGUMENT_ERROR);
   }
 
-  /* ensure size attribute is added to db_out_attrs if sizeg attribute is set */
-  if (conf->db_out_attrs & ATTR(attr_sizeg)) {
+  /* ensure size attribute is added to db_out_attrs if sizeg or growing attribute is set */
+  if (conf->db_out_attrs & ATTR(attr_sizeg) || conf->db_out_attrs & ATTR(attr_growing)) {
         conf->db_out_attrs |=ATTR(attr_size);
   }
 

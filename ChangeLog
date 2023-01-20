@@ -1,3 +1,7 @@
+2023-01-20 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Limit hashsum calculation of growing files to stat size
+	* Refactor size mismatch warning during hash calculation
+
 2023-01-19 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix hash calculation for growing files
 

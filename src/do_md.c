@@ -272,7 +272,7 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
 #ifdef WITH_PTHREAD
     conf->num_workers ||
 #endif
-    limit_size > 0 || uncompress) {
+    limit_size > 0 || uncompress || attr&ATTR(attr_growing)) {
         struct stat new_fs;
         int sres=0;
         int stat_diff,filedes;
@@ -338,6 +338,8 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
                     off_t update_md_size;
                     if (limit_size > 0 && r_size+size > limit_size) {
                         update_md_size = limit_size-r_size;
+                    } else if(attr&ATTR(attr_growing) && r_size+size > old_fs->st_size) {
+                        update_md_size = old_fs->st_size-r_size;
                     } else {
                         update_md_size = size;
                     }
@@ -349,19 +351,46 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
                         close_md(&mdc, NULL, fullpath);
                         return md_hash;
                     }
-                    r_size+=size;
-                    if (limit_size > 0 && r_size > limit_size) {
-                        log_msg(LOG_LEVEL_DEBUG, "hash calculation: limited size reached '%s'", fullpath);
+                    r_size+=update_md_size;
+                    if (limit_size > 0 && r_size == limit_size) {
+                        log_msg(LOG_LEVEL_DEBUG, "hash calculation: limited size (%lld) reached for '%s'", limit_size, fullpath);
+                        break;
+                    } else if (attr&ATTR(attr_growing) && r_size == old_fs->st_size) {
+                        log_msg(LOG_LEVEL_DEBUG, "hash calculation: stat size (%lld) reached for growing file '%s'", old_fs->st_size, fullpath);
                         break;
                     }
                 }
-                if (uncompress == false && limit_size <= 0 && (attr&ATTR(attr_growing)?r_size < new_fs.st_size:(r_size != new_fs.st_size))) {
-                    log_msg(LOG_LEVEL_WARNING, "hash calculation: number of bytes read (%lld) mismatches stat size (%lld) for '%s' (%shashsums could not be calculated)",
-                            (long long) r_size, (long long) old_fs->st_size, fullpath, r_size<new_fs.st_size?"was file truncated while AIDE was running?, ":"");
-                    free(buf);
-                    hashsum_close(file);
-                    close_md(&mdc, NULL, fullpath);
-                    return md_hash;
+                if (uncompress == false) {
+                    bool mismatch = false;
+                    bool lower = false;
+                    long long target_size = old_fs->st_size;
+                    if (limit_size > 0) {
+                        if (r_size < limit_size) {
+                            target_size = limit_size;
+                            lower = true;
+                            mismatch = true;
+                        }
+                    } else if (attr&ATTR(attr_growing)) {
+                        if (r_size < old_fs->st_size) {
+                            lower = true;
+                            mismatch = true;
+                        }
+                    } else {
+                        if (r_size != old_fs->st_size) {
+                            lower = r_size<old_fs->st_size;
+                            mismatch = true;
+                        }
+                    }
+                    if (mismatch) {
+                        log_msg(LOG_LEVEL_WARNING, "hash calculation: number of bytes read (%lld) mismatches %s size (%lld) for '%s'%s (hashsums could not be calculated)",
+                                (long long) r_size, limit_size > 0?"limited":"stat", target_size, fullpath,
+                                lower?", was file truncated while AIDE was running?":", was file growing while AIDE was running? (consider adding 'growing' attribute)"
+                               );
+                        free(buf);
+                        hashsum_close(file);
+                        close_md(&mdc, NULL, fullpath);
+                        return md_hash;
+                    }
                 }
                 free(buf);
                 close_md(&mdc, &md_hash, fullpath);

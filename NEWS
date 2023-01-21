@@ -29,6 +29,7 @@ Version 0.18 (UNRELEASED)
     * Add prefix option to directory include macros
     * Add exit code 22 for memory allocation errors
     * Support CRLF line-endings in config files
+    * Add SECURITY.md
     * Improve logging
     * Improve error message during config parsing
     * Update documentation

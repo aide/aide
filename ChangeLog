@@ -1,3 +1,6 @@
+2023-01-21 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Adjust some log messages
+
 2023-01-20 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Limit hashsum calculation of growing files to stat size
 	* Refactor size mismatch warning during hash calculation

@@ -471,19 +471,21 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
 
   strip_dbline(file);
 
+  LOG_LEVEL add_entry_log_level = LOG_LEVEL_DEBUG;
+
   switch (db_flags) {
   case DB_OLD: {
-    log_msg(LOG_LEVEL_DEBUG, "add old entry '%s' (%c) to node '%s' (%p) as old data", file->filename, get_file_type_char_from_perm(file->perm), node->path, node);
+    log_msg(add_entry_log_level, "add old database entry '%s' (%c) to node '%s' (%p) as old data", file->filename, get_file_type_char_from_perm(file->perm), node->path, node);
     node->old_data=file;
     break;
   }
   case DB_NEW|DB_DISK: {
-    log_msg(LOG_LEVEL_DEBUG, "add disk entry '%s' (%c) to node '%s' (%p) as new data", file->filename, get_file_type_char_from_perm(file->perm), node->path, node);
+    log_msg(add_entry_log_level, "add disk entry '%s' (%c) to node '%s' (%p) as new data", file->filename, get_file_type_char_from_perm(file->perm), node->path, node);
     node->new_data=file;
     break;
   }
   case DB_NEW: {
-    log_msg(LOG_LEVEL_DEBUG, "add new entry '%s' (%c) to node '%s' (%p) as new data", file->filename, get_file_type_char_from_perm(file->perm), node->path, node);
+    log_msg(add_entry_log_level, "add new database entry '%s' (%c) to node '%s' (%p) as new data", file->filename, get_file_type_char_from_perm(file->perm), node->path, node);
     node->new_data=file;
     break;
   }
@@ -491,9 +493,9 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
     node->new_data=file;
     if(conf->action&DO_INIT) {
         node->checked|=NODE_FREE;
-        log_msg(LOG_LEVEL_DEBUG, "add old entry '%s' (%c) to node (%p) as new data (entry does not match limit but keep it for database_out)", file->filename, get_file_type_char_from_perm(file->perm), node);
+        log_msg(add_entry_log_level, "add old database entry '%s' (%c) to node (%p) as new data (entry does not match limit but keep it for database_out)", file->filename, get_file_type_char_from_perm(file->perm), node);
     } else {
-        log_msg(LOG_LEVEL_DEBUG, "drop old entry '%s' (entry does not match limit)", file->filename);
+        log_msg(add_entry_log_level, "drop old database entry '%s' (entry does not match limit)", file->filename);
         free_db_line(node->new_data);
         free(node->new_data);
         node->new_data=NULL;

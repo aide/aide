@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2003, 2005-2006, 2010-2011, 2013, 2019-2022 Rami Lehti,
+ * Copyright (C) 1999-2003, 2005-2006, 2010-2011, 2013, 2019-2023 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -58,7 +58,7 @@ void* be_init(bool readonly, url_t* u, bool iszipped, bool append, int linenumbe
   switch (u->type) {
   case url_file : {
     u->value = expand_tilde(u->value);
-    log_msg(LOG_LEVEL_DEBUG, "open (%s, gzip: %s, append: %s ) file '%s'", readonly?"read-only":"read/write", btoa(iszipped), btoa(append), u->value);
+    log_msg(LOG_LEVEL_DEBUG, "open (%s, gzip: %s, append: %s) file '%s'", readonly?"read-only":"read/write", btoa(iszipped), btoa(append), u->value);
 #if HAVE_FCNTL && HAVE_FTRUNCATE
     fd=open(u->value,readonly?O_RDONLY:O_CREAT|O_RDWR|(append?O_APPEND:0),0666);
 #else

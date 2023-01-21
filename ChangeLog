@@ -1,6 +1,7 @@
 2023-01-21 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Adjust some log messages
 	* Add SECURITY.md to EXTRA_DIST
+	* Remove mmap support for hashsum calculation
 
 2023-01-20 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Limit hashsum calculation of growing files to stat size

@@ -379,8 +379,6 @@ AM_CONDITIONAL(HAVE_GCRYPT, [test "x$GCRYPT_LIBS" != "x"])
 
 AIDE_PKG_CHECK(audit, Linux Auditing Framework, no, AUDIT, audit)
 
-AIDE_PKG_CHECK_HEADERS(mmap, mmap, check, MMAP, [sys/mman.h])
-
 AIDE_PKG_CHECK_HEADERS(locale, locale, no, LOCALE, [libintl.h])
 if test "x$with_locale" = xyes; then
     AC_DEFINE_UNQUOTED(LOCALEDIR,"$prefix/lib/locale",[Localedir to use])

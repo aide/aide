@@ -157,13 +157,11 @@ the available processors (e.g. '60%'). The resulting number of workers is
 rounded up to the next integer (e.g. '60%' of 8 processors results in 5
 workers).
 
-If there are multiple \fInum_workers\fR lines then the first one is used.  Use
-0 (zero) to disable multi-threading and use the "old" parent-child/mmap implementation.
+If there are multiple \fInum_workers\fR lines then the first one is used.
+
+Use 0 (zero) to disable multi-threading.
 
 The default value 1 (single worker thread) may be changed in a future release.
-
-Please note that the file content is read via \fIread\fR system call instead of
-\fImmap\fR when threads are used.
 
 .IP "Group definitions"
 If the parameter is not one of the previous parameters then it is

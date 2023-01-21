@@ -11,6 +11,7 @@ Version 0.18 (UNRELEASED)
       - add new '--workers' parameter
       - add new exit code 23 for thread errors
       - require Autoconf Macro Archive (autoconf-archive)
+    - Remove mmap support for hashsum calculation
     * Deprecations (to be removed in the release after next):
         - 'S' attribute is now deprecated, use 'growing+s' attributes instead
         - '@@ifdef', macro is now deprecated, use '@@if defined' instead

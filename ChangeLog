@@ -4,6 +4,7 @@
 	* Remove mmap support for hashsum calculation
 	* Add warning if rule tree is empty
 	* Update --help message
+	* Update --version message
 
 2023-01-20 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Limit hashsum calculation of growing files to stat size

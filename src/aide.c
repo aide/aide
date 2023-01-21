@@ -140,28 +140,34 @@ static void sig_handler(int signum)
     }
 }
 
+#define EXTRA_ATTR(attribute) fprintf(stdout, "%s: %s\n", attributes[attribute].config_name, extra_attributes&ATTR(attribute)?"yes":"no");
+
 static void print_version(void)
 {
   fprintf(stdout, "AIDE %s\n\n", AIDEVERSION );
   fprintf(stdout, "Compile-time options:\n%s\n", AIDECOMPILEOPTIONS);
   fprintf(stdout, "Default config values:\n");
   fprintf(stdout, "config file: %s\n", conf->config_file?conf->config_file:"<none>");
-  fprintf(stdout, "database_in: %s\n",
 #ifdef DEFAULT_DB
-          DEFAULT_DB
+  fprintf(stdout, "database_in: %s\n", DEFAULT_DB);
 #else
-          "<none>"
+  fprintf(stdout, "database_in: <none>\n");
 #endif
-          ),
-  fprintf(stdout, "database_out: %s\n",
 #ifdef DEFAULT_DB_OUT
-          DEFAULT_DB_OUT
+  fprintf(stdout, "database_out: %s\n", DEFAULT_DB_OUT),
 #else
-          "<none>"
+  fprintf(stdout, "database_out: <none>\n"),
 #endif
-          ),
 
-  fprintf(stdout, "\nAvailable hashsum groups:\n");
+  fprintf(stdout, "\nAvailable compiled-in attributes:\n");
+  DB_ATTR_TYPE extra_attributes = get_groupval("X");
+  EXTRA_ATTR(attr_acl)
+  EXTRA_ATTR(attr_xattrs)
+  EXTRA_ATTR(attr_selinux)
+  EXTRA_ATTR(attr_e2fsattrs)
+  EXTRA_ATTR(attr_capabilities)
+
+  fprintf(stdout, "\nAvailable hashsum attributes:\n");
   DB_ATTR_TYPE available_hashsums = get_hashes(false);
   for (int i = 0; i < num_hashes; ++i) {
       fprintf(stdout, "%s: %s\n", attributes[hashsums[i].attribute].config_name, ATTR(hashsums[i].attribute)&available_hashsums?"yes":"no");

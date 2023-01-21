@@ -70,7 +70,7 @@ char* after = NULL;
 static void usage(int exitvalue)
 {
   fprintf(stdout,
-	  _("Aide %s \n\n"
+	  _("AIDE %s \n\n"
 	    "Usage: aide [options] command\n\n"
 	    "Commands:\n"
 	    "  -i, --init\t\tInitialize the database\n"
@@ -80,15 +80,15 @@ static void usage(int exitvalue)
 	    "  -E, --compare\t\tCompare two databases\n\n"
 	    "Miscellaneous:\n"
 	    "  -D,\t\t\t--config-check\t\t\tTest the configuration file\n"
-	    "  -p file_type:path\t--path-check=file_type:path\tMatch file type and path against rule tree\n"
+	    "  -p FILE_TYPE:PATH\t--path-check=FILE_TYPE:PATH\tMatch file type and path against rule tree\n"
 	    "  -v,\t\t\t--version\t\t\tShow version of AIDE and compilation options\n"
 	    "  -h,\t\t\t--help\t\t\t\tShow this help message\n\n"
 	    "Options:\n"
-	    "  -c [cfgfile]\t--config=[cfgfile]\tGet config options from [cfgfile]\n"
-	    "  -l [REGEX]\t--limit=[REGEX]\t\tLimit command to entries matching [REGEX]\n"
+	    "  -c CFGFILE\t--config=CFGFILE\tGet config options from CFGFILE\n"
+	    "  -l REGEX\t--limit=REGEX\t\tLimit command to entries matching REGEX\n"
 	    "  -B \"OPTION\"\t--before=\"OPTION\"\tBefore configuration file is read define OPTION\n"
 	    "  -A \"OPTION\"\t--after=\"OPTION\"\tAfter configuration file is read define OPTION\n"
-	    "  -L [level]\t--log-level=[level]\tSet log message level to [level]\n"
+	    "  -L LEVEL\t--log-level=LEVEL\tSet log message level to LEVEL\n"
 	    "  -W WORKERS\t--workers=WORKERS\tNumber of simultaneous workers (threads) for file attribute processing (i.a. hashsum calculation)"
 	    "\n"), AIDEVERSION
 	  );

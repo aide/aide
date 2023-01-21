@@ -628,6 +628,15 @@ int main(int argc,char**argv)
   log_msg(LOG_LEVEL_RULE, "rule tree:");
   log_tree(LOG_LEVEL_RULE, conf->tree, 0);
 
+  if (conf->action&DO_INIT
+          && (conf->tree)->childs == NULL
+          && (conf->tree)->equ_rx_lst == NULL
+          && (conf->tree)->sel_rx_lst == NULL
+          && (conf->tree)->neg_rx_lst == NULL
+     ) {
+      log_msg(LOG_LEVEL_WARNING, "rule tree is empty, no files will be added to the database");
+  }
+
   if (conf->check_path) {
       rx_rule* rule = NULL;
       match_result match = check_rxtree(conf->check_path, conf->tree, &rule, conf->check_file_type, "disk (path-check)");

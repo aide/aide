@@ -2,6 +2,7 @@
 	* Adjust some log messages
 	* Add SECURITY.md to EXTRA_DIST
 	* Remove mmap support for hashsum calculation
+	* Add warning if rule tree is empty
 
 2023-01-20 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Limit hashsum calculation of growing files to stat size

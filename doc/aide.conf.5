@@ -163,14 +163,6 @@ Use 0 (zero) to disable multi-threading.
 
 The default value 1 (single worker thread) may be changed in a future release.
 
-.IP "Group definitions"
-If the parameter is not one of the previous parameters then it is
-regarded as a group definition. Value is then regarded as an
-attribute expression.
-.IP
-See DEFAULT GROUPS for an explanation of default predefined groups.
-
-Group names are limited to alphanumeric characters (\fBA-Za-z0-9\fP).
 .PP
 
 .SH REPORT OPTIONS
@@ -393,6 +385,37 @@ report_ignore_e2fsattrs=VNIE
 .RE
 .RE
 .RE
+
+.PP
+.SH "GROUPS"
+.PP
+
+Groups are aggregations of attributes.
+
+Group definitions have the format <group name> = <attribute expression>.
+
+Group names are limited to alphanumeric characters (\fBA-Za-z0-9\fP).
+
+See ATTRIBUTES for a description of all available attributes.
+
+.RE
+
+.B Default groups
+
+.RS 3
+.IP "R:	p+ftype+i+l+n+u+g+s+m+c+md5+X"
+.IP "L:	p+ftype+i+l+n+u+g+X"
+.IP ">:	Growing file p+ftype+l+u+g+i+n+s+growing+X"
+.IP "H:	all compiled in hashsums (added in AIDE v0.17)"
+.IP "X:	acl+selinux+xattrs+e2fsattrs+caps (if attributes are compiled in, added in AIDE v0.16)"
+.IP "E:	Empty group"
+.RE
+.LP
+
+Use 'aide --version' to list the default compound groups.
+
+.RE
+
 .PP
 .SH "RULES"
 .PP
@@ -682,9 +705,9 @@ Valid values are \fByes\fR, \fBtrue\fR, \fBno\fR or \fBfalse\fR.
 An attribute expression is of the following form:
 .IP
 .nf
-  <group>
-| <expr> + <group>
-| <expr> - <group>
+  <attribute/group>
+| <expr> + <attribute/group>
+| <expr> - <attribute/group>
 .fi
 .RE
 
@@ -711,9 +734,9 @@ Output is written to syslog using \fILOG_FACILITY\fR.
 
 .RE
 
-.SH "DEFAULT GROUPS"
+.SH "ATTRIBUTES"
 .PP
-.B File attribute groups
+.B File attributes
 .RS 3
 .IP "\fBftype\fR: file type (added in AIDE v0.15)"
 .IP "\fBp\fR: permissions"
@@ -734,9 +757,9 @@ Output is written to syslog using \fILOG_FACILITY\fR.
 .IP "\fBcaps\fR: file capabilities (requires \fIlibcap2\fR, added in AIDE v0.17)"
 .RE
 
-Use 'aide --version' to show which compiled in groups are available.
+Use 'aide --version' to show which compiled-in attributes are available.
 
-.B Special groups
+.B Special attributes
 .RS 3
 
 .IP "\fBS\fR:	check for growing size (DEPRECATED since AIDE v0.18, will be removed in AIDE v0.20)"
@@ -805,7 +828,7 @@ but are ignored in the report.
 
 .RE
 
-.B Hashsums groups
+.B Hashsums attributes
 .RS 3
 .IP "md5: MD5 checksum (not in \fIlibgcrypt\fR FIPS mode)"
 .IP "sha1: SHA-1 checksum"
@@ -822,20 +845,9 @@ but are ignored in the report.
 .IP "stribog512: GOST R 34.11-2012, 512 bit checksum (\fIlibgcrypt\fR only, added in AIDE v0.17)"
 .RE
 
-Use 'aide --version' to show which compiled hashsums are available.
+Use 'aide --version' to show which hashsums are available.
 
-.B Compound groups
-.RS 3
-.IP "R:	p+ftype+i+l+n+u+g+s+m+c+md5+X"
-.IP "L:	p+ftype+i+l+n+u+g+X"
-.IP ">:	Growing file p+ftype+l+u+g+i+n+s+growing+X"
-.IP "H:	all compiled in hashsums (added in AIDE v0.17)"
-.IP "X:	acl+selinux+xattrs+e2fsattrs+caps (if groups are compiled in, added in AIDE v0.16)"
-.IP "E:	Empty group"
 .RE
-.LP
-
-Please run 'aide --version' to list the default compound groups.
 
 .PP
 .SH EXAMPLES

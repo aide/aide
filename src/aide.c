@@ -494,7 +494,7 @@ static void setdefaults_before_config()
 
   conf->start_time=time(NULL);
 
-  log_msg(LOG_LEVEL_INFO, "define default group definitions");
+  log_msg(LOG_LEVEL_INFO, "define default attribute definitions");
 
   for (ATTRIBUTE i = 0 ; i < num_attrs ; ++i) {
       if (attributes[i].config_name) {
@@ -535,6 +535,7 @@ static void setdefaults_before_config()
   }
 #endif
 
+  log_msg(LOG_LEVEL_INFO, "define default groups definitions");
   do_groupdef("R",common_attrs|ATTR(attr_size)|ATTR(attr_linkname)|ATTR(attr_mtime)|ATTR(attr_ctime)|GROUP_R_HASHES|X);
   do_groupdef("L",common_attrs|ATTR(attr_linkname)|X);
   do_groupdef(">",common_attrs|ATTR(attr_size)|ATTR(attr_growing)|ATTR(attr_linkname)|X);

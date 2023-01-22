@@ -334,10 +334,9 @@ static bool eval_bool_expression(struct bool_expression* expression, int linenum
     switch (expression->op) {
         case BOOL_OP_EXISTS:
             str = eval_string_expression(expression->expr, linenumber, filename, linebuf);
-
             int retval = access(str, F_OK);
-            result = retval == 0;
-            log_msg(LOG_LEVEL_DEBUG, "access('%s', F_OK) returns %d: (%s)", str, retval, strerror(errno));
+            result = (retval == 0);
+            log_msg(LOG_LEVEL_DEBUG, "access('%s', F_OK) returns %d: (%s)", str, retval, result?"Success":strerror(errno));
             log_msg(eval_log_level, "eval(%p): bool exists '%s': %s", expression, str, btoa(result));
             free(str);
             break;

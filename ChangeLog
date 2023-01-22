@@ -1,6 +1,7 @@
 2023-01-22 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Update man pages
 	* Minor code cleanup
+	* Improve some logging
 
 2023-01-21 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Adjust some log messages

@@ -437,6 +437,7 @@ bool do_dbdef(DB_TYPE dbtype ,char* val, int linenumber, char* filename, char* l
           case url_https:
           case url_fd:
           case url_file:
+                /* url type is supported */
                 break;
         }
         break;
@@ -455,6 +456,7 @@ bool do_dbdef(DB_TYPE dbtype ,char* val, int linenumber, char* filename, char* l
           case url_https:
           case url_fd:
           case url_file:
+                /* url type is supported */
                 break;
         }
         break;

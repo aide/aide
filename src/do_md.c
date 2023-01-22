@@ -84,9 +84,6 @@
 /* This define should be somewhere else */
 #define READ_BLOCK_SIZE 16777216
 
-/*
-#include <gcrypt.h>
-*/
 typedef union fd {
     int plain;
 #ifdef WITH_ZLIB

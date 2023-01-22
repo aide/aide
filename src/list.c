@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2005-2006, 2010, 2019-2020 Rami Lehti,
+ * Copyright (C) 1999-2002, 2005-2006, 2010, 2019-2020, 2023 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -35,7 +35,6 @@
  * Every item knows header.
  
  */
-
 
 /* list_sorted_insert()
  * Adds an item in a sorted list:
@@ -99,12 +98,6 @@ list* list_sorted_insert(list* listp, void* data, int (*compare) (const void*, c
  * The second argument is the data to be added
  * Returns list head
  */
-
-
-/* 
- * Some way to handle mallocs failure would be nice.
- */
-
 list* list_append(list* listp,void*data)
 {
   list* newitem=NULL;

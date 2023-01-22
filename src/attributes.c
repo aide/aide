@@ -81,7 +81,9 @@ static int get_diff_attrs_string(DB_ATTR_TYPE a, DB_ATTR_TYPE b, char *str, bool
                     if (str) { str[n] = ((1LLU<<i)&b)?'+':'-'; }
                     n++;
                 }
-                if (str) { sprintf(&str[n], "%s", db?attributes[i].db_name:attributes[i].config_name); }
+                if (str) {
+                    sprintf(&str[n], "%s", db?attributes[i].db_name:attributes[i].config_name);
+                }
                 n += strlen(db?attributes[i].db_name:attributes[i].config_name);
             }
         }

@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2006, 2016, 2020-2022 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002, 2006, 2016, 2020-2023 Rami Lehti, Pablo Virolainen,
  *               Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -22,11 +22,11 @@
 #ifndef _RX_RULE_H_INCLUDED
 #define  _RX_RULE_H_INCLUDED
 
-#include "attributes.h"
-#include "seltree_struct.h"
 #include <sys/stat.h>
 #define PCRE2_CODE_UNIT_WIDTH 8
 #include <pcre2.h>
+#include "attributes.h"
+#include "seltree_struct.h"
 
 #define RESTRICTION_TYPE unsigned int
 #define FT_REG   (1U<<0) /* file */

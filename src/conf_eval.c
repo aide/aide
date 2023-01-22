@@ -292,6 +292,7 @@ static void eval_config_statement(config_option_statement statement, int linenum
             free(str);
             break;
         case CONFIG_VERSION:
+            /* not to be freed, used directly for config_version */
             str = eval_string_expression(statement.e, linenumber, filename, linebuf);
             conf->config_version = str;
             LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, "set 'config_version' option to '%s'", str)
@@ -477,21 +478,21 @@ static void include_file(const char* file, bool execute, int include_depth, char
             }
 
             execl(file, file, (char*) NULL);
-            log_msg(LOG_LEVEL_ERROR, "%s: execl failed: %s", file, strerror(errno));
-            exit(EXIT_FAILURE);
         } else {
             /* parent */
             close(p_stdout[1]);
             close(p_stderr[1]);
 
             char* config_str = pipe2string(p_stdout[0]);
-
+            close(p_stdout[0]);
             char* child_stderr = pipe2string(p_stderr[0]);
+            close(p_stdout[0]);
 
             int wstatus;
             waitpid(pid, &wstatus, 0);
             if (child_stderr || !WIFEXITED(wstatus) || WEXITSTATUS(wstatus)) {
                 char* newline;
+
                 while (child_stderr && *child_stderr != '\0') {
                     newline = strchr(child_stderr, '\n');
                     if (newline != NULL) {

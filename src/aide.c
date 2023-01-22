@@ -583,8 +583,6 @@ static void setdefaults_after_config()
   };
 }
 
-
-
 int main(int argc,char**argv)
 {
   int errorno=0;
@@ -600,7 +598,6 @@ int main(int argc,char**argv)
 #endif
   umask(0177);
   init_sighandler();
-
   init_crypto_lib();
 
   setdefaults_before_config();

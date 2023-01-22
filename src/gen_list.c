@@ -643,6 +643,7 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
           }
       }
   }
+
   if( (db_flags&DB_NEW) &&
       (node->new_data!=NULL) &&
       (file->attr & ATTR(attr_allownewfile)) ){

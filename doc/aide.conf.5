@@ -127,7 +127,7 @@ The following log levels are available:
 .RE
 
 .IP "verbose (type: number, range: 0 - 255, default: \fB5\fR, REMOVED in AIDE v0.17)"
-Remvoed, use \fBlog_level\fR and \fBreport_level\fR options instead
+Removed, use \fBlog_level\fR and \fBreport_level\fR options instead.
 .IP "gzip_dbout (type: bool, default: \fBfalse\fR)"
 Whether the output to the database is gzipped or not. This option is available
 only if zlib support is compiled in.
@@ -401,17 +401,25 @@ See ATTRIBUTES for a description of all available attributes.
 .RE
 
 .B Default groups
-
-.RS 3
-.IP "R:	p+ftype+i+l+n+u+g+s+m+c+md5+X"
-.IP "L:	p+ftype+i+l+n+u+g+X"
-.IP ">:	Growing file p+ftype+l+u+g+i+n+s+growing+X"
-.IP "H:	all compiled in hashsums (added in AIDE v0.17)"
-.IP "X:	acl+selinux+xattrs+e2fsattrs+caps (if attributes are compiled in, added in AIDE v0.16)"
-.IP "E:	Empty group"
-.RE
-.LP
-
+.TP
+.B "R"
+p+ftype+i+l+n+u+g+s+m+c+md5+X
+.TP
+.B "L"
+p+ftype+i+l+n+u+g+X
+.TP
+.B ">"
+Growing file p+ftype+l+u+g+i+n+s+growing+X
+.TP
+.B "H"
+all compiled in hashsums (added in AIDE v0.17)
+.TP
+.B "X"
+acl+selinux+xattrs+e2fsattrs+caps (if attributes are compiled in, added in AIDE v0.16)
+.TP
+.B "E"
+Empty group
+.TP
 Use 'aide --version' to list the default compound groups.
 
 .RE
@@ -420,52 +428,43 @@ Use 'aide --version' to list the default compound groups.
 .SH "RULES"
 .PP
 AIDE supports three types of rules:
+.TP
+.B "Regular rule:"
+<regex> <attribute expression>
 
-Regular rule:
-.RS 3
+Files and directories matching the regular expression
+are added to the database.
 
-.nf
-.B <regex> <attribute expression>
-.fi
+.TP
+.B "Negative rule:"
+!<regex>
 
-Files and directories matching the regular expression are added to the
-database.
+Files and directories matching the regular expression
+are ignored and not added to the database.
+The children of matching directories are also ignored.
 
-.RE
+.TP
+.B "Equals rule:"
+=<regex> <attribute expression>
 
-Negative rule:
-.RS 3
+Files and directories matching the regular expression
+are added to the database.
+The children of directories are only added
+if the regular expression ends with a "/".
+The children of sub-directories are not added at all.
 
-.nf
-.B !<regex>
-.fi
+.PP
+Every regular expression has to start with an explicit "/".
+An implicit ^ is added in front of each regular expression.
+In other words,
+the regular expressions are matched at the first position
+against the complete path.
+Special characters can be escaped using
+two-digit URL encoding (for example, %20 to represent a space).
 
-Files and directories matching the regular expression are ignored and not added
-to the database. The children of matching directories are also ignored.
-
-.RE
-
-Equals rule:
-.RS 3
-
-.nf
-.B =<regex> <attribute expression>
-.fi
-
-Files and directories matching the regular expression are added to the
-database. The children of directories are only added if the regular expression
-ends with a "/". The children of sub-directories are not added at all.
-
-.RE
-
-Every regular expression has to start with a "/". An implicit ^ is added in
-front of each regular expression. In other words the regular expressions are
-matched at the first position against the complete filename (i.e. including the
-path). Special characters in your filenames can be escaped using two-digit URL
-encoding (for example, %20 to represent a space).
-
-AIDE uses a deepest-match algorithm to find the tree node to search, but a
-first-match algorithm inside the node. (see also  \fB rule \fP log level).
+AIDE uses a deepest-match algorithm to find the tree node to search,
+but a first-match algorithm inside the node.
+(see also \fBrule\fP log level).
 
 See EXAMPLES for examples.
 .PP
@@ -478,85 +477,52 @@ the AIDE manual.
 Restricted rules are like normal rules but can be
 restricted to file types (added in AIDE v0.16). The following file types are supported:
 
-.RS
+.TP
+.B "\fBf\fP"
+restrict rule to regular files
+.TP
+.B "\fBd\fP"
+restrict rule to directories
+.TP
+.B "\fBl\fP"
+restrict rule to symbolic links
+.TP
+.B "\fBc\fP"
+restrict rule to character devices
+.TP
+.B "\fBb\fP"
+restrict rule to block devices
+.TP
+.B "\fBp\fP"
+restrict rule to FIFO files
+.TP
+.B "\fBs\fP"
+restrict rule to UNIX sockets
+.TP
+.B "\fBD\fP"
+restrict rule to Solaris doors
+.TP
+.B "\fBP\fP"
+restrict rule to Solaris event ports
+.TP
+.B "\fB0\fR"
+empty restriction,
+i.e. don't restrict rule (added in AIDE v0.18)
+.PP
+Multiple restrictions can be given
+as a comma-separated list.
+.PP
+The syntax of restricted rules is as follows:
+.TP
+.B "Restricted regular rule"
+<regex> <file types> <attribute expression>
+.TP
+.B "Restricted negative rule"
+!<regex> <file types>
+.TP
+.B "Restricted equals rule"
+=<regex> <file types> <attribute expression>
 
-\fBf\fP: restrict rule to regular files
-
-\fBd\fP: restrict rule to directories
-
-\fBl\fP: restrict rule to symbolic links
-
-\fBc\fP: restrict rule to character devices
-
-\fBb\fP: restrict rule to block devices
-
-\fBp\fP: restrict rule to FIFO files
-
-\fBs\fP: restrict rule to UNIX sockets
-
-\fBD\fP: restrict rule to Solaris doors
-
-\fBP\fP: restrict rule to Solaris event ports
-
-\fB0\fR: empty restriction, i.e. don't restrict rule (added in AIDE v0.18)
-.RE
-
-The file types are separated by comma. The syntax of restricted
-rules is as follows:
-
-Restricted regular rule:
-.RS 3
-.nf
-.B <regex> <file types> <attribute expression>
-.fi
-.RE
-
-Restricted negative rule:
-.RS 3
-.nf
-.B !<regex> <file types>
-.fi
-.RE
-
-Restricted equals rule:
-.RS 3
-.nf
-.B =<regex> <file types> <attribute expression>
-.fi
-.RE
-
-.B Examples
-.RS 3
-Only add directories and files to the database:
-
-.RS 3
-.nf
-.B / d,f R
-.fi
-.RE
-.RE
-
-.RS 3
-Add all but directory entries to the database:
-
-.RS 3
-.nf
-.B !/run d
-.B /run R
-.fi
-.RE
-.RE
-
-.RS 3
-Use specific rule for directories:
-
-.RS 3
-.nf
-.B /run d R-m-c-i
-.B /run R
-.fi
-.RE
-.RE
 
 .PP
 .SH "MACRO LINES"
@@ -736,48 +702,91 @@ Output is written to syslog using \fILOG_FACILITY\fR.
 
 .SH "ATTRIBUTES"
 .PP
-.B File attributes
-.RS 3
-.IP "\fBftype\fR: file type (added in AIDE v0.15)"
-.IP "\fBp\fR: permissions"
-.IP "\fBi\fR: inode"
-.IP "\fBl\fR: link name"
-.IP "\fBn\fR: number of links"
-.IP "\fBu\fR: user"
-.IP "\fBg\fR: group"
-.IP "\fBs\fR: size"
-.IP "\fBb\fR: block count"
-.IP "\fBm\fR: mtime"
-.IP "\fBa\fR: atime"
-.IP "\fBc\fR: ctime"
-.IP "\fBacl\fR: access control list (requires \fIlibacl\fR)"
-.IP "\fBselinux\fR: selinux attributes (requires \fIlibselinux\fR)"
-.IP "\fBxattrs\fR: extended attributes (requires \fIlibattr\fR)"
-.IP "\fBe2fsattrs\fR: file attributes on a second extended file system, see also \fB report_ignore_e2fsattrs \fP option (requires \fIlibext2fs\fR, added in AIDE v0.15)"
-.IP "\fBcaps\fR: file capabilities (requires \fIlibcap2\fR, added in AIDE v0.17)"
-.RE
+.B "File attributes"
+.TP
+.B "\fBftype\fR"
+file type (added in AIDE v0.15)
+.TP
+.B "\fBp\fR"
+permissions
+.TP
+.B "\fBi\fR"
+inode
+.TP
+.B "\fBl\fR"
+link name
+.TP
+.B "\fBn\fR"
+number of links
+.TP
+.B "\fBu\fR"
+user
+.TP
+.B "\fBg\fR"
+group
+.TP
+.B "\fBs\fR"
+size
+.TP
+.B "\fBb\fR"
+block count
+.TP
+.B "\fBm\fR"
+mtime
+.TP
+.B "\fBa\fR"
+atime
+.TP
+.B "\fBc\fR"
+ctime
+.TP
+.B "\fBacl\fR"
+access control list
+(requires \fIlibacl\fR)
+.TP
+.B "\fBselinux\fR"
+selinux attributes
+(requires \fIlibselinux\fR)
+.TP
+.B "\fBxattrs\fR"
+extended attributes
+(requires \fIlibattr\fR)
+.TP
+.B "\fBe2fsattrs\fR"
+file attributes on a second extended file system,
+see also \fB report_ignore_e2fsattrs \fP option
+(requires \fIlibext2fs\fR, added in AIDE v0.15)
+.TP
+.B "\fBcaps\fR"
+file capabilities
+(requires \fIlibcap2\fR, added in AIDE v0.17)
+.PP
 
 Use 'aide --version' to show which compiled-in attributes are available.
+.PP
+.B "Special attributes"
+.TP
+.B "\fBS\fR"
+check for growing size
+(DEPRECATED since AIDE v0.18, will be removed in AIDE v0.20)
 
-.B Special attributes
-.RS 3
-
-.IP "\fBS\fR:	check for growing size (DEPRECATED since AIDE v0.18, will be removed in AIDE v0.20)"
-
-Deprecated, use \fBgrowing+s\fR attributes instead
-
-.IP "\fBI\fR:	ignore changed filename"
+Use \fBgrowing+s\fR attributes instead
+.TP
+.B "\fBI\fR"
+ignore changed filename
 
 When \fBI\fR is used, the inode of the old file is used to search for
 a moved file in the new database.
 
 Source and target file have to be located in the same directory and must share
 the same attributes (except for special attributes
-\fBANF\fR+\fBARF\fR+\fBI\fR+\fBgrowing\fR+\fBcompressed\fR).
+\fBANF\fR, \fBARF\fR, \fBI\fR, \fBgrowing\fR, and \fBcompressed\fR).
 
 For moved entries a change of the \fBctime\fR attribute is ignored.
 
-.IP "\fBgrowing\fR:	ignore growing file (added in AIDE v0.18)"
+.TP
+.B "\fBgrowing\fR"
+ignore growing file (added in AIDE v0.18)
 
 When \fBgrowing\fR is used, changes of the following attributes are
 ignored:
@@ -796,7 +805,9 @@ ignored:
 
 For hashsum attributes the \fBgrowing\fR attribute is ignored in compare mode.
 
-.IP "\fBcompressed\fR:	ignore compressed file (added in AIDE v0.18)"
+.TP
+.B "\fBcompressed\fR"
+ignore compressed file (added in AIDE v0.18)
 
 When \fBcompressed\fR is used, the uncompressed hashsums of the
 new compressed file (supported compressions: \fBgzip\fR) are used to search for the
@@ -804,7 +815,7 @@ uncompressed file in the old database.
 
 The old uncompressed and the new compressed file have to be located in the same
 directory and must share the same attributes (except for special attributes
-\fBANF\fR+\fBARF\fR+\fBI\fR+\fBgrowing\fR+\fBcompressed\fR) including at least
+\fBANF\fR, \fBARF\fR, \fBI\fR, \fBgrowing\fR, and \fBcompressed\fR) including at least
 one hashsum.
 
 Changes of the \fBinode\fR, \fBsize\fR, \fBbcount\fR and \fBctime\fR attributes are ignored.
@@ -814,36 +825,66 @@ compressed files during the calculation of the uncompressed hashsums.
 
 The \fBcompressed\fR attribute is ignored in compare mode.
 
-.IP "\fBANF\fR:	allow new files
+.TP
+.B "\fBANF\fR"
+allow new files
+
 When 'ANF' is used, new files are added to the new database, but are
 ignored in the report.
+.TP
+.B "\fBARF\fR"
+allow removed files
 
-
-.IP "\fBARF\fR:	allow removed files
 When 'ARF' is used, files missing on disk are omitted from the new database,
 but are ignored in the report.
-
-.LP
-.LP
-
-.RE
+.PP
 
 .B Hashsums attributes
-.RS 3
-.IP "md5: MD5 checksum (not in \fIlibgcrypt\fR FIPS mode)"
-.IP "sha1: SHA-1 checksum"
-.IP "sha256: SHA-256 checksum"
-.IP "sha512: SHA-512 checksum"
-.IP "rmd160: RIPEMD-160 checksum"
-.IP "tiger: tiger checksum"
-.IP "haval: haval256 checksum (\fIlibmhash\fR only)"
-.IP "crc32:	crc32 checksum"
-.IP "crc32b:	crc32 checksum (\fIlibmhash\fR only)"
-.IP "gost: GOST R 34.11-94 checksum"
-.IP "whirlpool: whirlpool checksum"
-.IP "stribog256: GOST R 34.11-2012, 256 bit checksum (\fIlibgcrypt\fR only, added in AIDE v0.17)"
-.IP "stribog512: GOST R 34.11-2012, 512 bit checksum (\fIlibgcrypt\fR only, added in AIDE v0.17)"
-.RE
+.TP
+.B "md5"
+MD5 checksum
+(not in \fIlibgcrypt\fR FIPS mode)
+.TP
+.B "sha1"
+SHA-1 checksum
+.TP
+.B "sha256"
+SHA-256 checksum
+.TP
+.B "sha512"
+SHA-512 checksum
+.TP
+.B "rmd160"
+RIPEMD-160 checksum
+.TP
+.B "tiger"
+tiger checksum
+.TP
+.B "haval"
+haval256 checksum
+(\fIlibmhash\fR only)
+.TP
+.B "crc32"
+crc32 checksum
+.TP
+.B "crc32b"
+crc32 checksum
+(\fIlibmhash\fR only)
+.TP
+.B "gost"
+GOST R 34.11-94 checksum
+.TP
+.B "whirlpool"
+whirlpool checksum
+.TP
+.B "stribog256"
+GOST R 34.11-2012, 256 bit checksum
+(\fIlibgcrypt\fR only, added in AIDE v0.17)
+.TP
+.B "stribog512"
+GOST R 34.11-2012, 512 bit checksum
+(\fIlibgcrypt\fR only, added in AIDE v0.17)
+.PP
 
 Use 'aide --version' to show which hashsums are available.
 
@@ -851,32 +892,195 @@ Use 'aide --version' to show which hashsums are available.
 
 .PP
 .SH EXAMPLES
-.IP
+.TP
 .B "/ R"
-.LP
-This adds all files on your machine to the database. This one line
-is a fully qualified configuration file.
-.IP
+This adds all files on your machine to the database.
+This one line is a fully qualified configuration file.
+.TP
 .B "!/dev$"
-.LP
 This ignores the /dev directory structure.
-.IP
+.TP
 .B "=/foo R"
-.LP
-Only /foo and /foobar are taken into the database. None of their children are
-added.
-.IP
+Only /foo and /foobar are taken into the database.
+None of their children are added.
+.TP
 .B "=/foo/ R"
-.LP
-Only /foo and its children (e.g. /foo/file and /foo/directory) are taken into
-the database. The children of sub-directories (e.g. /foo/directory/bar) are not
-added.
-.IP
-.B "\fBAll\fR=ftype+p+l+u+g+s+m+c+a+i+b+n+H+X"
-.LP
-This line defines group \fBAll\fR. It has all attributes, all compiled in
-hashsums (\fBH\fR) and all compiled in extra file attributes (\fBX\fR).
+Only /foo and its children
+(e.g. /foo/file and /foo/directory)
+are taken into the database.
+The children of sub-directories
+(e.g. /foo/directory/bar) are not added.
+.TP
+.B "/ d,f R"
+Only add directories and files to the database
+.TP
+.B "!/run d"
+.TQ
+.B "/run R"
+Add all but directory entries to the database
+.TP
+.B "/run d R-m-c-i"
+.TQ
+.B "/run R"
+Use specific rule for directories
+.TP
+Suggested Groups
+.TP
+.B "\fBOwnerMode\fR = p+u+g+ftype"
+Check permissions, owner, group and file type
+.TP
+.B "\fBSize\fR = s+b"
+Check size and block count
+.TP
+.B "\fBInodeData\fR = OwnerMode+n+i+Size+l+X"
+.TQ
+.B "\fBStaticFile\fR = m+c+Checksums"
+Files that stay static
+.PP
+.B "\fBFull\fR = InodeData+StaticFile"
+.TQ
+.B "\fBFull\fR = ftype+p+l+u+g+s+m+c+a+i+b+n+H+X"
+.TQ
+.B "/ 0 Full"
+This line defines group \fBFull\fR.
+It has all attributes,
+all compiled in hashsums (\fBH\fR) and
+all compiled in extra file attributes (\fBX\fR).
 See '--version' output for the compiled in hashsums and extra groups.
+The example rule is the typical catch-all rule
+at the end of the rule list.
+.TP
+.B "\fBVarTime\fR = InodeData+Checksums"
+.TQ
+.B "/etc/ssl/certs/ca-certificates\e\e.crt$ VarTime"
+Files that change their mtimes or ctimes but not their contents.
+.TP
+.B "\fBVarInode\fR = VarTime-i"
+.TQ
+.B "/var/lib/nfs/etab$ f VarInode"
+Files that are recreated regularly but do not change their contents
+.TP
+.B "\fBVarFile\fR = OwnerMode+n+l+X"
+.TQ
+.B "/etc/resolv\e\e.conf$ f VarFile"
+Files that change their contents during system operation
+.TP
+.B "\fBVarDir\fR = OwnerMode+n+i+X"
+.TQ
+.B "/var/lib/snmp$ d VarDir"
+Directories that change their contents during system operation
+.TP
+.B "\fBRecreatedDir\fR = OwnerMode+n+X"
+.TQ
+.B "/run/samba$ d RecreatedDir"
+Directories that are recreated regularly and change their contents
+.TP
+Log Handling
+.PP
+Logs pose a number of special challenges to AIDE.
+An active log is nearly constantly being written to.
+The process of log rotation changes file names for
+files that are supposed to have unaltered contents.
+To save space, Logs are compressed in the process of their rotation,
+and finally, they get deleted.
+AIDE is supposed to handle all those cases without generating reports,
+and it is still expected to flag the cases when
+an attacker tampers with logs.
+.PP
+The following examples suggest a way to handle the
+common case of log rotation with the logrotate(8) program,
+with its options \fBcompress\fR, \fBdelaycompress\fR and \fBnocopytruncate\fR set.
+The vast majority of logs are rotated this way on most Linux systems.
+.TP
+.B "\fBActLog\fR=Full+growing+ANF+I"
+.TQ
+.B "/var/log/foo\e\e.log$ f ActLog"
+An Active Log is typically named foo.log.
+It is constanty being written to.
+The file does neither change its mode nor its inode number.
+The size only increases,
+and what is written to the file is not supposed to change (growing).
+During log rotation,
+foo.log is typically renamed to foo.log.1 (or foo.log.0)
+and the process is instructed to write to a new foo.log.
+Log content is written to a new file (ANF)
+and will eventually be renamed to foo.log.1 (I).
+The growing attribute suppresses reports for files that
+just had content appended when compared to the database.
+A change of the old content is still reported!
+.TP
+.B "\fBRotLog\fR=Full"
+.TQ
+.B "/var/log/foo\e\e.log\e\e.1$ f RogLog"
+foo.log.0 or foo.log.1 is called the Rotated Log,
+the previously active log renamed to the
+first name of the Log Series that is formed by the rotation mechanism.
+Right after rotation, the file might still being written to by the daemon.
+To aide, this looks like the Active Log's size decreases and its
+inode and timestamps change.
+The Rotated Log is not supposed to change its attributes
+once the process has stopped writing to it.
+Reports might be generated if aide runs while the process
+still writes to the Rotated Log,
+but this is quite unlikely to happen.
+Some log rotation mechanisms rename
+foo.log to foo.log.0 to foo.log.1.gz,
+others rename foo.log to foo.log.1 to foo.2.log.gz.
+.TP
+.B "\fBCompSerLog\fR=Full+I+compressed"
+.TQ
+.B "/var/log/foo\e\e.log\e\e.2\e\e.gz$ f CompSerLog"
+In the next rotation step,
+foo.log.1 gets compressed to foo.log.2.gz,
+becoming the Compressed Log in the Log Series.
+With this rule,
+AIDE does not report this step because it
+uncompresses the contents of the file
+and takes the checksum of the uncompressed content.
+The contents strictly doesn't change,
+but some attribute changes are ignored (compressed).
+.TP
+.B "\fBMidlSerLog\fR=Full+I"
+.TQ
+.B "/var/log/foo\e\e.log\e\e.[345]\e\e.gz$ f MidlSerLog"
+In the next log rotation, all foo.log.{x} get renamed to foo.log.{x+1}.
+The other attributes are not supposed to change.
+.TP
+.B "\fBLastSerLog\fR=Full+ARF"
+.TQ
+.B "/var/log/foo\e\e.log\e\e.6\e\e.gz$ f LastSerLog"
+The configuration of the log rotation process specifies a number of log
+generations to keep. The last log in the series is therefore removed
+from the disk (ARF).
+.PP
+aide 0.18 does not yet support the following cases of log rotation:
+.TP
+.B "empty files"
+It might be the case that a log is actually created, but never written to.
+This commonly happens on rarely used web servers that use the log rotation
+as a method to cater for data protection regulation.
+In result, all files in a series are identical,
+breaking the heuristics that aide uses to detect log rotation.
+A possible workaround is to begin a newly rotated log with a timestamp.
+With logrotate, this can be done in a postrotate scriptlet.
+.TP
+.B "nodelaycompress"
+With logrotate's \fBnodelaycompress\fR option,
+a log is immediately compressed after renaming it from the Active Log name.
+For the time being, it is recommended to always use the \fBdelaycompress\fR option
+to avoid this behavior.
+.TP
+.B "copytruncate"
+With logrotate's \fBcopytruncate\fR option,
+the Active Log is not renamed and newly created but
+copied to the new file name.
+After the copy operation, the old file is truncated to zero size,
+allowing the daemon to continuously write to the already open file handle.
+aide uses the Inode number to detect the rotation process.
+That doesn't work with \fBcopytruncate\fR because the Inode stays
+with the Active Log.
+For the time being, it is recommended to avoid the \fBcopytruncate\fR option
+to avoid this behavior.
 .PP
 .SH HINTS
 In the following, the first is not allowed in AIDE. Use the latter instead.

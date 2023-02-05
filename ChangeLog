@@ -1,3 +1,6 @@
+2023-02-05 Marc Haber <mh+debian-packages@zugschlus.de>
+	* Update aide.conf.5 manual page
+
 2023-01-22 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Update man pages
 	* Minor code cleanup

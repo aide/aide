@@ -1,4 +1,4 @@
-Version 0.18 (UNRELEASED)
+Version 0.18 (2023-02-06)
     * BACKWARDS INCOMPATIBLE CHANGES
         - remove Prelink support (--with-prelink configure option)
     * Switch from PCRE to PCRE2

@@ -1,27 +1,26 @@
 Version 0.18 (UNRELEASED)
     * BACKWARDS INCOMPATIBLE CHANGES
         - remove Prelink support (--with-prelink configure option)
-
     * Switch from PCRE to PCRE2
     * Enable dynamic linking by default
     * Support multithreading for hashsum calculation
-      - add --without-pthread configure option
-      - add new log level 'thread'
-      * add num_workers config option
+      - add num_workers config option (default to single worker thread)
       - add new '--workers' parameter
+      - add new log level 'thread'
       - add new exit code 23 for thread errors
+      - add --without-pthread configure option
       - require Autoconf Macro Archive (autoconf-archive)
-    - Remove mmap support for hashsum calculation
+    * Remove mmap support for hashsum calculation
     * Deprecations (to be removed in the release after next):
         - 'S' attribute is now deprecated, use 'growing+s' attributes instead
         - '@@ifdef', macro is now deprecated, use '@@if defined' instead
         - '@@ifndef', macro is now deprecated, use '@@if not defined' instead
-        - '@@ifhost', macro is now deprecated, use '@@if hostame' instead
+        - '@@ifhost', macro is now deprecated, use '@@if hostname' instead
         - '@@ifnhost', macro is now deprecated, use '@@if not hostname' instead
-    * add new 'growing' attribute
-    * add new 'compression' attribute
-    * add new log level 'compare'
-    * replace 'S' attribute in '>' compound group with 'growing+s'
+    * Add new 'growing' attribute
+    * Add new 'compressed' attribute
+    * Add new log level 'compare'
+    * Replace 'S' attribute in '>' compound group with 'growing+s'
     * Add 'report_format' option (available formats: `plain`, `json`)
     * Add @@if macro
     * Add 'exists' boolean function
@@ -29,10 +28,14 @@ Version 0.18 (UNRELEASED)
     * Support restricted rules with empty restriction
     * Add prefix option to directory include macros
     * Add exit code 22 for memory allocation errors
+    * Update e2fs attributes to match upstream
+      - the 'h' attribute has been removed
+      - use `report_ignore_e2fsattrs=VNIE` to ignore read only attributes
     * Support CRLF line-endings in config files
+    * Use pkg-config to get link flags
     * Add SECURITY.md
     * Improve logging
-    * Improve error message during config parsing
+    * Improve error messages during config parsing
     * Update documentation
     * Minor bug fixes
     * Code clean up

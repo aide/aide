@@ -30,7 +30,7 @@
         o  Powerful regular expression support to selectively include or
            exclude files and directories to be monitored.
         o  gzip database compression if zlib support is compiled in.
-        o  Free software licensed under the GNU General Public License.
+        o  Free software licensed under the GNU General Public License v2.
 
     The homepage of AIDE is https://aide.github.io
 
@@ -114,7 +114,7 @@
     key servers. You have to make sure that the key you install is not a faked
     one. You can do this with reasonable assurance by comparing the output of:
 
-      $ gpg --fingerprint 0x68E7B931
+      $ gpg --fingerprint 2BBBD30FAAB29B3253BCFBA6F6947DAB68E7B931
 
     with the fingerprint published elsewhere.
 

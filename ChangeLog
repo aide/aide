@@ -1,3 +1,6 @@
+2023-02-14 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Fix handling of empty growing files
+
 2023-02-06  Hannes von Haugwitz  <hannes@vonhaugwitz.com>
 	* Release aide 0.18
 

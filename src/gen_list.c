@@ -231,33 +231,39 @@ static DB_ATTR_TYPE get_changed_attributes(db_line* l1,db_line* l2, DB_ATTR_TYPE
             if (l1->attr&ATTR(attr_growing)) {
                 if (conf->action&DO_COMPARE) {
                     if(l1->size < l2->size) {
-                        log_msg(compare_log_level, "┝ '%s' has growing attribute set, check for growing hashsums", l1->filename);
-                        log_msg(compare_log_level, "│ compare hashsums of '%s' and '%s' limited to old size %d", l1->filename, l2->filename, l1->size);
-                        md_hashsums hs = calc_hashsums(l2->fullpath, l2->attr, fs, l1->size, false);
+                        if (l1->size) {
+                            log_msg(compare_log_level, "┝ '%s' has growing attribute set, check for growing hashsums", l1->filename);
+                            log_msg(compare_log_level, "│ compare hashsums of '%s' and '%s' limited to old size %d", l1->filename, l2->filename, l1->size);
+                            md_hashsums hs = calc_hashsums(l2->fullpath, l2->attr, fs, l1->size, false);
 
-                        byte* new_hashsums[num_hashes];
-                        for (int i = 0 ; i < num_hashes ; ++i) {
-                            DB_ATTR_TYPE attr = ATTR(hashsums[i].attribute);
-                            if (hs.attrs&attr) {
-                                new_hashsums[i] = checked_malloc(hashsums[i].length);
-                                memcpy(new_hashsums[i],hs.hashsums[i],hashsums[i].length);
-                            } else {
-                                new_hashsums[i] = NULL;
+                            byte* new_hashsums[num_hashes];
+                            for (int i = 0 ; i < num_hashes ; ++i) {
+                                DB_ATTR_TYPE attr = ATTR(hashsums[i].attribute);
+                                if (hs.attrs&attr) {
+                                    new_hashsums[i] = checked_malloc(hashsums[i].length);
+                                    memcpy(new_hashsums[i],hs.hashsums[i],hashsums[i].length);
+                                } else {
+                                    new_hashsums[i] = NULL;
+                                }
                             }
-                        }
 
-                        DB_ATTR_TYPE new_changed = get_changed_hashsums(l1->attr&l2->attr, l1->hashsums, new_hashsums);
+                            DB_ATTR_TYPE new_changed = get_changed_hashsums(l1->attr&l2->attr, l1->hashsums, new_hashsums);
 
-                        for (int i = 0 ; i < num_hashes ; ++i) {
-                            free(new_hashsums[i]);
-                        }
+                            for (int i = 0 ; i < num_hashes ; ++i) {
+                                free(new_hashsums[i]);
+                            }
 
-                        if (new_changed) {
-                            str = diff_attributes(0,new_changed);
-                            log_msg(compare_log_level, "│ keep hashsums as CHANGED (hashsums of '%s' limited to old size %d have been changed: %s)", l2->filename, l1->size, str);
-                            free(str);
+                            if (new_changed) {
+                                str = diff_attributes(0,new_changed);
+                                log_msg(compare_log_level, "│ keep hashsums as CHANGED (hashsums of '%s' limited to old size %d have been changed: %s)", l2->filename, l1->size, str);
+                                free(str);
+                            } else {
+                                log_msg(compare_log_level, "│ set hashsums as UNCHANGED (hashsums of '%s' limited to old size %d have NOT been changed)", l2->filename, l1->size);
+                                changed_hashsums = 0;
+                            }
                         } else {
-                            log_msg(compare_log_level, "│ set hashsums as UNCHANGED (hashsums of '%s' limited to old size %d have NOT been changed)", l2->filename, l1->size);
+                            log_msg(compare_log_level, "│ '%s' has growing attribute set, but skip hashsums calculation (file was empty before)", l1->filename);
+                            log_msg(compare_log_level, "│ set hashsums as UNCHANGED (old size equals zero)");
                             changed_hashsums = 0;
                         }
                     } else {

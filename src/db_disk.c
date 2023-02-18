@@ -239,7 +239,7 @@ void db_scan_disk(bool dry_run) {
 #ifdef WITH_PTHREAD
     pthread_t add2tree_thread;
 
-    if (conf->num_workers) {
+    if (!dry_run && conf->num_workers) {
         if (pthread_create(&add2tree_thread, NULL, &add2tree, NULL) != 0) {
             log_msg(LOG_LEVEL_ERROR, "failed to start add2tree thread: %s", strerror(errno));
             exit(THREAD_ERROR);
@@ -250,7 +250,7 @@ void db_scan_disk(bool dry_run) {
     scan_dir(full_path, dry_run);
 
 #ifdef WITH_PTHREAD
-    if (conf->num_workers) {
+    if (!dry_run && conf->num_workers) {
         if (pthread_join(add2tree_thread, NULL) != 0) {
             log_msg(LOG_LEVEL_ERROR, "failed to join add2tree thread: %s", strerror(errno));
             exit(THREAD_ERROR);

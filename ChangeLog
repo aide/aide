@@ -1,3 +1,6 @@
+2023-02-18 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Fix segfault when using --dry-init
+
 2023-02-14 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix handling of empty growing files
 

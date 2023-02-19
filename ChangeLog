@@ -1,3 +1,6 @@
+2023-02-19 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* README: update expiration date of signing key
+
 2023-02-18 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix segfault when using --dry-init
 

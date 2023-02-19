@@ -107,7 +107,7 @@
 
     The current public key needed for signature verification is:
 
-        pub   4096R/68E7B931 2011-06-28 [expires: 2021-06-27]
+        pub   4096R/68E7B931 2011-06-28 [expires: 2025-06-27]
         uid                  Hannes von Haugwitz <hannes@vonhaugwitz.com>
 
     If you do not have this key, you can get it from one of the well known PGP

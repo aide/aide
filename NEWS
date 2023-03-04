@@ -1,4 +1,4 @@
-Version 0.18.1 (UNRELEASED)
+Version 0.18.1 (2023-03-04)
     * Fix handling of empty growing files
     * Fix segfault when using --dry-init
     * Update README

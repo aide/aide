@@ -1,3 +1,8 @@
+Version 0.18.1 (UNRELEASED)
+    * Fix handling of empty growing files
+    * Fix segfault when using --dry-init
+    * Update README
+
 Version 0.18 (2023-02-06)
     * BACKWARDS INCOMPATIBLE CHANGES
         - remove Prelink support (--with-prelink configure option)

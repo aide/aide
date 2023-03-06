@@ -87,7 +87,7 @@ CLEANFILES = src/conf_yacc.h src/conf_yacc.c src/conf_lex.c src/db_lex.c
 
 man_MANS = doc/aide.1 doc/aide.conf.5
 
-EXTRA_DIST = $(man_MANS) Todo SECURITY.md
+EXTRA_DIST = $(man_MANS) SECURITY.md
 
 src/conf_yacc.c: src/conf_yacc.y
 	$(YACC) $(AM_YFLAGS) -Wno-yacc -Wall -Werror -o $@ -p conf $<

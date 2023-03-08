@@ -338,12 +338,38 @@ bool add_rx_rule_to_tree(char* rx, char* rule_prefix, RESTRICTION_TYPE restricti
         r->config_line = checked_strdup(linebuf);
         r->prefix = rule_prefix;
 
+        char *str;
+
         DB_ATTR_TYPE unsupported_hashes = attr&(get_hashes(true)&~get_hashes(false));
         if (unsupported_hashes) {
-            char *str;
             LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_WARNING, "ignoring unsupported hash algorithm(s): %s", str = diff_attributes(0, unsupported_hashes));
             free(str);
             attr &= ~unsupported_hashes;
+        }
+
+        DB_ATTR_TYPE unsupported_attrs = attr&
+            (0
+#ifndef WITH_ACL
+             |ATTR(attr_acl)
+#endif
+#ifndef WITH_SELINUX
+             |ATTR(attr_selinux)
+#endif
+#ifndef WITH_XATTR
+             |ATTR(attr_xattrs)
+#endif
+#ifndef WITH_E2FSATTRS
+             |ATTR(attr_e2fsattrs)
+#endif
+#ifndef WITH_CAPABILITIES
+             |ATTR(attr_capabilities)
+#endif
+            )
+            ;
+        if (unsupported_attrs) {
+            LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_WARNING, "ignoring not compiiled-in attribute(s): %s", str = diff_attributes(0, unsupported_attrs));
+            free(str);
+            attr &= ~unsupported_attrs;
         }
 
         r->attr=attr;

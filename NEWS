@@ -1,6 +1,7 @@
 Version 0.19 (UNRELEASED)
     * Remove contrib/ scripts
     * Improve error handling
+    * Improve logging
     * Update documentation
     * Bug fixes
 

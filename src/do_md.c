@@ -25,9 +25,6 @@
 #include <stdbool.h>
 
 #include <limits.h>
-#ifdef WITH_PTHREAD
-#include <pthread.h>
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

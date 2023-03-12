@@ -1,5 +1,6 @@
 2023-03-12 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Adjust documentation of num_workers config option
+	* Require pthread (remove --without-pthread configure option)
 
 2023-03-10 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Adjust log messages about check inode attribute comparison

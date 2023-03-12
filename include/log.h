@@ -21,7 +21,6 @@
 #ifndef _LOG_H_INCLUDED
 #define  _LOG_H_INCLUDED
 
-#include "config.h"
 #include <stdbool.h>
 
 /* log levels */
@@ -39,9 +38,7 @@ typedef enum { /* preserve order */
     LOG_LEVEL_TRACE = 10,
 } LOG_LEVEL;
 
-#ifdef WITH_PTHREAD
 void log_init();
-#endif
 
 bool is_log_level_unset();
 

@@ -321,13 +321,7 @@ AC_CHECK_HEADERS(syslog.h inttypes.h fcntl.h ctype.h)
 
 AIDE_PKG_CHECK_MANDATORY(pcre2, PCRE2, libpcre2-8)
 
-AC_MSG_CHECKING(for pthread for multithreading)
-AC_ARG_WITH([pthread], AS_HELP_STRING([--with-pthread], [use pthread for multithreading (default: yes)]), [with_pthread=$withval], [with_pthread=yes])
-AC_MSG_RESULT([$with_pthread])
-compoptionstring="${compoptionstring}use pthread: $with_pthread\\n"
-AS_IF([test x"$with_pthread" = xyes], [
-    AX_PTHREAD([AC_DEFINE(WITH_PTHREAD,1,[use pthread])], [AC_MSG_ERROR([AIDE requires pthread])])
-])
+AX_PTHREAD(compoptionstring="${compoptionstring}use pthread: mandatory\\n", [AC_MSG_ERROR([AIDE requires pthread])])
 
 AIDE_PKG_CHECK(zlib, zlib compression, yes, ZLIB, zlib)
 

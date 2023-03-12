@@ -55,11 +55,9 @@
 #ifdef WITH_E2FSATTRS
 #include "e2fsattrs.h"
 #endif
-#ifdef WITH_PTHREAD
 #include <math.h>
 #include <errno.h>
 #include <unistd.h>
-#endif
 
 #define BUFSIZE 4096
 #define ZBUFSIZE 16384
@@ -541,7 +539,6 @@ bool do_rootprefix(char* val, int linenumber, char* filename, char* linebuf) {
     }
 }
 
-#ifdef WITH_PTHREAD
 long do_num_workers(const char *str) {
     char *err;
     long number = strtol(str,&err,10);
@@ -557,7 +554,6 @@ long do_num_workers(const char *str) {
     }
     return number;
 }
-#endif
 
 #ifdef WITH_E2FSATTRS
 void do_report_ignore_e2fsattrs(char* val, int linenumber, char* filename, char* linebuf) {

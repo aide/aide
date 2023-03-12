@@ -56,9 +56,7 @@ bool do_repurldef(char*, int, char*, char*);
 
 bool do_rootprefix(char*, int, char*, char*);
 
-#ifdef WITH_PTHREAD
 long do_num_workers(const char *);
-#endif
 
 #ifdef WITH_E2FSATTRS
 void do_report_ignore_e2fsattrs(char*, int, char*, char*);

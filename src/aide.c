@@ -314,16 +314,12 @@ static void read_param(int argc,char**argv)
            break;
                }
       case 'W':{
-#ifdef WITH_PTHREAD
            long num_workers = do_num_workers(optarg);
            if (num_workers < 0) {
                INVALID_ARGUMENT("--workers", invalid number of workers '%s', optarg)
            }
            conf->num_workers = num_workers;
            log_msg(LOG_LEVEL_INFO,"(--workers): set number of workers to %ld (argument value: '%s')", conf->num_workers, optarg);
-#else
-           INVALID_ARGUMENT("--workers", %s, "pthread support not compiled in, recompile AIDE with '--with-pthread'")
-#endif
            break;
       }
       case 'p':{
@@ -474,9 +470,7 @@ static void setdefaults_before_config()
 
   conf->action=0;
 
-#ifdef WITH_PTHREAD
   conf->num_workers = -1;
-#endif
 
   conf->warn_dead_symlinks=0;
 
@@ -572,12 +566,10 @@ static void setdefaults_after_config()
     conf->action=DO_COMPARE;
   }
 
-#ifdef WITH_PTHREAD
   if(conf->num_workers < 0) {
       conf->num_workers = 1;
       log_msg(LOG_LEVEL_CONFIG, "(default): set 'num_workers' option to %lu", conf->num_workers);
   }
-#endif
 
   if (is_log_level_unset()) {
           set_log_level(LOG_LEVEL_WARNING);
@@ -588,9 +580,7 @@ int main(int argc,char**argv)
 {
   int errorno=0;
 
-#ifdef WITH_PTHREAD
   log_init();
-#endif
 
 #ifdef WITH_LOCALE
   setlocale(LC_ALL,"");
@@ -736,22 +726,18 @@ int main(int argc,char**argv)
 	exit(IO_ERROR);
     }
 
-#ifdef WITH_PTHREAD
     if((conf->action&DO_INIT || conf->action&DO_COMPARE) && conf->num_workers){
       if(db_disk_start_threads()==RETFAIL)
           exit(THREAD_ERROR);
     }
-#endif
 
     log_msg(LOG_LEVEL_INFO, "populate tree");
     populate_tree(conf->tree);
 
-#ifdef WITH_PTHREAD
     if((conf->action&DO_INIT || conf->action&DO_COMPARE) && conf->num_workers){
       if(db_disk_finish_threads() == RETFAIL)
           exit(THREAD_ERROR);
     }
-#endif
 
     if(conf->action&DO_INIT) {
         log_msg(LOG_LEVEL_INFO, "write new entries to database: %s:%s", get_url_type_string((conf->database_out.url)->type), (conf->database_out.url)->value);

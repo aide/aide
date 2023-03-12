@@ -42,9 +42,7 @@
 #include "queue.h"
 #include "errorcodes.h"
 
-#ifdef WITH_PTHREAD
 #include <pthread.h>
-#endif
 
 static int get_file_status(char *filename, struct stat *fs) {
     int sres = 0;
@@ -60,7 +58,6 @@ static int get_file_status(char *filename, struct stat *fs) {
     return sres;
 }
 
-#ifdef WITH_PTHREAD
 queue_ts_t *queue_worker_files = NULL;
 queue_ts_t *queue_database_entries = NULL;
 
@@ -69,7 +66,6 @@ pthread_t wait_for_workers_thread;
 pthread_t *file_attributes_threads;
 
 const char *whoami_main = "(main)";
-#endif
 
 static char *name_construct (const char *dirpath, const char *filename) {
     int dirpath_len = strlen (dirpath);
@@ -80,7 +76,6 @@ static char *name_construct (const char *dirpath, const char *filename) {
     return ret;
 }
 
-#ifdef WITH_PTHREAD
 typedef struct scan_dir_entry {
     char *filename;
     DB_ATTR_TYPE attr;
@@ -91,11 +86,9 @@ typedef struct database_entry {
     db_line *line;
     struct stat fs;
 } database_entry;
-#endif
 
 static void handle_matched_file(char *entry_full_path, DB_ATTR_TYPE attr, struct stat fs) {
     char *filename = checked_strdup(entry_full_path); /* not te be freed, reused as fullname in db_line */;
-#ifdef WITH_PTHREAD
     if (conf->num_workers) {
         scan_dir_entry *data;
         data = checked_malloc(sizeof(scan_dir_entry)); /* freed in file_attrs_worker */
@@ -105,12 +98,9 @@ static void handle_matched_file(char *entry_full_path, DB_ATTR_TYPE attr, struct
         log_msg(LOG_LEVEL_THREAD, "%10s: scan_dir: add entry %p to list of worker files (filename: '%s' (%p))", whoami_main,  data, data->filename, data->filename);
         queue_ts_enqueue(queue_worker_files, data, whoami_main);
     } else {
-#endif
         db_line *line = get_file_attrs(filename, attr, &fs);
         add_file_to_tree(conf->tree, line, DB_NEW|DB_DISK, NULL, &fs);
-#ifdef WITH_PTHREAD
     }
-#endif
 }
 
 void scan_dir(char *root_path, bool dry_run) {
@@ -205,15 +195,12 @@ void scan_dir(char *root_path, bool dry_run) {
         free(full_path);
         full_path = NULL;
     }
-#ifdef WITH_PTHREAD
     if (conf->num_workers && !dry_run) {
         queue_ts_release(queue_worker_files, whoami_main);
     }
-#endif
     queue_free(stack);
 }
 
-#ifdef WITH_PTHREAD
 static void * add2tree( __attribute__((unused)) void *arg) {
     const char *whoami = "(add2tree)";
 
@@ -229,14 +216,12 @@ static void * add2tree( __attribute__((unused)) void *arg) {
 
     return (void *) pthread_self();
 }
-#endif
 
 void db_scan_disk(bool dry_run) {
     char* full_path=checked_malloc((conf->root_prefix_length+2)*sizeof(char));
     strncpy(full_path, conf->root_prefix, conf->root_prefix_length+1);
     strcat (full_path, "/");
 
-#ifdef WITH_PTHREAD
     pthread_t add2tree_thread;
 
     if (!dry_run && conf->num_workers) {
@@ -245,23 +230,19 @@ void db_scan_disk(bool dry_run) {
             exit(THREAD_ERROR);
         }
     }
-#endif
 
     scan_dir(full_path, dry_run);
 
-#ifdef WITH_PTHREAD
     if (!dry_run && conf->num_workers) {
         if (pthread_join(add2tree_thread, NULL) != 0) {
             log_msg(LOG_LEVEL_ERROR, "failed to join add2tree thread: %s", strerror(errno));
             exit(THREAD_ERROR);
         }
     }
-#endif
 
     free(full_path);
 }
 
-#ifdef WITH_PTHREAD
 static void * file_attrs_worker( __attribute__((unused)) void *arg) {
     long worker_index = (long) arg;
     char whoami[32];
@@ -337,4 +318,3 @@ int db_disk_finish_threads() {
     log_msg(LOG_LEVEL_THREAD, "%10s: wait_for_workers thread finished", whoami_main);
     return RETOK;
 }
-#endif

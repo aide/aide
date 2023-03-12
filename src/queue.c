@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2022 Hannes von Haugwitz
+ * Copyright (C) 2022-2023 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -22,9 +22,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#ifdef WITH_PTHREAD
 #include <pthread.h>
-#endif
 
 #include "queue.h"
 #include "log.h"
@@ -43,12 +41,10 @@ struct queue_s {
     qnode_t *head;
     qnode_t *tail;
 
-#ifdef WITH_PTHREAD
     pthread_mutex_t mutex;
     pthread_cond_t cond;
 
     bool release;
-#endif
 
     int (*sort_func) (const void*, const void*);
 };
@@ -146,7 +142,6 @@ void *queue_dequeue(queue_ts_t * const queue) {
     return data;
 }
 
-#ifdef WITH_PTHREAD
 queue_ts_t *queue_ts_init(int (*sort_func) (const void*, const void*)) {
     queue_ts_t *queue = checked_malloc (sizeof(queue_ts_t));
 
@@ -224,4 +219,3 @@ void queue_ts_release(queue_ts_t * const queue, const char *whoami) {
     pthread_cond_broadcast(&queue->cond);
     log_msg(LOG_LEVEL_THREAD, "%10s: queue(%p): release queue and broadcast waiting threads", whoami, queue);
 }
-#endif

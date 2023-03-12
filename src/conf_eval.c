@@ -305,7 +305,6 @@ static void eval_config_statement(config_option_statement statement, int linenum
             /* command-line options are ignored here */
             break;
         case NUM_WORKERS:
-#ifdef WITH_PTHREAD
             str = eval_string_expression(statement.e, linenumber, filename, linebuf);
 
             if (conf->num_workers < 0) {
@@ -319,10 +318,6 @@ static void eval_config_statement(config_option_statement statement, int linenum
             } else {
                     LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_NOTICE, "'num_workers' option already set (ignore new value '%s')", str)
             }
-#else
-            LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, "%s", "pthreads support not compiled in, recompile AIDE with '--with-pthread'")
-            exit(INVALID_CONFIGURELINE_ERROR);
-#endif
             break;
     }
 }

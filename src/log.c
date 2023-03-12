@@ -24,9 +24,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#ifdef WITH_PTHREAD
 #include <pthread.h>
-#endif
 
 #include "log.h"
 #include "errorcodes.h"
@@ -42,7 +40,6 @@ typedef struct log_cache {
 log_cache *cached_lines = NULL;
 int ncachedlines = 0;
 
-#ifdef WITH_PTHREAD
 pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void log_init() {
@@ -51,7 +48,6 @@ void log_init() {
     pthread_mutexattr_settype(&mutex_attrs, PTHREAD_MUTEX_RECURSIVE);
     pthread_mutex_init(&log_mutex, &mutex_attrs);
 }
-#endif
 
 struct log_level {
     LOG_LEVEL log_level;
@@ -187,16 +183,12 @@ void log_msg(LOG_LEVEL, const char*, ...)
 #endif
 ;
 void log_msg(LOG_LEVEL level, const char* format, ...) {
-#ifdef WITH_PTHREAD
     pthread_mutex_lock(&log_mutex);
-#endif
     va_list argp;
     va_start(argp, format);
     vlog_msg(level, format, argp);
     va_end(argp);
-#ifdef WITH_PTHREAD
     pthread_mutex_unlock(&log_mutex);
-#endif
 }
 
 void stderr_msg(const char* format, ...)
@@ -205,14 +197,10 @@ void stderr_msg(const char* format, ...)
 #endif
 ;
 void stderr_msg(const char* format, ...) {
-#ifdef WITH_PTHREAD
     pthread_mutex_lock(&log_mutex);
-#endif
     va_list ap;
     va_start(ap, format);
     vfprintf(stderr, format, ap);
     va_end(ap);
-#ifdef WITH_PTHREAD
     pthread_mutex_unlock(&log_mutex);
-#endif
 }

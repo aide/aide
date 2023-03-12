@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2004-2006, 2010-2013, 2015-2016, 2019-2022
+ * Copyright (C) 1999-2002, 2004-2006, 2010-2013, 2015-2016, 2019-2023
  *               Rami Lehti, Pablo Virolainen, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -150,9 +150,7 @@ typedef struct db_config {
   /* What are we supposed to do */
   int action;
 
-#ifdef WITH_PTHREAD
   long num_workers;
-#endif
 
   time_t start_time;
   time_t end_time;

@@ -1,5 +1,6 @@
 Version 0.18.2 (UNRELEASED)
     * Add warning if rules contain not compiled-in attributes
+    * Add missing lock for tree operations during file system scan
 
 Version 0.18.1 (2023-03-04)
     * Fix handling of empty growing files

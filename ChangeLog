@@ -1,3 +1,6 @@
+2023-04-01 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Add missing lock for tree operations during file system scan
+
 2023-03-12 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Adjust documentation of num_workers config option
 	* Require pthread (remove --without-pthread configure option)

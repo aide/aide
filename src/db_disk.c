@@ -44,6 +44,8 @@
 
 #include <pthread.h>
 
+pthread_mutex_t seltree_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 static int get_file_status(char *filename, struct stat *fs) {
     int sres = 0;
     sres = lstat(filename,fs);
@@ -111,7 +113,9 @@ void scan_dir(char *root_path, bool dry_run) {
 
     log_msg(LOG_LEVEL_DEBUG,"scan_dir: process root directory '%s' (fullpath: '%s')", &root_path[conf->root_prefix_length], root_path);
     if (!get_file_status(root_path, &fs)) {
+        pthread_mutex_lock(&seltree_mutex);
         match_result match = check_rxtree (&root_path[conf->root_prefix_length], conf->tree, &rule, get_restriction_from_perm(fs.st_mode), "disk");
+        pthread_mutex_unlock(&seltree_mutex);
         if (dry_run) {
             print_match(&root_path[conf->root_prefix_length], rule, match, get_restriction_from_perm(fs.st_mode));
         }
@@ -142,7 +146,9 @@ void scan_dir(char *root_path, bool dry_run) {
                     if (!get_file_status(entry_full_path, &fs)) {
                         rule = NULL;
                         node = NULL;
+                        pthread_mutex_lock(&seltree_mutex);
                         match_result match = check_rxtree (&entry_full_path[conf->root_prefix_length], conf->tree, &rule, get_restriction_from_perm(fs.st_mode), "disk");
+                        pthread_mutex_unlock(&seltree_mutex);
                         switch (match) {
                             case RESULT_SELECTIVE_MATCH:
                                 if (S_ISDIR(fs.st_mode)) {
@@ -208,7 +214,9 @@ static void * add2tree( __attribute__((unused)) void *arg) {
     database_entry *data;
     while ((data = queue_ts_dequeue_wait(queue_database_entries, whoami)) != NULL) {
         log_msg(LOG_LEVEL_THREAD, "%10s: got line '%s'", whoami, (data->line)->filename);
+        pthread_mutex_lock(&seltree_mutex);
         add_file_to_tree(conf->tree, data->line, DB_NEW|DB_DISK, NULL, &data->fs);
+        pthread_mutex_unlock(&seltree_mutex);
         free(data);
     }
     queue_ts_free(queue_database_entries);

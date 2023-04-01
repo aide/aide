@@ -29,6 +29,7 @@
 #include "attributes.h"
 #include "conf_ast.h"
 #include "config.h"
+#include "errorcodes.h"
 #include "hashsum.h"
 #include "list.h"
 #include "rx_rule.h"
@@ -210,9 +211,6 @@ int db_input_wrapper(char* buf, int max_size, database* db)
 {
   log_msg(LOG_LEVEL_TRACE,"db_input_wrapper(): parameters: buf=%p, max_size=%d, db=%p)", buf, max_size, db);
   int retval=0;
-#ifdef WITH_ZLIB
-  int c;
-#endif
 
 #ifdef WITH_CURL
   switch ((db->url)->type) {
@@ -229,40 +227,32 @@ int db_input_wrapper(char* buf, int max_size, database* db)
 #endif /* WITH CURL */
 
 #ifdef WITH_ZLIB
-  if (db->gzp!=NULL) {
-    c=gzgetc(db->gzp);
-    retval= (c==EOF) ? 0 : (buf[0] = c,1);
-  }
-  if (db->gzp==NULL) {
-    c=fgetc(db->fp);
-    if(c==(unsigned char)'\037'){
-      c=fgetc(db->fp);
-      if(c==(unsigned char)'\213'){
-    log_msg(LOG_LEVEL_DEBUG,"db_input_wrapper(): handle gzip header");
-    lseek(fileno((FILE *)db->fp),0L,SEEK_SET);
-    db->gzp=gzdopen(fileno((FILE *)db->fp),"rb");
-    c=gzgetc(db->gzp);
-    log_msg(LOG_LEVEL_DEBUG, "db_input_wrapper(): first character after gzip header is: %c(%#X)\n",c,c);
-  if(c==-1) {
-    int xx;
-      log_msg(LOG_LEVEL_ERROR,"reading gzipped file failed: %s", gzerror(db->gzp,&xx));
-    exit(EXIT_FAILURE);
-  }
-      }else {
-       /* False alarm */
-       ungetc(c,db->fp);
-      }
-    }
-    retval= (c==EOF) ? 0 : (buf[0] = c,1);
-  }
+        if (db->gzp == NULL) {
+            db->gzp=gzdopen(fileno((FILE *)db->fp),"rb");
+            if (db->gzp == NULL) {
+                log_msg(LOG_LEVEL_ERROR, "%s", "gzdopen failed for %s:%s", get_url_type_string((db->url)->type), (db->url)->value);
+                exit(IO_ERROR);
+            }
+        }
+        retval = gzread(db->gzp, buf, max_size);
+        if (retval == 0) {
+            if (!gzeof(db->gzp)) {
+                int dummy;
+                log_msg(LOG_LEVEL_ERROR, "gzread failed for %s:%s: %s", get_url_type_string((db->url)->type), (db->url)->value, gzerror(db->gzp, &dummy));
+                exit(IO_ERROR);
+            }
+        }
+#else
+        retval = fread(buf,1,max_size,db->fp);
+        if (ferror(db->fp)) {
+            log_msg(LOG_LEVEL_ERROR, "fread failed for %s:%s", get_url_type_string((db->url)->type), (db->url)->value);
+            exit(IO_ERROR);
+        }
+#endif
 
-#else /* WITH_ZLIB */
-  retval=fread(buf,1,max_size,db->fp);
-#endif /* WITH_ZLIB */
-
-  if (db->mdc) {
-      update_md(db->mdc, buf, retval);
-  }
+        if (db->mdc) {
+            update_md(db->mdc, buf, retval);
+        }
 
 
 #ifdef WITH_CURL

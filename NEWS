@@ -1,6 +1,7 @@
 Version 0.19 (UNRELEASED)
     * Require pthread (remove --without-pthread configure option)
     * Remove contrib/ scripts
+    * Performance improvements
     * Improve error handling
     * Improve logging
     * Update documentation

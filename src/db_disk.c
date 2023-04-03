@@ -190,7 +190,13 @@ void scan_dir(char *root_path, bool dry_run) {
                                 }
                                 break;
                             case RESULT_NO_MATCH:
+#ifdef WITH_PTHREAD
+                                pthread_mutex_lock(&seltree_mutex);
+#endif
                                 node = get_seltree_node(conf->tree, &entry_full_path[conf->root_prefix_length]);
+#ifdef WITH_PTHREAD
+                                pthread_mutex_unlock(&seltree_mutex);
+#endif
                                 if(S_ISDIR(fs.st_mode) && node) {
                                     log_msg(log_level, "scan_dir: add child directory '%s' to scan stack (reason: existing tree node '%s' (%p))", &entry_full_path[conf->root_prefix_length], node->path, node);
                                     free_entry_full_path = false;

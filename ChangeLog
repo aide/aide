@@ -1,3 +1,6 @@
+2023-04-03 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Add another missing lock for tree operations
+
 2023-04-01 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Add missing lock for tree operations during file system scan
 

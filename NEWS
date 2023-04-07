@@ -1,4 +1,4 @@
-Version 0.18.2 (UNRELEASED)
+Version 0.18.2 (2023-04-07)
     * Add warning if rules contain not compiled-in attributes
     * Add missing lock for tree operations during file system scan
 

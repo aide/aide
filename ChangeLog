@@ -1,3 +1,6 @@
+2023-05-10 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Handle readlink() errors
+
 2023-04-07 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Release aide 0.18.2
 

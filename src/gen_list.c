@@ -919,8 +919,14 @@ void hsymlnk(db_line* line) {
     memset(line->linkname,0,_POSIX_PATH_MAX+1);
     
     len=readlink(line->fullpath,line->linkname,_POSIX_PATH_MAX+1);
-    
-    line->linkname=checked_realloc(line->linkname,len+1);
+    if (len < 0) {
+        log_msg(LOG_LEVEL_WARNING, "readlink() failed for '%s': %s", line->fullpath, strerror(errno));
+        line->attr&=(~ATTR(attr_linkname));
+        free(line->linkname);
+        line->linkname = NULL;
+    } else {
+        line->linkname=checked_realloc(line->linkname,len+1);
+    }
   } else {
       line->attr&=(~ATTR(attr_linkname));
   }

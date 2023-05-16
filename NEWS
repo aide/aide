@@ -1,4 +1,4 @@
-Version 0.18.3 (UNRELEASED)
+Version 0.18.3 (2023-05-16)
     * Handle readlink() errors
 
 Version 0.18.2 (2023-04-07)

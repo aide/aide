@@ -1,8 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2010, 2020-2023 Rami Lehti, Pablo Virolainen,
- *               Hannes von Haugwitz
+ * Copyright (C) 2023 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -19,22 +18,19 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _SELTREE_H_INCLUDED
-#define _SELTREE_H_INCLUDED
-#include "log.h"
-#include "rx_rule.h"
+#ifndef TREE_H_INCLUDED
+#define TREE_H_INCLUDED
 
-typedef struct seltree seltree;
+typedef struct tree_node tree_node;
 
-seltree* init_tree();
+typedef int (*tree_cmp_f)(const void*, const void*);
 
-seltree* get_seltree_node(seltree* ,char*);
-seltree* get_or_create_seltree_node(seltree*, char *);
+tree_node *tree_insert(tree_node *, void *, void *, tree_cmp_f);
+void *tree_search(tree_node *, void *, tree_cmp_f);
 
-rx_rule * add_rx_to_tree(char *, RESTRICTION_TYPE, int, seltree *, int, char *, char *, char **);
+tree_node *tree_walk_first(tree_node *);
+tree_node *tree_walk_next(tree_node *);
 
-int check_seltree(seltree *, char *, RESTRICTION_TYPE, rx_rule* *);
+void *tree_get_data(tree_node *n);
 
-void log_tree(LOG_LEVEL, seltree *, int);
-bool is_tree_empty(seltree *);
-#endif /* _SELTREE_H_INCLUDED*/
+#endif

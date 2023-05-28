@@ -55,6 +55,7 @@ aide_SOURCES = src/aide.c include/aide.h \
 	include/seltree_struct.h \
 	include/seltree.h src/seltree.c \
 	include/symboltable.h src/symboltable.c \
+	include/tree.h src/tree.c \
 	include/url.h src/url.c\
 	include/util.h src/util.c
 if HAVE_E2FSATTRS

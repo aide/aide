@@ -1,3 +1,6 @@
+2023-05-28 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Use binary search tree to store node's children
+
 2023-05-10 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Handle readlink() errors
 

@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006, 2009-2011, 2015-2016, 2019-2022 Rami Lehti,
+ * Copyright (C) 1999-2006, 2009-2011, 2015-2016, 2019-2023 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -22,9 +22,11 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 #include "attributes.h"
 #include "list.h"
 #include "log.h"
+#include <string.h>
 #include "rx_rule.h"
 #include "seltree.h"
 #include "seltree_struct.h"
@@ -44,36 +46,41 @@
 #define RECURSED_CALL           (1<<7)
 #define TOP_LEVEL_CALL          (1<<8)
 
-void log_tree(LOG_LEVEL log_level, seltree* tree, int depth) {
+void log_tree(LOG_LEVEL log_level, seltree* node, int depth) {
 
     list* r;
     rx_rule* rxc;
 
-    log_msg(log_level, "%-*s %s:", depth, depth?"\u251d":"\u250c", tree->path, tree);
+    pthread_mutex_lock(&node->mutex);
+
+    log_msg(log_level, "%-*s %s:", depth, depth?"\u251d":"\u250c", node->path, node);
 
     char *attr_str, *rs_str;
 
-    for(r=tree->equ_rx_lst;r!=NULL;r=r->next) {
+    for(r=node->equ_rx_lst;r!=NULL;r=r->next) {
         rxc=r->data;
         log_msg(log_level, "%-*s  '=%s %s %s' (%s:%d: '%s%s%s')", depth+2, "\u2502", rxc->rx, rs_str = get_restriction_string(rxc->restriction), attr_str = diff_attributes(0, rxc->attr), rxc->config_filename, rxc->config_linenumber, rxc->config_line, rxc->prefix?"', prefix: '":"", rxc->prefix?rxc->prefix:"");
         free(rs_str);
         free(attr_str);
     }
-    for(r=tree->sel_rx_lst;r!=NULL;r=r->next) {
+    for(r=node->sel_rx_lst;r!=NULL;r=r->next) {
         rxc=r->data;
         log_msg(log_level, "%-*s  '%s %s %s' (%s:%d: '%s%s%s')", depth+2, "\u2502", rxc->rx, rs_str = get_restriction_string(rxc->restriction), attr_str = diff_attributes(0, rxc->attr), rxc->config_filename, rxc->config_linenumber, rxc->config_line, rxc->prefix?"', prefix: '":"", rxc->prefix?rxc->prefix:"");
         free(rs_str);
         free(attr_str);
     }
-    for(r=tree->neg_rx_lst;r!=NULL;r=r->next) {
+    for(r=node->neg_rx_lst;r!=NULL;r=r->next) {
         rxc=r->data;
         log_msg(log_level, "%-*s  '!%s %s' (%s:%d: '%s%s%s')", depth+2, "\u2502", rxc->rx, rs_str = get_restriction_string(rxc->restriction), rxc->config_filename, rxc->config_linenumber, rxc->config_line, rxc->prefix?"', prefix: '":"", rxc->prefix?rxc->prefix:"");
         free(rs_str);
     }
 
-    for(r=tree->childs;r!=NULL;r=r->next) {
-        log_tree(log_level, r->data, depth+2);
+    for(tree_node *n = tree_walk_first(node->children); n != NULL ; n = tree_walk_next(n)) {
+        log_tree(log_level, tree_get_data(n), depth+2);
     }
+
+    pthread_mutex_unlock(&node->mutex);
+
     if (depth == 0) {
         log_msg(log_level, "%s", "\u2514");
     }
@@ -123,160 +130,100 @@ static char* strrxtok(char* rx)
   return p;
 }
 
-static char* strlastslash(char*str)
-{
-  char* p=NULL;
-  size_t lastslash=1;
-  size_t i=0;
 
-  for(i=1;i<strlen(str);i++){
-    if(str[i]=='/'){
-      lastslash=i;
-    }
-  }
+static seltree *create_seltree_node(char *path, seltree *parent) {
+    seltree *node = checked_malloc(sizeof(seltree)); /* not to be freed */
 
-  p=(char*)checked_malloc(sizeof(char)*lastslash+1);
-  strncpy(p,str,lastslash);
-  p[lastslash]='\0';
+    node->path = checked_strdup(path); /* not to be freed */
+    node->parent = parent;
 
-  return p;
-}
+    pthread_mutex_init(&node->mutex, NULL);
 
-char* strgetndirname(char* path,int depth)
-{
-  char* r=NULL;
-  char* tmp=NULL;
-  int i=0;
+    node->sel_rx_lst = NULL;
+    node->neg_rx_lst = NULL;
+    node->equ_rx_lst = NULL;
 
-  for(r=path;;r+=1){
-    if(*r=='/')
-      i++;
-    if(*r=='\0')
-      break;
-    if(i==depth)
-      break;
-  }
-  /* If we ran out string return the whole string */
-  if(!(*r))
-    return checked_strdup(path);
+    node->children = NULL;
 
-  tmp=checked_strdup(path);
+    node->checked = 0;
+    node->new_data = NULL;
+    node->old_data = NULL;
+    node->changed_attrs = 0;
 
-  tmp[r-path]='\0';
-
-  return tmp;
-}
-
-int treedepth(seltree* node)
-{
-  seltree* r=NULL;
-  int depth=0;
-
-  for(r=node;r;r=r->parent)
-    depth++;
-
-  return depth;
-}
-
-int compare_node_by_path(const void *n1, const void *n2)
-{
-    const seltree *x1 = n1;
-    const seltree *x2 = n2;
-    return strcmp(x1->path, x2->path);
-}
-
-seltree* get_seltree_node(seltree* tree,char* path)
-{
-  LOG_LEVEL log_level = LOG_LEVEL_TRACE;
-  seltree* node=NULL;
-  list* r=NULL;
-  char* tmp=NULL;
-
-  if(tree==NULL){
-    log_msg(log_level, "get_seltree_node(): return NULL (tree == NULL)");
-    return NULL;
-  }
-
-  if(strncmp(path,tree->path,strlen(path)+1)==0){
-    log_msg(log_level, "get_seltree_node(): return %p (path: %s)", tree, tree->path);
-    return tree;
-  }
-  else{
-    tmp=strgetndirname(path,treedepth(tree)+1);
-    for(r=tree->childs;r;r=r->next){
-      if(strncmp(((seltree*)r->data)->path,tmp,strlen(tmp)+1)==0){
-	node=get_seltree_node((seltree*)r->data,path);
-	if(node!=NULL){
-	  /* Don't leak memory */
-	  free(tmp);
-	  log_msg(log_level, "get_seltree_node(): return '%s' (%p, path: '%s')", node->path, node, path);
-	  return node;
-	}
-      }
-    }
-    free(tmp);
-  }
-  log_msg(log_level, "get_seltree_node(): return NULL (path: '%s')", path);
-  return NULL;
-}
-
-
-seltree* new_seltree_node(
-        seltree* tree,
-        char*path,
-        int isrx,
-        rx_rule* r)
-{
-  seltree* node=NULL;
-  seltree* parent=NULL;
-  char* tmprxtok = NULL;
-
-  node=(seltree*)checked_malloc(sizeof(seltree));
-  node->childs=NULL;
-  node->path=checked_strdup(path);
-  node->sel_rx_lst=NULL;
-  node->neg_rx_lst=NULL;
-  node->equ_rx_lst=NULL;
-  node->checked=0;
-  node->new_data=NULL;
-  node->old_data=NULL;
-  node->changed_attrs = 0;
-
-  if(tree!=NULL){
-    tmprxtok = strrxtok(path);
-    if(isrx){
-      parent=get_seltree_node(tree,tmprxtok);
-    }else {
-      char* dirn=strlastslash(path);
-      parent=get_seltree_node(tree,dirn);
-      free(dirn);
-    }
-    if(parent==NULL){
-      if(isrx){
-	parent=new_seltree_node(tree,tmprxtok,isrx,r);
-      }else {
-        char* dirn=strlastslash(path);
-        parent=new_seltree_node(tree,dirn,isrx,r);
-        free(dirn);
-      }
-    }
-    free(tmprxtok);
-    parent->childs=list_sorted_insert(parent->childs,(void*)node, compare_node_by_path);
-    node->parent=parent;
-  }else {
-    node->parent=NULL;
-  }
-  log_msg(LOG_LEVEL_TRACE, "new node '%s' (%p, parent: %p)", node->path, node, node->parent);
-  return node;
-}
-
-seltree *init_tree() {
-    seltree* node = new_seltree_node(NULL,"/",0,NULL);
-    log_msg(LOG_LEVEL_DEBUG, "added new node '%s' (%p) for '%s' (reason: root node)", node->path, node, "/");
     return node;
 }
 
-rx_rule * add_rx_to_tree(char * rx, RESTRICTION_TYPE restriction, int rule_type, seltree *tree, int linenumber, char* filename, char* linebuf) {
+static seltree *_insert_new_node(char *path, seltree *parent) {
+    seltree *node = create_seltree_node(path, parent);
+    pthread_mutex_lock(&parent->mutex);
+    parent ->children = tree_insert(parent->children, strrchr(node->path,'/'), (void*)node, (tree_cmp_f) strcmp);
+    pthread_mutex_unlock(&parent->mutex);
+    return node;
+}
+
+static seltree* _get_seltree_node(seltree* node, char *path, bool create) {
+    LOG_LEVEL log_level = LOG_LEVEL_TRACE;
+    seltree *parent = NULL;
+    char *tmp = checked_strdup(path);
+    if (node && strcmp(node->path, path) != 0) {
+        char *next_dir = path;;
+        do {
+            parent = node;
+            next_dir = strchr(&next_dir[1], '/');
+            if (next_dir) { tmp[next_dir-path] = '\0'; }
+            pthread_mutex_lock(&parent->mutex);
+            node = tree_search(parent->children, strrchr(tmp,'/'), (tree_cmp_f) strcmp);
+            pthread_mutex_unlock(&parent->mutex);
+            if (next_dir) { tmp[next_dir-path] = '/'; }
+        } while (node != NULL && next_dir);
+        if (create && node == NULL) {
+            while (next_dir) {
+                tmp[next_dir-path] = '\0';
+                node = _insert_new_node(tmp, parent);
+                log_msg(log_level, "_get_seltree_node(): %s> created new inner node '%s' (%p) (parent: %p)", path, tmp, node, parent);
+                parent = node;
+                tmp[next_dir-path] = '/';
+                next_dir = strchr(&next_dir[1], '/');
+            }
+            node = _insert_new_node(path, parent);
+            log_msg(LOG_LEVEL_DEBUG, "created new leaf node '%s' (%p) (parent: %p)", path, node, parent);
+        }
+    }
+    free(tmp);
+    if (node == NULL) {
+        log_msg(log_level, "_get_seltree_node(): %s> return NULL (node == NULL)", path);
+    } else {
+        log_msg(log_level, "_get_seltree_node(): %s> return node: '%s' (%o)", path, node->path, node);
+    }
+    return node;
+}
+
+seltree* get_or_create_seltree_node(seltree* node, char *path) {
+    return _get_seltree_node(node, path, true);
+}
+
+seltree* get_seltree_node(seltree* node, char *path) {
+    return _get_seltree_node(node, path, false);
+}
+
+seltree *init_tree() {
+    seltree *node = create_seltree_node("/", NULL);
+    log_msg(LOG_LEVEL_DEBUG, "created root node '%s' (%p)", node->path, node);
+    return node;
+}
+
+bool is_tree_empty(seltree *node) {
+    pthread_mutex_lock(&node->mutex);
+    bool is_empty = (node->children == NULL
+          && node->equ_rx_lst == NULL
+          && node->sel_rx_lst == NULL
+          && node->neg_rx_lst == NULL
+        );
+    pthread_mutex_unlock(&node->mutex);
+    return is_empty;
+}
+
+rx_rule * add_rx_to_tree(char * rx, RESTRICTION_TYPE restriction, int rule_type, seltree *tree, int linenumber, char* filename, char* linebuf, char **node_path) {
     rx_rule* r = NULL;
     seltree *curnode = NULL;
     char *rxtok = NULL;
@@ -316,7 +263,6 @@ rx_rule * add_rx_to_tree(char * rx, RESTRICTION_TYPE restriction, int rule_type,
         }
 
         rxtok=strrxtok(r->rx);
-        curnode=get_seltree_node(tree,rxtok);
 
         for(size_t i=1;i < strlen(rxtok); ++i){
             if (rxtok[i] == '/' && rxtok[i-1] == '/') {
@@ -326,11 +272,10 @@ rx_rule * add_rx_to_tree(char * rx, RESTRICTION_TYPE restriction, int rule_type,
             }
         }
 
-        if(curnode == NULL){
-            curnode=new_seltree_node(tree,rxtok,1,r);
-            log_msg(LOG_LEVEL_DEBUG, "added new node '%s' (%p) for '%s' (reason: new rule '%s')", curnode->path, curnode, rxtok, r->rx);
-        }
-        r->node = curnode;
+        curnode = get_or_create_seltree_node(tree, rxtok);
+
+        pthread_mutex_lock(&curnode->mutex);
+        *node_path = curnode->path;
         switch (rule_type){
             case AIDE_NEGATIVE_RULE:{
                 curnode->neg_rx_lst=list_append(curnode->neg_rx_lst,(void*)r);
@@ -345,6 +290,7 @@ rx_rule * add_rx_to_tree(char * rx, RESTRICTION_TYPE restriction, int rule_type,
                 break;
             }
         }
+        pthread_mutex_unlock(&curnode->mutex);
         free(rxtok);
     }
     return r;
@@ -414,6 +360,8 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
   if(node==NULL){
       return retval;
   }
+
+  pthread_mutex_lock(&node->mutex);
 
   if (node->equ_rx_lst || node->sel_rx_lst || node->neg_rx_lst) {
 
@@ -533,6 +481,7 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
         retval&=PARTIAL_RULE_MATCH;
       }
   }
+  pthread_mutex_unlock(&node->mutex);
   return retval;
 }
 
@@ -570,10 +519,7 @@ int check_seltree(seltree *tree, char *filename, RESTRICTION_TYPE file_type, rx_
   retval = check_node_for_match(pnode, filename, file_type, retval|TOP_LEVEL_CALL ,rule, 0);
 
   if (retval&(SELECtIVE_RULE_MATCH|EQUAL_RULE_MATCH)) {
-    if(get_seltree_node(tree,filename)==NULL) {
-        seltree *new_node = new_seltree_node(tree,filename,0,NULL);
-        log_msg(LOG_LEVEL_DEBUG, "\u2502 added new node '%s', (%p) for '%s' (reason: full match)", new_node->path, new_node, filename);
-    }
+    get_or_create_seltree_node(tree, filename);
 
     char *str;
     log_msg(LOG_LEVEL_RULE, "\u2534 ADD '%s' (attr: '%s')", filename, str = diff_attributes(0, (*rule)->attr));

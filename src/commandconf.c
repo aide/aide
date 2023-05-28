@@ -33,7 +33,6 @@
 #include "hashsum.h"
 #include "list.h"
 #include "rx_rule.h"
-#include "seltree_struct.h"
 #include "url.h"
 #include "commandconf.h"
 #include "conf_lex.h"
@@ -308,6 +307,7 @@ bool add_rx_rule_to_tree(char* rx, char* rule_prefix, RESTRICTION_TYPE restricti
     char *rs_str = NULL;
 
     char *regex;
+    char *node_path = NULL;
     if (rule_prefix) {
         int length = strlen(rule_prefix)+strlen(rx);
         regex = checked_malloc(length+1);
@@ -318,7 +318,7 @@ bool add_rx_rule_to_tree(char* rx, char* rule_prefix, RESTRICTION_TYPE restricti
         regex = checked_strdup(rx);
     }
 
-    if ((r = add_rx_to_tree(regex, restriction, type, tree, linenumber, filename, linebuf)) == NULL) {
+    if ((r = add_rx_to_tree(regex, restriction, type, tree, linenumber, filename, linebuf, &node_path)) == NULL) {
         retval = false;
     }else {
         r->config_linenumber = linenumber;
@@ -369,7 +369,7 @@ bool add_rx_rule_to_tree(char* rx, char* rule_prefix, RESTRICTION_TYPE restricti
         }
         conf->db_out_attrs |= attr;
 
-        LOG_CONFIG_FORMAT_LINE_PREFIX(LOG_LEVEL_CONFIG, "add %s '%s%s %s %s' to node '%s'", get_rule_type_long_string(type), get_rule_type_char(type), r->rx, rs_str = get_restriction_string(r->restriction), attr_str = diff_attributes(0, r->attr),  (r->node)->path)
+        LOG_CONFIG_FORMAT_LINE_PREFIX(LOG_LEVEL_CONFIG, "add %s '%s%s %s %s' to node '%s'", get_rule_type_long_string(type), get_rule_type_char(type), r->rx, rs_str = get_restriction_string(r->restriction), attr_str = diff_attributes(0, r->attr), node_path)
         free(rs_str);
         free(attr_str);
 

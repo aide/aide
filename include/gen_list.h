@@ -23,15 +23,12 @@
 #define _GEN_LIST_H_INCLUDED
 #define PCRE2_CODE_UNIT_WIDTH 8
 #include <pcre2.h>
-#include <stdbool.h>
 #include "attributes.h"
 #include "rx_rule.h"
-#include "seltree_struct.h"
+#include "seltree.h"
 struct stat;
 
 /* DB_FOO are anded together to form rx_rule's attr */
-
-int compare_node_by_path(const void *n1, const void *n2);
 
 /* 
  * populate_tree()

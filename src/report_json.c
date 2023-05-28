@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2022 Hannes von Haugwitz
+ * Copyright (C) 2022,2023 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -27,7 +27,7 @@
 #include "db_config.h"
 #include "db_line.h"
 #include "report.h"
-#include "seltree_struct.h"
+#include "seltree.h"
 #include "stdbool.h"
 #include "url.h"
 
@@ -99,11 +99,11 @@ static char* _get_value_format(ATTRIBUTE attribute) {
     }
 }
 
-static void _print_line(report_t* report, seltree* node) {
+static void print_line_json(report_t* report, char* filename, int node_checked, seltree* node) {
     if (line_first) { line_first=false; }
     else { report_printf(report,",\n"); }
 
-    char *escacped_filename = _get_escaped_json_string(((node->checked&NODE_REMOVED)?node->old_data:node->new_data)->filename);
+    char *escacped_filename = _get_escaped_json_string(filename);
 
     if(report->summarize_changes) {
         char* summary = get_summarize_changes_string(report, node);
@@ -111,9 +111,9 @@ static void _print_line(report_t* report, seltree* node) {
         free(summary); summary=NULL;
     } else if (!report->grouped) {
         char* change_type;
-        if (node->checked&NODE_ADDED) {
+        if (node_checked&NODE_ADDED) {
             change_type = "added";
-        } else if (node->checked&NODE_REMOVED) {
+        } else if (node_checked&NODE_REMOVED) {
             change_type = "removed";
         } else {
             change_type = "changed";
@@ -291,7 +291,7 @@ static void print_report_entries_json(report_t *report, seltree* node, const int
             report_printf(report, report->summarize_changes||!report->grouped?JSON_FMT_OBJECT_BEGIN:JSON_FMT_ARRAY_BEGIN, 2, ' ', "entries");
             break;
     }
-    print_report_entries(report, node, filter, _print_line);
+    print_report_entries(report, node, filter, print_line_json);
     report_printf(report,"\n");
     report_printf(report, report->summarize_changes||!report->grouped?JSON_FMT_OBJECT_END:JSON_FMT_ARRAY_END, 2, ' ');
 }

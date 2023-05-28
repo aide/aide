@@ -29,7 +29,7 @@
 #include "db.h"
 #include "db_config.h"
 #include "rx_rule.h"
-#include "seltree_struct.h"
+#include "seltree.h"
 
 int parse_config(char *, char *, char *);
 

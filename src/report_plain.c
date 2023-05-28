@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006, 2010, 2011, 2013, 2015-2016, 2018-2022 Rami Lehti,
+ * Copyright (C) 1999-2006, 2010, 2011, 2013, 2015-2016, 2018-2023 Rami Lehti,
  *               Pablo Virolainen, Mike Markley, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -29,7 +29,7 @@
 #include "db_config.h"
 #include "db_line.h"
 #include "report.h"
-#include "seltree_struct.h"
+#include "seltree.h"
 #include "stdbool.h"
 #include "url.h"
 #include "locale-aide.h"
@@ -134,18 +134,18 @@ static void print_report_summary_plain(report_t *report) {
     }
 }
 
-static void print_line_plain(report_t* report, seltree* node) {
+static void print_line_plain(report_t* report, char* filename, int node_checked, seltree* node) {
     if(report->summarize_changes) {
         char* summary = get_summarize_changes_string(report, node);
-        report_printf(report, "\n%s: %s", summary, ((node->checked&NODE_REMOVED)?node->old_data:node->new_data)->filename);
+        report_printf(report, "\n%s: %s", summary, filename);
         free(summary); summary=NULL;
     } else {
-        if (node->checked&NODE_ADDED) {
-            report_printf(report, _("\nadded: %s"),(node->new_data)->filename);
-        } else if (node->checked&NODE_REMOVED) {
-            report_printf(report, _("\nremoved: %s"),(node->old_data)->filename);
-        } else if (node->checked&NODE_CHANGED) {
-            report_printf(report, _("\nchanged: %s"),(node->new_data)->filename);
+        if (node_checked&NODE_ADDED) {
+            report_printf(report, _("\nadded: %s"), filename);
+        } else if (node_checked&NODE_REMOVED) {
+            report_printf(report, _("\nremoved: %s"), filename);
+        } else if (node_checked&NODE_CHANGED) {
+            report_printf(report, _("\nchanged: %s"), filename);
         }
     }
 }

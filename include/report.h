@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2006, 2010, 2019-2022 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002, 2006, 2010, 2019-2023 Rami Lehti, Pablo Virolainen,
  *               Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -24,7 +24,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include "attributes.h"
-#include "seltree_struct.h"
+#include "seltree.h"
 #include "config.h"
 #include "conf_ast.h"
 #include "log.h"
@@ -138,7 +138,7 @@ void print_databases_attrs(report_t *, void (*)(report_t *, db_line*));
 void print_dbline_attrs(report_t *, db_line*, db_line*, DB_ATTR_TYPE, void (*)(report_t *, db_line*, db_line*, ATTRIBUTE));
 void print_report_config_options(report_t *, void (*)(report_t *, config_option, const char*));
 void print_report_details(report_t *, seltree*, void (*)(report_t *, db_line*, db_line*, DB_ATTR_TYPE));
-void print_report_entries(report_t*, seltree*, const int, void (*)(report_t*, seltree*));
+void print_report_entries(report_t*, seltree*, const int, void (*)(report_t*, char*, int, seltree*));
 void print_report_report_options(report_t *, void (*)(report_t *, config_option, const char*));
 
 #endif

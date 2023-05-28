@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2010, 2020 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002, 2010, 2020, 2023 Rami Lehti, Pablo Virolainen,
  *               Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -21,27 +21,22 @@
 
 #ifndef _SELTREE_STRUCT_H_INCLUDED
 #define _SELTREE_STRUCT_H_INCLUDED
+#include <pthread.h>
 #include "attributes.h"
 #include "list.h"
+#include "tree.h"
 
-/* seltree structure
- * lists have regex_t* in them
- * checked is whether or not the node has been checked yet and status
- * when added
- * path is the path of the node
- * parent is the parent, NULL if root
- * childs is list of seltree*:s
- * new_data is this nodes new attributes (read from disk or db in --compare)
- * old_data is this nodes old attributes (read from db)
- * attr attributes to add for this node and possibly for its children
- * changed_attrs changed attributes between new_data and old_data
- */
-typedef struct seltree {
+struct seltree {
+
+  pthread_mutex_t mutex;
+
   list* sel_rx_lst;
   list* neg_rx_lst;
   list* equ_rx_lst;
-  list* childs;
+
   struct seltree* parent;
+
+  tree_node *children;
 
   char* path;
   int checked;
@@ -51,5 +46,5 @@ typedef struct seltree {
 
   DB_ATTR_TYPE changed_attrs;
 
-} seltree;
+};
 #endif /* _SELTREE_STRUCT_H_INCLUDED */

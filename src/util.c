@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2004-2006, 2010-2011, 2013, 2016, 2019-2022
+ * Copyright (C) 1999-2002, 2004-2006, 2010-2011, 2013, 2016, 2019-2023
  *               Rami Lehti, Pablo Virolainen, Mike Markley,
  *               Richard van den Berg, Hannes von Haugwitz
  *
@@ -28,6 +28,7 @@
 #include <ctype.h>
 #include <syslog.h>
 #include <stdbool.h>
+#include <pthread.h>
 #include <strings.h>
 #include <unistd.h>
 #include "url.h"
@@ -47,6 +48,51 @@
 
 #define URL_UNSAFE " <>\"#%{}|\\^~[]`@:\033'"
 #define ISPRINT(c) (isascii(c) && isprint(c))
+
+pthread_mutex_t stderr_mutex = PTHREAD_MUTEX_INITIALIZER;
+bool stderr_erase_line = false;
+
+void stderr_msg(const char* format, ...)
+#ifdef __GNUC__
+    __attribute__ ((format (printf, 1, 2)))
+#endif
+;
+void stderr_msg(const char* format, ...) {
+    pthread_mutex_lock(&stderr_mutex);
+    if (stderr_erase_line) {
+        fprintf(stderr, "\33[2K");
+    }
+    va_list ap;
+    va_start(ap, format);
+    vfprintf(stderr, format, ap);
+    va_end(ap);
+    pthread_mutex_unlock(&stderr_mutex);
+}
+
+void vstderr_prefix_line(const char*, const char*, va_list)
+#ifdef __GNUC__
+    __attribute__ ((format (printf, 1, 0)))
+#endif
+;
+void vstderr_prefix_line(const char* prefix, const char* format, va_list ap) {
+    pthread_mutex_lock(&stderr_mutex);
+    if (stderr_erase_line) {
+        fprintf(stderr, "\33[2K");
+    }
+    fprintf(stderr, "%s: ", prefix);
+    vfprintf(stderr, format, ap);
+    fprintf(stderr, "\n");
+    pthread_mutex_unlock(&stderr_mutex);
+}
+
+void stderr_set_line_erasure(bool erase_line) {
+    pthread_mutex_lock(&stderr_mutex);
+    if (stderr_erase_line) {
+        fprintf(stderr, "\33[2K");
+    }
+    stderr_erase_line = erase_line;
+    pthread_mutex_unlock(&stderr_mutex);
+}
 
 const char* btoa(bool b) {
     return b?"true":"false";

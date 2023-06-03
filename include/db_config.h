@@ -152,6 +152,8 @@ typedef struct db_config {
 
   long num_workers;
 
+  int progress;
+
   time_t start_time;
   time_t end_time;
 

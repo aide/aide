@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2006, 2013, 2020-2022 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002, 2006, 2013, 2020-2023 Rami Lehti, Pablo Virolainen,
  *               Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@
 #include <stdbool.h>
 #include <inttypes.h>
 #include <sys/types.h>
+#include <stdarg.h>
 #include "url.h"
 
 #define HEXD2ASC(x) (((x) < 10) ? ((x) + '0') : ((x) - 10 + 'A'))
@@ -44,6 +45,10 @@
 #ifndef HAVE_BYTE
 typedef uint8_t byte;
 #endif
+
+void stderr_msg(const char*, ...);
+void vstderr_prefix_line(const char*, const char*, va_list);
+void stderr_set_line_erasure(bool);
 
 const char* btoa(bool);
 

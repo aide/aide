@@ -49,6 +49,7 @@
 #include "db_lex.h"
 #include "do_md.h"
 #include "log.h"
+#include "progress.h"
 #include "util.h"
 /*for locale support*/
 #include "locale-aide.h"
@@ -478,16 +479,19 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
 
   switch (db_flags) {
   case DB_OLD: {
+    progress_status(PROGRESS_OLDDB, file->filename);
     log_msg(add_entry_log_level, "add old database entry '%s' (%c) to node '%s' (%p) as old data", file->filename, get_file_type_char_from_perm(file->perm), node->path, node);
     node->old_data=file;
     break;
   }
   case DB_NEW|DB_DISK: {
+    progress_status(PROGRESS_DISK, file->filename);
     log_msg(add_entry_log_level, "add disk entry '%s' (%c) to node '%s' (%p) as new data", file->filename, get_file_type_char_from_perm(file->perm), node->path, node);
     node->new_data=file;
     break;
   }
   case DB_NEW: {
+    progress_status(PROGRESS_NEWDB, file->filename);
     log_msg(add_entry_log_level, "add new database entry '%s' (%c) to node '%s' (%p) as new data", file->filename, get_file_type_char_from_perm(file->perm), node->path, node);
     node->new_data=file;
     break;
@@ -824,6 +828,7 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct stat *fs)
 void write_tree(seltree* node) {
     pthread_mutex_lock(&node->mutex);
     if (node->checked&DB_NEW) {
+        progress_status(PROGRESS_WRITEDB, (node->new_data)->filename);
         db_writeline(node->new_data,conf);
         if (node->checked&NODE_FREE) {
             free_db_line(node->new_data);
@@ -850,6 +855,7 @@ void populate_tree(seltree* tree)
   }
   
     if((conf->action&DO_COMPARE)||(conf->action&DO_DIFF)){
+        progress_status(PROGRESS_OLDDB, NULL);
         log_msg(LOG_LEVEL_INFO, "read old entries from database: %s:%s", get_url_type_string((conf->database_in.url)->type), (conf->database_in.url)->value);
         db_lex_buffer(&(conf->database_in));
             while((old=db_readline(&(conf->database_in))) != NULL) {
@@ -889,6 +895,7 @@ void populate_tree(seltree* tree)
     if((conf->action&DO_INIT)||(conf->action&DO_COMPARE)){
       /* FIXME  */
       new=NULL;
+      progress_status(PROGRESS_DISK, NULL);
       log_msg(LOG_LEVEL_INFO, "read new entries from disk (limit: '%s', root prefix: '%s')", conf->limit?conf->limit:"(none)", conf->root_prefix);
 
       db_scan_disk(false);

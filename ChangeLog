@@ -1,3 +1,8 @@
+2023-06-03 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Add progress bar (closes: #120)
+	  - add new '--no-progress' parameter
+	  - log some performance data in 'info' log level
+
 2023-05-28 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Use binary search tree to store node's children
 

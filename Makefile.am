@@ -53,6 +53,7 @@ aide_SOURCES = src/aide.c include/aide.h \
 	include/md.h src/md.c \
 	include/queue.h src/queue.c \
 	include/seltree_struct.h \
+	include/progress.h src/progress.c \
 	include/seltree.h src/seltree.c \
 	include/symboltable.h src/symboltable.c \
 	include/tree.h src/tree.c \

@@ -14,7 +14,7 @@ O	[a-z_]
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2004-2006, 2010-2013, 2015-2016, 2019-2022
+ * Copyright (C) 1999-2002, 2004-2006, 2010-2013, 2015-2016, 2019-2023
  *               Rami Lehti, Pablo Virolainen, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -38,6 +38,7 @@ O	[a-z_]
 #include "errorcodes.h"
 #include "commandconf.h"
 #include "log.h"
+#include "progress.h"
 
 #include "conf_ast.h"
 
@@ -593,6 +594,7 @@ void conf_lex_string(const char * name, const char *string) {
     log_msg(LOG_LEVEL_DEBUG, "parse: '%s'", name);
     conf_linenumber = 0;
     conf_filename = checked_strdup(name); /* not to be freed, needed for logging */
+    progress_status(PROGRESS_CONFIG, conf_filename);
     conf_scan_string(string);
 }
 
@@ -605,6 +607,7 @@ void conf_lex_file(const char * config) {
         confin = stdin;
     } else {
         conf_filename = checked_strdup(config);  /* not to be freed, needed for logging */
+        progress_status(PROGRESS_CONFIG, conf_filename);
         char *expanded_config = expand_tilde(checked_strdup(config));
         confin = fopen( expanded_config, "r" );
         if (!confin) {

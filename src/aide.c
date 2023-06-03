@@ -23,6 +23,7 @@
 #include "config.h"
 
 #include <sys/stat.h>
+#include <sys/ioctl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -46,6 +47,7 @@
 #include "db_disk.h"
 #include "db.h"
 #include "log.h"
+#include "progress.h"
 #include "seltree.h"
 #include "errorcodes.h"
 #include "gen_list.h"
@@ -89,7 +91,8 @@ static void usage(int exitvalue)
 	    "  -B \"OPTION\"\t--before=\"OPTION\"\tBefore configuration file is read define OPTION\n"
 	    "  -A \"OPTION\"\t--after=\"OPTION\"\tAfter configuration file is read define OPTION\n"
 	    "  -L LEVEL\t--log-level=LEVEL\tSet log message level to LEVEL\n"
-	    "  -W WORKERS\t--workers=WORKERS\tNumber of simultaneous workers (threads) for file attribute processing (i.a. hashsum calculation)"
+	    "  -W WORKERS\t--workers=WORKERS\tNumber of simultaneous workers (threads) for file attribute processing (i.a. hashsum calculation)\n"
+	    "  \t\t--no-progress\t\tTurn progress off explicitly"
 	    "\n"), AIDEVERSION
 	  );
   
@@ -122,6 +125,7 @@ static void init_crypto_lib() {
 
 static void sig_handler(int signum)
 {
+    struct winsize winsize;
     char *str;
     switch(signum){
         case SIGHUP :
@@ -137,6 +141,13 @@ static void sig_handler(int signum)
            (void) !write(STDERR_FILENO ,str, strlen(str));
            toogle_log_level(LOG_LEVEL_DEBUG);
            break;
+        case SIGWINCH :
+           if(ioctl(STDERR_FILENO, TIOCGWINSZ, &winsize) == -1) {
+            conf->progress = 80;
+           } else {
+               conf->progress = winsize.ws_col;
+           }
+        break;
     }
 }
 
@@ -219,6 +230,10 @@ static void read_param(int argc,char**argv)
 {
   int i=0;
 
+  enum cmdline_args {
+      ARG_NO_PROGRESS = 1,
+  };
+
   static struct option options[] =
   {
     { "help", no_argument, NULL, 'h' },
@@ -237,6 +252,7 @@ static void read_param(int argc,char**argv)
     { "limit", required_argument, NULL, 'l'},
     { "log-level", required_argument, NULL, 'L'},
     { "workers", required_argument, NULL, 'W'},
+    { "no-progress", no_argument, NULL, ARG_NO_PROGRESS},
     { "compare", no_argument, NULL, 'E'},
     { NULL,0,NULL,0 }
   };
@@ -320,6 +336,11 @@ static void read_param(int argc,char**argv)
            }
            conf->num_workers = num_workers;
            log_msg(LOG_LEVEL_INFO,"(--workers): set number of workers to %ld (argument value: '%s')", conf->num_workers, optarg);
+           break;
+      }
+      case ARG_NO_PROGRESS:{
+           conf->progress = -1;
+           log_msg(LOG_LEVEL_INFO,"(--no-progress): disable progress bar");
            break;
       }
       case 'p':{
@@ -488,6 +509,8 @@ static void setdefaults_before_config()
 
   conf->start_time=time(NULL);
 
+  conf->progress = 0;
+
   log_msg(LOG_LEVEL_INFO, "define default attribute definitions");
 
   for (ATTRIBUTE i = 0 ; i < num_attrs ; ++i) {
@@ -596,6 +619,21 @@ int main(int argc,char**argv)
   log_msg(LOG_LEVEL_INFO, "read command line parameters");
   read_param(argc,argv);
 
+  if (!(conf->action&DO_DRY_RUN)) {
+      if (conf->progress >= 0) {
+          if (isatty(STDERR_FILENO)) {
+              log_msg(LOG_LEVEL_DEBUG, "enable progress bar (stderr refers to a terminal)");
+              if (progress_start()) {
+                  log_msg(LOG_LEVEL_DEBUG, "initialize signal handler for SIGWINCH");
+                  signal(SIGWINCH,sig_handler);
+              }
+          } else {
+              log_msg(LOG_LEVEL_DEBUG, "isatty() failed for 'STDERR_FILENO': %s", strerror(errno));
+              log_msg(LOG_LEVEL_INFO, "disable progress bar (stderr does not refer to a terminal)");
+          }
+      }
+  }
+
   /* get hostname */
   conf->hostname = checked_malloc(sizeof(char) * MAXHOSTNAMELEN + 1);
   if (gethostname(conf->hostname,MAXHOSTNAMELEN) == -1) {
@@ -607,6 +645,7 @@ int main(int argc,char**argv)
   }
 
   log_msg(LOG_LEVEL_INFO, "parse configuration");
+  progress_status(PROGRESS_CONFIG, NULL);
   errorno=parse_config(before, conf->config_file, after);
   if (errorno==RETFAIL){
     exit(INVALID_CONFIGURELINE_ERROR);
@@ -726,7 +765,6 @@ int main(int argc,char**argv)
           exit(THREAD_ERROR);
     }
 
-    log_msg(LOG_LEVEL_INFO, "populate tree");
     populate_tree(conf->tree);
 
     if((conf->action&DO_INIT || conf->action&DO_COMPARE) && conf->num_workers){
@@ -735,9 +773,11 @@ int main(int argc,char**argv)
     }
 
     if(conf->action&DO_INIT) {
+        progress_status(PROGRESS_WRITEDB, NULL);
         log_msg(LOG_LEVEL_INFO, "write new entries to database: %s:%s", get_url_type_string((conf->database_out.url)->type), (conf->database_out.url)->value);
         write_tree(conf->tree);
     }
+    progress_stop();
 
     db_close();
 

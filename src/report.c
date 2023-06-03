@@ -868,7 +868,7 @@ static void print_report(report_t * report, seltree * node, report_format_module
 
     if (report->level >= REPORT_LEVEL_SUMMARY) {
         char *time = get_time_string(&(conf->start_time));
-        module.print_report_starttime_version(report, time, AIDEVERSION);
+        module.print_report_starttime_version(report, time, conf->aide_version);
         free(time); time=NULL;
     }
 

@@ -92,8 +92,8 @@ static void usage(int exitvalue)
 	    "  -A \"OPTION\"\t--after=\"OPTION\"\tAfter configuration file is read define OPTION\n"
 	    "  -L LEVEL\t--log-level=LEVEL\tSet log message level to LEVEL\n"
 	    "  -W WORKERS\t--workers=WORKERS\tNumber of simultaneous workers (threads) for file attribute processing (i.a. hashsum calculation)\n"
-	    "  \t\t--no-progress\t\tTurn progress off explicitly"
-	    "\n"), AIDEVERSION
+	    "  \t\t--no-progress\t\tTurn progress off explicitly\n"
+	    ), conf->aide_version
 	  );
   
   exit(exitvalue);
@@ -155,7 +155,7 @@ static void sig_handler(int signum)
 
 static void print_version(void)
 {
-  fprintf(stdout, "AIDE %s\n\n", AIDEVERSION );
+  fprintf(stdout, "AIDE %s\n\n", conf->aide_version );
   fprintf(stdout, "Compile-time options:\n%s\n", AIDECOMPILEOPTIONS);
   fprintf(stdout, "Default config values:\n");
   fprintf(stdout, "config file: %s\n", conf->config_file?conf->config_file:"<none>");
@@ -429,6 +429,7 @@ static void setdefaults_before_config()
 #endif
       ;
   conf->config_version=NULL;
+  conf->aide_version = AIDEVERSION;
   conf->config_check_warn_unrestricted_rules = false;
   
 #ifdef WITH_ACL

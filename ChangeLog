@@ -3,6 +3,7 @@
 	  - add new '--no-progress' parameter
 	  - log some performance data in 'info' log level
 	* Remove strerror() calls from thread log messages
+	* Use AIDEVERSION only once in sources
 
 2023-05-28 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Use binary search tree to store node's children

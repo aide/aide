@@ -265,7 +265,7 @@ void db_scan_disk(bool dry_run) {
 
     if (!dry_run && conf->num_workers) {
         if (pthread_create(&add2tree_thread, NULL, &add2tree, NULL) != 0) {
-            log_msg(LOG_LEVEL_ERROR, "failed to start add2tree thread: %s", strerror(errno));
+            log_msg(LOG_LEVEL_ERROR, "failed to start add2tree thread");
             exit(THREAD_ERROR);
         }
     }
@@ -276,7 +276,7 @@ void db_scan_disk(bool dry_run) {
 #ifdef WITH_PTHREAD
     if (!dry_run && conf->num_workers) {
         if (pthread_join(add2tree_thread, NULL) != 0) {
-            log_msg(LOG_LEVEL_ERROR, "failed to join add2tree thread: %s", strerror(errno));
+            log_msg(LOG_LEVEL_ERROR, "failed to join add2tree thread");
             exit(THREAD_ERROR);
         }
     }
@@ -322,7 +322,7 @@ static void * wait_for_workers( __attribute__((unused)) void *arg) {
     log_msg(LOG_LEVEL_THREAD, "%10s: wait for file_attrs_worker threads to be finished", whoami);
     for (int i = 0 ; i < conf->num_workers ; ++i) {
         if (pthread_join(file_attributes_threads[i], NULL) != 0) {
-            log_msg(LOG_LEVEL_WARNING, "failed to join file attributes thread #%d: %s", i, strerror(errno));
+            log_msg(LOG_LEVEL_WARNING, "failed to join file attributes thread #%d", i);
         }
         log_msg(LOG_LEVEL_THREAD, "%10s: file_attrs_worker thread #%d finished", whoami, i);
     }
@@ -342,12 +342,12 @@ int db_disk_start_threads() {
 
     for (int i = 0 ; i < conf->num_workers ; ++i) {
         if (pthread_create(&file_attributes_threads[i], NULL, &file_attrs_worker, (void *) (i+1L)) != 0) {
-            log_msg(LOG_LEVEL_ERROR, "failed to start file attributes worker thread #%d: %s", i+1, strerror(errno));
+            log_msg(LOG_LEVEL_ERROR, "failed to start file attributes worker thread #%d", i+1);
             return RETFAIL;
         }
     }
     if (pthread_create(&wait_for_workers_thread, NULL, &wait_for_workers, NULL) != 0) {
-        log_msg(LOG_LEVEL_ERROR, "failed to start wait_for_workers thread: %s", strerror(errno));
+        log_msg(LOG_LEVEL_ERROR, "failed to start wait_for_workers thread");
         return RETFAIL;
     }
     return RETOK;
@@ -355,7 +355,7 @@ int db_disk_start_threads() {
 
 int db_disk_finish_threads() {
     if (pthread_join(wait_for_workers_thread, NULL) != 0) {
-        log_msg(LOG_LEVEL_ERROR, "failed to join wait_for_workers thread: %s", strerror(errno));
+        log_msg(LOG_LEVEL_ERROR, "failed to join wait_for_workers thread");
         return RETFAIL;
     }
     log_msg(LOG_LEVEL_THREAD, "%10s: wait_for_workers thread finished", whoami_main);

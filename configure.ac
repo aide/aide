@@ -165,7 +165,7 @@ else
     esac
 fi
 
-# Check whether static linking has explicitly been disabled
+# Check whether static linking has explicitly been enabled
 AC_ARG_ENABLE(static,[  --enable-static         enable static linking (might increase the security of aide, see README for details)], [aide_static_choice=$enableval], [aide_static_choice=no])
 
 dnl Borrowed from dbus
@@ -446,7 +446,7 @@ extrasub="s&@AIDEVERSION@&$PACKAGE_VERSION&;t t"
 AC_DEFINE_UNQUOTED(AIDECOMPILEOPTIONS, "${compoptionstring}",[Compile-time options displayed in -v output])
 
 dnl Add in the optional compiler features
-LDFLAGS="$LDFLAGS $EXTRA_LDFLAGS"
+LDFLAGS="$LDFLAGS $LD_STATIC_FLAG $EXTRA_LDFLAGS"
 CFLAGS="$CFLAGS $EXTRA_CFLAGS"
 
 AC_SUBST(AIDE_DEFS)

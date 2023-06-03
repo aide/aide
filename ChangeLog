@@ -1,6 +1,7 @@
 2023-06-03 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Remove strerror() calls from thread log messages
 	* Don't require database_out for --dry-init
+	* Fix static linking of the aide binary
 
 2023-05-16 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Release aide 0.18.3

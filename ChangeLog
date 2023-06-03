@@ -7,6 +7,7 @@
 	* Update aide.conf.5 manual page
 	* Adjust memory allocation error messages
 	* Add missing files to 'autoreconf-clean' Makefile target
+	* Don't require database_out for --dry-init
 
 2023-05-28 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Use binary search tree to store node's children

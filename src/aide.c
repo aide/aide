@@ -688,7 +688,7 @@ int main(int argc,char**argv)
     log_msg(LOG_LEVEL_ERROR,_("missing 'database_in', config option is required"));
     exit(INVALID_ARGUMENT_ERROR);
   }
-  if (conf->action&DO_INIT && !(conf->database_out.url)) {
+  if (!(conf->action&DO_DRY_RUN) && conf->action&DO_INIT && !(conf->database_out.url)) {
     log_msg(LOG_LEVEL_ERROR,_("missing 'database_out', config option is required"));
     exit(INVALID_ARGUMENT_ERROR);
   }

@@ -101,7 +101,7 @@ const char* btoa(bool b) {
 void* checked_malloc(size_t size) {
     void * p = malloc(size);
     if (p == NULL) {
-        log_msg(LOG_LEVEL_ERROR, "malloc: failed to allocate %d bytes of memory", size);
+        log_msg(LOG_LEVEL_ERROR, "malloc: failed to allocate %lu bytes of memory", (unsigned long) size);
         exit(MEMORY_ALLOCATION_FAILURE);
     }
     return p;
@@ -109,7 +109,7 @@ void* checked_malloc(size_t size) {
 void* checked_calloc(size_t nmemb, size_t size) {
     void * p = calloc(nmemb, size);
     if (p == NULL) {
-        log_msg(LOG_LEVEL_ERROR, "calloc: failed to allocate %d bytes of memory", size);
+        log_msg(LOG_LEVEL_ERROR, "calloc: failed to allocate %lu bytes of memory", (unsigned long) size);
         exit(MEMORY_ALLOCATION_FAILURE);
     }
     return p;
@@ -125,7 +125,7 @@ void* checked_strdup(const char *s) {
 void* checked_strndup(const char *s, size_t size) {
     void * p = strndup(s, size);
     if (p == NULL) {
-        log_msg(LOG_LEVEL_ERROR, "strdup: failed to allocate memory");
+        log_msg(LOG_LEVEL_ERROR, "strndup: failed to allocate memory");
         exit(MEMORY_ALLOCATION_FAILURE);
     }
     return p;
@@ -133,7 +133,7 @@ void* checked_strndup(const char *s, size_t size) {
 void* checked_realloc(void *ptr, size_t size) {
     void * p = realloc(ptr,size);
     if (p == NULL) {
-        log_msg(LOG_LEVEL_ERROR, "realloc: failed to allocate memory");
+        log_msg(LOG_LEVEL_ERROR, "realloc: failed to re-allocate %lu bytes of memory", (unsigned long) size);
         exit(MEMORY_ALLOCATION_FAILURE);
     }
     return p;

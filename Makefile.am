@@ -102,5 +102,6 @@ src/db_lex.c: src/db_lex.l src/conf_yacc.h
 
 autoreconf-clean: maintainer-clean
 	-rm -f INSTALL Makefile.in aclocal.m4 compile config.guess \
-	 include/config.h.in include/config.h.in~ config.sub configure depcomp \
+	 include/config.h.in include/config.h.in~ config.sub configure configure~ depcomp \
 	 install-sh missing version.m4 ylwrap
+	-rmdir src/.deps tests/.deps

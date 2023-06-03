@@ -4,6 +4,7 @@
 	  - log some performance data in 'info' log level
 	* Remove strerror() calls from thread log messages
 	* Use AIDEVERSION only once in sources
+	* Update aide.conf.5 manual page
 	* Adjust memory allocation error messages
 
 2023-05-28 Hannes von Haugwitz <hannes@vonhaugwitz.com>

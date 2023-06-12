@@ -511,7 +511,7 @@ void xattrs2line(db_line *line) {
                     strncmp(attr, "trusted.", strlen("trusted.")))
                 goto next_attr; /* only store normal xattrs, and SELinux */
 
-            while (((aret = getxattr(line->fullpath, attr, val, asz)) ==
+            while (((aret = lgetxattr(line->fullpath, attr, val, asz)) ==
                         -1) && (errno == ERANGE)) {
                 asz <<= 1;
                 val = checked_realloc (val, asz);
@@ -520,7 +520,7 @@ void xattrs2line(db_line *line) {
             if (aret != -1)
                 xattr_add(xattrs, attr, val, aret);
             else if (errno != ENOATTR)
-                log_msg(LOG_LEVEL_WARNING, "getxattr failed for %s:%s", line->fullpath, strerror(errno));
+                log_msg(LOG_LEVEL_WARNING, "lgetxattr failed for %s:%s", line->fullpath, strerror(errno));
 
 next_attr:
             attr += len + 1;

@@ -1,5 +1,6 @@
 2023-06-12 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Add missing ')' to log message
+	* Fix handling of extended attributes on symlinks (closes: #156)
 
 2023-06-03 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Add progress bar (closes: #120)

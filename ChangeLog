@@ -1,3 +1,6 @@
+2023-06-12 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Add missing ')' to log message
+
 2023-06-03 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Add progress bar (closes: #120)
 	  - add new '--no-progress' parameter

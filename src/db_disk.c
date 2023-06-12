@@ -137,7 +137,7 @@ void scan_dir(char *root_path, bool dry_run) {
                 if (strcmp(entp->d_name, ".") != 0 && strcmp(entp->d_name, "..") != 0) {
                     char *entry_full_path = name_construct(full_path, entp->d_name);
                     bool free_entry_full_path = true;
-                    log_msg(log_level, "scan_dir: process child directory '%s' (fullpath: '%s'", &entry_full_path[conf->root_prefix_length], entry_full_path);
+                    log_msg(log_level, "scan_dir: process child directory '%s' (fullpath: '%s')", &entry_full_path[conf->root_prefix_length], entry_full_path);
                     if (!get_file_status(entry_full_path, &fs)) {
                         rule = NULL;
                         node = NULL;

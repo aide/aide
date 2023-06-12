@@ -1,3 +1,6 @@
+2023-06-12 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Add missing ')' to log message
+
 2023-06-03 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Remove strerror() calls from thread log messages
 	* Don't require database_out for --dry-init

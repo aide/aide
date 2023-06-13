@@ -1,4 +1,4 @@
-Version 0.18.4 (UNRELEASED)
+Version 0.18.4 (2023-06-13)
     * Fix handling of extended attributes on symlinks
     * Add missing ')' to log message
     * Fix static linking of the aide binary

@@ -171,13 +171,12 @@ void scan_dir(char *root_path, bool dry_run) {
 #endif
                         switch (match) {
                             case RESULT_SELECTIVE_MATCH:
+                            case RESULT_EQUAL_MATCH:
                                 if (S_ISDIR(fs.st_mode)) {
-                                    log_msg(log_level, "scan_dir: add child directory '%s' to scan stack (reason: selective match)", &entry_full_path[conf->root_prefix_length]);
+                                    log_msg(log_level, "scan_dir: add child directory '%s' to scan stack (reason: selective/equal match)", &entry_full_path[conf->root_prefix_length]);
                                     queue_enqueue(stack, entry_full_path);
                                     free_entry_full_path = false;
                                 }
-                            // fall through
-                            case RESULT_EQUAL_MATCH:
                                 if (!dry_run) {
                                     handle_matched_file(entry_full_path, rule->attr, fs);
                                 }

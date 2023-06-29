@@ -1,3 +1,6 @@
+Version 0.18.5 (UNRELEASED)
+    * Fix child directory processing on equal match
+
 Version 0.18.4 (2023-06-13)
     * Fix handling of extended attributes on symlinks
     * Add missing ')' to log message

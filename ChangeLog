@@ -1,5 +1,5 @@
 2023-06-27 Hannes von Haugwitz <hannes@vonhaugwitz.com>
-	* Fix child directory proccessing on equal match (closes: #154)
+	* Fix child directory processing on equal match (closes: #154)
 
 2023-06-12 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Add missing ')' to log message

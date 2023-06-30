@@ -1,4 +1,4 @@
-Version 0.18.5 (UNRELEASED)
+Version 0.18.5 (2023-06-30)
     * Fix child directory processing on equal match
 
 Version 0.18.4 (2023-06-13)

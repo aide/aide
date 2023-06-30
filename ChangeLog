@@ -1,3 +1,6 @@
+2023-06-30 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Release aide 0.18.5
+
 2023-06-27 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix child directory processing on equal match (closes: #154)
 

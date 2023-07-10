@@ -621,6 +621,6 @@ void conf_lex_file(const char * config) {
     BEGIN 0;
 }
 
-void conf_lex_delete_buffer() {
+void conf_lex_delete_buffer(void) {
     conf_delete_buffer( YY_CURRENT_BUFFER );
 }

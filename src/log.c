@@ -43,7 +43,7 @@ int ncachedlines = 0;
 
 pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-void log_init() {
+void log_init(void) {
     pthread_mutexattr_t mutex_attrs;
     pthread_mutexattr_init(&mutex_attrs);
     pthread_mutexattr_settype(&mutex_attrs, PTHREAD_MUTEX_RECURSIVE);
@@ -132,7 +132,7 @@ static void vlog_msg(LOG_LEVEL level,const char* format, va_list ap) {
     }
 }
 
-bool is_log_level_unset() {
+bool is_log_level_unset(void) {
     return log_level == LOG_LEVEL_UNSET;
 }
 

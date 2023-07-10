@@ -38,9 +38,9 @@ typedef enum { /* preserve order */
     LOG_LEVEL_TRACE = 10,
 } LOG_LEVEL;
 
-void log_init();
+void log_init(void);
 
-bool is_log_level_unset();
+bool is_log_level_unset(void);
 
 void set_log_level(LOG_LEVEL);
 

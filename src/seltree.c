@@ -206,7 +206,7 @@ seltree* get_seltree_node(seltree* node, char *path) {
     return _get_seltree_node(node, path, false);
 }
 
-seltree *init_tree() {
+seltree *init_tree(void) {
     seltree *node = create_seltree_node("/", NULL);
     log_msg(LOG_LEVEL_DEBUG, "created root node '%s' (%p)", node->path, node);
     return node;

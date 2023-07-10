@@ -287,7 +287,7 @@ static void * wait_for_workers( __attribute__((unused)) void *arg) {
     return (void *) pthread_self();
 }
 
-int db_disk_start_threads() {
+int db_disk_start_threads(void) {
     queue_database_entries = queue_ts_init(NULL); /* freed in add2tree */
     log_msg(LOG_LEVEL_THREAD, "%10s: initialized database entries queue %p", whoami_main, queue_database_entries);
     queue_worker_files = queue_ts_init(NULL); /* freed in wait_for_workers */
@@ -308,7 +308,7 @@ int db_disk_start_threads() {
     return RETOK;
 }
 
-int db_disk_finish_threads() {
+int db_disk_finish_threads(void) {
     if (pthread_join(wait_for_workers_thread, NULL) != 0) {
         log_msg(LOG_LEVEL_ERROR, "failed to join wait_for_workers thread");
         return RETFAIL;

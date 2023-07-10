@@ -45,7 +45,7 @@ int db_writespec(db_config*);
 
 int db_writeline(db_line*,db_config*);
 
-void db_close();
+void db_close(void);
 
 void free_db_line(db_line* dl);
 

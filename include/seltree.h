@@ -26,7 +26,7 @@
 
 typedef struct seltree seltree;
 
-seltree* init_tree();
+seltree* init_tree(void);
 
 seltree* get_seltree_node(seltree* ,char*);
 seltree* get_or_create_seltree_node(seltree*, char *);

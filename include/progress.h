@@ -33,8 +33,8 @@ typedef enum progress_state {
     PROGRESS_CLEAR,
 } progress_state;
 
-bool progress_start();
-void progress_stop();
+bool progress_start(void);
+void progress_stop(void);
 
 void progress_status(progress_state, const char*);
 

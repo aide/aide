@@ -489,7 +489,7 @@ int db_writeline(db_line* line,db_config* dbconf){
   return RETFAIL;
 }
 
-void db_close() {
+void db_close(void) {
   if (conf->database_out.url) {
   switch (conf->database_out.url->type) {
   case url_stdin:

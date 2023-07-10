@@ -101,7 +101,7 @@ static void usage(int exitvalue)
 
 static void sig_handler(int);
 
-static void init_sighandler()
+static void init_sighandler(void)
 {
   log_msg(LOG_LEVEL_DEBUG, "initialize signal handler for SIGTERM, SIGUSR1 and SIGHUP");
   signal(SIGTERM,sig_handler);
@@ -111,7 +111,7 @@ static void init_sighandler()
   return;
 }
 
-static void init_crypto_lib() {
+static void init_crypto_lib(void) {
 /* libmhash does not need to be initialized */
 #ifdef WITH_GCRYPT
   if(!gcry_check_version(NEED_LIBGCRYPT_VERSION)) {
@@ -390,7 +390,7 @@ static void read_param(int argc,char**argv)
   }
 }
 
-static void setdefaults_before_config()
+static void setdefaults_before_config(void)
 {
   DB_ATTR_TYPE X;
 
@@ -563,7 +563,7 @@ static void setdefaults_before_config()
 
 }
 
-static void setdefaults_after_config()
+static void setdefaults_after_config(void)
 {
   int linenumber=1;
 

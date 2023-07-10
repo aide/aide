@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2006, 2020 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002, 2006, 2020, 2023 Rami Lehti, Pablo Virolainen,
  *               Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -28,6 +28,6 @@ extern char *conf_linebuf;
 
 void conf_lex_string(const char *, const char *);
 void conf_lex_file(const char *);
-void conf_lex_delete_buffer();
+void conf_lex_delete_buffer(void);
 
 #endif

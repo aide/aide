@@ -27,6 +27,6 @@
 
 void db_scan_disk(bool);
 
-int db_disk_start_threads();
-int db_disk_finish_threads();
+int db_disk_start_threads(void);
+int db_disk_finish_threads(void);
 #endif

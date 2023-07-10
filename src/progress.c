@@ -173,7 +173,7 @@ static void update_state(progress_state new_state) {
         state = new_state;
 }
 
-bool progress_start() {
+bool progress_start(void) {
     struct winsize winsize;
 
     if (ioctl(STDERR_FILENO, TIOCGWINSZ, &winsize) == -1) {
@@ -189,7 +189,7 @@ bool progress_start() {
     return true;
 }
 
-void progress_stop() {
+void progress_stop(void) {
     pthread_mutex_lock(&progress_update_mutex);
     update_state(PROGRESS_CLEAR);
     stderr_set_line_erasure(false);

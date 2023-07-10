@@ -486,7 +486,7 @@ bool add_report_url(url_t* url, int linenumber, char* filename, char* linebuf) {
 
 }
 
-bool init_report_urls() {
+bool init_report_urls(void) {
     list* l = NULL;
 
     for (l=conf->report_urls; l; l=l->next) {

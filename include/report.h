@@ -48,7 +48,7 @@ typedef enum {
     REPORT_FORMAT_JSON = 2,
 } REPORT_FORMAT;
 
-bool init_report_urls();
+bool init_report_urls(void);
 
 bool add_report_url(url_t* url, int, char*, char*);
 

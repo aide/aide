@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2019-2022 Hannes von Haugwitz
+ * Copyright (C) 2019-2023 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -61,7 +61,7 @@ config_option_t config_options[] = {
     { NUM_WORKERS,                              NULL,                           NULL },
 };
 
-static ast* new_ast_node() {
+static ast* new_ast_node(void) {
     ast* a = checked_malloc(sizeof(ast));
 
     a->linenumber = conf_linenumber;

@@ -63,7 +63,8 @@ static void _print_report_option(report_t *report, config_option option, const c
 }
 
 static void _print_attribute(report_t *report, db_line* oline, db_line* nline, ATTRIBUTE attribute) {
-    char **ovalue, **nvalue;
+    char **ovalue = NULL;
+    char **nvalue = NULL;
     int onumber, nnumber, i, c;
     int p = (width_details-(4 + MAX_WIDTH_DETAILS_STRING))/2;
 

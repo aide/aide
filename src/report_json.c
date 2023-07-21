@@ -144,7 +144,8 @@ static void _print_attribute_value(report_t *report, const char* name, ATTRIBUTE
 }
 
 static void _print_attribute(report_t *report, db_line* oline, db_line* nline, ATTRIBUTE attribute) {
-    char **ovalue, **nvalue;
+    char **ovalue = NULL;
+    char **nvalue = NULL;
     int onumber, nnumber, i;
 
     if (attributes_first) { attributes_first=false; }

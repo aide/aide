@@ -388,24 +388,28 @@ void acl2line(db_line* line) {
   
 #ifdef WITH_POSIX_ACL
   if(ATTR(attr_acl)&line->attr) {
-    acl_t acl_a;
-    acl_t acl_d;
+    acl_t acl_a = NULL;
+    acl_t acl_d = NULL;
     char *tmp = NULL;
 
     acl_a = acl_get_file(line->fullpath, ACL_TYPE_ACCESS);
-    acl_d = acl_get_file(line->fullpath, ACL_TYPE_DEFAULT);
-    if ((acl_a == NULL) && (errno == ENOTSUP)) {
-      line->attr&=(~ATTR(attr_acl));
-      return;
+    if (acl_a == NULL) {
+        if (errno == ENOTSUP) {
+            log_msg(LOG_LEVEL_TRACE, "failed to get acl of %s: file system does not support ACLs or ACLs are disabled", line->fullpath);
+        } else {
+            log_msg(LOG_LEVEL_WARNING, "failed to get ACL of %s: %s", line->fullpath, strerror(errno));
+        }
+        line->attr&=(~ATTR(attr_acl));
+        return;
     }
-    if (acl_a == NULL)
-      log_msg(LOG_LEVEL_WARNING, "tried to read access ACL on %s but failed with: %s",
-            line->fullpath, strerror(errno));
-    if ((acl_d == NULL) && (errno != EACCES)) /* ignore DEFAULT on files */
-    {
-      acl_free(acl_a);
-      log_msg(LOG_LEVEL_WARNING, "tried to read default ACL on %s but failed with: %s",
-            line->fullpath, strerror(errno));
+    if (S_ISDIR(line->perm)) {
+        acl_d = acl_get_file(line->fullpath, ACL_TYPE_DEFAULT);
+        if (acl_d == NULL) {
+            log_msg(LOG_LEVEL_WARNING, "failed to get default ACL of %s: %s", line->fullpath, strerror(errno));
+            acl_free(acl_a);
+            line->attr&=(~ATTR(attr_acl));
+            return;
+        }
     }
 
     ret = checked_malloc(sizeof(acl_type));

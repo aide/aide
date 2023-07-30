@@ -272,14 +272,6 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
   return (CONFIGOPTION);
 }
 
-<CONFIG>"database" {
-  DEPRECATION_WARNING("database", "database_in")
-  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (DATABASE_IN_OPTION), conftext)
-  conflval.option = DATABASE_IN_OPTION;
-  BEGIN (STRINGEQHUNT);
-  return (CONFIGOPTION);
-}
-
 <CONFIG>"database_out" {
   LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (DATABASE_OUT_OPTION), conftext)
   conflval.option = DATABASE_OUT_OPTION;
@@ -308,25 +300,9 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
   return (CONFIGOPTION);
 }
 
-<CONFIG>"grouped" {
-  DEPRECATION_WARNING("grouped", "report_grouped")
-  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (REPORT_GROUPED_OPTION), conftext)
-  conflval.option = REPORT_GROUPED_OPTION;
-  BEGIN (STRINGEQHUNT);
-  return (CONFIGOPTION);
-}
-
 <CONFIG>"report_grouped" {
   LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (REPORT_GROUPED_OPTION), conftext)
   conflval.option = REPORT_GROUPED_OPTION;
-  BEGIN (STRINGEQHUNT);
-  return (CONFIGOPTION);
-}
-
-<CONFIG>"summarize_changes" {
-  DEPRECATION_WARNING("summarize_changes", "report_summarize_changes")
-  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (REPORT_SUMMARIZE_CHANGES_OPTION), conftext)
-  conflval.option = REPORT_SUMMARIZE_CHANGES_OPTION;
   BEGIN (STRINGEQHUNT);
   return (CONFIGOPTION);
 }

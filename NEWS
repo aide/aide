@@ -1,4 +1,11 @@
 Version 0.19 (UNRELEASED)
+    * BACKWARDS INCOMPATIBLE CHANGES
+        - 'database' config option is no longer supported, use
+          'database_in' instead
+        - 'summarize_changes' config option is no longer supported, use
+          'report_summarize_changes' instead
+        - 'grouped' config option is no longer supported, use
+          'report_grouped' instead
     * Add progress bar (add '--no-progress' parameter)
     * Require pthread (remove --without-pthread configure option)
     * Remove contrib/ scripts

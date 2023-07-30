@@ -362,13 +362,6 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
   return (CONFIGOPTION);
 }
 
-<CONFIG>"verbose" {
-  LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (VERBOSE_OPTION), conftext)
-  conflval.option = VERBOSE_OPTION;
-  BEGIN (STRINGEQHUNT);
-  return (CONFIGOPTION);
-}
-
 <CONFIG>"log_level" {
   LOG_LEX_TOKEN(lex_log_level, CONFIGOPTION (LOG_LEVEL_OPTION), conftext)
   conflval.option = LOG_LEVEL_OPTION;

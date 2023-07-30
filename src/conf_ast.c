@@ -53,7 +53,6 @@ config_option_t config_options[] = {
     { REPORT_URL_OPTION,                        NULL,                           NULL },
     { ROOT_PREFIX_OPTION,                       "root_prefix",                  "Root prefix" },
     { WARN_DEAD_SYMLINKS_OPTION,                NULL,                           NULL },
-    { VERBOSE_OPTION,                           NULL,                           NULL },
     { CONFIG_VERSION,                           "config_version",               "Config version used" },
     { CONFIG_CHECK_WARN_UNRESTRICTED_RULES,     NULL,                           NULL },
     { REPORT_FORMAT_OPTION,                     NULL,                           NULL },

@@ -237,12 +237,10 @@ static void read_param(int argc,char**argv)
   static struct option options[] =
   {
     { "help", no_argument, NULL, 'h' },
-    { "verbose", optional_argument, NULL, 'V'},
     { "version", no_argument, NULL, 'v'},
     { "config", required_argument, NULL, 'c'},
     { "before", required_argument, NULL, 'B'},
     { "after", required_argument, NULL, 'A'},
-    { "report", no_argument, NULL, 'r'},
     { "init", no_argument, NULL, 'i'},
     { "dry-init", no_argument, NULL, 'n'},
     { "check", no_argument, NULL, 'C'},
@@ -270,9 +268,6 @@ static void read_param(int argc,char**argv)
       case 'v':{
 	print_version();
 	break;
-      }
-      case 'V':{
-        INVALID_ARGUMENT("--verbose", %s, "option no longer supported, use 'log_level' and 'report_level' options instead (see man aide.conf for details)")
       }
       case 'c':{
 	  conf->config_file=optarg;
@@ -369,9 +364,6 @@ static void read_param(int argc,char**argv)
                 INVALID_ARGUMENT("--path-check", %s, "cannot have multiple commands on a single commandline")
             }
             break;
-      }
-      case 'r': {
-       INVALID_ARGUMENT("--report", %s, "option no longer supported, use 'report_url' config option instead (see man aide.conf for detail)")
       }
       ACTION_CASE("--init", 'i', DO_INIT, "database init")
       ACTION_CASE("--dry-init", 'n', DO_INIT|DO_DRY_RUN, "dry init")

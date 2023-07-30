@@ -3,6 +3,7 @@
 	  - 'database' (replaced by 'database_in')
 	  - 'summarize_changes' (replaced by 'report_summarize_changes')
 	  - 'grouped' (replaced by 'report_grouped')
+	* Remove handling of outdated config parameters/option
 
 2023-07-22 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Improve handling of ACL errors

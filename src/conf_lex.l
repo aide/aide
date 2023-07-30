@@ -197,14 +197,14 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
 }
 
 <CONFIG>"\@\@ifdef" {
-  DEPRECATION_NOTICE("@@ifdef", "@@if defined")
+  DEPRECATION_WARNING("@@ifdef", "@@if defined")
   LOG_LEX_TOKEN(lex_log_level, TIFDEF, conftext)
   BEGIN(STRINGHUNT);
   return (TIFDEF);
 }
 
 <CONFIG>"\@\@ifndef" {
-  DEPRECATION_NOTICE("@@ifndef", "@@if not defined")
+  DEPRECATION_WARNING("@@ifndef", "@@if not defined")
   LOG_LEX_TOKEN(lex_log_level, TIFNDEF, conftext)
   BEGIN(STRINGHUNT);
   return (TIFNDEF);
@@ -223,14 +223,14 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
 }
 
 <CONFIG>"\@\@ifhost" {
-  DEPRECATION_NOTICE("@@ifhost", "@@if hostname")
+  DEPRECATION_WARNING("@@ifhost", "@@if hostname")
   LOG_LEX_TOKEN(lex_log_level, TIFHOST, conftext)
   BEGIN(STRINGHUNT);
   return (TIFHOST);
 }
 
 <CONFIG>"\@\@ifnhost" {
-  DEPRECATION_NOTICE("@@ifnhost", "@@if not hostname")
+  DEPRECATION_WARNING("@@ifnhost", "@@if not hostname")
   LOG_LEX_TOKEN(lex_log_level, TIFNHOST, conftext)
   BEGIN(STRINGHUNT);
   return (TIFNHOST);

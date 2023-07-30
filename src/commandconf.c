@@ -362,7 +362,7 @@ bool add_rx_rule_to_tree(char* rx, char* rule_prefix, RESTRICTION_TYPE restricti
 
         r->attr=attr;
         if (attr&ATTR(attr_sizeg)) {
-            log_msg(LOG_LEVEL_NOTICE, "%s:%d: Using 'S' attribute is DEPRECATED and will be removed in the release after next. Update your config and use 'growing+s' instead (line: '%s')", filename, linenumber, linebuf);
+            log_msg(LOG_LEVEL_WARNING, "%s:%d: Using 'S' attribute is DEPRECATED and will be removed in the release after next. Update your config and use 'growing+s' instead (line: '%s')", filename, linenumber, linebuf);
         }
         if (attr&ATTR(attr_compressed) && !(attr&get_hashes(false))) {
             log_msg(LOG_LEVEL_WARNING, "%s:%d: ignore 'comprressed' attribute (no hashsum attributes are set) (line: '%s')", filename, linenumber, linebuf);

@@ -1,4 +1,4 @@
-Version 0.18.6 (UNRELEASED)
+Version 0.18.6 (2023-08-01)
     * Update GPG key in SECURITY.md
     * Fix double free() during report generation
     * Improve handling of ACL errors

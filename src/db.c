@@ -246,7 +246,7 @@ db_line* db_char2line(char** ss, database* db){
 
   for(int i=0;i<db->num_fields;i++){
 
-    log_msg(LOG_LEVEL_TRACE, "db_char2line(): %d[%d]: '%s' (%p)", db->lineno, i, ss[i], ss[i]);
+    log_msg(LOG_LEVEL_TRACE, "db_char2line(): %ld[%d]: '%s' (%p)", db->lineno, i, ss[i], ss[i]);
 
     switch (db->fields[i]) {
     case attr_filename : {

@@ -486,7 +486,7 @@ static void include_file(const char* file, bool execute, int include_depth, char
                 while (child_stderr && *child_stderr != '\0') {
                     newline = strchr(child_stderr, '\n');
                     if (newline != NULL) {
-                        log_msg(LOG_LEVEL_ERROR, "%s: stderr> %.*s", file, newline-child_stderr, child_stderr);
+                        log_msg(LOG_LEVEL_ERROR, "%s: stderr> %.*s", file, (int)(newline-child_stderr), child_stderr);
                         child_stderr = newline+1;
                     } else {
                         log_msg(LOG_LEVEL_ERROR, "%s: stderr> %s", file, child_stderr);

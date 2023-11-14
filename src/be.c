@@ -160,7 +160,7 @@ void* be_init(bool readonly, url_t* u, bool iszipped, bool append, int linenumbe
 #ifdef WITH_ZLIB
     if(iszipped && !readonly){
       gzFile gzfh = gzdopen(a,"w");
-      if(fh==NULL){
+      if(gzfh==NULL){
 	log_msg(LOG_LEVEL_ERROR,"couldn't reopen file descriptor %li",a);
       }
       return gzfh;

@@ -486,7 +486,7 @@ static void include_file(const char* file, bool execute, int include_depth, char
                 while (child_stderr && *child_stderr != '\0') {
                     newline = strchr(child_stderr, '\n');
                     if (newline != NULL) {
-                        log_msg(LOG_LEVEL_ERROR, "%s: stderr> %.*s", file, newline-child_stderr, child_stderr);
+                        log_msg(LOG_LEVEL_ERROR, "%s: stderr> %.*s", file, (int)(newline-child_stderr), child_stderr);
                         child_stderr = newline+1;
                     } else {
                         log_msg(LOG_LEVEL_ERROR, "%s: stderr> %s", file, child_stderr);
@@ -545,7 +545,7 @@ static void include_directory(const char* dir, const char* rx, bool execute, cha
     if((crx = pcre2_compile((PCRE2_SPTR) rx, PCRE2_ZERO_TERMINATED, PCRE2_UTF, &pcre2_errorcode, &pcre2_erroffset, NULL)) == NULL) {
         PCRE2_UCHAR pcre2_error[128];
         pcre2_get_error_message(pcre2_errorcode, pcre2_error, 128);
-        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, "'%s': error in regular expression '%s' at %i: %s", execute?"@@x_include":"@@include", rx, pcre2_erroffset, pcre2_error)
+        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, "'%s': error in regular expression '%s' at %zu: %s", execute?"@@x_include":"@@include", rx, pcre2_erroffset, pcre2_error)
         exit(INVALID_CONFIGURELINE_ERROR);
     }
     pcre2_match_data *match_data = pcre2_match_data_create_from_pattern(crx, NULL);

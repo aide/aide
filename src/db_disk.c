@@ -246,7 +246,7 @@ static void * file_attrs_worker( __attribute__((unused)) void *arg) {
     char whoami[32];
     snprintf(whoami, 32, "(work-%03li)", worker_index );
 
-    log_msg(LOG_LEVEL_THREAD, "%10s: file_attrs_worker: initialized worker thread #%d", whoami, worker_index);
+    log_msg(LOG_LEVEL_THREAD, "%10s: file_attrs_worker: initialized worker thread #%ld", whoami, worker_index);
 
     while (1) {
         log_msg(LOG_LEVEL_THREAD, "%10s: file_attrs_worker: check/wait for files", whoami);

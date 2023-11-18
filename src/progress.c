@@ -88,7 +88,7 @@ static void * progress_updater( __attribute__((unused)) void *arg) {
                         long left = conf->progress-base_len;
 
                         char *ellipsis = "/...";
-                        size_t ellipsis_len = 0;
+                        int ellipsis_len = 0;
 
                         char *suffix_path = path;
                         int prefix_len = 0;

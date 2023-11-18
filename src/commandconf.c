@@ -229,7 +229,7 @@ int db_input_wrapper(char* buf, int max_size, database* db)
         if (db->gzp == NULL) {
             db->gzp=gzdopen(fileno((FILE *)db->fp),"rb");
             if (db->gzp == NULL) {
-                log_msg(LOG_LEVEL_ERROR, "%s", "gzdopen failed for %s:%s", get_url_type_string((db->url)->type), (db->url)->value);
+                log_msg(LOG_LEVEL_ERROR, "gzdopen failed for %s:%s", get_url_type_string((db->url)->type), (db->url)->value);
                 exit(IO_ERROR);
             }
         }

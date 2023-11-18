@@ -102,7 +102,7 @@ int init_md(struct md_container* md, const char *filename) {
  */
 
 int update_md(struct md_container* md,void* data,ssize_t size) {
-  log_msg(LOG_LEVEL_TRACE,"update_md(md=%p, data=%p, size=%i)", md, data, size);
+  log_msg(LOG_LEVEL_TRACE,"update_md(md=%p, data=%p, size=%zi)", md, data, size);
 
 #ifdef _PARAMETER_CHECK_
   if (md==NULL||data==NULL) {

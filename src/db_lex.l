@@ -57,7 +57,7 @@ LOG_LEVEL db_lex_log_level = LOG_LEVEL_DEBUG;
 %%
 <INITIAL>"#"[^\n]*"\n" {
             (db->lineno)++;
-            LOG_DB_FORMAT_LINE(db_lex_log_level, "db_lex: skip comment line: '%.*s'", strlen(dbtext)-1, dbtext)
+            LOG_DB_FORMAT_LINE(db_lex_log_level, "db_lex: skip comment line: '%.*s'", (int) strlen(dbtext)-1, dbtext)
            }
 <INITIAL>^"\n" {
             (db->lineno)++;
@@ -65,7 +65,7 @@ LOG_LEVEL db_lex_log_level = LOG_LEVEL_DEBUG;
            }
 <INITIAL>^[^\n]*"\n" {
             (db->lineno)++;
-            LOG_DB_FORMAT_LINE(db_lex_log_level, "db_lex: parse '%.*s'", strlen(dbtext)-1, dbtext)
+            LOG_DB_FORMAT_LINE(db_lex_log_level, "db_lex: parse '%.*s'", (int) strlen(dbtext)-1, dbtext)
             yyless(0);
             BEGIN(DB);
            }
@@ -112,7 +112,7 @@ LOG_LEVEL db_lex_log_level = LOG_LEVEL_DEBUG;
 }
 
 <*><<EOF>> {
-    LOG_DB_FORMAT_LINE(db_lex_log_level, "db_lex: TEOF: '<<EOF>>'", NULL)
+    LOG_DB_FORMAT_LINE(db_lex_log_level, "%s", "db_lex: TEOF: '<<EOF>>'")
     return (TEOF);
 }
 

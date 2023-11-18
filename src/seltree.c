@@ -53,7 +53,7 @@ void log_tree(LOG_LEVEL log_level, seltree* node, int depth) {
 
     pthread_mutex_lock(&node->mutex);
 
-    log_msg(log_level, "%-*s %s:", depth, depth?"\u251d":"\u250c", node->path, node);
+    log_msg(log_level, "%-*s %s:", depth, depth?"\u251d":"\u250c", node->path);
 
     char *attr_str, *rs_str;
 
@@ -193,7 +193,7 @@ static seltree* _get_seltree_node(seltree* node, char *path, bool create) {
     if (node == NULL) {
         log_msg(log_level, "_get_seltree_node(): %s> return NULL (node == NULL)", path);
     } else {
-        log_msg(log_level, "_get_seltree_node(): %s> return node: '%s' (%o)", path, node->path, node);
+        log_msg(log_level, "_get_seltree_node(): %s> return node: '%s' (%p)", path, node->path, node);
     }
     return node;
 }
@@ -244,7 +244,7 @@ rx_rule * add_rx_to_tree(char * rx, RESTRICTION_TYPE restriction, int rule_type,
     if((r->crx=pcre2_compile((PCRE2_SPTR) r->rx, PCRE2_ZERO_TERMINATED, PCRE2_UTF|PCRE2_ANCHORED, &pcre2_errorcode, &pcre2_erroffset, NULL)) == NULL) {
         PCRE2_UCHAR pcre2_error[128];
         pcre2_get_error_message(pcre2_errorcode, pcre2_error, 128);
-        log_msg(LOG_LEVEL_ERROR, "%s:%d:%i: error in rule '%s': %s (line: '%s')", filename, linenumber, pcre2_erroffset, rx, pcre2_error, linebuf);
+        log_msg(LOG_LEVEL_ERROR, "%s:%d:%zu: error in rule '%s': %s (line: '%s')", filename, linenumber, pcre2_erroffset, rx, pcre2_error, linebuf);
         free(r);
         return NULL;
     } else {

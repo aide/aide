@@ -279,23 +279,23 @@ char** db_readline_file(database* db) {
   } else {
       if (token == TEOF) {
           /* allow empty database */
-          LOG_DB_FORMAT_LINE(LOG_LEVEL_INFO, "db_readline_file(): empty database file", NULL);
+          LOG_DB_FORMAT_LINE(LOG_LEVEL_INFO, "%s", "db_readline_file(): empty database file");
           return s;
       }
       while (token != TBEGIN_DB) {
           if (token == TEOF) {
-              LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "db_readline_file(): '@@begin_db' NOT found (stop reading database)", NULL);
+              LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "%s", "db_readline_file(): '@@begin_db' NOT found (stop reading database)");
               return s;
           }
           LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, "db_readline_file(): skip '%s'", dbtext);
           token = db_scan();
           LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, "db_readline_file(): db_scan() returned token=%d", token);
       }
-      LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, "'@@begin_db' found", NULL)
+      LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, "%s", "'@@begin_db' found")
       token = db_scan();
       LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, "db_readline_file(): db_scan() returned token=%d", token);
       if (token != TNEWLINE) {
-              LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "db_readline_file(): missing newline after '@@begin_db' (stop reading database)", NULL);
+              LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "%s", "db_readline_file(): missing newline after '@@begin_db' (stop reading database)");
               return s;
 
       } else {
@@ -305,7 +305,7 @@ char** db_readline_file(database* db) {
               LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "db_readline_file(): unexpected token '%s'%c expected '@@db_spec' (stop reading database)", dbtext, 'c');
               return s;
           } else {
-              LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, "'@@dbspec' found", NULL)
+              LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, "%s", "'@@dbspec' found")
               if (db_file_read_spec(db)!=0) {
                   /* something went wrong */
                   return s;

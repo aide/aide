@@ -272,10 +272,10 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
                     }
                     r_size+=update_md_size;
                     if (limit_size > 0 && r_size == limit_size) {
-                        log_msg(LOG_LEVEL_DEBUG, "hash calculation: limited size (%lld) reached for '%s'", limit_size, fullpath);
+                        log_msg(LOG_LEVEL_DEBUG, "hash calculation: limited size (%zi) reached for '%s'", limit_size, fullpath);
                         break;
                     } else if (attr&ATTR(attr_growing) && r_size == old_fs->st_size) {
-                        log_msg(LOG_LEVEL_DEBUG, "hash calculation: stat size (%lld) reached for growing file '%s'", old_fs->st_size, fullpath);
+                        log_msg(LOG_LEVEL_DEBUG, "hash calculation: stat size (%zi) reached for growing file '%s'", old_fs->st_size, fullpath);
                         break;
                     }
                 }

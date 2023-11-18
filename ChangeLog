@@ -1,5 +1,7 @@
 2023-11-18 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix format function attribute for some printf style functions
+	* Fix several compiler warnings for printf style functions (closes: #162),
+	  thanks to Mingjie Shen <shen497@purdue.edu> for the initial patch
 
 2023-11-17 Mingjie Shen <shen497@purdue.edu>
 	* Fix condition for error message of failing to open gzipped files

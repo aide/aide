@@ -46,8 +46,16 @@
 typedef uint8_t byte;
 #endif
 
-void stderr_msg(const char*, ...);
-void vstderr_prefix_line(const char*, const char*, va_list);
+void stderr_msg(const char* format, ...)
+#ifdef __GNUC__
+    __attribute__ ((format (printf, 1, 2)))
+#endif
+;
+void vstderr_prefix_line(const char*, const char*, va_list)
+#ifdef __GNUC__
+    __attribute__ ((format (printf, 1, 0)))
+#endif
+;
 void stderr_set_line_erasure(bool);
 
 const char* btoa(bool);

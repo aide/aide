@@ -320,11 +320,6 @@ if (!r->quiet || (r->nadd || r->nchg || r->nrem)) {
 
 }
 
-void report_printf(report_t*, const char*, ...)
-#ifdef __GNUC__
-        __attribute__ ((format (printf, 2, 3)))
-#endif
-;
 void report_printf(report_t* r, const char* error_msg, ...) {
     va_list ap;
 

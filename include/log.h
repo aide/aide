@@ -50,7 +50,11 @@ LOG_LEVEL get_log_level_from_string(char*);
 
 LOG_LEVEL toogle_log_level(LOG_LEVEL);
 
-void log_msg(LOG_LEVEL, const char* ,...);
+void log_msg(LOG_LEVEL, const char* ,...)
+#ifdef __GNUC__
+    __attribute__ ((format (printf, 2, 3)))
+#endif
+;
 
 #define LOG_CONFIG_FORMAT_LINE(log_level, format, ...) \
     if (linebuf) { \

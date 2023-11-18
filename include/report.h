@@ -111,7 +111,11 @@ typedef struct report_t {
 
 } report_t;
 
-void report_printf(report_t*, const char*, ...);
+void report_printf(report_t*, const char*, ...)
+#ifdef __GNUC__
+        __attribute__ ((format (printf, 2, 3)))
+#endif
+;
 
 typedef struct report_format_module {
     void (*print_report_config_options)(report_t*);

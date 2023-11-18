@@ -169,11 +169,6 @@ LOG_LEVEL toogle_log_level(LOG_LEVEL level) {
     return log_level;
 }
 
-void log_msg(LOG_LEVEL, const char*, ...)
-#ifdef __GNUC__
-    __attribute__ ((format (printf, 2, 3)))
-#endif
-;
 void log_msg(LOG_LEVEL level, const char* format, ...) {
     pthread_mutex_lock(&log_mutex);
     va_list argp;

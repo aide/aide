@@ -1,3 +1,6 @@
+2023-11-18 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Fix format function attribute for some printf style functions
+
 2023-11-17 Mingjie Shen <shen497@purdue.edu>
 	* Fix condition for error message of failing to open gzipped files
 

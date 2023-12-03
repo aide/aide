@@ -34,8 +34,6 @@
 #include "url.h"
 #include "locale-aide.h"
 
-const int width_details = 80;
-
 #define PLAIN_REPORT_HEADLINE_FMT "\n\n---------------------------------------------------\n%s:\n---------------------------------------------------\n"
 
 bool first = true;
@@ -66,13 +64,18 @@ static void _print_attribute(report_t *report, db_line* oline, db_line* nline, A
     char **ovalue = NULL;
     char **nvalue = NULL;
     int onumber, nnumber, i, c;
-    int p = (width_details-(4 + MAX_WIDTH_DETAILS_STRING))/2;
+    int p = (conf->print_details_width-(4 + MAX_WIDTH_DETAILS_STRING))/2;
 
     DB_ATTR_TYPE attr = ATTR(attribute);
     const char* name = attributes[attribute].details_string;
 
-    onumber=get_attribute_values(attr, oline, &ovalue, report);
-    nnumber=get_attribute_values(attr, nline, &nvalue, report);
+    long ignore_e2fsattrs = 0
+#ifdef WITH_E2FSATTRS
+        + report->ignore_e2fsattrs
+#endif
+    ;
+    onumber=get_attribute_values(attr, oline, &ovalue, report->base16, ignore_e2fsattrs);
+    nnumber=get_attribute_values(attr, nline, &nvalue, report->base16, ignore_e2fsattrs);
 
     i = 0;
     while (i<onumber || i<nnumber) {

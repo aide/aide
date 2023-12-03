@@ -51,6 +51,7 @@
 #define DO_COMPARE  (1<<1)
 #define DO_DIFF     (1<<2)
 #define DO_DRY_RUN  (1<<3)
+#define DO_LIST     (1<<4)
 
 /* TIMEBUFSIZE should be exactly ceil(sizeof(time_t)*8*ln(2)/ln(10))
  * Now it is ceil(sizeof(time_t)*2.5)
@@ -178,6 +179,8 @@ typedef struct db_config {
   pcre2_match_data* limit_md;
 
   struct seltree* tree;
+
+  int print_details_width;
 
 } db_config;
 

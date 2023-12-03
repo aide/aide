@@ -526,8 +526,31 @@ char* get_time_string(const time_t *tm) {
     return time;
 }
 
+static int attributes2array(ATTRIBUTE attrs, char* **values) {
+    *values = NULL;
+
+    int n = 0;
+    for (ATTRIBUTE i = 0; i < num_attrs; ++i) {
+        if (attributes[i].db_name && (1LLU<<i)&attrs) {
+            n++;
+        }
+    }
+
+    *values = checked_malloc(n * sizeof(char*));
+    n = 0;
+    for (ATTRIBUTE i = 0; i < num_attrs; ++i) {
+        if (attributes[i].db_name && (1LLU<<i)&attrs) {
+            size_t len = strlen(attributes[i].db_name)+1;
+            (*values)[n] = checked_malloc(len * sizeof(char));
+            snprintf((*values)[n], len, "%s", attributes[i].db_name);
+            n++;
+        }
+    }
+    return n;
+}
+
 int get_attribute_values(DB_ATTR_TYPE attr, db_line* line,
-        char* **values, report_t* r) {
+        char* **values, int base16, long ignore_e2fsattrs) {
 
 #define easy_string(s) \
 l = strlen(s)+1; \
@@ -544,6 +567,9 @@ snprintf(*values[0], l, "%s",s);
 } else if (a&attr) { \
     *values[0] = get_time_string(&(line->b)); \
 
+    if (ATTR(attr_attr)&attr) {
+        return attributes2array(line->attr, values);
+    } else
     if (line==NULL || !(line->attr&attr)) {
         *values = NULL;
         return 0;
@@ -579,7 +605,7 @@ snprintf(*values[0], l, "%s",s);
 #endif
 #ifdef WITH_E2FSATTRS
         } else if (ATTR(attr_e2fsattrs)&attr) {
-            *values[0]=get_e2fsattrs_string(line->e2fsattrs, false, r->ignore_e2fsattrs);
+            *values[0]=get_e2fsattrs_string(line->e2fsattrs, false, ignore_e2fsattrs);
 #endif
 #ifdef WITH_CAPABILITIES
         } else if (ATTR(attr_capabilities)&attr) {
@@ -589,7 +615,7 @@ snprintf(*values[0], l, "%s",s);
 
   for (int i = 0 ; i < num_hashes ; ++i) {
     if (ATTR(hashsums[i].attribute)&attr) {
-        if (r->base16) {
+        if (base16) {
             *values[0] = byte_to_base16(line->hashsums[i], hashsums[i].length);
         } else {
             *values[0] = encode_base64(line->hashsums[i], hashsums[i].length);

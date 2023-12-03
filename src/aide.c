@@ -45,6 +45,7 @@
 #include "report.h"
 #include "db_config.h"
 #include "db_disk.h"
+#include "db_lex.h"
 #include "db.h"
 #include "log.h"
 #include "progress.h"
@@ -232,6 +233,7 @@ static void read_param(int argc,char**argv)
 
   enum cmdline_args {
       ARG_NO_PROGRESS = 1,
+      ARG_LIST        = 2,
   };
 
   static struct option options[] =
@@ -252,6 +254,7 @@ static void read_param(int argc,char**argv)
     { "workers", required_argument, NULL, 'W'},
     { "no-progress", no_argument, NULL, ARG_NO_PROGRESS},
     { "compare", no_argument, NULL, 'E'},
+    { "list", no_argument, NULL, ARG_LIST},
     { NULL,0,NULL,0 }
   };
 
@@ -371,6 +374,7 @@ static void read_param(int argc,char**argv)
       ACTION_CASE("--update", 'u', DO_INIT|DO_COMPARE, "database update")
       ACTION_CASE("--compare", 'E', DO_DIFF, "database compare")
       ACTION_CASE("--config-check", 'D', DO_DRY_RUN, "config check")
+      ACTION_CASE("--list", ARG_LIST, DO_LIST, "list")
       default: /* '?' */
 	  exit(INVALID_ARGUMENT_ERROR);
       }
@@ -504,6 +508,8 @@ static void setdefaults_before_config(void)
 
   conf->progress = 0;
 
+  conf->print_details_width = 80;
+
   log_msg(LOG_LEVEL_INFO, "define default attribute definitions");
 
   for (ATTRIBUTE i = 0 ; i < num_attrs ; ++i) {
@@ -592,6 +598,30 @@ static void setdefaults_after_config(void)
   };
 }
 
+static void list_attribute(db_line* entry, ATTRIBUTE attribute) {
+    char **value = NULL;
+    int num, i, c;
+    int p = conf->print_details_width-5-MAX_WIDTH_DETAILS_STRING;
+
+    DB_ATTR_TYPE attr = ATTR(attribute);
+    const char* name = attributes[attribute].details_string;
+
+    num=get_attribute_values(attr, entry, &value, 1, 0L);
+
+    i = 0;
+    while (i<num) {
+        int olen = strlen(value[i]);
+        int k = 0;
+        while (olen-p*k >= 0) {
+            c = k*(p-1);
+            fprintf(stdout,"  %-*s%c %.*s\n", MAX_WIDTH_DETAILS_STRING, (i+k)?"":name, (i+k)?' ':':', p-1, olen-c>0?&value[i][c]:"");
+            k++;
+        }
+        ++i;
+    }
+    for(i=0; i < num; ++i) { free(value[i]); value[i]=NULL; } free(value); value=NULL;
+}
+
 int main(int argc,char**argv)
 {
   int errorno=0;
@@ -612,7 +642,7 @@ int main(int argc,char**argv)
   log_msg(LOG_LEVEL_INFO, "read command line parameters");
   read_param(argc,argv);
 
-  if (!(conf->action&DO_DRY_RUN)) {
+  if (!(conf->action&DO_DRY_RUN) && !(conf->action&DO_LIST)) {
       if (conf->progress >= 0) {
           if (isatty(STDERR_FILENO)) {
               log_msg(LOG_LEVEL_DEBUG, "enable progress bar (stderr refers to a terminal)");
@@ -676,7 +706,7 @@ int main(int argc,char**argv)
   }
 
   /* Let's do some sanity checks for the config */
-  if (conf->action&(DO_DIFF|DO_COMPARE) && !(conf->database_in.url)) {
+  if (conf->action&(DO_DIFF|DO_COMPARE|DO_LIST) && !(conf->database_in.url)) {
     log_msg(LOG_LEVEL_ERROR,_("missing 'database_in', config option is required"));
     exit(INVALID_ARGUMENT_ERROR);
   }
@@ -711,6 +741,46 @@ int main(int argc,char**argv)
   if (conf->action&DO_INIT && conf->action&DO_DRY_RUN) {
       log_msg(LOG_LEVEL_INFO, "scan file system (dry-run)");
       db_scan_disk(true);
+      exit (0);
+  }
+
+  if ((conf->action&DO_LIST)) {
+      if(db_init(&(conf->database_in), true, false)==RETFAIL) {
+          exit(IO_ERROR);
+      }
+      log_msg(LOG_LEVEL_INFO, "list entries from database: %s:%s", get_url_type_string((conf->database_in.url)->type), (conf->database_in.url)->value);
+      db_lex_buffer(&(conf->database_in));
+      db_line* entry=NULL;
+      while((entry = db_readline(&(conf->database_in))) != NULL) {
+          log_msg(LOG_LEVEL_RULE, "\u252c process '%s' (filetype: %c)", entry->filename, get_restriction_char(entry->perm));
+          if (check_limit(entry->filename) == 0) {
+              fprintf(stdout, "%s\n", entry->filename);
+              for (int j=0; j < report_attrs_order_length; ++j) {
+                  switch(report_attrs_order[j]) {
+                      case attr_allhashsums:
+                          for (int i = 0 ; i < num_hashes ; ++i) {
+                              if (ATTR(hashsums[i].attribute)&entry->attr) { list_attribute(entry, hashsums[i].attribute); }
+                          }
+                          break;
+                      case attr_size:
+                          if (ATTR(attr_size)&entry->attr) { list_attribute(entry, attr_size); }
+                          if (ATTR(attr_sizeg)&entry->attr) { list_attribute(entry, attr_sizeg); }
+                          break;
+                      default:
+                          if (ATTR(report_attrs_order[j])&entry->attr) { list_attribute(entry, report_attrs_order[j]); }
+                          break;
+                  }
+              }
+              list_attribute(entry, attr_attr);
+              fprintf(stdout, "\n");
+              log_msg(LOG_LEVEL_RULE, "\u2534 finish processing '%s'", entry->filename);
+          }
+          free_db_line(entry);
+          free(entry);
+          entry=NULL;
+      }
+      db_lex_delete_buffer(&(conf->database_in));
+      db_close();
       exit (0);
   }
 

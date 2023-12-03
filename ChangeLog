@@ -1,3 +1,7 @@
+2023-12-03 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Add '--list' command to list the entries of the database in
+	  human-readable format (closes: #9)
+
 2023-11-18 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix format function attribute for some printf style functions
 	* Fix several compiler warnings for printf style functions (closes: #162),

@@ -46,7 +46,7 @@ attributes_t attributes[] = {
     { ATTR(attr_haval),          "haval",        "HAVAL",       "haval",        "haval",        '\0'  },
     { ATTR(attr_gostr3411_94),   "gost",         "GOST",        "gost",         "gost",         '\0'  },
     { ATTR(attr_crc32b),         "crc32b",       "CRC32B",      "crc32b",       "crc32b",       '\0'  },
-    { ATTR(attr_attr),           NULL,           NULL ,         "attr",         NULL,           '\0'  },
+    { ATTR(attr_attr),           NULL,           "Attributes",  "attr",         "attributes",   '\0'  },
     { ATTR(attr_acl),            "acl",          "ACL",         "acl",          "acl",          'A'   },
     { ATTR(attr_bsize),          NULL,           NULL,          NULL,           NULL,           '\0'  },
     { ATTR(attr_rdev),           NULL,           NULL ,         NULL,           NULL,           '\0'  },

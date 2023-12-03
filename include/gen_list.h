@@ -49,6 +49,7 @@ typedef enum match_result {
 } match_result;
 
 match_result check_rxtree(char*,seltree*, rx_rule* *, RESTRICTION_TYPE, char *);
+match_result check_limit(char*);
 
 struct db_line* get_file_attrs(char*,DB_ATTR_TYPE, struct stat *);
 void add_file_to_tree(seltree*, db_line*, int, const database *, struct stat *);

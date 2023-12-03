@@ -686,24 +686,33 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
   pthread_mutex_unlock(&node->mutex);
 }
 
+match_result check_limit(char* filename) {
+    if(conf->limit!=NULL) {
+        int match=pcre2_match(conf->limit_crx, (PCRE2_SPTR) filename, PCRE2_ZERO_TERMINATED, 0, PCRE2_PARTIAL_SOFT, conf->limit_md, NULL);
+        if (match >= 0) {
+            log_msg(LOG_LEVEL_DEBUG, "\u2502 '%s' does match limit '%s'", filename, conf->limit);
+            return 0;
+        } else if (match == PCRE2_ERROR_PARTIAL) {
+            log_msg(LOG_LEVEL_RULE, "\u2534 skip '%s' (reason: partial limit match, limit: '%s')", filename, conf->limit);
+            return RESULT_PARTIAL_LIMIT_MATCH;
+        } else {
+            log_msg(LOG_LEVEL_RULE, "\u2534 skip '%s' (reason: no limit match, limit '%s')", filename, conf->limit);
+            return RESULT_NO_LIMIT_MATCH;
+        }
+    }
+    return 0;
+}
+
 match_result check_rxtree(char* filename,seltree* tree, rx_rule* *rule, RESTRICTION_TYPE file_type, char* source)
 {
   log_msg(LOG_LEVEL_RULE, "\u252c process '%s' from %s (filetype: %c)", filename, source, get_restriction_char(file_type));
 
-  if(conf->limit!=NULL) {
-      int match=pcre2_match(conf->limit_crx, (PCRE2_SPTR) filename, PCRE2_ZERO_TERMINATED, 0, PCRE2_PARTIAL_SOFT, conf->limit_md, NULL);
-      if (match >= 0) {
-          log_msg(LOG_LEVEL_DEBUG, "\u2502 '%s' does match limit '%s'", filename, conf->limit);
-      } else if (match == PCRE2_ERROR_PARTIAL) {
-          if(file_type&FT_DIR) {
-              get_or_create_seltree_node(tree, filename);
-          }
-          log_msg(LOG_LEVEL_RULE, "\u2534 skip '%s' (reason: partial limit match, limit: '%s')", filename, conf->limit);
-          return RESULT_PARTIAL_LIMIT_MATCH;
-      } else {
-          log_msg(LOG_LEVEL_RULE, "\u2534 skip '%s' (reason: no limit match, limit '%s')", filename, conf->limit);
-          return RESULT_NO_LIMIT_MATCH;
+  match_result limit_result = check_limit(filename);
+  if (limit_result) {
+      if (limit_result == RESULT_PARTIAL_LIMIT_MATCH && file_type&FT_DIR) {
+        get_or_create_seltree_node(tree, filename);
       }
+      return limit_result;
   }
 
   return check_seltree(tree, filename, file_type, rule);

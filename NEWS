@@ -6,6 +6,7 @@ Version 0.19 (UNRELEASED)
           'report_summarize_changes' instead
         - 'grouped' config option is no longer supported, use
           'report_grouped' instead
+        - an incomplete written input database is now handled as an error
     * Add progress bar (add '--no-progress' parameter)
     * Add '--list' command (to list database in human readable format)
     * Require pthread (remove --without-pthread configure option)

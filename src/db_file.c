@@ -42,6 +42,7 @@
 #include "db_lex.h"
 #include "db_file.h"
 #include "util.h"
+#include "errorcodes.h"
 
 #ifdef WITH_ZLIB
 #include <zlib.h>
@@ -238,8 +239,8 @@ char** db_readline_file(database* db) {
                 LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, "%s", "stop reading database")
                 return s;
             } else if (token == TEOF) {
-                LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "%s", "missing '@@end_db' in database")
-                return s;
+                LOG_DB_FORMAT_LINE(LOG_LEVEL_ERROR, "%s", "missing '@@end_db' in database")
+                exit(DATABASE_ERROR);
             }
             break;
         }

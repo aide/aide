@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2010, 2020-2022 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002, 2010, 2020-2023 Rami Lehti, Pablo Virolainen,
  *               Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -33,5 +33,6 @@
 #define MEMORY_ALLOCATION_FAILURE 22
 #define THREAD_ERROR 23
 #define HASH_ALGO_ERROR 30
+#define DATABASE_ERROR 24
 
 #endif

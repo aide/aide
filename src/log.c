@@ -41,6 +41,8 @@ typedef struct log_cache {
 log_cache *cached_lines = NULL;
 int ncachedlines = 0;
 
+int colored_log = -1;
+
 pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void log_init(void) {
@@ -54,21 +56,30 @@ struct log_level {
     LOG_LEVEL log_level;
     const char *name;
     const char *log_string;
+    const char *colored_log_string;
 };
 
 static struct log_level log_level_array[] = {
-    { LOG_LEVEL_ERROR,         "error",         "  ERROR" },
-    { LOG_LEVEL_WARNING,       "warning",       "WARNING" },
-    { LOG_LEVEL_NOTICE,        "notice",        " NOTICE" },
-    { LOG_LEVEL_INFO,          "info",          "   INFO" },
-    { LOG_LEVEL_RULE,          "rule",          "   RULE" },
-    { LOG_LEVEL_COMPARE,       "compare",       "COMPARE" },
-    { LOG_LEVEL_CONFIG,        "config",        " CONFIG" },
-    { LOG_LEVEL_DEBUG,         "debug",         "  DEBUG" },
-    { LOG_LEVEL_THREAD,        "thread",        " THREAD" },
-    { LOG_LEVEL_TRACE,         "trace",         "  TRACE" },
-    { 0,                       NULL,            NULL      },
+    { LOG_LEVEL_ERROR,         "error",         "  ERROR", COLOR_B_RED    "  ERROR" COLOR_RESET },
+    { LOG_LEVEL_WARNING,       "warning",       "WARNING", COLOR_B_YELLOW "WARNING" COLOR_RESET },
+    { LOG_LEVEL_NOTICE,        "notice",        " NOTICE", COLOR_L_ORANGE " NOTICE" COLOR_RESET },
+    { LOG_LEVEL_INFO,          "info",          "   INFO", COLOR_L_GREEN  "   INFO" COLOR_RESET },
+    { LOG_LEVEL_RULE,          "rule",          "   RULE", COLOR_L_BLUE   "   RULE" COLOR_RESET },
+    { LOG_LEVEL_COMPARE,       "compare",       "COMPARE", COLOR_B_BLUE   "COMPARE" COLOR_RESET },
+    { LOG_LEVEL_CONFIG,        "config",        " CONFIG", COLOR_L_CYAN   " CONFIG" COLOR_RESET },
+    { LOG_LEVEL_DEBUG,         "debug",         "  DEBUG", COLOR_B_PURPLE "  DEBUG" COLOR_RESET },
+    { LOG_LEVEL_THREAD,        "thread",        " THREAD", COLOR_B_CYAN   " THREAD" COLOR_RESET },
+    { LOG_LEVEL_TRACE,         "trace",         "  TRACE", COLOR_L_PURPLE "  TRACE" COLOR_RESET },
+    { 0,                       NULL,            NULL     , NULL      },
 };
+
+static const char* get_log_string(LOG_LEVEL level) {
+    if (colored_log) {
+        return log_level_array[level-1].colored_log_string;
+    } else {
+        return log_level_array[level-1].log_string;
+    }
+}
 
 static void cache_line(LOG_LEVEL, const char*, va_list)
 #ifdef __GNUC__
@@ -80,7 +91,7 @@ static void cache_line(LOG_LEVEL level, const char* format, va_list ap) {
 
     cached_lines = realloc(cached_lines, (ncachedlines+1) * sizeof(log_cache)); /* freed in log_cached_lines() */
     if (cached_lines == NULL) {
-        stderr_msg("%s: realloc: failed to allocate memory\n", log_level_array[LOG_LEVEL_ERROR-1].log_string);
+        stderr_msg("%s: realloc: failed to allocate memory\n", get_log_string(LOG_LEVEL_ERROR));
         exit(MEMORY_ALLOCATION_FAILURE);
     }
 
@@ -95,7 +106,7 @@ static void cache_line(LOG_LEVEL level, const char* format, va_list ap) {
     int size = n * sizeof(char);
     cached_lines[ncachedlines].message = malloc(size); /* freed in log_cached_lines() */
     if (cached_lines[ncachedlines].message == NULL) {
-        stderr_msg("%s: malloc: failed to allocate %d bytes of memory\n", log_level_array[LOG_LEVEL_ERROR-1].log_string, size);
+        stderr_msg("%s: malloc: failed to allocate %d bytes of memory\n", get_log_string(LOG_LEVEL_ERROR), size);
         exit(MEMORY_ALLOCATION_FAILURE);
     }
 
@@ -111,7 +122,7 @@ static void log_cached_lines(void) {
     for(int i = 0; i < ncachedlines; ++i) {
         LOG_LEVEL level = cached_lines[i].level;
         if (level == LOG_LEVEL_ERROR || level <= log_level) {
-            stderr_msg("%s: %s\n", log_level_array[level-1].log_string, cached_lines[i].message);
+            stderr_msg("%s: %s\n", get_log_string(level), cached_lines[i].message);
         }
         free(cached_lines[i].message);
     }
@@ -125,10 +136,10 @@ static void vlog_msg(LOG_LEVEL, const char*, va_list)
 #endif
 ;
 static void vlog_msg(LOG_LEVEL level,const char* format, va_list ap) {
-    if (level == LOG_LEVEL_ERROR || level <= log_level) {
-        vstderr_prefix_line(log_level_array[level-1].log_string, format, ap);
-    } else if (log_level == LOG_LEVEL_UNSET) {
+    if (level != LOG_LEVEL_ERROR && (log_level == LOG_LEVEL_UNSET || colored_log < 0)) {
         cache_line(level, format, ap);
+    } else if (level == LOG_LEVEL_ERROR || level <= log_level) {
+        vstderr_prefix_line(get_log_string(level), format, ap);
     }
 }
 
@@ -147,9 +158,16 @@ LOG_LEVEL get_log_level_from_string(char* val) {
     return LOG_LEVEL_UNSET;
 }
 
+void set_colored_log(bool color) {
+    colored_log = color;
+    if (ncachedlines && log_level != LOG_LEVEL_UNSET) {
+        log_cached_lines();
+    }
+}
+
 void set_log_level(LOG_LEVEL level) {
     log_level = level;
-    if (ncachedlines && level != LOG_LEVEL_UNSET) {
+    if (colored_log >= 0 && ncachedlines && log_level != LOG_LEVEL_UNSET) {
         log_cached_lines();
     }
 }

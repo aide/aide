@@ -251,6 +251,7 @@ static void read_param(int argc,char**argv)
   enum cmdline_args {
       ARG_NO_PROGRESS = 1,
       ARG_LIST        = 2,
+      ARG_NO_COLOR    = 3,
   };
 
   static struct option options[] =
@@ -270,6 +271,7 @@ static void read_param(int argc,char**argv)
     { "log-level", required_argument, NULL, 'L'},
     { "workers", required_argument, NULL, 'W'},
     { "no-progress", no_argument, NULL, ARG_NO_PROGRESS},
+    { "no-color", no_argument, NULL, ARG_NO_COLOR},
     { "compare", no_argument, NULL, 'E'},
     { "list", no_argument, NULL, ARG_LIST},
     { NULL,0,NULL,0 }
@@ -318,7 +320,7 @@ static void read_param(int argc,char**argv)
                 }
                 conf->limit_md = pcre2_match_data_create_from_pattern(conf->limit_crx, NULL);
                 if (conf->limit_md == NULL) {
-                    log_msg(LOG_LEVEL_ERROR, "pcre2_match_data_create_from_pattern: failed to allocate memory");
+                    fprintf(stderr, "%s: (%s) pcre2_match_data_create_from_pattern: failed to allocate memory\n", argv[0], "--limit");
                     exit(MEMORY_ALLOCATION_FAILURE);
                 }
 
@@ -356,6 +358,11 @@ static void read_param(int argc,char**argv)
       case ARG_NO_PROGRESS:{
            conf->progress = -1;
            log_msg(LOG_LEVEL_INFO,"(--no-progress): disable progress bar");
+           break;
+      }
+      case ARG_NO_COLOR:{
+           conf->no_color = false;
+           log_msg(LOG_LEVEL_INFO,"(--no-color): disable colored log output");
            break;
       }
       case 'p':{
@@ -524,6 +531,7 @@ static void setdefaults_before_config(void)
   conf->start_time=time(NULL);
 
   conf->progress = 0;
+  conf->no_color = true;
 
   conf->print_details_width = 80;
 
@@ -643,36 +651,52 @@ int main(int argc,char**argv)
 {
   int errorno=0;
 
-  log_init();
-
 #ifdef WITH_LOCALE
   setlocale(LC_ALL,"");
   bindtextdomain(PACKAGE,LOCALEDIR);
   textdomain(PACKAGE);
 #endif
   umask(0177);
+
+  log_init();
+
   init_sighandler();
-  init_crypto_lib();
 
   setdefaults_before_config();
 
   log_msg(LOG_LEVEL_INFO, "read command line parameters");
   read_param(argc,argv);
 
+  int stderr_isatty = isatty(STDERR_FILENO);
+  if (stderr_isatty == 0) {
+        log_msg(LOG_LEVEL_DEBUG, "isatty() failed for 'STDERR_FILENO': %s", strerror(errno));
+  }
+
+  if (conf->no_color) {
+      if (stderr_isatty) {
+          log_msg(LOG_LEVEL_DEBUG, "enable colored log output (stderr refers to a terminal)");
+      } else {
+          conf->no_color = false;
+          log_msg(LOG_LEVEL_INFO, "disable colored log output (stderr does not refer to a terminal)");
+      }
+  }
+  set_colored_log(conf->no_color);
+
   if (!(conf->action&DO_DRY_RUN) && !(conf->action&DO_LIST)) {
       if (conf->progress >= 0) {
-          if (isatty(STDERR_FILENO)) {
+          if (stderr_isatty) {
               log_msg(LOG_LEVEL_DEBUG, "enable progress bar (stderr refers to a terminal)");
               if (progress_start()) {
                   log_msg(LOG_LEVEL_DEBUG, "initialize signal handler for SIGWINCH");
                   signal(SIGWINCH,sig_handler);
               }
           } else {
-              log_msg(LOG_LEVEL_DEBUG, "isatty() failed for 'STDERR_FILENO': %s", strerror(errno));
               log_msg(LOG_LEVEL_INFO, "disable progress bar (stderr does not refer to a terminal)");
           }
       }
   }
+
+  init_crypto_lib();
 
   /* get hostname */
   conf->hostname = checked_malloc(sizeof(char) * MAXHOSTNAMELEN + 1);

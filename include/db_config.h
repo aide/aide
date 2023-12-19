@@ -155,6 +155,7 @@ typedef struct db_config {
   long num_workers;
 
   int progress;
+  bool no_color;
 
   time_t start_time;
   time_t end_time;

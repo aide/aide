@@ -43,6 +43,7 @@ void log_init(void);
 bool is_log_level_unset(void);
 
 void set_log_level(LOG_LEVEL);
+void set_colored_log(bool);
 
 const char * get_log_level_name(LOG_LEVEL);
 

@@ -11,6 +11,7 @@ Version 0.19 (UNRELEASED)
         - SIGINT, SIGTERM or SIGHUP are now handled by removing an incompletly
           written database and exiting aide (code 25)
     * Add progress bar (add '--no-progress' parameter)
+    * Add colors to log output (add '--no-color' parameter)
     * Add '--list' command (to list database in human readable format)
     * Require pthread (remove --without-pthread configure option)
     * Remove contrib/ scripts

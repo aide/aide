@@ -202,6 +202,8 @@ void scan_dir(char *root_path, bool dry_run) {
 static void * add2tree( __attribute__((unused)) void *arg) {
     const char *whoami = "(add2tree)";
 
+    mask_sig(whoami);
+
     log_msg(LOG_LEVEL_THREAD, "%10s: wait for database entries", whoami);
     database_entry *data;
     while ((data = queue_ts_dequeue_wait(queue_database_entries, whoami)) != NULL) {
@@ -246,6 +248,8 @@ static void * file_attrs_worker( __attribute__((unused)) void *arg) {
     char whoami[32];
     snprintf(whoami, 32, "(work-%03li)", worker_index );
 
+    mask_sig(whoami);
+
     log_msg(LOG_LEVEL_THREAD, "%10s: file_attrs_worker: initialized worker thread #%ld", whoami, worker_index);
 
     while (1) {
@@ -274,6 +278,9 @@ static void * file_attrs_worker( __attribute__((unused)) void *arg) {
 
 static void * wait_for_workers( __attribute__((unused)) void *arg) {
     const char *whoami = "(wait)";
+
+    mask_sig(whoami);
+
     log_msg(LOG_LEVEL_THREAD, "%10s: wait for file_attrs_worker threads to be finished", whoami);
     for (int i = 0 ; i < conf->num_workers ; ++i) {
         if (pthread_join(file_attributes_threads[i], NULL) != 0) {

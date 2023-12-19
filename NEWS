@@ -7,6 +7,9 @@ Version 0.19 (UNRELEASED)
         - 'grouped' config option is no longer supported, use
           'report_grouped' instead
         - an incomplete written input database is now handled as an error
+        - SIGHUP and SIGTERM are no longer ignored
+        - SIGINT, SIGTERM or SIGHUP are now handled by removing an incompletly
+          written database and exiting aide (code 25)
     * Add progress bar (add '--no-progress' parameter)
     * Add '--list' command (to list database in human readable format)
     * Require pthread (remove --without-pthread configure option)

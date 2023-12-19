@@ -127,13 +127,22 @@ conditions:
 .IP "22 Memory allocation error"
 .IP "23 Thread error"
 .IP "24 Database error"
+.IP "25 received SIGINT, SIGTERM or SIGHUP"
 .PP
 .SH SIGNAL HANDLING
-SIGTERM is ignored, use SIGKILL to terminate aide.
 
-SIGHUP is also ignored.
+.IP "\fBSIGINT\fR, \fBSIGTERM\fR, \fBSIGHUP\fR"
 
-SIGUSR1 toggles the log_level between current and debug level.
+Remove an incompletely written database and exit (code 25).
+
+.IP \fBSIGUSR1\fR
+
+Toggle the log_level between current and debug level.
+
+.IP \fBSIGWINCH\fR
+
+Resize the progress bar (if enabled).
+
 .PP
 .SH NOTES
 

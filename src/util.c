@@ -31,6 +31,7 @@
 #include <pthread.h>
 #include <strings.h>
 #include <unistd.h>
+#include <signal.h>
 #include "url.h"
 /*for locale support*/
 #include "locale-aide.h"
@@ -343,6 +344,22 @@ char* pipe2string(int fd) {
         str[len] = '\0';
     }
     return str;
+}
+
+void mask_sig(const char* whoami) {
+    sigset_t set;
+
+    sigemptyset(&set);
+    sigaddset(&set, SIGINT);
+    sigaddset(&set, SIGTERM);
+    sigaddset(&set, SIGHUP);
+    sigaddset(&set, SIGUSR1);
+    sigaddset(&set, SIGWINCH);
+
+    if(pthread_sigmask(SIG_BLOCK, &set, NULL)) {
+        log_msg(LOG_LEVEL_ERROR, "%10s: pthread_sigmask failed to set mask of blocked signals", whoami);
+        exit(THREAD_ERROR);
+    }
 }
 
 /* Like strstr but only do search for maximum of n chars.

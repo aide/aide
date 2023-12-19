@@ -715,12 +715,14 @@ int db_close_file(db_config* dbconf){
       log_msg(LOG_LEVEL_ERROR,"unable to gzclose database '%s:%s': %s", get_url_type_string((dbconf->database_out.url)->type), (dbconf->database_out.url)->value, strerror(errno));
       return RETFAIL;
     }
+    dbconf->database_out.gzp = NULL;
   }else {
 #endif
     if(fclose(dbconf->database_out.fp)){
       log_msg(LOG_LEVEL_ERROR,"unable to close database '%s:%s': %s", get_url_type_string((dbconf->database_out.url)->type), (dbconf->database_out.url)->value, strerror(errno));
       return RETFAIL;
     }
+    dbconf->database_out.fp = NULL;
 #ifdef WITH_ZLIB
   }
 #endif

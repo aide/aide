@@ -34,5 +34,6 @@
 #define THREAD_ERROR 23
 #define HASH_ALGO_ERROR 30
 #define DATABASE_ERROR 24
+#define SIGNAL_INTERRUPT_ERROR 25
 
 #endif

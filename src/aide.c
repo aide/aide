@@ -104,10 +104,14 @@ static void sig_handler(int);
 
 static void init_sighandler(void)
 {
-  log_msg(LOG_LEVEL_DEBUG, "initialize signal handler for SIGTERM, SIGUSR1 and SIGHUP");
+  log_msg(LOG_LEVEL_DEBUG, "initialize signal handler for SIGINT");
+  signal(SIGINT,sig_handler);
+  log_msg(LOG_LEVEL_DEBUG, "initialize signal handler for SIGTERM");
   signal(SIGTERM,sig_handler);
-  signal(SIGUSR1,sig_handler);
+  log_msg(LOG_LEVEL_DEBUG, "initialize signal handler for SIGHUP");
   signal(SIGHUP,sig_handler);
+  log_msg(LOG_LEVEL_DEBUG, "initialize signal handler for SIGUSR1");
+  signal(SIGUSR1,sig_handler);
 
   return;
 }
@@ -129,16 +133,29 @@ static void sig_handler(int signum)
     struct winsize winsize;
     char *str;
     switch(signum){
-        case SIGHUP :
-          str = "Caught SIGHUP. Ignoring\n";
-          (void) !write(STDERR_FILENO ,str, strlen(str));
-          break;
+        case SIGINT :
         case SIGTERM :
-           str = "Caught SIGTERM. Use SIGKILL to terminate\n";
-           (void) !write(STDERR_FILENO ,str, strlen(str));
-           break;
+        case SIGHUP :
+          str = "\naide: received SIGINT, SIGTERM or SIGHUP. cleaning up...\n";
+          (void) !write(STDERR_FILENO ,str, strlen(str));
+          if (conf && (conf->database_out.fp != NULL
+#ifdef WITH_ZLIB
+                  || conf->database_out.gzp != NULL
+#endif
+          )) {
+              if (conf->database_out.url->type == url_file ) {
+                  str = "remove database_out: file:";
+                  (void) !write(STDERR_FILENO, str, strlen(str));
+                  (void) !write(STDERR_FILENO, conf->database_out.url->value, strlen(conf->database_out.url->value));
+                  str = "\n";
+                  (void) !write(STDERR_FILENO ,str, strlen(str));
+                  unlink(conf->database_out.url->value);
+              }
+          }
+          exit(SIGNAL_INTERRUPT_ERROR);
+          break;
         case SIGUSR1 :
-           str = "Caught SIGUSR1, toggle debug level\n";
+           str = "\naide: received SIGUSR1, toggle debug level\n";
            (void) !write(STDERR_FILENO ,str, strlen(str));
            toogle_log_level(LOG_LEVEL_DEBUG);
            break;

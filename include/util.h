@@ -80,6 +80,8 @@ char *expand_tilde(char * path);
 
 char* pipe2string(int);
 
+void mask_sig(const char*);
+
 #ifndef HAVE_STRNSTR
 char* strnstr(char* haystack,char* needle,int n);
 #endif

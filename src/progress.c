@@ -69,6 +69,8 @@ static void * progress_updater( __attribute__((unused)) void *arg) {
     const char *whoami = "(progress)";
     log_msg(LOG_LEVEL_THREAD, "%10s: initialized progress_updater thread", whoami);
 
+    mask_sig(whoami);
+
     bool _continue = true;
     while (_continue) {
         pthread_mutex_lock(&progress_update_mutex);

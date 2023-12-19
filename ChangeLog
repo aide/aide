@@ -5,6 +5,7 @@
 	    or SIGINT
 	  - add exit code 25 for signal interruptions
 	  - Update SIGNAL HANDLING section of aide.1 manual page
+	* Fix compiler warnings for printf style functions
 
 2023-12-04 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Handle an incomplete written input database as an error

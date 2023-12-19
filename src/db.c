@@ -124,7 +124,7 @@ static db_line *close_db_attrs (database *db) {
 int db_init(database* db, bool readonly, bool gzip) {
   void* fp = NULL;
   
-  log_msg(LOG_LEVEL_TRACE,"db_init(): arguments: db=%p, gzip=%s", db, btoa(gzip));
+  log_msg(LOG_LEVEL_TRACE,"db_init(): arguments: db=%p, gzip=%s", (void*) db, btoa(gzip));
   
     db->mdc = init_db_attrs(db->url);
     fp=be_init(readonly, db->url, gzip, false, db->linenumber, db->filename, db->linebuf);
@@ -246,7 +246,7 @@ db_line* db_char2line(char** ss, database* db){
 
   for(int i=0;i<db->num_fields;i++){
 
-    log_msg(LOG_LEVEL_TRACE, "db_char2line(): %ld[%d]: '%s' (%p)", db->lineno, i, ss[i], ss[i]);
+    log_msg(LOG_LEVEL_TRACE, "db_char2line(): %ld[%d]: '%s' (%p)", db->lineno, i, ss[i], (void*) ss[i]);
 
     switch (db->fields[i]) {
     case attr_filename : {

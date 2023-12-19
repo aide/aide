@@ -191,7 +191,7 @@ DB_TOKEN skip_line(database* db) {
 }
 
 char** db_readline_file(database* db) {
-  log_msg(LOG_LEVEL_TRACE, "db_readline_file(): arguments db=%p", db);
+  log_msg(LOG_LEVEL_TRACE, "db_readline_file(): arguments db=%p", (void*) db);
   char** s=NULL;
   
   int i=0;

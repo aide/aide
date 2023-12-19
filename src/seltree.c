@@ -180,20 +180,20 @@ static seltree* _get_seltree_node(seltree* node, char *path, bool create) {
             while (next_dir) {
                 tmp[next_dir-path] = '\0';
                 node = _insert_new_node(tmp, parent);
-                log_msg(log_level, "_get_seltree_node(): %s> created new inner node '%s' (%p) (parent: %p)", path, tmp, node, parent);
+                log_msg(log_level, "_get_seltree_node(): %s> created new inner node '%s' (%p) (parent: %p)", path, tmp, (void*) node, (void*) parent);
                 parent = node;
                 tmp[next_dir-path] = '/';
                 next_dir = strchr(&next_dir[1], '/');
             }
             node = _insert_new_node(path, parent);
-            log_msg(LOG_LEVEL_DEBUG, "created new leaf node '%s' (%p) (parent: %p)", path, node, parent);
+            log_msg(LOG_LEVEL_DEBUG, "created new leaf node '%s' (%p) (parent: %p)", path, (void*) node, (void*) parent);
         }
     }
     free(tmp);
     if (node == NULL) {
         log_msg(log_level, "_get_seltree_node(): %s> return NULL (node == NULL)", path);
     } else {
-        log_msg(log_level, "_get_seltree_node(): %s> return node: '%s' (%p)", path, node->path, node);
+        log_msg(log_level, "_get_seltree_node(): %s> return node: '%s' (%p)", path, node->path, (void*) node);
     }
     return node;
 }
@@ -208,7 +208,7 @@ seltree* get_seltree_node(seltree* node, char *path) {
 
 seltree *init_tree(void) {
     seltree *node = create_seltree_node("/", NULL);
-    log_msg(LOG_LEVEL_DEBUG, "created root node '%s' (%p)", node->path, node);
+    log_msg(LOG_LEVEL_DEBUG, "created root node '%s' (%p)", node->path, (void*) node);
     return node;
 }
 
@@ -504,7 +504,7 @@ int check_seltree(seltree *tree, char *filename, RESTRICTION_TYPE file_type, rx_
       parentname[1]='\0';
   }
 
-  log_msg(LOG_LEVEL_TRACE, "\u2502 search for parent node '%s' (tree: '%s' (%p))", parentname, tree->path, tree);
+  log_msg(LOG_LEVEL_TRACE, "\u2502 search for parent node '%s' (tree: '%s' (%p))", parentname, tree->path, (void*) tree);
   pnode=get_seltree_node(tree,parentname);
   if (pnode == NULL) {
     retval |= RECURSED_CALL;
@@ -512,7 +512,7 @@ int check_seltree(seltree *tree, char *filename, RESTRICTION_TYPE file_type, rx_
 
   } while (pnode == NULL);
 
-  log_msg(LOG_LEVEL_DEBUG, "\u2502 got parent node '%s' (%p) for parentname '%s'", pnode->path, pnode, parentname);
+  log_msg(LOG_LEVEL_DEBUG, "\u2502 got parent node '%s' (%p) for parentname '%s'", pnode->path, (void*) pnode, parentname);
 
   free(parentname);
 

@@ -59,7 +59,7 @@ queue_ts_t *queue_init(int (*sort_func) (const void*, const void*)) {
 
     queue->sort_func = sort_func;
 
-    log_msg(queue_log_level, "queue(%p): create new queue (sorted: %s)", queue, btoa(sort_func != NULL));
+    log_msg(queue_log_level, "queue(%p): create new queue (sorted: %s)", (void*) queue, btoa(sort_func != NULL));
     return queue;
 }
 
@@ -83,7 +83,7 @@ bool queue_enqueue(queue_ts_t * const queue, void * const data) {
         new->next = NULL;
         new->prev = NULL;
         new_head_tail = true;
-        log_msg(queue_log_level, "queue(%p): add node %p with payload %p as new head and new tail", queue, new, new->data);
+        log_msg(queue_log_level, "queue(%p): add node %p with payload %p as new head and new tail", (void*) queue, (void*) new, (void*) new->data);
     } else if (queue->sort_func) {
         /* add element in sorted, non-empty queue (use insertion sort) */
         current = queue->head;
@@ -93,7 +93,7 @@ bool queue_enqueue(queue_ts_t * const queue, void * const data) {
             current->next = new;
             new->prev = current;
             new->next = NULL;
-            log_msg(queue_log_level, "queue(%p): add node %p with payload %p as new head", queue, new, new->data);
+            log_msg(queue_log_level, "queue(%p): add node %p with payload %p as new head", (void*) queue, (void*) new, (void*) new->data);
         } else {
             while (current != NULL && queue->sort_func(new->data, current->data) > 0) {
                 current = current->prev;
@@ -104,14 +104,14 @@ bool queue_enqueue(queue_ts_t * const queue, void * const data) {
                 new->next = queue->tail;
                 new->prev = NULL;
                 queue->tail = new;
-                log_msg(queue_log_level, "queue(%p): add node %p with payload %p as new tail", queue, new, new->data);
+                log_msg(queue_log_level, "queue(%p): add node %p with payload %p as new tail", (void*) queue, (void*) new, (void*) new->data);
             } else {
                 /* new node is inner node */
                 (current->next)->prev = new;
                 new->next = current->next;
                 current->next = new;
                 new->prev = current;
-                log_msg(queue_log_level, "queue(%p): add node %p with payload %p as inner element between %p and %p", queue, new, new->data, new->prev, new->next);
+                log_msg(queue_log_level, "queue(%p): add node %p with payload %p as inner element between %p and %p", (void*) queue, (void*) new, (void*) new->data, (void*) new->prev, (void*) new->next);
             }
         }
     } else {
@@ -120,7 +120,7 @@ bool queue_enqueue(queue_ts_t * const queue, void * const data) {
         new->next = queue->tail;
         new->prev = NULL;
         queue->tail = new;
-        log_msg(queue_log_level, "queue(%p): add node %p with payload %p as new tail", queue, new, new->data);
+        log_msg(queue_log_level, "queue(%p): add node %p with payload %p as new tail", (void*) queue, (void*) new, (void*) new->data);
     }
     return new_head_tail;
 }
@@ -135,7 +135,7 @@ void *queue_dequeue(queue_ts_t * const queue) {
         } else {
             (queue->head)->next = NULL;
         }
-        log_msg(queue_log_level, "queue(%p): return head node %p with payload %p", queue, head, head->data);
+        log_msg(queue_log_level, "queue(%p): return head node %p with payload %p", (void*) queue, (void*) head, (void*) head->data);
         data = head->data;
         free(head);
     }
@@ -162,7 +162,7 @@ queue_ts_t *queue_ts_init(int (*sort_func) (const void*, const void*)) {
 
     pthread_mutex_unlock(&queue->mutex);
 
-    log_msg(queue_log_level, "queue(%p): create new queue (sorted: %s)", queue, btoa(sort_func != NULL));
+    log_msg(queue_log_level, "queue(%p): create new queue (sorted: %s)", (void*) queue, btoa(sort_func != NULL));
     return queue;
 }
 
@@ -181,7 +181,7 @@ bool queue_ts_enqueue(queue_ts_t * const queue, void * const data, const char *w
 
     if (new_head_tail) {
         pthread_cond_broadcast(&queue->cond);
-        log_msg(LOG_LEVEL_THREAD, "%10s: queue(%p): broadcast waiting threads for new head node in queue", whoami, queue);
+        log_msg(LOG_LEVEL_THREAD, "%10s: queue(%p): broadcast waiting threads for new head node in queue", whoami, (void*) queue);
     }
     return new_head_tail;
 }
@@ -192,9 +192,9 @@ void *queue_ts_dequeue_wait(queue_ts_t * const queue, const char *whoami) {
     pthread_mutex_lock(&queue->mutex);
 
     while ((head = queue->head) == NULL && queue->release == false){
-        log_msg(LOG_LEVEL_THREAD, "%10s: queue(%p): waiting for new node", whoami, queue);
+        log_msg(LOG_LEVEL_THREAD, "%10s: queue(%p): waiting for new node", whoami, (void*) queue);
         pthread_cond_wait(&queue->cond, &queue->mutex);
-        log_msg(LOG_LEVEL_THREAD, "%10s: queue(%p): got broadcast (head: %p)", whoami, queue, queue->head);
+        log_msg(LOG_LEVEL_THREAD, "%10s: queue(%p): got broadcast (head: %p)", whoami, (void*) queue, (void*) queue->head);
     }
     if (head != NULL) {
         if ((queue->head = head->prev) == NULL) {
@@ -203,10 +203,10 @@ void *queue_ts_dequeue_wait(queue_ts_t * const queue, const char *whoami) {
             (queue->head)->next = NULL;
         }
         data = head->data;
-        log_msg(queue_log_level, "queue(%p): return head node %p with payload %p", queue, head, head->data);
+        log_msg(queue_log_level, "queue(%p): return head node %p with payload %p", (void*) queue, (void*) head, (void*) head->data);
         free(head);
     } else {
-        log_msg(queue_log_level, "queue(%p): return NULL from empty, released queue", queue);
+        log_msg(queue_log_level, "queue(%p): return NULL from empty, released queue", (void*) queue);
     }
     pthread_mutex_unlock(&queue->mutex);
     return data;

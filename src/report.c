@@ -342,7 +342,7 @@ void log_report_urls(LOG_LEVEL log_level) {
     for (l=conf->report_urls; l; l=l->next) {
         report_t* r = l->data;
 
-        log_msg(log_level, " %s%s%s (%p)", get_url_type_string((r->url)->type), (r->url)->value?":":"", (r->url)->value?(r->url)->value:"", r);
+        log_msg(log_level, " %s%s%s (%p)", get_url_type_string((r->url)->type), (r->url)->value?":":"", (r->url)->value?(r->url)->value:"", (void*) r);
 
         log_msg(log_level, "   level: %s | format: %s | base16: %s | append: %s | quiet: %s | detailed_init: %s | summarize_changes: %s | grouped: %s", get_report_level_string(r->level), get_report_format_string(r->format), btoa(r->base16), btoa(r->append), btoa(r->quiet), btoa(r->detailed_init), btoa(r->summarize_changes), btoa(r->grouped));
         char *str;
@@ -475,7 +475,7 @@ bool add_report_url(url_t* url, int linenumber, char* filename, char* linebuf) {
     r->ignore_e2fsattrs = conf->report_ignore_e2fsattrs;
 #endif
 
-    log_msg(LOG_LEVEL_DEBUG, _("add report_url (%p): url(: %s:%s, level: %d"), r, get_url_type_string((r->url)->type), (r->url)->value, r->level);
+    log_msg(LOG_LEVEL_DEBUG, _("add report_url (%p): url(: %s:%s, level: %d"), (void*) r, get_url_type_string((r->url)->type), (r->url)->value, r->level);
     conf->report_urls=list_sorted_insert(conf->report_urls, (void*) r, compare_report_t_by_report_level);
     return true;
 

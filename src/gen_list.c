@@ -480,19 +480,19 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
   switch (db_flags) {
   case DB_OLD: {
     progress_status(PROGRESS_OLDDB, file->filename);
-    log_msg(add_entry_log_level, "add old database entry '%s' (%c) to node '%s' (%p) as old data", file->filename, get_file_type_char_from_perm(file->perm), node->path, node);
+    log_msg(add_entry_log_level, "add old database entry '%s' (%c) to node '%s' (%p) as old data", file->filename, get_file_type_char_from_perm(file->perm), node->path, (void*) node);
     node->old_data=file;
     break;
   }
   case DB_NEW|DB_DISK: {
     progress_status(PROGRESS_DISK, file->filename);
-    log_msg(add_entry_log_level, "add disk entry '%s' (%c) to node '%s' (%p) as new data", file->filename, get_file_type_char_from_perm(file->perm), node->path, node);
+    log_msg(add_entry_log_level, "add disk entry '%s' (%c) to node '%s' (%p) as new data", file->filename, get_file_type_char_from_perm(file->perm), node->path, (void*) node);
     node->new_data=file;
     break;
   }
   case DB_NEW: {
     progress_status(PROGRESS_NEWDB, file->filename);
-    log_msg(add_entry_log_level, "add new database entry '%s' (%c) to node '%s' (%p) as new data", file->filename, get_file_type_char_from_perm(file->perm), node->path, node);
+    log_msg(add_entry_log_level, "add new database entry '%s' (%c) to node '%s' (%p) as new data", file->filename, get_file_type_char_from_perm(file->perm), node->path, (void*) node);
     node->new_data=file;
     break;
   }
@@ -500,7 +500,7 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
     node->new_data=file;
     if(conf->action&DO_INIT) {
         node->checked|=NODE_FREE;
-        log_msg(add_entry_log_level, "add old database entry '%s' (%c) to node (%p) as new data (entry does not match limit but keep it for database_out)", file->filename, get_file_type_char_from_perm(file->perm), node);
+        log_msg(add_entry_log_level, "add old database entry '%s' (%c) to node (%p) as new data (entry does not match limit but keep it for database_out)", file->filename, get_file_type_char_from_perm(file->perm), (void*) node);
     } else {
         log_msg(add_entry_log_level, "drop old database entry '%s' (entry does not match limit)", file->filename);
         free_db_line(node->new_data);

@@ -71,7 +71,7 @@ static char *name_construct (const char *dirpath, const char *filename) {
     int len = dirpath_len + strlen(filename) + (dirpath[dirpath_len-1] != '/'?1:0) + 1;
     char *ret = checked_malloc(len);
     snprintf(ret, len, "%s%s%s", dirpath, dirpath[dirpath_len-1] != '/'?"/":"", filename);
-    log_msg(LOG_LEVEL_TRACE,"name_construct: dir: '%s' (%p) + filename: '%s' (%p): '%s' (%p)", dirpath, dirpath, filename, filename, ret, ret);
+    log_msg(LOG_LEVEL_TRACE,"name_construct: dir: '%s' (%p) + filename: '%s' (%p): '%s' (%p)", dirpath, (void*) dirpath, filename, (void*) filename, ret, (void*) ret);
     return ret;
 }
 
@@ -94,7 +94,7 @@ static void handle_matched_file(char *entry_full_path, DB_ATTR_TYPE attr, struct
         data->filename = filename;
         data->attr = attr;
         data->fs = fs;
-        log_msg(LOG_LEVEL_THREAD, "%10s: scan_dir: add entry %p to list of worker files (filename: '%s' (%p))", whoami_main,  data, data->filename, data->filename);
+        log_msg(LOG_LEVEL_THREAD, "%10s: scan_dir: add entry %p to list of worker files (filename: '%s' (%p))", whoami_main,  (void*) data, data->filename, (void*) data->filename);
         queue_ts_enqueue(queue_worker_files, data, whoami_main);
     } else {
         db_line *line = get_file_attrs(filename, attr, &fs);
@@ -120,7 +120,7 @@ void scan_dir(char *root_path, bool dry_run) {
     }
 
     queue_ts_t *stack = queue_init(NULL);
-    log_msg(LOG_LEVEL_TRACE, "initialized scan stack queue %p", stack);
+    log_msg(LOG_LEVEL_TRACE, "initialized scan stack queue %p", (void*) stack);
 
     queue_enqueue(stack, checked_strdup(root_path)); /* freed below */
 
@@ -164,7 +164,7 @@ void scan_dir(char *root_path, bool dry_run) {
                             case RESULT_NO_MATCH:
                                 node = get_seltree_node(conf->tree, &entry_full_path[conf->root_prefix_length]);
                                 if(S_ISDIR(fs.st_mode) && node) {
-                                    log_msg(log_level, "scan_dir: add child directory '%s' to scan stack (reason: existing tree node %p)", &entry_full_path[conf->root_prefix_length], node);
+                                    log_msg(log_level, "scan_dir: add child directory '%s' to scan stack (reason: existing tree node %p)", &entry_full_path[conf->root_prefix_length], (void*) node);
                                     free_entry_full_path = false;
                                     queue_enqueue(stack, entry_full_path);
                                 }
@@ -256,14 +256,14 @@ static void * file_attrs_worker( __attribute__((unused)) void *arg) {
         log_msg(LOG_LEVEL_THREAD, "%10s: file_attrs_worker: check/wait for files", whoami);
         scan_dir_entry *data = queue_ts_dequeue_wait(queue_worker_files, whoami);
         if (data) {
-            log_msg(LOG_LEVEL_THREAD, "%10s: file_attrs_workers: got entry %p from list of files (filename: '%s' (%p))", whoami, data, data->filename, data->filename);
+            log_msg(LOG_LEVEL_THREAD, "%10s: file_attrs_workers: got entry %p from list of files (filename: '%s' (%p))", whoami, (void*) data, data->filename, (void*) data->filename);
 
             db_line *line = get_file_attrs (data->filename, data->attr, &data->fs);
             database_entry *db_data;
             db_data = checked_malloc(sizeof(database_entry)); /* freed in db_scan_disk */
             db_data->line = line;
             db_data->fs = data->fs;
-            log_msg(LOG_LEVEL_THREAD, "%10s: file_attrs_worker: add entry %p to list of database entries (filename: '%s')", whoami, line, line->filename);
+            log_msg(LOG_LEVEL_THREAD, "%10s: file_attrs_worker: add entry %p to list of database entries (filename: '%s')", whoami, (void*) line, line->filename);
             queue_ts_enqueue(queue_database_entries, db_data, whoami);
 
             free(data);
@@ -296,9 +296,9 @@ static void * wait_for_workers( __attribute__((unused)) void *arg) {
 
 int db_disk_start_threads(void) {
     queue_database_entries = queue_ts_init(NULL); /* freed in add2tree */
-    log_msg(LOG_LEVEL_THREAD, "%10s: initialized database entries queue %p", whoami_main, queue_database_entries);
+    log_msg(LOG_LEVEL_THREAD, "%10s: initialized database entries queue %p", whoami_main, (void*) queue_database_entries);
     queue_worker_files = queue_ts_init(NULL); /* freed in wait_for_workers */
-    log_msg(LOG_LEVEL_THREAD, "%10s: initialized worker files queue %p", whoami_main, queue_worker_files);
+    log_msg(LOG_LEVEL_THREAD, "%10s: initialized worker files queue %p", whoami_main, (void*) queue_worker_files);
 
     file_attributes_threads = checked_malloc(conf->num_workers * sizeof(pthread_t)); /* freed in wait_for_workers */
 

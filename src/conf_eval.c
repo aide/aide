@@ -111,7 +111,7 @@ static char* eval_string_expression(struct string_expression* expression, int li
             str = checked_malloc(length+1);
             strncpy(str, left, length+1);
             strncat(str, right, length-strlen(left)+1);
-            log_msg(eval_log_level, "eval(%p): string concat '%s' + '%s' evaluates to %s", expression, left, right, str);
+            log_msg(eval_log_level, "eval(%p): string concat '%s' + '%s' evaluates to %s", (void*) expression, left, right, str);
             free(left);
             free(right);
             break;
@@ -145,7 +145,7 @@ static DB_ATTR_TYPE eval_attribute_expression(struct attribute_expression* expre
             LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, "group '%s' is not defined", expression->right)
                 exit(INVALID_CONFIGURELINE_ERROR);
         }
-        log_msg(eval_log_level, "eval(%p): attribute group '%s' evaluates to %llu", expression, expression->right, attr_r);
+        log_msg(eval_log_level, "eval(%p): attribute group '%s' evaluates to %llu", (void*) expression, expression->right, attr_r);
         switch (expression->op) {
             case ATTR_OP_GROUP:
                 attr = attr_r;
@@ -157,9 +157,9 @@ static DB_ATTR_TYPE eval_attribute_expression(struct attribute_expression* expre
                 attr &= (~attr_r);
                 break;
         }
-        log_msg(eval_log_level, "eval(%p): attribute expression (op: %d, left: %p, right: '%s') evaluates to %llu", expression, expression->op, expression->left, expression->right, attr);
+        log_msg(eval_log_level, "eval(%p): attribute expression (op: %d, left: %p, right: '%s') evaluates to %llu", (void*) expression, expression->op, (void*) expression->left, expression->right, attr);
     } else {
-        log_msg(eval_log_level, "eval(%p): attribute expression is NULL and evaluates to %llu", expression, attr);
+        log_msg(eval_log_level, "eval(%p): attribute expression is NULL and evaluates to %llu", (void*) expression, attr);
     }
     return attr;
 }
@@ -328,13 +328,13 @@ static bool eval_bool_expression(struct bool_expression* expression, int linenum
             int retval = access(str, F_OK);
             result = (retval == 0);
             log_msg(LOG_LEVEL_DEBUG, "access('%s', F_OK) returns %d: (%s)", str, retval, result?"Success":strerror(errno));
-            log_msg(eval_log_level, "eval(%p): bool exists '%s': %s", expression, str, btoa(result));
+            log_msg(eval_log_level, "eval(%p): bool exists '%s': %s", (void*) expression, str, btoa(result));
             free(str);
             break;
         case BOOL_OP_DEFINED:
             str = eval_string_expression(expression->expr, linenumber, filename, linebuf);
             result = list_find(str, conf->defsyms) != NULL;
-            log_msg(eval_log_level, "eval(%p): bool defined '%s': %s", expression, str, btoa(result));
+            log_msg(eval_log_level, "eval(%p): bool defined '%s': %s", (void*) expression, str, btoa(result));
             free(str);
             break;
         case BOOL_OP_HOSTNAME:
@@ -344,13 +344,13 @@ static bool eval_bool_expression(struct bool_expression* expression, int linenum
             } else {
                 LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_WARNING, "%s", "hostname not available; ifhost and ifnhost always evaluate to 'false'")
             }
-            log_msg(eval_log_level, "eval(%p): bool hostname '%s' (hostname: '%s'): %s", expression, str, conf->hostname, btoa(result));
+            log_msg(eval_log_level, "eval(%p): bool hostname '%s' (hostname: '%s'): %s", (void*) expression, str, conf->hostname, btoa(result));
             free(str);
             break;
         case BOOL_OP_NOT:
             left = eval_bool_expression(expression->left, linenumber, filename, linebuf);
             result = !left;
-            log_msg(eval_log_level, "eval(%p): bool !%s: %s", expression, btoa(left), btoa(result));
+            log_msg(eval_log_level, "eval(%p): bool !%s: %s", (void*) expression, btoa(left), btoa(result));
             break;
     }
     return result;
@@ -371,7 +371,7 @@ static void eval_group_statement(group_statement statement, int linenumber, char
 }
 
 static bool evaL_if_condition(if_condition* c) {
-    log_msg(eval_log_level, "eval(%p): if condition", c);
+    log_msg(eval_log_level, "eval(%p): if condition", (void*) c);
     bool cond_result = eval_bool_expression(c->expression, c->linenumber, c->filename, c->linebuf);
     log_msg(LOG_LEVEL_CONFIG,"%s:%d: if condition results to '%s' (line: '%s')", c->filename, c->linenumber, btoa(cond_result), c->linebuf);
     return cond_result;
@@ -381,12 +381,12 @@ static void eval_if_statement(if_statement statement, int include_depth, char* r
     bool condition = evaL_if_condition(statement.condition);
 
     if (condition) {
-        log_msg(eval_log_level, "eval(%p): if branch", statement.if_branch);
+        log_msg(eval_log_level, "eval(%p): if branch", (void*) statement.if_branch);
         if (statement.if_branch) {
             eval_config(statement.if_branch, include_depth, rule_prefix);
         }
     } else {
-        log_msg(eval_log_level, "eval(%p): else branch", statement.else_branch);
+        log_msg(eval_log_level, "eval(%p): else branch", (void*) statement.else_branch);
         if (statement.else_branch) {
             eval_config(statement.else_branch, include_depth, rule_prefix);
         }
@@ -666,10 +666,10 @@ static RESTRICTION_TYPE eval_restriction_expression(restriction_expression *expr
         char *unrestricted = "0";
         if (strncmp(expression->right, unrestricted, strlen(unrestricted)) == 0) {
             rs_r = FT_NULL;
-            log_msg(eval_log_level, "eval(%p): restriction '%s', evaluates to %d", expression, unrestricted, rs);
+            log_msg(eval_log_level, "eval(%p): restriction '%s', evaluates to %d", (void*) expression, unrestricted, rs);
         } else {
             rs_r = (strlen(expression->right) == 1)?get_restriction_from_char(*(expression->right)):FT_NULL;
-            log_msg(eval_log_level, "eval(%p): restriction file type '%s' evaluates to %d", expression, expression->right, rs_r);
+            log_msg(eval_log_level, "eval(%p): restriction file type '%s' evaluates to %d", (void*) expression, expression->right, rs_r);
             if (rs_r == FT_NULL) {
                 LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, "invalid restriction '%s'", expression->right)
                     exit(INVALID_CONFIGURELINE_ERROR);
@@ -681,7 +681,7 @@ static RESTRICTION_TYPE eval_restriction_expression(restriction_expression *expr
             rs = eval_restriction_expression(expression->left, linenumber, filename, linebuf) | rs_r;
         }
     } else {
-        log_msg(eval_log_level, "eval(%p): restriction is NULL, returning %d", expression, rs);
+        log_msg(eval_log_level, "eval(%p): restriction is NULL, returning %d", (void*) expression, rs);
     }
     return rs;
 }
@@ -707,7 +707,7 @@ static void eval_rule_statement(rule_statement statement, char* rule_prefix, int
 void eval_config(ast* config_ast, int include_depth, char *rule_prefix) {
     ast* node = NULL;
     for(node = config_ast; node != NULL; node = node->next) {
-        log_msg(eval_log_level, "eval(%p): ast node (next: %p)", node, node->next);
+        log_msg(eval_log_level, "eval(%p): ast node (next: %p)", (void*) node, (void*) node->next);
         switch (node->type) {
             case config_option_type:
                 eval_config_statement(node->statement._config, node->linenumber, node->filename, node->linebuf);

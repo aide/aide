@@ -78,7 +78,7 @@ ast* new_string_option_statement(config_option option, string_expression* value)
       a->statement._config.option = option;
       a->statement._config.a = NULL;
       a->statement._config.e = value;
-      log_msg(ast_log_level, "ast: new string option statement (%p): option: %d, value: %p", a, option, value);
+      log_msg(ast_log_level, "ast: new string option statement (%p): option: %d, value: %p", (void*) a, option, (void*) value);
       return a;
 }
 
@@ -89,7 +89,7 @@ ast* new_attribute_option_statement(config_option option, attribute_expression* 
       a->statement._config.option = option;
       a->statement._config.a = value;
       a->statement._config.e = NULL;
-      log_msg(ast_log_level, "ast: new attribute option statement (%p): option: %d, value: %p", a, option, value);
+      log_msg(ast_log_level, "ast: new attribute option statement (%p): option: %d, value: %p", (void*) a, option, (void*) value);
       return a;
 }
 
@@ -102,7 +102,7 @@ ast* new_include_statement(string_expression* path, string_expression* rx, bool 
       a->statement._include.execute = execute;
       a->statement._include.prefix = prefix;
 
-      log_msg(ast_log_level, "ast: new include statement (%p): path: %p, rx: %p, execute: %s, prefix: %p", a, path, rx, btoa(execute), prefix);
+      log_msg(ast_log_level, "ast: new include statement (%p): path: %p, rx: %p, execute: %s, prefix: %p", (void*) a, (void*) path, (void*) rx, btoa(execute), (void*) prefix);
       return a;
 }
 
@@ -112,7 +112,7 @@ ast* new_x_include_setenv_statement(char *variable, string_expression *value) {
       a->type = x_include_setenv_statement_type;
       a->statement._x_include_setenv.variable = variable;
       a->statement._x_include_setenv.value = value;
-      log_msg(ast_log_level, "ast: new x_include_setenv statement (%p): variable: '%s', value: %p", a, variable, value);
+      log_msg(ast_log_level, "ast: new x_include_setenv statement (%p): variable: '%s', value: %p", (void*) a, variable, (void*) value);
       return a;
 }
 
@@ -122,7 +122,7 @@ ast* new_define_statement(char *name, string_expression *value) {
       a->type = define_statement_type;
       a->statement._define.name = name;
       a->statement._define.value = value;
-      log_msg(ast_log_level, "ast: new define statement (%p): name: '%s', value: %p", a, name, value);
+      log_msg(ast_log_level, "ast: new define statement (%p): name: '%s', value: %p", (void*) a, name, (void*) value);
       return a;
 }
 
@@ -131,7 +131,7 @@ ast* new_undefine_statement(char *name) {
 
       a->type = undefine_statement_type;
       a->statement._undefine.name = name;
-      log_msg(ast_log_level, "ast: new undefine statement (%p): name: '%s'", a, name);
+      log_msg(ast_log_level, "ast: new undefine statement (%p): name: '%s'", (void*) a, name);
       return a;
 }
 
@@ -141,7 +141,7 @@ ast* new_group_statement(char* name, attribute_expression* expr) {
       a->type = group_statement_type;
       a->statement._group.name = name;
       a->statement._group.expr = expr;
-      log_msg(ast_log_level, "ast: new group statement (%p): name: '%s', expr: %p", a, name, expr);
+      log_msg(ast_log_level, "ast: new group statement (%p): name: '%s', expr: %p", (void*) a, name, (void*) expr);
       return a;
 }
 
@@ -151,7 +151,7 @@ bool_expression* new_string_bool_expression(bool_operator op, string_expression*
     e->expr = expr;
     e->left = NULL;
     e->right = NULL;
-    log_msg(ast_log_level, "ast: new bool expression (%p): op: %d, expr: %p", e, op, expr);
+    log_msg(ast_log_level, "ast: new bool expression (%p): op: %d, expr: %p", (void*) e, op, (void*) expr);
     return e;
 }
 
@@ -161,7 +161,7 @@ bool_expression* new_bool_expression(bool_operator op, bool_expression* left, bo
     e->expr = NULL;
     e->left = left;
     e->right = right;
-    log_msg(ast_log_level, "ast: new bool expression (%p): op: %d, left: %p, right: %p", e, op, left, right);
+    log_msg(ast_log_level, "ast: new bool expression (%p): op: %d, left: %p, right: %p", (void*) e, op, (void*) left, (void*) right);
     return e;
 }
 
@@ -174,7 +174,7 @@ if_condition* new_if_condition(bool_expression* expression) {
 
     c->expression = expression;
 
-    log_msg(ast_log_level, "ast: if condition (%p): expression: %p", c,  expression);
+    log_msg(ast_log_level, "ast: if condition (%p): expression: %p", (void*) c,  (void*) expression);
     return c;
 }
 
@@ -183,7 +183,7 @@ attribute_expression* new_attribute_expression(attribute_operator op, attribute_
     e->op = op;
     e->left = left;
     e->right = right;
-    log_msg(ast_log_level, "ast: new attribute expression (%p): op: %d, left: %p, right: '%s'", e, op, left, right);
+    log_msg(ast_log_level, "ast: new attribute expression (%p): op: %d, left: %p, right: '%s'", (void*) e, op, (void*) left, right);
     return e;
 }
 
@@ -191,7 +191,7 @@ restriction_expression* new_restriction_expression(restriction_expression* left,
     restriction_expression* e = checked_malloc(sizeof(restriction_expression));
     e->right = right;
     e->left = left;
-    log_msg(ast_log_level, "ast: new restriction expression (%p): left: %p, right: '%s'", e, left, right);
+    log_msg(ast_log_level, "ast: new restriction expression (%p): left: %p, right: '%s'", (void*) e, (void*) left, right);
     return e;
 }
 
@@ -202,7 +202,7 @@ ast* new_if_statement(struct if_condition* condition, struct ast* if_branch, str
       e->statement._if.condition = condition;
       e->statement._if.if_branch = if_branch;
       e->statement._if.else_branch = else_branch;
-      log_msg(ast_log_level, "ast: new if statement (%p): condition: %p, if_branch: %p, else_branch: %p", e, condition, if_branch, else_branch);
+      log_msg(ast_log_level, "ast: new if statement (%p): condition: %p, if_branch: %p, else_branch: %p", (void*) e, (void*) condition, (void*) if_branch, (void*) else_branch);
       return e;
 }
 
@@ -214,7 +214,7 @@ ast* new_rule_statement(AIDE_RULE_TYPE rule_type, string_expression* path, restr
       e->statement._rule.path = path;
       e->statement._rule.restriction = restriction;
       e->statement._rule.attributes = attrs;
-      log_msg(ast_log_level, "ast: new rule statement (%p): type: %s, path: %p, restriction: %p, attributes: %p", e, get_rule_type_long_string(rule_type), path, restriction, attrs);
+      log_msg(ast_log_level, "ast: new rule statement (%p): type: %s, path: %p, restriction: %p, attributes: %p", (void*) e, get_rule_type_long_string(rule_type), (void*) path, (void*) restriction, (void*) attrs);
       return e;
 }
 
@@ -235,7 +235,7 @@ string_expression* new_variable(char *name) {
     e->str = name;
     e->left = NULL;
     e->right = NULL;
-    log_msg(ast_log_level, "ast: new variable (%p): name: '%s'", e, name);
+    log_msg(ast_log_level, "ast: new variable (%p): name: '%s'", (void*) e, name);
     return e;
 }
 string_expression* new_string_concat(string_expression* left, string_expression* right) {
@@ -244,7 +244,7 @@ string_expression* new_string_concat(string_expression* left, string_expression*
     e->str = NULL;
     e->left = left;
     e->right = right;
-    log_msg(ast_log_level, "ast: new string concat (%p): left: %p, right: %p", e, left, right);
+    log_msg(ast_log_level, "ast: new string concat (%p): left: %p, right: %p", (void*) e, (void*) left, (void*) right);
     return e;
 }
 
@@ -252,7 +252,7 @@ void free_string(char * s) {
     if (s == NULL) {
         return;
     }
-    log_msg(ast_log_level, "ast: free string %p", s);
+    log_msg(ast_log_level, "ast: free string %p", (void*) s);
     free(s);
 }
 
@@ -262,7 +262,7 @@ void free_attribute_expression(attribute_expression *a) {
     }
     free_attribute_expression(a->left);
     free_string(a->right);
-    log_msg(ast_log_level, "ast: free attribute expression %p", a);
+    log_msg(ast_log_level, "ast: free attribute expression %p", (void*) a);
     free(a);
 }
 
@@ -273,7 +273,7 @@ void free_string_expression(string_expression *s) {
     free_string_expression(s->left);
     free_string_expression(s->right);
     free_string(s->str);
-    log_msg(ast_log_level, "ast: free string expression %p", s);
+    log_msg(ast_log_level, "ast: free string expression %p", (void*) s);
     free(s);
 }
 
@@ -284,14 +284,14 @@ void free_bool_expression(bool_expression *b) {
     free_string_expression(b->expr);
     free_bool_expression(b->left);
     free_bool_expression(b->right);
-    log_msg(ast_log_level, "ast: free bool expression %p", b);
+    log_msg(ast_log_level, "ast: free bool expression %p", (void*) b);
     free(b);
 }
 
 void free_if_condition(if_condition *c) {
     free_bool_expression(c->expression);
     free_string(c->linebuf);
-    log_msg(ast_log_level, "ast: free if condition %p", c);
+    log_msg(ast_log_level, "ast: free if condition %p", (void*) c);
     free(c);
 }
 
@@ -301,7 +301,7 @@ void free_restriction_expression(restriction_expression *r) {
     }
     free_restriction_expression(r->left);
     free_string(r->right);
-    log_msg(ast_log_level, "ast: free restriction expression %p", r);
+    log_msg(ast_log_level, "ast: free restriction expression %p", (void*) r);
     free(r);
 }
 
@@ -350,7 +350,7 @@ void deep_free(ast* config_ast) {
         free(node->linebuf);
         ast* to_be_freed = node;
         node = node->next;
-        log_msg(ast_log_level, "ast: free ast node %p (next: %p)", to_be_freed, node);
+        log_msg(ast_log_level, "ast: free ast node %p (next: %p)", (void*) to_be_freed, (void*) node);
         free(to_be_freed);
     }
 }

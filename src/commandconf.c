@@ -208,7 +208,7 @@ int conf_input_wrapper(char* buf, int max_size, FILE* in)
 
 int db_input_wrapper(char* buf, int max_size, database* db)
 {
-  log_msg(LOG_LEVEL_TRACE,"db_input_wrapper(): parameters: buf=%p, max_size=%d, db=%p)", buf, max_size, db);
+  log_msg(LOG_LEVEL_TRACE,"db_input_wrapper(): parameters: buf=%p, max_size=%d, db=%p)", (void*) buf, max_size, (void*) db);
   int retval=0;
 
 #ifdef WITH_CURL

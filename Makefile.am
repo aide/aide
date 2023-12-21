@@ -67,7 +67,7 @@ aide_SOURCES += include/fopen.h src/fopen.c
 endif
 
 aide_CFLAGS = @AIDE_DEFS@ -W -Wall -g ${PTHREAD_CFLAGS}
-aide_LDADD = -lm ${PCRE2_LIBS} ${ZLIB_LIBS} ${MHASH_LIBS} ${GCRYPT_LIBS} ${POSIX_ACL_LIBS} ${SELINUX_LIBS} ${AUDIT_LIBS} ${XATTR_LIBS} ${ELF_LIBS} ${E2FSATTRS_LIBS} ${CAPABILITIES_LIBS} ${CURL_LIBS} ${PTHREAD_LIBS}
+aide_LDADD = -lm ${PCRE2_LIBS} ${ZLIB_LIBS} ${MHASH_LIBS} ${GCRYPT_LIBS} ${GNUTLS_LIBS} ${POSIX_ACL_LIBS} ${SELINUX_LIBS} ${AUDIT_LIBS} ${XATTR_LIBS} ${ELF_LIBS} ${E2FSATTRS_LIBS} ${CAPABILITIES_LIBS} ${CURL_LIBS} ${PTHREAD_LIBS}
 
 if HAVE_CHECK
 TESTS				= check_aide
@@ -76,7 +76,7 @@ check_aide_SOURCES	= tests/check_aide.c tests/check_aide.h \
 					  tests/check_attributes.c src/attributes.c \
 					  src/log.c src/util.c
 check_aide_CFLAGS	= -I$(top_srcdir)/include $(CHECK_CFLAGS)
-check_aide_LDADD	= -lm ${PCRE2_LIBS} ${MHASH_LIBS} ${GCRYPT_LIBS} $(CHECK_LIBS)
+check_aide_LDADD	= -lm ${PCRE2_LIBS} ${MHASH_LIBS} ${GCRYPT_LIBS} ${GNUTLS_LIBS} $(CHECK_LIBS)
 endif # HAVE_CHECK
 
 AM_CFLAGS = @AIDE_DEFS@ -W -Wall -g

@@ -344,6 +344,10 @@ AC_MSG_CHECKING(for Mhash)
 AC_ARG_WITH([mhash], AS_HELP_STRING([--with-mhash], [use Mhash (default: check)]), [with_mhash=$withval], [with_mhash=check])
 AC_MSG_RESULT([$with_mhash])
 
+AC_MSG_CHECKING(for GnuTLS)
+AC_ARG_WITH([gnutls], AS_HELP_STRING([--with-gnutls], [use GnuTLS library (default: check)]), [with_gnutls=$withval], [with_gnutls=check])
+AC_MSG_RESULT([$with_gnutls])
+
 AC_MSG_CHECKING(for GNU crypto library)
 AC_ARG_WITH([gcrypt], AS_HELP_STRING([--with-gcrypt], [use GNU crypto library (default: check)]), [with_gcrypt=$withval], [with_gcrypt=check])
 AC_MSG_RESULT([$with_gcrypt])
@@ -357,19 +361,29 @@ AS_IF([test x"$with_mhash" = xyes], [
     )],AC_DEFINE(HAVE_MHASH_WHIRLPOOL,1,[mhash has whirlpool]))
     AS_IF([test x"$with_gcrypt" = xcheck], [
     with_gcrypt=no
+    with_gnutls=no
     ])
 ])
 AIDE_PKG_CHECK_MODULES_OPTIONAL(gcrypt, GCRYPT, libgcrypt)
+AIDE_PKG_CHECK_MODULES_OPTIONAL(gnutls, GNUTLS, gnutls)
 AS_IF([test x"$with_mhash" != xno && test x"$with_gcrypt" != xno], [
     AC_MSG_ERROR([Using gcrypt together with mhash makes no sense. To disable mhash use --without-mhash])
 ])
-AS_IF([test x"$with_mhash" = xno && test x"$with_gcrypt" = xno], [
-    AC_MSG_ERROR([AIDE requires mhash or libcrypt for hashsum calculation])
+AS_IF([test x"$with_mhash" != xno && test x"$with_gnutls" != xno], [
+    AC_MSG_ERROR([Using gnutls together with mhash makes no sense. To disable mhash use --without-mhash])
+])
+AS_IF([test x"$with_gcrypt" != xno && test x"$with_gnutls" != xno], [
+    AC_MSG_ERROR([Using gnutls together with gcrypt makes no sense. To disable gcrypt use --without-gcrypt])
+])
+AS_IF([test x"$with_mhash" = xno && test x"$with_gcrypt" = xno && test x"$with_gnutls" == xno], [
+    AC_MSG_ERROR([AIDE requires mhash, gnutls or libcrypt for hashsum calculation])
 ])
 compoptionstring="${compoptionstring}use Mhash: $with_mhash\\n"
 AM_CONDITIONAL(HAVE_MHASH, [test "x$MHASH_LIBS" != "x"])
 compoptionstring="${compoptionstring}use GNU crypto library: $with_gcrypt\\n"
 AM_CONDITIONAL(HAVE_GCRYPT, [test "x$GCRYPT_LIBS" != "x"])
+compoptionstring="${compoptionstring}use GnuTLS: $with_gnutls\\n"
+AM_CONDITIONAL(HAVE_GNUTLS, [test "x$GNUTLS_LIBS" != "x"])
 
 AIDE_PKG_CHECK(audit, Linux Auditing Framework, no, AUDIT, audit)
 

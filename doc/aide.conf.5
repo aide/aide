@@ -871,6 +871,7 @@ haval256 checksum
 .TP
 .B "crc32"
 crc32 checksum
+(\fIlibmhash\fR and \fIlibgcrypt\fR only)
 .TP
 .B "crc32b"
 crc32 checksum
@@ -881,14 +882,15 @@ GOST R 34.11-94 checksum
 .TP
 .B "whirlpool"
 whirlpool checksum
+(\fIlibgcrypt\fR and \fIlibmhash\fRonly)
 .TP
 .B "stribog256"
 GOST R 34.11-2012, 256 bit checksum
-(\fIlibgcrypt\fR only, added in AIDE v0.17)
+(\fIlibgcrypt\fR and \fIgnutls\fR only, added in AIDE v0.17)
 .TP
 .B "stribog512"
 GOST R 34.11-2012, 512 bit checksum
-(\fIlibgcrypt\fR only, added in AIDE v0.17)
+(\fIlibgcrypt\fR and \fIgnutls\fR only, added in AIDE v0.17)
 .PP
 
 Use 'aide --version' to show which hashsums are available.

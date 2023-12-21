@@ -73,6 +73,7 @@ aide_CFLAGS = @AIDE_DEFS@ -I$(top_srcdir)/include -W -Wall -g \
 			${E2FSATTRS_CFLAGS} \
 			${ELF_CFLAGS} \
 			${GCRYPT_CFLAGS} \
+			${GNUTLS_CFLAGS} \
 			${MHASH_CFLAGS} \
 			${PCRE2_CFLAGS} \
 			${POSIX_ACL_CFLAGS} \
@@ -87,6 +88,7 @@ aide_LDADD = -lm \
 			${E2FSATTRS_LIBS} \
 			${ELF_LIBS} \
 			${GCRYPT_LIBS} \
+			${GNUTLS_LIBS} \
 			${MHASH_LIBS} \
 			${PCRE2_LIBS} \
 			${POSIX_ACL_LIBS} \
@@ -107,11 +109,13 @@ check_aide_SOURCES	= tests/check_aide.c tests/check_aide.h \
 check_aide_CFLAGS	= -I$(top_srcdir)/include \
 				$(CHECK_CFLAGS) \
 				${GCRYPT_CFLAGS} \
+				${GNUTLS_CFLAGS} \
 				${MHASH_CFLAGS} \
 				${PCRE2_CFLAGS}
 check_aide_LDADD	= -lm \
 				$(CHECK_LIBS) \
 				${GCRYPT_LIBS} \
+				${GNUTLS_LIBS} \
 				${MHASH_LIBS} \
 				${PCRE2_LIBS}
 endif # HAVE_CHECK

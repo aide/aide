@@ -74,6 +74,7 @@ aide_CFLAGS = @AIDE_DEFS@ -I$(top_srcdir)/include -W -Wall -g \
 			${ELF_CFLAGS} \
 			${GCRYPT_CFLAGS} \
 			${NETTLE_CFLAGS} \
+			${GNUTLS_CFLAGS} \
 			${PCRE2_CFLAGS} \
 			${POSIX_ACL_CFLAGS} \
 			${PTHREAD_CFLAGS} \
@@ -88,6 +89,7 @@ aide_LDADD = -lm \
 			${ELF_LIBS} \
 			${GCRYPT_LIBS} \
 			${NETTLE_LIBS} \
+			${GNUTLS_LIBS} \
 			${PCRE2_LIBS} \
 			${POSIX_ACL_LIBS} \
 			${PTHREAD_LIBS} \
@@ -109,11 +111,13 @@ check_aide_CFLAGS	= -I$(top_srcdir)/include \
 				$(CHECK_CFLAGS) \
 				${GCRYPT_CFLAGS} \
 				${NETTLE_CFLAGS} \
+				${GNUTLS_CFLAGS} \
 				${PCRE2_CFLAGS}
 check_aide_LDADD	= -lm \
 				$(CHECK_LIBS) \
 				${GCRYPT_LIBS} \
 				${NETTLE_LIBS} \
+				${GNUTLS_LIBS} \
 				${PCRE2_LIBS}
 endif # HAVE_CHECK
 

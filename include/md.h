@@ -35,6 +35,10 @@
 #ifdef WITH_GCRYPT
 #include <gcrypt.h>
 #endif
+#ifdef WITH_GNUTLS
+#include <gnutls/gnutls.h>
+#include <gnutls/crypto.h>
+#endif
 #include <sys/types.h>
 #include "attributes.h"
 #include "hashsum.h"
@@ -78,6 +82,10 @@ typedef struct md_container {
 
 #ifdef WITH_GCRYPT
   gcry_md_hd_t mdh;
+#endif
+
+#ifdef WITH_GNUTLS
+  gnutls_hash_hd_t gnutls_mdh[num_hashes];
 #endif
 
 } md_container;

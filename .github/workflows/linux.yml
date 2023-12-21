@@ -12,20 +12,33 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         compiler: [gcc, clang]
+        crypto: [nettle-dev, libgnutls28-dev, libgcrypt-dev]
 
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies
-        run: sudo apt install autoconf-archive bison flex nettle-dev libpcre2-dev zlib1g-dev check
+        run: sudo apt install make pkg-config autoconf-archive bison flex libpcre2-dev zlib1g-dev check ${{ matrix.crypto }}
       - name: autoconf
         run: ./autogen.sh
       - name: configure
-        run: ./configure
+        run: |
+          if [ "${{ matrix.crypto }}" = "libgnutls28-dev" ]; then
+            ./configure --without-nettle --without-gcrypt
+          else
+            ./configure --without-gnutls
+          fi
         env:
           CC: ${{ matrix.compiler }}
+          CFLAGS: -Werror -Wall -pedantic -g
       - name: make
         run: make
       - name: make check
         run: make check
       - name: make distcheck
-        run: make distcheck
+        run: |
+          if [ "${{ matrix.crypto }}" = "libgnutls28-dev" ]; then
+            export DISTCHECK_CONFIGURE_FLAGS="--without-nettle --without-gcrypt"
+          else
+            export DISTCHECK_CONFIGURE_FLAGS="--without-gnutls"
+          fi
+          make distcheck

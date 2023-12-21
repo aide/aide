@@ -126,8 +126,7 @@
        o  GNU make.
        o  pkg-config
        o  PCRE2 library (libpcre2-8, library with 8-bit code unit support)
-       o  libnettle or libgcrypt
-
+       o  libnettle, gnutls or libgcrypt
        o  libcheck (optional, needed for 'make check', license: LGPL-2.1)
 
     Note:

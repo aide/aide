@@ -110,17 +110,22 @@ The following log levels are available:
 
 \fBinfo\fP: additionally show informational messages
 
-\fBrule\fP: additionally show messages to help to debug the path rule matching
-
 \fBcompare\fP: additionally show messages to help to debug file comparison and (special) attribute handling
+
+The log levels below are very verbose and can easily generate multiple gigabytes
+of log data (depending on the number of processed files and the size of the
+rule tree). For debugging it is recommended to use these log levels together with the
+\fI--limit\fR parameter (see aide (1) for details).
+
+\fBrule\fP: additionally show messages to help to debug the path rule matching
 
 \fBconfig\fP: additionally show messages to help to debug config and rule parsing
 
-\fBdebug\fP: additionally show messages that are useful to debug the application (very verbose)
+\fBdebug\fP: additionally show messages that are useful to debug the application
 
 \fBthread\fP: additionally show messages about thread processing (e.g. broadcast events)
 
-\fBtrace\fP: detailed information about the flow of the application (e.g. in-loop logging) (even more verbose)
+\fBtrace\fP: additionallyt show messages about the internal data structures and the flow of the application (e.g. in-loop logging) (extremely verbose)
 
 .RE
 

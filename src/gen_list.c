@@ -513,7 +513,9 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
   }
 
     if (conf->action&(DO_COMPARE|DO_DIFF)) {
+      if (!(db_flags&DB_OLD)) {
         log_msg(compare_log_level, "┬ handle '%s' from %s", node->path, db_flags==DB_OLD ? "old database": (db_flags==DB_NEW ? "new database": "disk"));
+      }
         if((node->checked&DB_OLD)&&(node->checked&DB_NEW)){
     log_msg(compare_log_level, "┝ compare attributes of '%s'", node->path);
     get_different_attributes(node->old_data,node->new_data, 0);
@@ -619,7 +621,7 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
   if (node->parent != NULL) { /* root (/) has no parent */
       if (db_flags&DB_OLD) {
           if(file->attr & ATTR(attr_checkinode)) {
-              log_msg(compare_log_level, "│ '%s' (inode: %li) has check inode attribute set, set NODE_CHECK_INODE_CHILD for parent '%s'", file->filename, file->inode, (node->parent)->path);
+              log_msg(compare_log_level, "'%s' (inode: %li) has check inode attribute set, set NODE_CHECK_INODE_CHILD for parent '%s'", file->filename, file->inode, (node->parent)->path);
               (node->parent)->checked |= NODE_CHECK_INODE_CHILDS;
           }
       } else {
@@ -678,9 +680,11 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
       (node->old_data!=NULL) &&
       (file->attr & ATTR(attr_allowrmfile)) ){
 	  node->checked|=NODE_ALLOW_RM;
-     log_msg(compare_log_level,_("│ '%s' has ARF attribute set, ignore removal of entry in the report"), file->filename);
+     log_msg(compare_log_level,_("'%s' has ARF attribute set, ignore removal of entry in the report"), file->filename);
   }
+      if (!(db_flags&DB_OLD)) {
   log_msg(compare_log_level,"┴ finished '%s'", node->path);
+      }
     }
   }
   pthread_mutex_unlock(&node->mutex);
@@ -690,13 +694,13 @@ match_result check_limit(char* filename) {
     if(conf->limit!=NULL) {
         int match=pcre2_match(conf->limit_crx, (PCRE2_SPTR) filename, PCRE2_ZERO_TERMINATED, 0, PCRE2_PARTIAL_SOFT, conf->limit_md, NULL);
         if (match >= 0) {
-            log_msg(LOG_LEVEL_DEBUG, "\u2502 '%s' does match limit '%s'", filename, conf->limit);
+            log_msg(LOG_LEVEL_TRACE, "'%s' does match limit '%s'", filename, conf->limit);
             return 0;
         } else if (match == PCRE2_ERROR_PARTIAL) {
-            log_msg(LOG_LEVEL_RULE, "\u2534 skip '%s' (reason: partial limit match, limit: '%s')", filename, conf->limit);
+            log_msg(LOG_LEVEL_DEBUG, "skip '%s' (reason: partial limit match, limit: '%s')", filename, conf->limit);
             return RESULT_PARTIAL_LIMIT_MATCH;
         } else {
-            log_msg(LOG_LEVEL_RULE, "\u2534 skip '%s' (reason: no limit match, limit '%s')", filename, conf->limit);
+            log_msg(LOG_LEVEL_DEBUG, "skip '%s' (reason: no limit match, limit '%s')", filename, conf->limit);
             return RESULT_NO_LIMIT_MATCH;
         }
     }
@@ -705,8 +709,6 @@ match_result check_limit(char* filename) {
 
 match_result check_rxtree(char* filename,seltree* tree, rx_rule* *rule, RESTRICTION_TYPE file_type, char* source)
 {
-  log_msg(LOG_LEVEL_RULE, "\u252c process '%s' from %s (filetype: %c)", filename, source, get_restriction_char(file_type));
-
   match_result limit_result = check_limit(filename);
   if (limit_result) {
       if (limit_result == RESULT_PARTIAL_LIMIT_MATCH && file_type&FT_DIR) {
@@ -714,6 +716,9 @@ match_result check_rxtree(char* filename,seltree* tree, rx_rule* *rule, RESTRICT
       }
       return limit_result;
   }
+
+
+  log_msg(LOG_LEVEL_RULE, "\u252c process '%s' from %s (filetype: %c)", filename, source, get_restriction_char(file_type));
 
   return check_seltree(tree, filename, file_type, rule);
 }

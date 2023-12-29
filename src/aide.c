@@ -658,8 +658,6 @@ int main(int argc,char**argv)
 #endif
   umask(0177);
 
-  log_init();
-
   init_sighandler();
 
   setdefaults_before_config();
@@ -793,8 +791,8 @@ int main(int argc,char**argv)
       db_lex_buffer(&(conf->database_in));
       db_line* entry=NULL;
       while((entry = db_readline(&(conf->database_in))) != NULL) {
-          log_msg(LOG_LEVEL_RULE, "\u252c process '%s' (filetype: %c)", entry->filename, get_restriction_char(entry->perm));
           if (check_limit(entry->filename) == 0) {
+              log_msg(LOG_LEVEL_RULE, "\u252c process '%s' (filetype: %c)", entry->filename, get_restriction_char(entry->perm));
               fprintf(stdout, "%s\n", entry->filename);
               for (int j=0; j < report_attrs_order_length; ++j) {
                   switch(report_attrs_order[j]) {

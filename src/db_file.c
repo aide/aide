@@ -249,7 +249,7 @@ char** db_readline_file(database* db) {
             if (s) {
                 if (++i<db->num_fields) {
                     if (db->fields[i] != attr_unknown) {
-                        LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, "'%s' set field '%s' (position %d): '%s'", s[0], attributes[db->fields[i]].db_name, i, dbtext);
+                        LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, "'%s' set field '%s' (position %d): '%s'", s[0], attributes[db->fields[i]].db_name, i, dbtext);
                         s[db->fields[i]] = checked_strdup(dbtext);
                     } else {
                         LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, "skip unknown/redefined field at position: %d: '%s'", i, dbtext);
@@ -268,7 +268,7 @@ char** db_readline_file(database* db) {
                         s[j]=NULL;
                     }
                     s[i] = checked_strdup(dbtext);
-                    LOG_DB_FORMAT_LINE(LOG_LEVEL_DEBUG, "'%s' set field '%s' (position %d): '%s'", s[0], attributes[db->fields[i]].db_name, i, dbtext);
+                    LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, "'%s' set field '%s' (position %d): '%s'", s[0], attributes[db->fields[i]].db_name, i, dbtext);
                 }
             }
             } else {

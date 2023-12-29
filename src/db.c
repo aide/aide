@@ -450,7 +450,7 @@ time_t base64totime_t(char* s, database* db, const char* field_name){
       free(b);
       return 0;
     }
-    log_msg(LOG_LEVEL_DEBUG, "base64totime_t: converted '%s': '%s' to %lld (base64 encoded value '%s')", field_name, b, (long long) t, s);
+    log_msg(LOG_LEVEL_TRACE, "base64totime_t: converted '%s': '%s' to %lld (base64 encoded value '%s')", field_name, b, (long long) t, s);
     free(b);
     return t;
   }

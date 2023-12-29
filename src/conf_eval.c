@@ -53,7 +53,7 @@
 #include <errno.h>
 #include <unistd.h>
 
-LOG_LEVEL eval_log_level = LOG_LEVEL_DEBUG;
+LOG_LEVEL eval_log_level = LOG_LEVEL_TRACE;
 
 bool log_level_set_in_config = false;
 

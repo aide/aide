@@ -186,7 +186,7 @@ static seltree* _get_seltree_node(seltree* node, char *path, bool create) {
                 next_dir = strchr(&next_dir[1], '/');
             }
             node = _insert_new_node(path, parent);
-            log_msg(LOG_LEVEL_DEBUG, "created new leaf node '%s' (%p) (parent: %p)", path, (void*) node, (void*) parent);
+            log_msg(LOG_LEVEL_TRACE, "created new leaf node '%s' (%p) (parent: %p)", path, (void*) node, (void*) parent);
         }
     }
     free(tmp);
@@ -319,19 +319,19 @@ static int check_list_for_match(list* rxrlist,char* text, rx_rule* *rule, RESTRI
                   free(rs_str);
                   break;
           } else {
-              LOG_MATCH(LOG_LEVEL_RULE, "\u2502", does not match restriction '%s', rs_str = get_restriction_string(rx->restriction))
+              LOG_MATCH(LOG_LEVEL_DEBUG, "\u2502", does not match restriction '%s', rs_str = get_restriction_string(rx->restriction))
               free(rs_str);
               retval=PARTIAL_RULE_MATCH;
           }
       } else if (pcre_retval == PCRE2_ERROR_PARTIAL) {
-          LOG_MATCH(LOG_LEVEL_RULE, "\u2502", partially matches regex '%s', rx->rx)
+          LOG_MATCH(LOG_LEVEL_DEBUG, "\u2502", partially matches regex '%s', rx->rx)
           retval=PARTIAL_RULE_MATCH;
       } else {
-          LOG_MATCH(LOG_LEVEL_RULE, "\u2502", does not match regex '%s', rx->rx)
+          LOG_MATCH(LOG_LEVEL_DEBUG, "\u2502", does not match regex '%s', rx->rx)
       }
 
       } else {
-          log_msg(LOG_LEVEL_RULE, "\u2502 %*cskip restricted '%s' rule as requested (%s:%d: '%s')", depth+2, ' ', rs_str = get_restriction_string(rx->restriction), rx->config_filename, rx->config_linenumber, rx->config_line);
+          log_msg(LOG_LEVEL_DEBUG, "\u2502 %*cskip restricted '%s' rule as requested (%s:%d: '%s')", depth+2, ' ', rs_str = get_restriction_string(rx->restriction), rx->config_filename, rx->config_linenumber, rx->config_line);
           free(rs_str);
       }
   }
@@ -385,10 +385,10 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
                        }
           }
       } else {
-          log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': skip equal list (reason: list is empty)", depth, ' ', node->path);
+          log_msg(LOG_LEVEL_DEBUG, "\u2502 %*cnode: '%s': skip equal list (reason: list is empty)", depth, ' ', node->path);
       }
   } else {
-      log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s' skip equal list (reason: not on top level)", depth, ' ', node->path);
+      log_msg(LOG_LEVEL_DEBUG, "\u2502 %*cnode: '%s' skip equal list (reason: not on top level)", depth, ' ', node->path);
   }
   /* We'll use retval to pass information on whether to recurse
    * the dir or not */
@@ -410,10 +410,10 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
                        }
           }
       } else {
-          log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': skip selective list (reason: list is empty)", depth, ' ', node->path);
+          log_msg(LOG_LEVEL_DEBUG, "\u2502 %*cnode: '%s': skip selective list (reason: list is empty)", depth, ' ', node->path);
       }
   } else {
-      log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': skip selective list (reason: previous positive match)", depth, ' ', node->path);
+      log_msg(LOG_LEVEL_DEBUG, "\u2502 %*cnode: '%s': skip selective list (reason: previous positive match)", depth, ' ', node->path);
   }
 
   /* Now let's check the ancestors */
@@ -434,9 +434,9 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
                   parentname[1]='\0';
               }
               if (strcmp(parentname,node->path) > 0) {
-                  log_msg(LOG_LEVEL_RULE, "\u2502 %*ccheck parent directory '%s' (unrestricted rules only)", depth+2, ' ', parentname);
+                  log_msg(LOG_LEVEL_DEBUG, "\u2502 %*ccheck files' parent directory '%s' (unrestricted rules only)", depth+2, ' ', parentname);
                   if (check_list_for_match(node->neg_rx_lst, parentname, rule, FT_DIR, AIDE_NEGATIVE_RULE, depth+4, true) == RULE_MATCH) {
-                      log_msg(LOG_LEVEL_RULE, "\u2502 %*cnegative match for parent directory '%s'", depth, ' ', parentname);
+                      log_msg(LOG_LEVEL_RULE, "\u2502 %*cnegative match for files' parent directory '%s'", depth, ' ', parentname);
                       retval=NEGATIVE_RULE_MATCH;
                       break;
                   }
@@ -445,9 +445,10 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
           free(parentname);
 
           if (retval != NEGATIVE_RULE_MATCH) {
-          log_msg(LOG_LEVEL_RULE, "\u2502 %*ccheck file '%s'", depth+2, ' ', text);
+          log_msg(LOG_LEVEL_DEBUG, "\u2502 %*ccheck file '%s'", depth+2, ' ', text);
           switch (check_list_for_match(node->neg_rx_lst, text, rule, file_type, AIDE_NEGATIVE_RULE, depth+2, false)) {
               case RESTRICTED_RULE_MATCH: {
+                  log_msg(LOG_LEVEL_RULE, "\u2502 %*cnegative match for '%s' (node: '%s')", depth, ' ', text, node->path);
                   retval=PARTIAL_RULE_MATCH;
                   break;
               }
@@ -458,13 +459,13 @@ static int check_node_for_match(seltree *node, char *text, RESTRICTION_TYPE file
               }
           }
           } else {
-            log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': skip checking file '%s' (reason: negative match for a parent directory)", depth, ' ', node->path, text);
+            log_msg(LOG_LEVEL_DEBUG, "\u2502 %*cnode: '%s': skip checking file '%s' (reason: negative match for a parent directory)", depth, ' ', node->path, text);
           }
       } else {
-          log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': skip negative list (reason: list is empty)", depth, ' ', node->path);
+          log_msg(LOG_LEVEL_DEBUG, "\u2502 %*cnode: '%s': skip negative list (reason: list is empty)", depth, ' ', node->path);
       }
   } else {
-      log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': skip negative list (reason: no previous positive match)", depth, ' ', node->path);
+      log_msg(LOG_LEVEL_DEBUG, "\u2502 %*cnode: '%s': skip negative list (reason: no previous positive match)", depth, ' ', node->path);
   }
 
   } else {
@@ -512,7 +513,7 @@ int check_seltree(seltree *tree, char *filename, RESTRICTION_TYPE file_type, rx_
 
   } while (pnode == NULL);
 
-  log_msg(LOG_LEVEL_DEBUG, "\u2502 got parent node '%s' (%p) for parentname '%s'", pnode->path, (void*) pnode, parentname);
+  log_msg(LOG_LEVEL_TRACE, "\u2502 got parent node '%s' (%p) for parentname '%s'", pnode->path, (void*) pnode, parentname);
 
   free(parentname);
 

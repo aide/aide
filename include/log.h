@@ -30,15 +30,13 @@ typedef enum { /* preserve order */
     LOG_LEVEL_WARNING = 2,
     LOG_LEVEL_NOTICE = 3,
     LOG_LEVEL_INFO = 4,
-    LOG_LEVEL_RULE = 5,
-    LOG_LEVEL_COMPARE = 6,
+    LOG_LEVEL_COMPARE = 5,
+    LOG_LEVEL_RULE = 6,
     LOG_LEVEL_CONFIG = 7,
     LOG_LEVEL_DEBUG = 8,
     LOG_LEVEL_THREAD = 9,
     LOG_LEVEL_TRACE = 10,
 } LOG_LEVEL;
-
-void log_init(void);
 
 bool is_log_level_unset(void);
 

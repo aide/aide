@@ -1,3 +1,10 @@
+2023-12-29 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Improve logging
+	  - move COMPARE log level before RULE log level
+	  - remove redundant log messages
+	  - move some log messages from lower to upper log levels
+	  - improve locking
+
 2023-12-19 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Refactor signal handling (closes: #147)
 	  - do not ignore SIGHUP and SIGTERM signals

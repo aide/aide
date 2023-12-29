@@ -57,7 +57,7 @@ int conf_linenumber = 0;
 char *conf_filename;
 char *conf_linebuf;
 
-LOG_LEVEL lex_log_level = LOG_LEVEL_CONFIG;
+LOG_LEVEL lex_log_level = LOG_LEVEL_DEBUG;
 
 #define YY_INPUT(buf,result,max_size) \
         if( ((result=conf_input_wrapper(buf,max_size,confin)) == 0) \

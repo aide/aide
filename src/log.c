@@ -45,13 +45,6 @@ int colored_log = -1;
 
 pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-void log_init(void) {
-    pthread_mutexattr_t mutex_attrs;
-    pthread_mutexattr_init(&mutex_attrs);
-    pthread_mutexattr_settype(&mutex_attrs, PTHREAD_MUTEX_RECURSIVE);
-    pthread_mutex_init(&log_mutex, &mutex_attrs);
-}
-
 struct log_level {
     LOG_LEVEL log_level;
     const char *name;
@@ -64,8 +57,8 @@ static struct log_level log_level_array[] = {
     { LOG_LEVEL_WARNING,       "warning",       "WARNING", COLOR_B_YELLOW "WARNING" COLOR_RESET },
     { LOG_LEVEL_NOTICE,        "notice",        " NOTICE", COLOR_L_ORANGE " NOTICE" COLOR_RESET },
     { LOG_LEVEL_INFO,          "info",          "   INFO", COLOR_L_GREEN  "   INFO" COLOR_RESET },
-    { LOG_LEVEL_RULE,          "rule",          "   RULE", COLOR_L_BLUE   "   RULE" COLOR_RESET },
     { LOG_LEVEL_COMPARE,       "compare",       "COMPARE", COLOR_B_BLUE   "COMPARE" COLOR_RESET },
+    { LOG_LEVEL_RULE,          "rule",          "   RULE", COLOR_L_BLUE   "   RULE" COLOR_RESET },
     { LOG_LEVEL_CONFIG,        "config",        " CONFIG", COLOR_L_CYAN   " CONFIG" COLOR_RESET },
     { LOG_LEVEL_DEBUG,         "debug",         "  DEBUG", COLOR_B_PURPLE "  DEBUG" COLOR_RESET },
     { LOG_LEVEL_THREAD,        "thread",        " THREAD", COLOR_B_CYAN   " THREAD" COLOR_RESET },
@@ -119,6 +112,7 @@ const char * get_log_level_name(LOG_LEVEL level) {
 }
 
 static void log_cached_lines(void) {
+    pthread_mutex_lock(&log_mutex);
     for(int i = 0; i < ncachedlines; ++i) {
         LOG_LEVEL level = cached_lines[i].level;
         if (level == LOG_LEVEL_ERROR || level <= log_level) {
@@ -128,6 +122,7 @@ static void log_cached_lines(void) {
     }
     ncachedlines = 0;
     free(cached_lines);
+    pthread_mutex_unlock(&log_mutex);
 }
 
 static void vlog_msg(LOG_LEVEL, const char*, va_list)
@@ -137,7 +132,9 @@ static void vlog_msg(LOG_LEVEL, const char*, va_list)
 ;
 static void vlog_msg(LOG_LEVEL level,const char* format, va_list ap) {
     if (level != LOG_LEVEL_ERROR && (log_level == LOG_LEVEL_UNSET || colored_log < 0)) {
+    pthread_mutex_lock(&log_mutex);
         cache_line(level, format, ap);
+    pthread_mutex_unlock(&log_mutex);
     } else if (level == LOG_LEVEL_ERROR || level <= log_level) {
         vstderr_prefix_line(get_log_string(level), format, ap);
     }
@@ -188,10 +185,8 @@ LOG_LEVEL toogle_log_level(LOG_LEVEL level) {
 }
 
 void log_msg(LOG_LEVEL level, const char* format, ...) {
-    pthread_mutex_lock(&log_mutex);
     va_list argp;
     va_start(argp, format);
     vlog_msg(level, format, argp);
     va_end(argp);
-    pthread_mutex_unlock(&log_mutex);
 }

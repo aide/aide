@@ -27,7 +27,7 @@
 #include "rx_rule.h"
 #include "util.h"
 
-LOG_LEVEL ast_log_level = LOG_LEVEL_DEBUG;
+LOG_LEVEL ast_log_level = LOG_LEVEL_TRACE;
 
 config_option_t config_options[] = {
     { ACL_NO_SYMLINK_FOLLOW_OPTION,             "acl_no_symlink_follow",        NULL },

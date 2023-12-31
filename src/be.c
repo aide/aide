@@ -46,7 +46,7 @@
 /*for locale support*/
 
 
-void* be_init(bool readonly, url_t* u, bool iszipped, bool append, int linenumber, char* filename, char* linebuf) {
+void* be_init(url_t* u, bool readonly, bool iszipped, bool append, int linenumber, char* filename, char* linebuf, bool *created) {
   FILE* fh=NULL;
   long a=0;
   char* err=NULL;
@@ -59,16 +59,28 @@ void* be_init(bool readonly, url_t* u, bool iszipped, bool append, int linenumbe
   case url_file : {
     u->value = expand_tilde(u->value);
     log_msg(LOG_LEVEL_DEBUG, "open (%s, gzip: %s, append: %s) file '%s'", readonly?"read-only":"read/write", btoa(iszipped), btoa(append), u->value);
+    bool new_file = false;
+    if (readonly) {
+        fd = open(u->value, O_RDONLY, 0);
+    } else {
+        int flag_truncate;
 #if HAVE_FCNTL && HAVE_FTRUNCATE
-    fd=open(u->value,readonly?O_RDONLY:O_CREAT|O_RDWR|(append?O_APPEND:0),0666);
+        flag_truncate = 0;
 #else
-    fd=open(u->value,readonly?O_RDONLY:O_CREAT|O_RDWR|(append?O_APPEND:O_TRUNC),0666);
+        flag_truncate = O_TRUNC;
 #endif
+        fd = open(u->value, O_CREAT|O_EXCL|O_RDWR, 0666);
+        new_file = fd >= 0;
+        if (fd == -1 && errno == EEXIST) {
+            fd = open(u->value, O_RDWR|(append?O_APPEND:flag_truncate), 0666);
+        }
+    }
     if(fd==-1) {
         LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, "open (%s) failed for file '%s': %s", readonly?"read-only":"read/write", u->value, strerror(errno));
       return NULL;
     } else {
-        log_msg(LOG_LEVEL_DEBUG, "opened file '%s' with fd=%i",u->value,fd);
+        if (created) { *created = new_file; }
+        log_msg(LOG_LEVEL_DEBUG, "%s file '%s' with fd=%i",new_file?"created":"opened existing", u->value,fd);
     }
 #if HAVE_FCNTL && HAVE_FTRUNCATE
     if(!readonly) {

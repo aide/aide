@@ -127,7 +127,7 @@ int db_init(database* db, bool readonly, bool gzip) {
   log_msg(LOG_LEVEL_TRACE,"db_init(): arguments: db=%p, gzip=%s", (void*) db, btoa(gzip));
   
     db->mdc = init_db_attrs(db->url);
-    fp=be_init(readonly, db->url, gzip, false, db->linenumber, db->filename, db->linebuf);
+    fp=be_init(db->url, readonly, gzip, false, db->linenumber, db->filename, db->linebuf, &db->created);
     if(fp==NULL) {
       return RETFAIL;
     } else {

@@ -1,3 +1,6 @@
+2023-12-31 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Only remove incompletely written db file if it was created by aide
+
 2023-12-29 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Improve logging
 	  - move COMPARE log level before RULE log level

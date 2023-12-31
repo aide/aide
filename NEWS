@@ -9,7 +9,7 @@ Version 0.19 (UNRELEASED)
         - an incomplete written input database is now handled as an error
         - SIGHUP and SIGTERM are no longer ignored
         - SIGINT, SIGTERM or SIGHUP are now handled by removing an incompletly
-          written database and exiting aide (code 25)
+          written database (if file was created by aide) and exiting aide (code 25)
         - move COMPARE log level before RULE log level
     * Add progress bar (add '--no-progress' parameter)
     * Add colors to log output (add '--no-color' parameter)

@@ -98,6 +98,8 @@ typedef struct database {
     struct md_container *mdc;
     struct db_line *db_line;
 
+    bool created;
+
 } database;
 
 typedef struct db_config {

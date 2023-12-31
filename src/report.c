@@ -496,7 +496,7 @@ bool init_report_urls(void) {
         }
 #endif
         default : {
-            r->fd=be_init(0,r->url,0, r->append, r->linenumber, r->filename, r->linebuf);
+            r->fd=be_init(r->url, false, false, r->append, r->linenumber, r->filename, r->linebuf, NULL);
             if(r->fd==NULL) {
                 return false;
             }

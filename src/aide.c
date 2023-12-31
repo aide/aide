@@ -143,7 +143,7 @@ static void sig_handler(int signum)
                   || conf->database_out.gzp != NULL
 #endif
           )) {
-              if (conf->database_out.url->type == url_file ) {
+              if (conf->database_out.url->type == url_file && conf->database_out.created) {
                   str = "remove database_out: file:";
                   (void) !write(STDERR_FILENO, str, strlen(str));
                   (void) !write(STDERR_FILENO, conf->database_out.url->value, strlen(conf->database_out.url->value));
@@ -473,6 +473,7 @@ static void setdefaults_before_config(void)
   conf->database_in.buffer_state = NULL;
   conf->database_in.mdc = NULL;
   conf->database_in.db_line = NULL;
+  conf->database_in.created = false;
 
   conf->database_out.url = NULL;
   conf->database_out.filename=NULL;
@@ -488,6 +489,7 @@ static void setdefaults_before_config(void)
   conf->database_out.buffer_state = NULL;
   conf->database_out.mdc = NULL;
   conf->database_out.db_line = NULL;
+  conf->database_out.created = false;
 
   conf->database_new.url = NULL;
   conf->database_new.filename=NULL;
@@ -503,6 +505,7 @@ static void setdefaults_before_config(void)
   conf->database_new.buffer_state = NULL;
   conf->database_new.mdc = NULL;
   conf->database_new.db_line = NULL;
+  conf->database_new.created = false;
 
   conf->db_attrs = get_hashes(false);
   

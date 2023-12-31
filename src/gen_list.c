@@ -498,6 +498,7 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
   }
   case DB_OLD|DB_NEW: {
     node->new_data=file;
+    progress_status(PROGRESS_SKIPPED, NULL);
     if(conf->action&DO_INIT) {
         node->checked|=NODE_FREE;
         log_msg(add_entry_log_level, "add old database entry '%s' (%c) to node (%p) as new data (entry does not match limit but keep it for database_out)", file->filename, get_file_type_char_from_perm(file->perm), (void*) node);
@@ -891,6 +892,7 @@ void populate_tree(seltree* tree)
             db_lex_delete_buffer(&(conf->database_in));
     }
     if(conf->action&DO_DIFF){
+        progress_status(PROGRESS_NEWDB, NULL);
         log_msg(LOG_LEVEL_INFO, "read new entries from database: %s:%s", get_url_type_string((conf->database_new.url)->type), (conf->database_new.url)->value);
       db_lex_buffer(&(conf->database_new));
       while((new=db_readline(&(conf->database_new))) != NULL){

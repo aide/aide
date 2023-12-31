@@ -31,6 +31,7 @@ typedef enum progress_state {
     PROGRESS_NEWDB,
     PROGRESS_WRITEDB,
     PROGRESS_CLEAR,
+    PROGRESS_SKIPPED,
 } progress_state;
 
 bool progress_start(void);

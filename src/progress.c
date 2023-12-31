@@ -42,6 +42,7 @@ pthread_mutex_t progress_update_mutex = PTHREAD_MUTEX_INITIALIZER;
 static progress_state  state = PROGRESS_NONE;
 static struct timespec time_start;
 static long unsigned num_entries = 0;
+static long unsigned num_skipped = 0LU;
 static char* path = NULL;
 
 static char *get_state_string(progress_state s) {
@@ -56,14 +57,13 @@ static char *get_state_string(progress_state s) {
             return "write db";
         case PROGRESS_CONFIG:
             return "parse config";
+        case PROGRESS_SKIPPED:
         case PROGRESS_CLEAR:
         case PROGRESS_NONE:
             return NULL;
     }
     return NULL;
 }
-
-#define PROGRESS_FORMAT "[%02d:%02d] %s> %lu files, last: "
 
 static void * progress_updater( __attribute__((unused)) void *arg) {
     const char *whoami = "(progress)";
@@ -79,33 +79,40 @@ static void * progress_updater( __attribute__((unused)) void *arg) {
         switch (state) {
             case PROGRESS_CONFIG:
             case PROGRESS_NEWDB:
+            case PROGRESS_SKIPPED:
             case PROGRESS_DISK:
             case PROGRESS_WRITEDB:
             case PROGRESS_OLDDB:
                 if (conf->progress < 42) {
                     stderr_msg("terminal too small\r");
                 } else {
+                    int n = 0;
+                    int left = conf->progress;
+                    char *progress_bar = checked_malloc(left+1);
+                    n += snprintf(&progress_bar[n], left -= n, "[%02d:%02d] %s> ", elapsed/60, elapsed%60, get_state_string(state));
+                    n += snprintf(&progress_bar[n], left -= n, "%lu files", num_entries);
+                    if (num_skipped) {
+                        n += snprintf(&progress_bar[n], left -= n, " (%lu skipped)", num_skipped);
+                    }
                     if (path) {
-                        size_t base_len = snprintf(NULL, 0, PROGRESS_FORMAT, elapsed/60, elapsed%60, get_state_string(state), num_entries);
-                        long left = conf->progress-base_len;
-
-                        char *ellipsis = "/...";
+                        const char *ellipsis = "/...";
                         int ellipsis_len = 0;
+                        int path_left = left;
 
-                        char *suffix_path = path;
+                        const char *suffix_path = path;
                         int prefix_len = 0;
-                        if ((long) strlen(path) > left) {
+                        if ((long) strlen(path) > path_left) {
                             char *first_slash = strchr(path+1, '/');
                             if (first_slash == NULL) {
                                 first_slash = path;
                             }
                             ellipsis_len = strlen(ellipsis);
                             prefix_len = first_slash-path;
-                            left -= prefix_len+ellipsis_len;
+                            path_left -= prefix_len+ellipsis_len;
 
                             suffix_path = first_slash+1;
 
-                            while ((long) strlen(suffix_path) > left) {
+                            while ((long) strlen(suffix_path) > path_left) {
                                 char *slash = strchr(suffix_path+1, '/');
                                 if (slash) {
                                     suffix_path = slash;
@@ -114,16 +121,15 @@ static void * progress_updater( __attribute__((unused)) void *arg) {
                                 }
                             }
                         }
-                        if (left > 8) {
+                        if (path_left > 8) {
                             long suffix_len = strlen(suffix_path);
-                            long suffix_start = left<suffix_len ? suffix_len-left : 0;
-                            stderr_msg(PROGRESS_FORMAT "%.*s%.*s%s\r", elapsed/60, elapsed%60, get_state_string(state), num_entries, prefix_len, path, ellipsis_len, ellipsis, &suffix_path[suffix_start]);
-                        } else {
-                            stderr_msg("[%02d:%02d] %s> %lu files\r", elapsed/60, elapsed%60, get_state_string(state), num_entries);
+                            long suffix_start = path_left<suffix_len ? suffix_len-path_left : 0;
+                            snprintf(&progress_bar[n], left -= n, ", last %.*s%.*s%s", prefix_len, path, ellipsis_len, ellipsis, &suffix_path[suffix_start]);
                         }
-                    } else {
-                        stderr_msg("[%02d:%02d] %s> preparing\r", elapsed/60, elapsed%60, get_state_string(state));
                     }
+                    stderr_msg("%s\r", progress_bar);
+                    free(progress_bar);
+                    progress_bar = NULL;
                 }
                 break;
             case PROGRESS_CLEAR:
@@ -150,26 +156,41 @@ static void update_state(progress_state new_state) {
         long elapsed_minutes = elapsed/60;
         double elapsed_seconds = elapsed%60 + (double)( time_now.tv_nsec - time_start.tv_nsec ) / (double)BILLION;
 
+        unsigned long performance = elapsed?num_entries/elapsed:num_entries;
+        char * entries_string = num_entries == 1 ? "entry" : "entries";
+
+        char *skipped_str = NULL;
+        if (num_skipped) {
+            const char *skipped_format = " (%lu skipped)";
+            int n = snprintf(NULL, 0, skipped_format, num_skipped);
+            skipped_str = checked_malloc(n+1);
+            snprintf(skipped_str, n+1, skipped_format, num_skipped);
+        }
         switch (state) {
             case PROGRESS_OLDDB:
-                log_msg(log_level, "read %lu entries [%lu entries/s] from %s:%s in %ldm %.4lfs", num_entries, elapsed?num_entries/elapsed:num_entries, get_url_type_string((conf->database_in.url)->type), (conf->database_in.url)->value, elapsed_minutes, elapsed_seconds);
+                log_msg(log_level, "read %lu %s%s [%lu entries/s] from %s:%s in %ldm %.4lfs", num_entries, entries_string, skipped_str?skipped_str:"", performance, get_url_type_string((conf->database_in.url)->type), (conf->database_in.url)->value, elapsed_minutes, elapsed_seconds);
                 break;
             case PROGRESS_NEWDB:
-                log_msg(log_level, "read %lu entries [%lu entries/s] from %s:%s in %ldm %.4lfs", num_entries, elapsed?num_entries/elapsed:num_entries, get_url_type_string((conf->database_new.url)->type), (conf->database_new.url)->value, elapsed_minutes, elapsed_seconds);
+                log_msg(log_level, "read %lu %s%s [%lu entries/s] from %s:%s in %ldm %.4lfs", num_entries, entries_string, skipped_str?skipped_str:"", performance, get_url_type_string((conf->database_new.url)->type), (conf->database_new.url)->value, elapsed_minutes, elapsed_seconds);
                 break;
             case PROGRESS_DISK:
-                log_msg(log_level, "read %lu entries [%lu entries/s] from file system in %ldm %.4lfs", num_entries, elapsed?num_entries/elapsed:num_entries, elapsed_minutes, elapsed_seconds);
+                log_msg(log_level, "read %lu %s [%lu entries/s] from file system in %ldm %.4lfs", num_entries, entries_string, performance, elapsed_minutes, elapsed_seconds);
                 break;
             case PROGRESS_CONFIG:
-                log_msg(log_level, "parsed %lu config files [%lu files/s] in %ldm %.4lfs", num_entries, elapsed?num_entries/elapsed:num_entries, elapsed_minutes, elapsed_seconds);
+                log_msg(log_level, "parsed %lu config %s [%lu files/s] in %ldm %.4lfs", num_entries, num_entries == 1 ? "file" : "files", performance, elapsed_minutes, elapsed_seconds);
                 break;
             case PROGRESS_WRITEDB:
-                log_msg(log_level, "wrote %lu entries [%lu entries/s] to %s:%s in %ldm %.4lfs", num_entries, elapsed?num_entries/elapsed:num_entries, get_url_type_string((conf->database_out.url)->type), (conf->database_out.url)->value, elapsed_minutes, elapsed_seconds);
+                log_msg(log_level, "wrote %lu %s [%lu entries/s] to %s:%s in %ldm %.4lfs", num_entries, entries_string, performance, get_url_type_string((conf->database_out.url)->type), (conf->database_out.url)->value, elapsed_minutes, elapsed_seconds);
                 break;
+            case PROGRESS_SKIPPED:
             case PROGRESS_CLEAR:
             case PROGRESS_NONE:
                 /* no logging */
                 break;
+        }
+        if (skipped_str) {
+            free(skipped_str);
+            skipped_str = NULL;
         }
         time_start = time_now;
         state = new_state;
@@ -218,12 +239,16 @@ void progress_status(progress_state new_state, const char* data) {
             } else {
                 update_state(new_state);
                 num_entries = 0LU;
+                num_skipped = 0LU;
             }
             free(path);
             path = NULL;
             if (data) {
                 path = checked_strdup(data);
             }
+            break;
+        case PROGRESS_SKIPPED:
+            num_skipped++;
             break;
         case PROGRESS_CLEAR:
         case PROGRESS_NONE:

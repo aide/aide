@@ -1,3 +1,6 @@
+2024-01-02 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Add missing command and option to --help output
+
 2023-12-31 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Only remove incompletely written db file if it was created by aide
 	* Show number of skipped files on progress bar

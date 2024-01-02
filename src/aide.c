@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006, 2010-2013, 2015-2017, 2019-2023 Rami Lehti,
+ * Copyright (C) 1999-2006, 2010-2013, 2015-2017, 2019-2024 Rami Lehti,
  *               Pablo Virolainen, Mike Markley, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -80,8 +80,9 @@ static void usage(int exitvalue)
 	    "  -n, --dry-init\tTraverse the file system and match each file against rule tree\n"
 	    "  -C, --check\t\tCheck the database\n"
 	    "  -u, --update\t\tCheck and update the database non-interactively\n"
-	    "  -E, --compare\t\tCompare two databases\n\n"
-	    "Miscellaneous:\n"
+	    "  -E, --compare\t\tCompare two databases\n"
+	    "      --list\t\tList the entries of the database in human readable format\n"
+	    "\nMiscellaneous:\n"
 	    "  -D,\t\t\t--config-check\t\t\tTest the configuration file\n"
 	    "  -p FILE_TYPE:PATH\t--path-check=FILE_TYPE:PATH\tMatch file type and path against rule tree\n"
 	    "  -v,\t\t\t--version\t\t\tShow version of AIDE and compilation options\n"
@@ -94,6 +95,7 @@ static void usage(int exitvalue)
 	    "  -L LEVEL\t--log-level=LEVEL\tSet log message level to LEVEL\n"
 	    "  -W WORKERS\t--workers=WORKERS\tNumber of simultaneous workers (threads) for file attribute processing (i.a. hashsum calculation)\n"
 	    "  \t\t--no-progress\t\tTurn progress off explicitly\n"
+	    "  \t\t--no-color\t\tTUrn color off explicitly\n"
 	    ), conf->aide_version
 	  );
   

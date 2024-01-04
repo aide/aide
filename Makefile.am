@@ -98,8 +98,8 @@ aide_LDADD = -lm \
 			${ZLIB_LIBS}
 
 if HAVE_CHECK
-TESTS				= check_aide
-check_PROGRAMS		= check_aide
+TESTS				= check_aide check_md
+check_PROGRAMS		= check_aide check_md
 check_aide_SOURCES	= tests/check_aide.c tests/check_aide.h \
 					  tests/check_attributes.c src/attributes.c \
 					  tests/check_base64.c src/base64.c \
@@ -113,6 +113,21 @@ check_aide_CFLAGS	= -I$(top_srcdir)/include \
 				${MHASH_CFLAGS} \
 				${PCRE2_CFLAGS}
 check_aide_LDADD	= -lm \
+				$(CHECK_LIBS) \
+				${GCRYPT_LIBS} \
+				${GNUTLS_LIBS} \
+				${MHASH_LIBS} \
+				${PCRE2_LIBS}
+check_md_SOURCES	= tests/check_md.c tests/check_md.h \
+					  tests/check_hashes.c \
+					  src/log.c src/util.c src/md.c src/base64.c src/hashsum.c src/attributes.c
+check_md_CFLAGS	= -I$(top_srcdir)/include \
+				$(CHECK_CFLAGS) \
+				$(GCRYPT_CFLAGS) \
+				$(GNUTLS_CFLAGS) \
+				$(MHASH_CFLAGS) \
+				$(PCRE2_CFLAGS)
+check_md_LDADD	= -lm \
 				$(CHECK_LIBS) \
 				${GCRYPT_LIBS} \
 				${GNUTLS_LIBS} \

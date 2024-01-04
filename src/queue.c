@@ -217,5 +217,5 @@ void queue_ts_release(queue_ts_t * const queue, const char *whoami) {
     queue->release = true;
     pthread_mutex_unlock(&queue->mutex);
     pthread_cond_broadcast(&queue->cond);
-    log_msg(LOG_LEVEL_THREAD, "%10s: queue(%p): release queue and broadcast waiting threads", whoami, queue);
+    log_msg(LOG_LEVEL_THREAD, "%10s: queue(%p): release queue and broadcast waiting threads", whoami, (void *)queue);
 }

@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006, 2009-2012, 2015-2016, 2019-2023 Rami Lehti,
+ * Copyright (C) 1999-2006, 2009-2012, 2015-2016, 2019-2024 Rami Lehti,
  *               Pablo Virolainen, Mike Markley, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -371,88 +371,6 @@ void print_match(char* filename, rx_rule *rule, match_result match, RESTRICTION_
 }
 
 /*
- * strip_dbline()
- * strips given dbline
- */
-void strip_dbline(db_line* line)
-{
-#define checked_free(x) do { free(x); x=NULL; } while (0)
-
-    DB_ATTR_TYPE attr = line->attr;
-
-  /* filename is always needed, hence it is never stripped */
-  if(!(attr&ATTR(attr_linkname))){
-    checked_free(line->linkname);
-  }
-  /* permissions are always needed for file type detection, hence they are
-   * never stripped */
-  if(!(attr&ATTR(attr_uid))){
-    line->uid=0;
-  }
-  if(!(attr&ATTR(attr_gid))){
-    line->gid=0;
-  }
-  if(!(attr&ATTR(attr_atime))){
-    line->atime=0;
-  }
-  if(!(attr&ATTR(attr_ctime))){
-    line->ctime=0;
-  }
-  if(!(attr&ATTR(attr_mtime))){
-    line->mtime=0;
-  }
-  /* inode is always needed for ignoring changed filename, hence it is
-   * never stripped */
-  if(!(attr&ATTR(attr_linkcount))){
-    line->nlink=0;
-  }
-  if(!(attr&ATTR(attr_size))
-    && !(attr&ATTR(attr_sizeg))
-    && !(attr&ATTR(attr_growing) && attr&get_hashes(true))
-    ){
-    line->size=0;
-  }
-  if(!(attr&ATTR(attr_bcount))){
-    line->bcount=0;
-  }
-
-  for (int i = 0 ; i < num_hashes ; ++i) {
-      if(!(attr&ATTR(hashsums[i].attribute))){
-          checked_free(line->hashsums[i]);
-      }
-  }
-
-#ifdef WITH_ACL
-  if(!(attr&ATTR(attr_acl))){
-    if (line->acl)
-    {
-      free(line->acl->acl_a);
-      free(line->acl->acl_d);
-    }
-    checked_free(line->acl);
-  }
-#endif
-#ifdef WITH_XATTR
-  if(!(attr&ATTR(attr_xattrs))){
-    if (line->xattrs)
-      free(line->xattrs->ents);
-    checked_free(line->xattrs);
-  }
-#endif
-#ifdef WITH_SELINUX
-  if(!(attr&ATTR(attr_selinux))){
-    checked_free(line->cntx);
-  }
-#endif
-#ifdef WITH_CAPABILITIES
-  if(!(attr&ATTR(attr_capabilities))){
-    checked_free(line->capabilities);
-  }
-#endif
-  /* e2fsattrs is stripped within e2fsattrs2line in do_md */
-}
-
-/*
  * add_file_to_tree
  */
 void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *db, struct stat* fs)
@@ -472,8 +390,6 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
 
   /* add note to this node which db has modified it */
   node->checked|=db_flags;
-
-  strip_dbline(file);
 
   LOG_LEVEL add_entry_log_level = LOG_LEVEL_DEBUG;
 
@@ -920,6 +836,8 @@ void populate_tree(seltree* tree)
 
 void hsymlnk(db_line* line) {
   
+  line->linkname = NULL;
+  if (line->attr&ATTR(attr_linkname)) {
   if((S_ISLNK(line->perm_o))){
     int len=0;
 #ifdef WITH_ACL   
@@ -968,6 +886,7 @@ void hsymlnk(db_line* line) {
     }
   } else {
       line->attr&=(~ATTR(attr_linkname));
+  }
   }
   
 }

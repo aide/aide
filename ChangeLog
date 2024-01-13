@@ -1,3 +1,6 @@
+2024-01-13 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Code cleanup (remove strip_dbline function)
+
 2024-01-02 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Add missing command and option to --help output
 

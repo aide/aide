@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2004-2006, 2009-2011, 2013, 2018-2023 Rami Lehti,
+ * Copyright (C) 1999-2002, 2004-2006, 2009-2011, 2013, 2018-2024 Rami Lehti,
  *               Pablo Virolainen, Mike Markley, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -325,6 +325,7 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
 
 void fs2db_line(struct stat* fs,db_line* line) {
   
+  /* inode is always needed for ignoring changed filename */
   line->inode=fs->st_ino;
 
   if(ATTR(attr_uid)&line->attr) {
@@ -339,9 +340,13 @@ void fs2db_line(struct stat* fs,db_line* line) {
     line->gid=0;
   }
 
+  /* permissions are always needed for file type detection */
   line->perm=fs->st_mode;
 
-  if(ATTR(attr_size)&line->attr||ATTR(attr_sizeg)&line->attr||ATTR(attr_growing)&line->attr){
+  if(ATTR(attr_size)&line->attr
+    || ATTR(attr_sizeg)&line->attr
+    || (ATTR(attr_growing)&line->attr && line->attr&get_hashes(true))
+  ){
     line->size=fs->st_size;
   }else{
     line->size=0;
@@ -483,8 +488,7 @@ void xattrs2line(db_line *line) {
     static char *xatrs = NULL;
     ssize_t xret = -1;
 
-    if (!(ATTR(attr_xattrs)&line->attr))
-        return;
+    if ((ATTR(attr_xattrs)&line->attr)) {
 
     if (!xatrs) xatrs = checked_malloc(xsz);
 
@@ -531,6 +535,7 @@ next_attr:
             xret -= len + 1;
         }
     }
+    }
 
     line->xattrs = xattrs;
 }
@@ -540,8 +545,7 @@ next_attr:
 void selinux2line(db_line *line) {
     char *cntx = NULL;
 
-    if (!(ATTR(attr_selinux)&line->attr))
-        return;
+    if ((ATTR(attr_selinux)&line->attr)) {
 
     if (lgetfilecon_raw(line->fullpath, &cntx) == -1) {
         line->attr&=(~ATTR(attr_selinux));
@@ -553,6 +557,10 @@ void selinux2line(db_line *line) {
     line->cntx = checked_strdup(cntx);
 
     freecon(cntx);
+
+    } else {
+        line->cntx = NULL;
+    }
 }
 #endif
 
@@ -577,8 +585,7 @@ void capabilities2line(db_line* line) {
     cap_t caps;
     char *txt_caps;
 
-    if (!(ATTR(attr_capabilities)&line->attr))
-        return;
+    if ((ATTR(attr_capabilities)&line->attr)) {
 
     caps = cap_get_file(line->fullpath);
 
@@ -589,6 +596,9 @@ void capabilities2line(db_line* line) {
 	cap_free(caps);
     } else {
         line->attr&=(~ATTR(attr_capabilities));
+        line->capabilities=NULL;
+    }
+    } else {
         line->capabilities=NULL;
     }
 }

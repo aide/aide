@@ -29,6 +29,9 @@
 #ifdef WITH_GCRYPT
 #include <gcrypt.h>
 #endif
+#ifdef WITH_GNUTLS
+#include <gnutls/gnutls.h>
+#endif
 
 hashsum_t hashsums[] = {
     { attr_md5,             16 },
@@ -83,6 +86,24 @@ int algorithms[] = { /* order must match hashsums array */
   GCRY_MD_GOSTR3411_94,
   GCRY_MD_STRIBOG256,
   GCRY_MD_STRIBOG512,
+};
+#endif
+
+#ifdef WITH_GNUTLS
+int algorithms[] = { /* order must match hashsums array */
+  GNUTLS_DIG_MD5,
+  GNUTLS_DIG_SHA1,
+  GNUTLS_DIG_SHA256,
+  GNUTLS_DIG_SHA512,
+  GNUTLS_DIG_RMD160,
+  -1, /* TIGER is not available */
+  -1, /* CRC32 is not available */
+  -1, /* CRC32B is not available */
+  -1, /* GCRY_MD_HAVAL is not available */
+  -1, /* WHIRLPOOL is not available */
+  -1, /* GNUTLS_DIG_GOSTR_94 gives different results than Gcrypt */
+  GNUTLS_DIG_STREEBOG_256,
+  GNUTLS_DIG_STREEBOG_512,
 };
 #endif
 

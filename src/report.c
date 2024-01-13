@@ -606,6 +606,8 @@ snprintf(*values[0], l, "%s",s);
 #ifdef WITH_E2FSATTRS
         } else if (ATTR(attr_e2fsattrs)&attr) {
             *values[0]=get_e2fsattrs_string(line->e2fsattrs, false, ignore_e2fsattrs);
+#else
+            (void)ignore_e2fsattrs;
 #endif
 #ifdef WITH_CAPABILITIES
         } else if (ATTR(attr_capabilities)&attr) {

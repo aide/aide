@@ -73,7 +73,7 @@ static int has_str_changed(char* old,char* new) {
 }
 
 static int has_md_changed(byte* old,byte* new,int len) {
-    log_msg(LOG_LEVEL_TRACE," has_md_changed %p %p",old,new);
+    log_msg(LOG_LEVEL_TRACE," has_md_changed %p %p",(void *)old,(void *)new);
     return (((old!=NULL && new!=NULL) &&
                 (bytecmp(old,new,len)!=0)) ||
             ((old!=NULL && new==NULL) ||

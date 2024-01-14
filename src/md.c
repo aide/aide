@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2005-2006, 2010, 2019-2023 Rami Lehti,
+ * Copyright (C) 1999-2002, 2005-2006, 2010, 2019-2024 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@
 #include "attributes.h"
 #include "db_line.h"
 #include "db_config.h"
+#include "base64.h"
 #include "hashsum.h"
 #include "log.h"
 #include "md.h"
@@ -187,6 +188,9 @@ void hashsums2line(md_hashsums *hs, struct db_line* line) {
            if (hs->attrs&attr) {
                line->hashsums[i] = checked_malloc(hashsums[i].length);
                memcpy(line->hashsums[i],hs->hashsums[i],hashsums[i].length);
+               char* hashsum_str = encode_base64(hs->hashsums[i], hashsums[i].length);
+               log_msg(LOG_LEVEL_TRACE, "%s: copy %s hashsum (%s) to %p", line->filename, attributes[hashsums[i].attribute].db_name, hashsum_str, (void*) line->hashsums[i]);
+               free (hashsum_str);
            } else {
                line->attr&=~attr;
                line->hashsums[i] = NULL;

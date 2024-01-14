@@ -1,8 +1,8 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2000-2002, 2005-2006, 2020, 2022 Rami Lehti, Pablo Virolainen,
- *               Richard van den Berg, Hannes von Haugwitz
+ * Copyright (C) 2000-2002, 2005-2006, 2020, 2022, 2024 Rami Lehti,
+ *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -64,7 +64,7 @@ typedef struct md_container {
 } md_container;
 
 typedef struct md_hashsums {
-  char hashsums[num_hashes][HASHSUM_MAX_LENGTH];
+  unsigned char hashsums[num_hashes][HASHSUM_MAX_LENGTH];
   DB_ATTR_TYPE attrs;
 } md_hashsums;
 

@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006, 2010-2011, 2013, 2019-2023 Rami Lehti,
+ * Copyright (C) 1999-2006, 2010-2011, 2013, 2019-2024 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -207,6 +207,7 @@ static char *db_readchar(char *s)
 case attr_ ##hash : { \
     line->hashsums[hash_ ##hash]=base64tobyte(ss[db->fields[i]], \
         strlen(ss[db->fields[i]]), NULL); \
+    log_msg(LOG_LEVEL_TRACE, "%s: copy " #hash " hashsum (%s) to %p", line->filename, ss[db->fields[i]], (void*) line->hashsums[hash_ ##hash]); \
   break; \
 }
 

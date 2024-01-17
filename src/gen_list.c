@@ -764,13 +764,14 @@ db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct stat *fs)
     */
     no_hash(line);
   }
-
-  log_msg(LOG_LEVEL_DEBUG, "%s> returned attributes: %llu (%s)", filename, line->attr, str = diff_attributes(0, line->attr));
+  /* attr_filename is always needed/returned but never requested */
+  DB_ATTR_TYPE returned_attr = (~ATTR(attr_filename)&line->attr);
+  log_msg(LOG_LEVEL_DEBUG, "%s> returned attributes: %llu (%s)", filename, returned_attr, str = diff_attributes(0, returned_attr));
   free(str);
-      if (~attr|line->attr) {
-          log_msg(LOG_LEVEL_DEBUG, "%s> requested and returned attributes are not equal: %s", filename, str = diff_attributes(attr, line->attr));
-          free(str);
-      }
+  if (returned_attr^attr) {
+      log_msg(LOG_LEVEL_DEBUG, "%s> requested (%llu) and returned (%llu) attributes are not equal: %s", filename, attr, returned_attr,  str = diff_attributes(attr, returned_attr));
+      free(str);
+  }
   return line;
 }
 

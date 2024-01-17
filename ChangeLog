@@ -1,3 +1,6 @@
+2024-01-17 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Fix debug logging for returned attributes
+
 2024-01-14 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Code cleanup and log improvements
 

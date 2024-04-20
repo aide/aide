@@ -444,7 +444,7 @@ int db_write_time_base64(time_t i,FILE* file,int a)
 
   memset((void*)ptr,0,len);
 
-  snprintf(ptr, len, "%li",i);
+  snprintf(ptr, len, "%llu", (unsigned long long) i);
 
 
   tmpstr=encode_base64((byte *)ptr,strlen(ptr));

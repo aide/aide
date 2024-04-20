@@ -1,6 +1,7 @@
 2024-04-20 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix compiler warnings
 	* Fix 64-bit time_t on 32-bit architectures
+	* Fix typo in aide.conf manual page (closes: #165)
 
 2024-01-17 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix debug logging for returned attributes

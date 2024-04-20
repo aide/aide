@@ -37,7 +37,7 @@
 	* Add colors to log output (add '--no-color' parameter)
 
 2023-12-04 Hannes von Haugwitz <hannes@vonhaugwitz.com>
-	* Handle an incomplete written input database as an error
+	* Handle an incompletely written input database as an error
 
 2023-12-03 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Add '--list' command to list the entries of the database in

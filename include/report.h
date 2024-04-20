@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2006, 2010, 2019-2023 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002, 2006, 2010, 2019-2024 Rami Lehti, Pablo Virolainen,
  *               Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -140,7 +140,7 @@ char* get_file_type_string(mode_t);
 char* get_summarize_changes_string(report_t*, seltree*);
 char* get_summary_string(report_t*);
 const char* get_report_level_string(REPORT_LEVEL);
-int get_attribute_values(DB_ATTR_TYPE, db_line*,char* **, int, long);
+int get_attribute_values(DB_ATTR_TYPE, db_line*,char* **, report_t*);
 void print_databases_attrs(report_t *, void (*)(report_t *, db_line*));
 void print_dbline_attrs(report_t *, db_line*, db_line*, DB_ATTR_TYPE, void (*)(report_t *, db_line*, db_line*, ATTRIBUTE));
 void print_report_config_options(report_t *, void (*)(report_t *, config_option, const char*));

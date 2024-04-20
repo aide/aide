@@ -110,11 +110,11 @@ static db_line *close_db_attrs (database *db) {
     db_line *line = NULL;
     if (db->mdc != NULL) {
         md_hashsums hs;
-        close_md(db->mdc, &hs, (db->url)->value);
         line = checked_malloc(sizeof(struct db_line));
         line->filename = (db->url)->value;
         line->perm = 0;
         line->attr = conf->db_attrs;
+        close_md(db->mdc, &hs, line->filename);
         hashsums2line(&hs, line);
         free(db->mdc);
     }

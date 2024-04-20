@@ -154,7 +154,7 @@ static void sig_handler(int signum)
                   unlink(conf->database_out.url->value);
               }
           }
-          exit(SIGNAL_INTERRUPT_ERROR);
+          _exit(SIGNAL_INTERRUPT_ERROR);
           break;
         case SIGUSR1 :
            str = "\naide: received SIGUSR1, toggle debug level\n";
@@ -636,7 +636,7 @@ static void list_attribute(db_line* entry, ATTRIBUTE attribute) {
     DB_ATTR_TYPE attr = ATTR(attribute);
     const char* name = attributes[attribute].details_string;
 
-    num=get_attribute_values(attr, entry, &value, 1, 0L);
+    num=get_attribute_values(attr, entry, &value, NULL);
 
     i = 0;
     while (i<num) {

@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006, 2010-2011, 2016-2017, 2019-2023 Rami Lehti,
+ * Copyright (C) 1999-2006, 2010-2011, 2016-2017, 2019-2024 Rami Lehti,
  *               Pablo Virolainen, Mike Markley, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -60,9 +60,9 @@ static int get_file_status(char *filename, struct stat *fs) {
 queue_ts_t *queue_worker_files = NULL;
 queue_ts_t *queue_database_entries = NULL;
 
-pthread_t wait_for_workers_thread;
+pthread_t wait_for_workers_thread = 0;
 
-pthread_t *file_attributes_threads;
+pthread_t *file_attributes_threads = 0;
 
 const char *whoami_main = "(main)";
 
@@ -222,7 +222,7 @@ void db_scan_disk(bool dry_run) {
     strncpy(full_path, conf->root_prefix, conf->root_prefix_length+1);
     strcat (full_path, "/");
 
-    pthread_t add2tree_thread;
+    pthread_t add2tree_thread = 0;
 
     if (!dry_run && conf->num_workers) {
         if (pthread_create(&add2tree_thread, NULL, &add2tree, NULL) != 0) {

@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006, 2010, 2011, 2013, 2015-2016, 2018-2023 Rami Lehti,
+ * Copyright (C) 1999-2006, 2010, 2011, 2013, 2015-2016, 2018-2024 Rami Lehti,
  *               Pablo Virolainen, Mike Markley, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -69,13 +69,8 @@ static void _print_attribute(report_t *report, db_line* oline, db_line* nline, A
     DB_ATTR_TYPE attr = ATTR(attribute);
     const char* name = attributes[attribute].details_string;
 
-    long ignore_e2fsattrs = 0
-#ifdef WITH_E2FSATTRS
-        + report->ignore_e2fsattrs
-#endif
-    ;
-    onumber=get_attribute_values(attr, oline, &ovalue, report->base16, ignore_e2fsattrs);
-    nnumber=get_attribute_values(attr, nline, &nvalue, report->base16, ignore_e2fsattrs);
+    onumber=get_attribute_values(attr, oline, &ovalue, report);
+    nnumber=get_attribute_values(attr, nline, &nvalue, report);
 
     i = 0;
     while (i<onumber || i<nnumber) {

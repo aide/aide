@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2019-2023 Hannes von Haugwitz
+ * Copyright (C) 2019-2024 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -225,7 +225,7 @@ string_expression* new_string(char *str) {
     e->str = str;
     e->left = NULL;
     e->right = NULL;
-    log_msg(ast_log_level, "ast: new string (%p): str: '%s'", e, str);
+    log_msg(ast_log_level, "ast: new string (%p): str: '%s'", (void*) e, str);
     return e;
 }
 string_expression* new_variable(char *name) {

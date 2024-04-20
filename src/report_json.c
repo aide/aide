@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2022,2023 Hannes von Haugwitz
+ * Copyright (C) 2022-2024 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -156,13 +156,8 @@ static void _print_attribute(report_t *report, db_line* oline, db_line* nline, A
     const char* json_name = attributes[attribute].field_name;
     report_printf(report, JSON_FMT_OBJECT_BEGIN, 6, ' ', json_name);
 
-    long ignore_e2fsattrs = 0
-#ifdef WITH_E2FSATTRS
-        + report->ignore_e2fsattrs
-#endif
-    ;
-    onumber=get_attribute_values(attr, oline, &ovalue, report->base16, ignore_e2fsattrs);
-    nnumber=get_attribute_values(attr, nline, &nvalue, report->base16, ignore_e2fsattrs);
+    onumber=get_attribute_values(attr, oline, &ovalue, report);
+    nnumber=get_attribute_values(attr, nline, &nvalue, report);
 
     _print_attribute_value(report, "old", attribute, ovalue, onumber, 8);
     for(i=0; i < onumber; ++i) { free(ovalue[i]); ovalue[i]=NULL; } free(ovalue); ovalue=NULL;
@@ -187,7 +182,7 @@ static void _print_database_attribute(report_t *report, db_line* oline, __attrib
 
     const char* json_name = attributes[attribute].field_name;
 
-    num=get_attribute_values(attr, oline, &value, report->base16, 0L);
+    num=get_attribute_values(attr, oline, &value, report);
 
     _print_attribute_value(report, json_name, attribute, value, num, 6);
     for(i=0; i < num; ++i) { free(value[i]); value[i]=NULL; } free(value); value=NULL;

@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2007, 2010-2013, 2015-2016, 2018-2023 Rami Lehti,
+ * Copyright (C) 1999-2007, 2010-2013, 2015-2016, 2018-2024 Rami Lehti,
  *               Pablo Virolainen, Mike Markley, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -550,7 +550,7 @@ static int attributes2array(ATTRIBUTE attrs, char* **values) {
 }
 
 int get_attribute_values(DB_ATTR_TYPE attr, db_line* line,
-        char* **values, int base16, long ignore_e2fsattrs) {
+        char* **values, report_t *r) {
 
 #define easy_string(s) \
 l = strlen(s)+1; \
@@ -605,7 +605,7 @@ snprintf(*values[0], l, "%s",s);
 #endif
 #ifdef WITH_E2FSATTRS
         } else if (ATTR(attr_e2fsattrs)&attr) {
-            *values[0]=get_e2fsattrs_string(line->e2fsattrs, false, ignore_e2fsattrs);
+            *values[0]=get_e2fsattrs_string(line->e2fsattrs, false, r?r->ignore_e2fsattrs:0L);
 #endif
 #ifdef WITH_CAPABILITIES
         } else if (ATTR(attr_capabilities)&attr) {
@@ -615,7 +615,7 @@ snprintf(*values[0], l, "%s",s);
 
   for (int i = 0 ; i < num_hashes ; ++i) {
     if (ATTR(hashsums[i].attribute)&attr) {
-        if (base16) {
+        if (r==NULL || r->base16) {
             *values[0] = byte_to_base16(line->hashsums[i], hashsums[i].length);
         } else {
             *values[0] = encode_base64(line->hashsums[i], hashsums[i].length);

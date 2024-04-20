@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2023 Hannes von Haugwitz
+ * Copyright (C) 2023,2024 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -124,7 +124,7 @@ static void * progress_updater( __attribute__((unused)) void *arg) {
                         if (path_left > 8) {
                             long suffix_len = strlen(suffix_path);
                             long suffix_start = path_left<suffix_len ? suffix_len-path_left : 0;
-                            snprintf(&progress_bar[n], left -= n, ", last %.*s%.*s%s", prefix_len, path, ellipsis_len, ellipsis, &suffix_path[suffix_start]);
+                            snprintf(&progress_bar[n], left - n, ", last %.*s%.*s%s", prefix_len, path, ellipsis_len, ellipsis, &suffix_path[suffix_start]);
                         }
                     }
                     stderr_msg("%s\r", progress_bar);

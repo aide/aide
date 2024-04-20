@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2022-2023 Hannes von Haugwitz
+ * Copyright (C) 2022-2024 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -217,5 +217,5 @@ void queue_ts_release(queue_ts_t * const queue, const char *whoami) {
     queue->release = true;
     pthread_mutex_unlock(&queue->mutex);
     pthread_cond_broadcast(&queue->cond);
-    log_msg(LOG_LEVEL_THREAD, "%10s: queue(%p): release queue and broadcast waiting threads", whoami, queue);
+    log_msg(LOG_LEVEL_THREAD, "%10s: queue(%p): release queue and broadcast waiting threads", whoami, (void*) queue);
 }

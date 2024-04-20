@@ -3,7 +3,7 @@
 ** Copyright (C) 1994 Swedish University Network (SUNET)
 ** Modified by Rami Lehti (C) 1999
 ** Modified by Richard van den Berg (C) 2005,2006
-** Modified by Hannes von Haugwitz (C) 2018,2020-2022
+** Modified by Hannes von Haugwitz (C) 2018,2020-2022,2024
 **
 **
 ** This program is free software; you can redistribute it and/or modify
@@ -257,7 +257,6 @@ size_t length_base64(char* src,size_t ssize)
   int l;
   int left;
   size_t pos;
-  unsigned long triple;
 
   /* Exit on empty input */
   if (!ssize||src==NULL) {
@@ -271,7 +270,6 @@ size_t length_base64(char* src,size_t ssize)
   inb = src;
 
   l = 0;
-  triple = 0;
   pos=0;
   left = ssize;
   /*
@@ -290,28 +288,15 @@ size_t length_base64(char* src,size_t ssize)
 	case SKIP:
 	  break;
 	default:
-	  triple = triple<<6 | (0x3f & i);
 	  l++;
 	  break;
 	}
       if (l == 4 || left == 0)
 	{
-	  switch(l)
-	    {
-	    case 2:
-	      triple = triple>>4;
-	      break;
-	    case 3:
-	      triple = triple>>2;
-	      break;
-	    default:
-	      break;
-	    }
 	  for (l  -= 2; l >= 0; l--)
 	    {
 	      pos++;
 	    }
-	  triple = 0;
 	  l = 0;
 	}
       inb++;

@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2019 Hannes von Haugwitz
+ * Copyright (C) 2019,2024 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -27,6 +27,7 @@ int main (void) {
     SRunner *sr;
 
     sr = srunner_create (make_attributes_suite());
+    srunner_add_suite(sr, make_seltree_suite());
 
     srunner_run_all (sr, CK_NORMAL);
     number_failed = srunner_ntests_failed (sr);

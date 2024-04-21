@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006, 2009-2011, 2015-2016, 2019-2023 Rami Lehti,
+ * Copyright (C) 1999-2006, 2009-2011, 2015-2016, 2019-2024 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -236,6 +236,7 @@ rx_rule * add_rx_to_tree(char * rx, RESTRICTION_TYPE restriction, int rule_type,
     r->config_filename = NULL;
     r->config_line = NULL;
     r->config_linenumber = -1;
+    r->prefix = NULL;
     r->attr = 0;
 
     int pcre2_errorcode;

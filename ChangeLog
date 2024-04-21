@@ -1,3 +1,6 @@
+2024-04-21 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Add check_seltree unit test
+
 2024-04-20 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix compiler warnings
 	* Fix 64-bit time_t on 32-bit architectures

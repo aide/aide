@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2019 Hannes von Haugwitz
+ * Copyright (C) 2019,2024 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -21,3 +21,4 @@
 #include <check.h>
 
 Suite *make_attributes_suite(void);
+Suite *make_seltree_suite(void);

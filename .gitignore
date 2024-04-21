@@ -30,3 +30,5 @@
 /src/db_lex.c
 
 /tests/.deps/
+/tests/.dirstamp
+/tests/check_aide*.o

@@ -66,8 +66,34 @@ if HAVE_CURL
 aide_SOURCES += include/fopen.h src/fopen.c
 endif
 
-aide_CFLAGS = @AIDE_DEFS@ -W -Wall -g ${PTHREAD_CFLAGS}
-aide_LDADD = -lm ${PCRE2_LIBS} ${ZLIB_LIBS} ${MHASH_LIBS} ${GCRYPT_LIBS} ${POSIX_ACL_LIBS} ${SELINUX_LIBS} ${AUDIT_LIBS} ${XATTR_LIBS} ${ELF_LIBS} ${E2FSATTRS_LIBS} ${CAPABILITIES_LIBS} ${CURL_LIBS} ${PTHREAD_LIBS}
+aide_CFLAGS = @AIDE_DEFS@ -W -Wall -g \
+			${AUDIT_CFLAGS} \
+			${CAPABILITIES_CFLAGS} \
+			${CURL_CFLAGS} \
+			${E2FSATTRS_CFLAGS} \
+			${ELF_CFLAGS} \
+			${GCRYPT_CFLAGS} \
+			${MHASH_CFLAGS} \
+			${PCRE2_CFLAGS} \
+			${POSIX_ACL_CFLAGS} \
+			${PTHREAD_CFLAGS} \
+			${SELINUX_CFLAGS} \
+			${XATTR_CFLAGS} \
+			${ZLIB_CFLAGS}
+aide_LDADD = -lm \
+			${AUDIT_LIBS} \
+			${CAPABILITIES_LIBS} \
+			${CURL_LIBS} \
+			${E2FSATTRS_LIBS} \
+			${ELF_LIBS} \
+			${GCRYPT_LIBS} \
+			${MHASH_LIBS} \
+			${PCRE2_LIBS} \
+			${POSIX_ACL_LIBS} \
+			${PTHREAD_LIBS} \
+			${SELINUX_LIBS} \
+			${XATTR_LIBS} \
+			${ZLIB_LIBS}
 
 if HAVE_CHECK
 TESTS				= check_aide
@@ -77,8 +103,16 @@ check_aide_SOURCES	= tests/check_aide.c tests/check_aide.h \
 					  tests/check_seltree.c src/seltree.c \
 					  tests/check_progress.c \
 					  src/log.c src/util.c src/list.c src/tree.c src/rx_rule.c
-check_aide_CFLAGS	= -I$(top_srcdir)/include $(CHECK_CFLAGS)
-check_aide_LDADD	= -lm ${PCRE2_LIBS} ${MHASH_LIBS} ${GCRYPT_LIBS} $(CHECK_LIBS)
+check_aide_CFLAGS	= -I$(top_srcdir)/include \
+				$(CHECK_CFLAGS) \
+				${GCRYPT_CFLAGS} \
+				${MHASH_CFLAGS} \
+				${PCRE2_CFLAGS}
+check_aide_LDADD	= -lm \
+				$(CHECK_LIBS) \
+				${GCRYPT_LIBS} \
+				${MHASH_LIBS} \
+				${PCRE2_LIBS}
 endif # HAVE_CHECK
 
 AM_CFLAGS = @AIDE_DEFS@ -W -Wall -g

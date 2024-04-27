@@ -1,3 +1,6 @@
+2024-04-27 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Add missing library CFLAGS
+
 2024-04-20 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix 64-bit time_t on 32-bit architectures
 	* Fix typo in aide.conf manual page (closes: #165)

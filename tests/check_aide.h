@@ -22,3 +22,4 @@
 
 Suite *make_attributes_suite(void);
 Suite *make_seltree_suite(void);
+Suite *make_progress_suite(void);

@@ -1,5 +1,6 @@
 2024-04-27 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Refactor progress bar code
+	* Add check_progress unit test
 
 2024-04-21 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Add check_seltree unit test

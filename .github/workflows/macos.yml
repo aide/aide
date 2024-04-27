@@ -18,7 +18,7 @@ jobs:
       - name: Install dependencies
         run: brew install autoconf autoconf-archive automake bison pkg-config libgcrypt libgpg-error pcre check
       - name: update path
-        run: echo /usr/local/opt/bison/bin >> ${GITHUB_PATH}
+        run: echo /opt/homebrew/opt/bison/bin >> ${GITHUB_PATH}
       - name: autoconf
         run: sh autogen.sh
       - name: configure

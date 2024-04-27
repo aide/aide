@@ -100,6 +100,7 @@ TESTS				= check_aide
 check_PROGRAMS		= check_aide
 check_aide_SOURCES	= tests/check_aide.c tests/check_aide.h \
 					  tests/check_attributes.c src/attributes.c \
+					  tests/check_base64.c src/base64.c \
 					  tests/check_seltree.c src/seltree.c \
 					  tests/check_progress.c \
 					  src/log.c src/util.c src/list.c src/tree.c src/rx_rule.c

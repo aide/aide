@@ -27,8 +27,9 @@ int main (void) {
     SRunner *sr;
 
     sr = srunner_create (make_attributes_suite());
-    srunner_add_suite(sr, make_seltree_suite());
+    srunner_add_suite(sr, make_base64_suite());
     srunner_add_suite(sr, make_progress_suite());
+    srunner_add_suite(sr, make_seltree_suite());
 
     srunner_run_all (sr, CK_NORMAL);
     number_failed = srunner_ntests_failed (sr);

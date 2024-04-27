@@ -2,7 +2,7 @@
 **
 ** Copyright (C) 1994 Swedish University Network (SUNET)
 ** Modified by Rami Lehti (C) 1999
-** Modified by Hannes von Haugwitz (C) 2022
+** Modified by Hannes von Haugwitz (C) 2022, 2024
 **
 **
 ** This program is free software; you can redistribute it and/or modify
@@ -44,8 +44,5 @@
 char* encode_base64(byte* src,size_t ssize);
 
 byte* decode_base64(char* src,size_t ssize,size_t *);
-
-/* Returns decoded length */
-size_t length_base64(char* src,size_t ssize);
 
 #endif /* _BASE64_H_INCLUDED */

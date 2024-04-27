@@ -76,6 +76,7 @@ static void * progress_updater( __attribute__((unused)) void *arg) {
         pthread_mutex_lock(&progress_update_mutex);
         time_t now = time(NULL);
         int elapsed = (unsigned long) now - (unsigned long) conf->start_time;
+        char *progress_bar = NULL;
         switch (state) {
             case PROGRESS_CONFIG:
             case PROGRESS_NEWDB:
@@ -83,54 +84,10 @@ static void * progress_updater( __attribute__((unused)) void *arg) {
             case PROGRESS_DISK:
             case PROGRESS_WRITEDB:
             case PROGRESS_OLDDB:
-                if (conf->progress < 42) {
-                    stderr_msg("terminal too small\r");
-                } else {
-                    int n = 0;
-                    int left = conf->progress;
-                    char *progress_bar = checked_malloc(left+1);
-                    n += snprintf(&progress_bar[n], left -= n, "[%02d:%02d] %s> ", elapsed/60, elapsed%60, get_state_string(state));
-                    n += snprintf(&progress_bar[n], left -= n, "%lu files", num_entries);
-                    if (num_skipped) {
-                        n += snprintf(&progress_bar[n], left -= n, " (%lu skipped)", num_skipped);
-                    }
-                    if (path) {
-                        const char *ellipsis = "/...";
-                        int ellipsis_len = 0;
-                        int path_left = left;
-
-                        const char *suffix_path = path;
-                        int prefix_len = 0;
-                        if ((long) strlen(path) > path_left) {
-                            char *first_slash = strchr(path+1, '/');
-                            if (first_slash == NULL) {
-                                first_slash = path;
-                            }
-                            ellipsis_len = strlen(ellipsis);
-                            prefix_len = first_slash-path;
-                            path_left -= prefix_len+ellipsis_len;
-
-                            suffix_path = first_slash+1;
-
-                            while ((long) strlen(suffix_path) > path_left) {
-                                char *slash = strchr(suffix_path+1, '/');
-                                if (slash) {
-                                    suffix_path = slash;
-                                } else {
-                                    break;
-                                }
-                            }
-                        }
-                        if (path_left > 8) {
-                            long suffix_len = strlen(suffix_path);
-                            long suffix_start = path_left<suffix_len ? suffix_len-path_left : 0;
-                            snprintf(&progress_bar[n], left - n, ", last %.*s%.*s%s", prefix_len, path, ellipsis_len, ellipsis, &suffix_path[suffix_start]);
-                        }
-                    }
-                    stderr_msg("%s\r", progress_bar);
-                    free(progress_bar);
-                    progress_bar = NULL;
-                }
+                progress_bar = get_progress_bar_string(get_state_string(state), path, num_entries, num_skipped, elapsed, conf->progress);
+                stderr_msg("%s\r", progress_bar);
+                free(progress_bar);
+                progress_bar = NULL;
                 break;
             case PROGRESS_CLEAR:
                 _continue = false;

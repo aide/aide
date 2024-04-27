@@ -215,6 +215,48 @@ char* encode_string (const char* s)
   return res;
 }
 
+char *get_progress_bar_string(const char* state_str, const char* path, long unsigned num_entries, long unsigned num_skipped, int elapsed, int length) {
+    char *progress_bar = checked_malloc(length+1);
+    int n = 0;
+    int left = length;
+    n += snprintf(&progress_bar[n], left+1, "[%02d:%02d] %s> %lu %s", elapsed/60, elapsed%60, state_str, num_entries, num_entries == 1?"file":"files");
+    left = length-n;
+    if (num_skipped && left > 0) {
+        n += snprintf(&progress_bar[n], left+1, " (%lu skipped)", num_skipped);
+        left = length-n;
+    }
+    if (path && left > 0) {
+        const char *ellipsis = "/...";
+        const char *last_str = ", last ";
+        int last_str_len = strlen(last_str);
+        int ellipsis_len = 0;
+        int prefix_len = 0;
+
+        const char *suffix_path = path;
+        if ((long) strlen(path) > (left-last_str_len) ) {
+            const char *first_slash = strchr(path+1, '/');
+            if (first_slash) {
+                ellipsis_len = strlen(ellipsis);
+                prefix_len = first_slash - path;
+
+                suffix_path = first_slash+1;
+
+                int path_left = left - last_str_len - prefix_len - ellipsis_len;
+                while ((long) strlen(suffix_path) > path_left) {
+                    char *slash = strchr(suffix_path+1, '/');
+                    if (slash) {
+                        suffix_path = slash;
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+        snprintf(&progress_bar[n], left+1, "%s%.*s%.*s%s", last_str, prefix_len, path, ellipsis_len, ellipsis, suffix_path);
+    }
+    return progress_bar;
+}
+
 char* perm_to_char(mode_t perm)
 {
   char*pc=NULL;

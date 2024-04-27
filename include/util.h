@@ -94,6 +94,8 @@ void decode_string(char*);
 
 char* encode_string(const char*);
 
+char *get_progress_bar_string(const char *, const char *, long unsigned, long unsigned, int, int);
+
 char* perm_to_char(mode_t perm);
 
 char *expand_tilde(char * path);

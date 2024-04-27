@@ -66,7 +66,7 @@ if HAVE_CURL
 aide_SOURCES += include/fopen.h src/fopen.c
 endif
 
-aide_CFLAGS = @AIDE_DEFS@ -W -Wall -g \
+aide_CFLAGS = @AIDE_DEFS@ -I$(top_srcdir)/include -W -Wall -g \
 			${AUDIT_CFLAGS} \
 			${CAPABILITIES_CFLAGS} \
 			${CURL_CFLAGS} \
@@ -115,12 +115,6 @@ check_aide_LDADD	= -lm \
 				${MHASH_LIBS} \
 				${PCRE2_LIBS}
 endif # HAVE_CHECK
-
-AM_CFLAGS = @AIDE_DEFS@ -W -Wall -g
-AM_CPPFLAGS = -I$(top_srcdir) \
-			  -I$(top_srcdir)/include \
-			  -I$(top_srcdir)/src \
-			  -I$(top_builddir)/src
 
 CLEANFILES = src/conf_yacc.h src/conf_yacc.c src/conf_lex.c src/db_lex.c
 

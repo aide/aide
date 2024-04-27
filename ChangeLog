@@ -4,6 +4,7 @@
 	* Add missing library CFLAGS
 	* Add basic check_base64 unit test
 	* Remove unused length_base64 function
+	* Remove AM_CFLAGS/AM_CPPFLAGS variables
 
 2024-04-21 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Add check_seltree unit test

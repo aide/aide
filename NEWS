@@ -1,4 +1,4 @@
-Version 0.18.7 (UNRELEASED)
+Version 0.18.7 (2024-05-04)
     * Add missing library CFLAGS
     * Fix typo in aide.conf manual page
     * Fix 64-bit time_t on 32-bit architectures

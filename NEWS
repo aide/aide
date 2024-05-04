@@ -1,3 +1,10 @@
+Version 0.18.7 (UNRELEASED)
+    * Add missing library CFLAGS
+    * Fix typo in aide.conf manual page
+    * Fix 64-bit time_t on 32-bit architectures
+    * Fix debug logging for returned attributes
+    * Fix condition for error message of failing to open gzipped files
+
 Version 0.18.6 (2023-08-01)
     * Update GPG key in SECURITY.md
     * Fix double free() during report generation

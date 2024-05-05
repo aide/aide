@@ -765,16 +765,15 @@ int main(int argc,char**argv)
 	    "when doing database update"));
       exit(INVALID_ARGUMENT_ERROR);
     }
-    if(conf->action&DO_DIFF){
-      log_msg(LOG_LEVEL_ERROR,_("both input databases cannot be the same "
-		"when doing database compare"));
-      exit(INVALID_ARGUMENT_ERROR);
-    }
   };
-  if((conf->action&DO_DIFF)&&(!(conf->database_new.url)||!(conf->database_in.url))){
-    log_msg(LOG_LEVEL_ERROR,_("must have both input databases defined for "
-	      "database compare"));
-    exit(INVALID_ARGUMENT_ERROR);
+  if(conf->action&DO_DIFF) {
+      if(!(conf->database_new.url)||!(conf->database_in.url)) {
+          log_msg(LOG_LEVEL_ERROR,_("must have both input databases defined for database compare"));
+          exit(INVALID_ARGUMENT_ERROR);
+      }
+      if(conf->database_in.url && conf->database_new.url && cmpurl(conf->database_in.url,conf->database_new.url)==RETOK){
+          log_msg(LOG_LEVEL_WARNING,_("both input databases for database compare are the same"));
+      }
   }
 
   /* ensure size attribute is added to db_out_attrs if sizeg or growing attribute is set */

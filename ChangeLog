@@ -1,3 +1,6 @@
+2024-05-05 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Raise warning if both input databases are the same
+
 2024-05-04 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Release aide 0.18.7
 

@@ -835,6 +835,9 @@ void populate_tree(seltree* tree)
     if (add == RESULT_SELECTIVE_MATCH || add == RESULT_EQUAL_MATCH) {
 	  add_file_to_tree(tree,new,DB_NEW, &(conf->database_new), NULL);
 	} else {
+          if (add == RESULT_NO_LIMIT_MATCH || add == RESULT_PARTIAL_LIMIT_MATCH) {
+              progress_status(PROGRESS_SKIPPED, NULL);
+          }
           free_db_line(new);
           free(new);
           new=NULL;

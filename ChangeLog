@@ -1,5 +1,6 @@
 2024-05-05 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Raise warning if both input databases are the same
+	* Fix progress bar to show skipped entries for database_new
 
 2024-04-27 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Refactor progress bar code

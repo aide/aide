@@ -1,3 +1,6 @@
+2024-05-08 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Fix concurrent reading of extended attributes (xattrs)
+
 2024-05-05 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Raise warning if both input databases are the same
 	* Fix progress bar to show skipped entries for database_new

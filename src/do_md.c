@@ -482,14 +482,13 @@ static void xattr_add(xattrs_type *xattrs, const char *key, const char
 void xattrs2line(db_line *line) {
     /* get all generic user xattrs. */
     xattrs_type *xattrs = NULL;
-    static ssize_t xsz = 1024;
-    static char *xatrs = NULL;
     ssize_t xret = -1;
 
     if (!(ATTR(attr_xattrs)&line->attr))
         return;
 
-    if (!xatrs) xatrs = checked_malloc(xsz);
+    ssize_t xsz = 1024;
+    char *xatrs = xatrs = checked_malloc(xsz);
 
     while (((xret = llistxattr(line->fullpath, xatrs, xsz)) == -1) && (errno == ERANGE)) {
         xsz <<= 1;
@@ -502,10 +501,8 @@ void xattrs2line(db_line *line) {
         log_msg(LOG_LEVEL_WARNING, "listxattrs failed for %s:%s", line->fullpath, strerror(errno));
     } else if (xret) {
         const char *attr = xatrs;
-        static ssize_t asz = 1024;
-        static char *val = NULL;
-
-        if (!val) val = checked_malloc(asz);
+        ssize_t asz = 1024;
+        char *val = checked_malloc(asz);
 
         xattrs = xattr_new();
 
@@ -533,7 +530,9 @@ next_attr:
             attr += len + 1;
             xret -= len + 1;
         }
+        free(val);
     }
+    free(xatrs);
 
     line->xattrs = xattrs;
 }

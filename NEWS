@@ -1,4 +1,4 @@
-Version 0.18.8 (UNRELEASED)
+Version 0.18.8 (2024-05-09)
     * Fix concurrent reading of extended attributes (xattrs)
     * Raise warning if both input databases are the same
 

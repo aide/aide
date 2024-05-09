@@ -1,3 +1,7 @@
+Version 0.18.8 (UNRELEASED)
+    * Fix concurrent reading of extended attributes (xattrs)
+    * Raise warning if both input databases are the same
+
 Version 0.18.7 (2024-05-04)
     * Add missing library CFLAGS
     * Fix typo in aide.conf manual page

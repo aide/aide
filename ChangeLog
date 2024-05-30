@@ -1,3 +1,6 @@
+2024-05-30 Michael Ruigrok <ruigrok.michael@gmail.com>
+	* Fix grammar of a/an in aide.conf.5
+
 2024-05-08 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix concurrent reading of extended attributes (xattrs)
 

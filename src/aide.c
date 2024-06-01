@@ -69,6 +69,9 @@ char* after = NULL;
 #include <gcrypt.h>
 #define NEED_LIBGCRYPT_VERSION "1.8.0"
 #endif
+#ifdef WITH_GNUTLS
+#include <gnutls/gnutls.h>
+#endif
 
 static void usage(int exitvalue)
 {
@@ -568,9 +571,6 @@ static void setdefaults_before_config(void)
   DB_ATTR_TYPE common_attrs = ATTR(attr_perm)|ATTR(attr_ftype)|ATTR(attr_inode)|ATTR(attr_linkcount)|ATTR(attr_uid)|ATTR(attr_gid);
 
   DB_ATTR_TYPE GROUP_R_HASHES=0LLU;
-#ifdef WITH_MHASH
-  GROUP_R_HASHES=ATTR(attr_md5);
-#endif
 #ifdef WITH_GCRYPT
   if (gcry_fips_mode_active()) {
     char* str;
@@ -579,6 +579,8 @@ static void setdefaults_before_config(void)
   } else {
     GROUP_R_HASHES = ATTR(attr_md5);
   }
+#else /* WITH_MHASH or WITH_GNUTLS */
+  GROUP_R_HASHES=ATTR(attr_md5);
 #endif
 
   log_msg(LOG_LEVEL_INFO, "define default groups definitions");

@@ -41,6 +41,11 @@
 #include <gcrypt.h>
 #endif
 
+#ifdef WITH_GNUTLS
+#include <gnutls/gnutls.h>
+#include <gnutls/crypto.h>
+#endif
+
 /*
   Initialise md_container according its todo_attr field
  */
@@ -91,6 +96,22 @@ int init_md(struct md_container* md, const char *filename) {
             }
   }
 #endif
+#ifdef WITH_GNUTLS
+   for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
+        DB_ATTR_TYPE h = ATTR(hashsums[i].attribute);
+            if (h&md->todo_attr) {
+                if(gnutls_hash_init(&(md->gnutls_mdh[i]),algorithms[i])>=0){
+                    md->calc_attr|=h;
+                } else {
+                    log_msg(LOG_LEVEL_WARNING,"%s: gnutls_hash_init (%s) failed for '%s'", filename, attributes[hashsums[i].attribute].db_name, filename);
+                    md->todo_attr&=~h;
+                    md->gnutls_mdh[i] = NULL;
+                }
+            } else {
+                md->gnutls_mdh[i] = NULL;
+            }
+  }
+#endif
   char *str;
   log_msg(LOG_LEVEL_DEBUG, "%s> initialized md_container: %s (%p)", filename, str = diff_attributes(0, md->calc_attr), (void*) md);
   free(str);
@@ -120,6 +141,13 @@ int update_md(struct md_container* md,void* data,ssize_t size) {
 #endif /* WITH_MHASH */
 #ifdef WITH_GCRYPT
 	gcry_md_write(md->mdh, data, size);
+#endif
+#ifdef WITH_GNUTLS
+  for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
+      if(md->gnutls_mdh[i] != NULL){
+          gnutls_hash(md->gnutls_mdh[i], data, size);
+      }
+  }
 #endif
   return RETOK;
 }
@@ -164,6 +192,14 @@ int close_md(struct md_container* md, md_hashsums * hs, const char *filename) {
       }
   }
 #endif
+#ifdef WITH_GNUTLS
+  for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
+      if(md->gnutls_mdh[i] != NULL){
+          gnutls_hash_deinit(md->gnutls_mdh[i], hs?hs->hashsums[i]:NULL);
+          md->gnutls_mdh[i] = NULL;
+      }
+  }
+#endif /* WITH_MHASH */
   if (hs) {
       hs->attrs = md->calc_attr;
   }

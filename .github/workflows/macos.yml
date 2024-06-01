@@ -12,17 +12,23 @@ jobs:
       matrix:
         os: [macos-latest]
         compiler: [gcc, clang]
+        crypto: [gnutls, libgcrypt]
 
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies
-        run: brew install autoconf autoconf-archive automake bison pkg-config libgcrypt libgpg-error pcre2 check
+        run: brew install autoconf autoconf-archive automake bison pkg-config ${{ matrix.crypto }} pcre check
       - name: update path
         run: echo /opt/homebrew/opt/bison/bin >> ${GITHUB_PATH}
       - name: autoconf
         run: sh autogen.sh
       - name: configure
-        run: ./configure
+        run: |
+          if [ "${{ matrix.crypto }}" = "gnutls" ]; then
+            ./configure --without-gcrypt
+          else
+            ./configure --without-gnutls
+          fi
         env:
           CC: ${{ matrix.compiler }}
       - name: make
@@ -30,4 +36,10 @@ jobs:
       - name: make check
         run: make check
       - name: make distcheck
-        run: make distcheck
+        run: |
+          if [ "${{ matrix.crypto }}" = "gnutls" ]; then
+            export DISTCHECK_CONFIGURE_FLAGS="--without-gcrypt"
+          else
+            export DISTCHECK_CONFIGURE_FLAGS="--without-gnutls"
+          fi
+          make distcheck

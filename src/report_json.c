@@ -301,11 +301,12 @@ static void print_report_diff_attrs_entries_json(report_t *report) {
     if (report->num_diff_attrs_entries) {
         report_printf(report, JSON_FMT_OBJECT_BEGIN, 2, ' ', "different_attributes");
         for(int i = 0; i < report->num_diff_attrs_entries; ++i) {
-            char *str = NULL;
-            report_printf(report, i+1<report->num_diff_attrs_entries?JSON_FMT_STRING_COMMA:JSON_FMT_STRING_LAST , 4, ' ',
-                    report->diff_attrs_entries[i].entry,
-                    str= diff_attributes(report->diff_attrs_entries[i].old_attrs, report->diff_attrs_entries[i].new_attrs));
-            free(str);
+            char *escaped_filename = _get_escaped_json_string(report->diff_attrs_entries[i].entry);
+            char *attrs = diff_attributes(report->diff_attrs_entries[i].old_attrs, report->diff_attrs_entries[i].new_attrs);
+            report_printf(report, i + 1 < report->num_diff_attrs_entries ? JSON_FMT_STRING_COMMA : JSON_FMT_STRING_LAST, 4, ' ',
+                    escaped_filename, attrs);
+            free(escaped_filename);
+            free(attrs);
         }
         report->num_diff_attrs_entries = 0;
         free(report->diff_attrs_entries);

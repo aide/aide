@@ -103,11 +103,11 @@ static void print_line_json(report_t* report, char* filename, int node_checked, 
     if (line_first) { line_first=false; }
     else { report_printf(report,",\n"); }
 
-    char *escacped_filename = _get_escaped_json_string(filename);
+    char *escaped_filename = _get_escaped_json_string(filename);
 
     if(report->summarize_changes) {
         char* summary = get_summarize_changes_string(report, node);
-        report_printf(report, JSON_FMT_STRING_PLAIN, 4, ' ', escacped_filename, summary);
+        report_printf(report, JSON_FMT_STRING_PLAIN, 4, ' ', escaped_filename, summary);
         free(summary); summary=NULL;
     } else if (!report->grouped) {
         char* change_type;
@@ -118,11 +118,11 @@ static void print_line_json(report_t* report, char* filename, int node_checked, 
         } else {
             change_type = "changed";
         }
-        report_printf(report, JSON_FMT_STRING_PLAIN, 4, ' ', escacped_filename, change_type);
+        report_printf(report, JSON_FMT_STRING_PLAIN, 4, ' ', escaped_filename, change_type);
     } else {
-        report_printf(report, JSON_FMT_ARRAY_ELEMENT_PLAIN, 4, ' ', escacped_filename);
+        report_printf(report, JSON_FMT_ARRAY_ELEMENT_PLAIN, 4, ' ', escaped_filename);
     }
-    free(escacped_filename);
+    free(escaped_filename);
 }
 
 static void _print_attribute_value(report_t *report, const char* name, ATTRIBUTE attribute, char **value, int num, int ident) {
@@ -192,14 +192,14 @@ static void _print_database_attributes(report_t *report, db_line* db) {
     if (databases_first) { databases_first=false; }
     else { report_printf(report,",\n"); }
 
-    char *escacped_filename = _get_escaped_json_string(db->filename);
+    char *escaped_filename = _get_escaped_json_string(db->filename);
 
     database_first = true;
-    report_printf(report, JSON_FMT_OBJECT_BEGIN, 4, ' ', escacped_filename);
+    report_printf(report, JSON_FMT_OBJECT_BEGIN, 4, ' ', escaped_filename);
     print_dbline_attrs(report, db, NULL, db->attr, _print_database_attribute);
     report_printf(report,"\n");
     report_printf(report, JSON_FMT_OBJECT_END_PLAIN, 4, ' ');
-    free(escacped_filename);
+    free(escaped_filename);
 }
 
 static void _print_report_dbline_attributes(report_t *report, db_line* oline, db_line* nline, DB_ATTR_TYPE report_attrs) {
@@ -207,13 +207,13 @@ static void _print_report_dbline_attributes(report_t *report, db_line* oline, db
         if (details_first) { details_first=false; }
         else { report_printf(report,",\n"); }
 
-        char *escacped_filename = _get_escaped_json_string((nline==NULL?oline:nline)->filename);
-        report_printf(report, JSON_FMT_OBJECT_BEGIN, 4, ' ', escacped_filename);
+        char *escaped_filename = _get_escaped_json_string((nline==NULL?oline:nline)->filename);
+        report_printf(report, JSON_FMT_OBJECT_BEGIN, 4, ' ', escaped_filename);
         attributes_first = true;
         print_dbline_attrs(report, oline, nline, report_attrs, _print_attribute);
         report_printf(report,"\n");
         report_printf(report, JSON_FMT_OBJECT_END_PLAIN, 4, ' ');
-        free(escacped_filename);
+        free(escaped_filename);
     }
 }
 

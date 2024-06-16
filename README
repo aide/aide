@@ -131,7 +131,7 @@
        o  GNU yacc (bison).
        o  GNU make.
        o  pkg-config
-       o  PCRE2 library
+       o  PCRE2 library (libpcre2-8, library with 8-bit code unit support)
        o  Mhash (optional, but highly recommended). Mhash is currently
           available from http://mhash.sourceforge.net/. A static version of
           libmhash needs to be build using the --enable-static=yes

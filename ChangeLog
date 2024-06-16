@@ -4,6 +4,7 @@
 	  - refactor rule matching code
 	  - improve output for --path-check and --dry-run
 	  - improve file tree processing when using limit
+	* Specify PCRE2 variant in README
 
 2024-06-15 Walter Doekes <walter+github@wjd.nu>
 	* Fix escacped typo

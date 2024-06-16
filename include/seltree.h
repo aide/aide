@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2010, 2020-2023 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002, 2010, 2020-2024 Rami Lehti, Pablo Virolainen,
  *               Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -31,9 +31,9 @@ seltree* init_tree(void);
 seltree* get_seltree_node(seltree* ,char*);
 seltree* get_or_create_seltree_node(seltree*, char *);
 
-rx_rule * add_rx_to_tree(char *, RESTRICTION_TYPE, int, seltree *, int, char *, char *, char **);
+rx_rule * add_rx_to_tree(char *, RESTRICTION_TYPE, AIDE_RULE_TYPE, seltree *, int, char *, char *, char **);
 
-int check_seltree(seltree *, char *, RESTRICTION_TYPE, rx_rule* *);
+match_t check_seltree(seltree *, char *, RESTRICTION_TYPE, bool);
 
 void log_tree(LOG_LEVEL, seltree *, int);
 bool is_tree_empty(seltree *);

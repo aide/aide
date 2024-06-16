@@ -339,37 +339,52 @@ static DB_ATTR_TYPE get_different_attributes(db_line* l1, db_line* l2, DB_ATTR_T
     return ret;
 }
 
-void print_match(char* filename, rx_rule *rule, match_result match, RESTRICTION_TYPE restriction) {
+#define PRINT_RULE_MATCH(format, c, ...) \
+    fprintf(stdout, "[%c] %c:%s: " format "\n", c, file_type, filename, __VA_ARGS__); \
+
+void print_match(char* filename, match_t match, RESTRICTION_TYPE restriction) {
     char * str;
     char* attr_str;
     char file_type = get_restriction_char(restriction);
-    switch (match) {
+    rx_rule *rule = match.rule;
+    switch (match.result) {
         case RESULT_SELECTIVE_MATCH:
-            str = get_restriction_string(rule->restriction);
-            attr_str = diff_attributes(0, rule->attr);
-            fprintf(stdout, "[X] %c '%s': selective rule: '%s %s %s' (%s:%d: '%s%s%s')\n", file_type, filename, rule->rx, str, attr_str, rule->config_filename, rule->config_linenumber, rule->config_line, rule->prefix?"', prefix: '":"", rule->prefix?rule->prefix:"");
-            free(attr_str);
-            free(str);
-            break;
         case RESULT_EQUAL_MATCH:
             str = get_restriction_string(rule->restriction);
             attr_str = diff_attributes(0, rule->attr);
-            fprintf(stdout, "[X] %c '%s': equal rule: '=%s %s %s' (%s:%d: '%s%s%s')\n", file_type, filename, rule->rx, str, attr_str, rule->config_filename, rule->config_linenumber, rule->config_line, rule->prefix?"', prefix: '":"", rule->prefix?rule->prefix:"");
+            PRINT_RULE_MATCH("%s: '%s%s %s %s' (%s:%d: '%s%s%s')", 'x', get_rule_type_long_string(rule->type), get_rule_type_char(rule->type), rule->rx, str, attr_str, rule->config_filename, rule->config_linenumber, rule->config_line, rule->prefix?"', prefix: '":"", rule->prefix?rule->prefix:"")
             free(attr_str);
             free(str);
             break;
+        case RESULT_RECURSIVE_NEGATIVE_MATCH:
+        case RESULT_NON_RECURSIVE_NEGATIVE_MATCH:
+            str = get_restriction_string(rule->restriction);
+            PRINT_RULE_MATCH("%s: '%s%s %s' (%s:%d: '%s%s%s')", ' ', get_rule_type_long_string(rule->type), get_rule_type_char(rule->type), rule->rx, str, rule->config_filename, rule->config_linenumber, rule->config_line, rule->prefix?"', prefix: '":"", rule->prefix?rule->prefix:"")
+            free(str);
+            break;
+        case RESULT_NEGATIVE_PARENT_MATCH:
+            str = get_restriction_string(rule->restriction);
+            PRINT_RULE_MATCH("parent directory '%.*s' matches %s: '%s%s %s' (%s:%d: '%s%s%s')", ' ', match.length, filename, get_rule_type_long_string(rule->type), get_rule_type_char(rule->type), rule->rx, str, rule->config_filename, rule->config_linenumber, rule->config_line, rule->prefix?"', prefix: '":"", rule->prefix?rule->prefix:"")
+            free(str);
+            break;
         case RESULT_PARTIAL_MATCH:
-        case RESULT_NO_MATCH:
-            if (rule) {
-                fprintf(stdout, "[ ] %c '%s': negative rule: '!%s %s' (%s:%d: '%s%s%s')\n", file_type, filename, rule->rx, str = get_restriction_string(rule->restriction), rule->config_filename, rule->config_linenumber, rule->config_line, rule->prefix?"', prefix: '":"", rule->prefix?rule->prefix:"");
-                free(str);
-            } else {
-                fprintf(stdout, "[ ] %c '%s': no matching rule\n", file_type, filename);
-            }
+        case RESULT_NO_RULE_MATCH:
+            PRINT_RULE_MATCH("%s", ' ', "no matching rule")
             break;
         case RESULT_PARTIAL_LIMIT_MATCH:
+            PRINT_RULE_MATCH("parital limit match (limit '%s')", ' ', conf->limit);
+            break;
+        case RESULT_PART_LIMIT_AND_NO_RECURSE_MATCH:
+            if (rule) {
+                str = get_restriction_string(rule->restriction);
+                PRINT_RULE_MATCH("partial limit match (limit '%s') but %s: '%s%s %s' (%s:%d: '%s%s%s')", ' ', conf->limit, get_rule_type_long_string(rule->type), get_rule_type_char(rule->type), rule->rx, str, rule->config_filename, rule->config_linenumber, rule->config_line, rule->prefix?"', prefix: '":"", rule->prefix?rule->prefix:"")
+                free(str);
+            } else {
+                PRINT_RULE_MATCH("partial limit match (limit '%s') but no matching rule", ' ', conf->limit)
+            }
+            break;
         case RESULT_NO_LIMIT_MATCH:
-            fprintf(stdout, "[ ] %c '%s': outside of limit '%s'\n", file_type, filename, conf->limit);
+            PRINT_RULE_MATCH("outside of limit '%s'", ' ', conf->limit);
             break;
     }
 }
@@ -625,14 +640,16 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
   pthread_mutex_unlock(&node->mutex);
 }
 
-match_result check_limit(char* filename) {
+match_result check_limit(char* filename, bool log_partial_match) {
     if(conf->limit!=NULL) {
         int match=pcre2_match(conf->limit_crx, (PCRE2_SPTR) filename, PCRE2_ZERO_TERMINATED, 0, PCRE2_PARTIAL_SOFT, conf->limit_md, NULL);
         if (match >= 0) {
             log_msg(LOG_LEVEL_TRACE, "'%s' does match limit '%s'", filename, conf->limit);
             return 0;
         } else if (match == PCRE2_ERROR_PARTIAL) {
-            log_msg(LOG_LEVEL_DEBUG, "skip '%s' (reason: partial limit match, limit: '%s')", filename, conf->limit);
+            if (log_partial_match) {
+                log_msg(LOG_LEVEL_DEBUG, "skip '%s' (reason: partial limit match, limit: '%s')", filename, conf->limit);
+            }
             return RESULT_PARTIAL_LIMIT_MATCH;
         } else {
             log_msg(LOG_LEVEL_DEBUG, "skip '%s' (reason: no limit match, limit '%s')", filename, conf->limit);
@@ -642,20 +659,39 @@ match_result check_limit(char* filename) {
     return 0;
 }
 
-match_result check_rxtree(char* filename,seltree* tree, rx_rule* *rule, RESTRICTION_TYPE file_type, char* source)
+match_t check_rxtree(char* filename,seltree* tree, RESTRICTION_TYPE file_type, char* source, bool check_parent_dirs)
 {
-  match_result limit_result = check_limit(filename);
+  match_result limit_result = check_limit(filename, !(file_type&FT_DIR));
+  match_t match;
   if (limit_result) {
       if (limit_result == RESULT_PARTIAL_LIMIT_MATCH && file_type&FT_DIR) {
-        get_or_create_seltree_node(tree, filename);
+        log_msg(LOG_LEVEL_RULE, "\u252c partial limit match (limit: '%s') for directory '%s', check for no-recurse match", conf->limit, filename);
+        match = check_seltree(tree, filename, file_type, check_parent_dirs);
+        if (match.result == RESULT_NON_RECURSIVE_NEGATIVE_MATCH || match.result == RESULT_NO_RULE_MATCH) {
+            match.result = RESULT_PART_LIMIT_AND_NO_RECURSE_MATCH;
+            log_msg(LOG_LEVEL_RULE, "\u2534 no-recurse match for '%s', stop directory processing", filename);
+            log_msg(LOG_LEVEL_DEBUG, "check_rxtree: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, filename);
+            return match;
+        } else {
+            log_msg(LOG_LEVEL_RULE, "\u2534 no no-recurse match for '%s'", filename);
+        }
       }
-      return limit_result;
+      match = (match_t) { limit_result, NULL, 0 };
+      log_msg(LOG_LEVEL_DEBUG, "check_rxtree: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, filename);
+      return match;
   }
 
-
   log_msg(LOG_LEVEL_RULE, "\u252c process '%s' from %s (filetype: %c)", filename, source, get_restriction_char(file_type));
-
-  return check_seltree(tree, filename, file_type, rule);
+  match = check_seltree(tree, filename, file_type, check_parent_dirs);
+  if (match.result == RESULT_SELECTIVE_MATCH || match.result == RESULT_EQUAL_MATCH) {
+      char *str;
+      log_msg(LOG_LEVEL_RULE, "\u2534 ADD '%s' (attr: '%s')", filename, str = diff_attributes(0, match.rule->attr));
+      free(str);
+  } else {
+      log_msg(LOG_LEVEL_RULE, "\u2534 do NOT add '%s'", filename);
+  }
+  log_msg(LOG_LEVEL_DEBUG, "check_rxtree: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, filename);
+  return match;
 }
 
 db_line* get_file_attrs(char* filename,DB_ATTR_TYPE attr, struct stat *fs)
@@ -797,7 +833,6 @@ void populate_tree(seltree* tree)
   db_line* old=NULL;
   db_line* new=NULL;
   int initdbwarningprinted=0;
-  rx_rule *rule;
   
   /* With this we avoid unnecessary checking of removed files. */
   if(conf->action&DO_INIT){
@@ -809,10 +844,10 @@ void populate_tree(seltree* tree)
         log_msg(LOG_LEVEL_INFO, "read old entries from database: %s:%s", get_url_type_string((conf->database_in.url)->type), (conf->database_in.url)->value);
         db_lex_buffer(&(conf->database_in));
             while((old=db_readline(&(conf->database_in))) != NULL) {
-                match_result add=check_rxtree(old->filename,tree, &rule, get_restriction_from_perm(old->perm), "database_in");
-                if (add == RESULT_SELECTIVE_MATCH || add == RESULT_EQUAL_MATCH) {
+                match_t add = check_rxtree(old->filename,tree, get_restriction_from_perm(old->perm), "database_in", true);
+                if (add.result == RESULT_SELECTIVE_MATCH || add.result == RESULT_EQUAL_MATCH) {
                     add_file_to_tree(tree,old,DB_OLD, &(conf->database_in), NULL);
-                } else if (conf->limit!=NULL && (add == RESULT_NO_LIMIT_MATCH || add == RESULT_PARTIAL_LIMIT_MATCH)) {
+                } else if (conf->limit!=NULL && (add.result == RESULT_NO_LIMIT_MATCH || add.result == RESULT_PARTIAL_LIMIT_MATCH)) {
                     add_file_to_tree(tree,old,DB_OLD|DB_NEW, &(conf->database_in), NULL);
                 }else{
                     if(!initdbwarningprinted){
@@ -831,11 +866,11 @@ void populate_tree(seltree* tree)
         log_msg(LOG_LEVEL_INFO, "read new entries from database: %s:%s", get_url_type_string((conf->database_new.url)->type), (conf->database_new.url)->value);
       db_lex_buffer(&(conf->database_new));
       while((new=db_readline(&(conf->database_new))) != NULL){
-    match_result add = check_rxtree(new->filename,tree, &rule, get_restriction_from_perm(new->perm), "database_new");
-    if (add == RESULT_SELECTIVE_MATCH || add == RESULT_EQUAL_MATCH) {
+    match_t add = check_rxtree(new->filename,tree, get_restriction_from_perm(new->perm), "database_new", true);
+    if (add.result == RESULT_SELECTIVE_MATCH || add.result == RESULT_EQUAL_MATCH) {
 	  add_file_to_tree(tree,new,DB_NEW, &(conf->database_new), NULL);
 	} else {
-          if (add == RESULT_NO_LIMIT_MATCH || add == RESULT_PARTIAL_LIMIT_MATCH) {
+          if (add.result == RESULT_NO_LIMIT_MATCH || add.result == RESULT_PARTIAL_LIMIT_MATCH) {
               progress_status(PROGRESS_SKIPPED, NULL);
           }
           free_db_line(new);

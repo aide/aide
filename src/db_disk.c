@@ -104,18 +104,19 @@ static void handle_matched_file(char *entry_full_path, DB_ATTR_TYPE attr, struct
 
 void scan_dir(char *root_path, bool dry_run) {
     char* full_path;
-    rx_rule *rule = NULL;
-    seltree *node = NULL;
     struct stat fs;
 
     log_msg(LOG_LEVEL_DEBUG,"scan_dir: process root directory '%s' (fullpath: '%s')", &root_path[conf->root_prefix_length], root_path);
     if (!get_file_status(root_path, &fs)) {
-        match_result match = check_rxtree (&root_path[conf->root_prefix_length], conf->tree, &rule, get_restriction_from_perm(fs.st_mode), "disk");
+        match_t path_match = check_rxtree (&root_path[conf->root_prefix_length], conf->tree, get_restriction_from_perm(fs.st_mode), "disk", false);
         if (dry_run) {
-            print_match(&root_path[conf->root_prefix_length], rule, match, get_restriction_from_perm(fs.st_mode));
+            print_match(&root_path[conf->root_prefix_length], path_match, get_restriction_from_perm(fs.st_mode));
         }
-        if (!dry_run && match&(RESULT_EQUAL_MATCH|RESULT_SELECTIVE_MATCH)) {
-            handle_matched_file(root_path, rule->attr, fs);
+        if (!dry_run && path_match.result&(RESULT_EQUAL_MATCH|RESULT_SELECTIVE_MATCH)) {
+            handle_matched_file(root_path, path_match.rule->attr, fs);
+        }
+        if (path_match.result & (RESULT_NO_RULE_MATCH|RESULT_NON_RECURSIVE_NEGATIVE_MATCH|RESULT_PART_LIMIT_AND_NO_RECURSE_MATCH)) {
+            return;
         }
     }
 
@@ -139,10 +140,8 @@ void scan_dir(char *root_path, bool dry_run) {
                     bool free_entry_full_path = true;
                     log_msg(log_level, "scan_dir: process child directory '%s' (fullpath: '%s')", &entry_full_path[conf->root_prefix_length], entry_full_path);
                     if (!get_file_status(entry_full_path, &fs)) {
-                        rule = NULL;
-                        node = NULL;
-                        match_result match = check_rxtree (&entry_full_path[conf->root_prefix_length], conf->tree, &rule, get_restriction_from_perm(fs.st_mode), "disk");
-                        switch (match) {
+                        match_t path_match = check_rxtree (&entry_full_path[conf->root_prefix_length], conf->tree, get_restriction_from_perm(fs.st_mode), "disk", false);
+                        switch (path_match.result) {
                             case RESULT_SELECTIVE_MATCH:
                             case RESULT_EQUAL_MATCH:
                                 if (S_ISDIR(fs.st_mode)) {
@@ -151,7 +150,7 @@ void scan_dir(char *root_path, bool dry_run) {
                                     free_entry_full_path = false;
                                 }
                                 if (!dry_run) {
-                                    handle_matched_file(entry_full_path, rule->attr, fs);
+                                    handle_matched_file(entry_full_path, path_match.rule->attr, fs);
                                 }
                                 break;
                             case RESULT_PARTIAL_MATCH:
@@ -161,26 +160,33 @@ void scan_dir(char *root_path, bool dry_run) {
                                     free_entry_full_path = false;
                                 }
                                 break;
-                            case RESULT_NO_MATCH:
-                                node = get_seltree_node(conf->tree, &entry_full_path[conf->root_prefix_length]);
-                                if(S_ISDIR(fs.st_mode) && node) {
-                                    log_msg(log_level, "scan_dir: add child directory '%s' to scan stack (reason: existing tree node %p)", &entry_full_path[conf->root_prefix_length], (void*) node);
-                                    free_entry_full_path = false;
+                            case RESULT_RECURSIVE_NEGATIVE_MATCH:
+                                if (S_ISDIR(fs.st_mode)) {
+                                    log_msg(log_level, "scan_dir: add child directory '%s' to scan stack (reason: recursive negative match)", &entry_full_path[conf->root_prefix_length]);
                                     queue_enqueue(stack, entry_full_path);
+                                    free_entry_full_path = false;
                                 }
                                 break;
                             case RESULT_PARTIAL_LIMIT_MATCH:
                                 if(S_ISDIR(fs.st_mode)) {
-                                    log_msg(log_level, "scan_dir: add child directory '%s' to scan stack (reason: partial limit match", &entry_full_path[conf->root_prefix_length]);
+                                    log_msg(log_level, "scan_dir: add child directory '%s' to scan stack (reason: partial limit match)", &entry_full_path[conf->root_prefix_length]);
                                     queue_enqueue(stack, entry_full_path);
                                     free_entry_full_path = false;
                                 }
                                 break;
+                            case RESULT_NON_RECURSIVE_NEGATIVE_MATCH:
+                                if(S_ISDIR(fs.st_mode)) {
+                                    log_msg(log_level, "scan_dir: do NOT add child directory '%s' to scan stack (reason: non-recursive negative match)", &entry_full_path[conf->root_prefix_length]);
+                                }
+                                break;
+                            case RESULT_NEGATIVE_PARENT_MATCH:
+                            case RESULT_NO_RULE_MATCH:
                             case RESULT_NO_LIMIT_MATCH:
+                            case RESULT_PART_LIMIT_AND_NO_RECURSE_MATCH:
                                 break;
                         }
                         if (dry_run) {
-                            print_match(&entry_full_path[conf->root_prefix_length], rule, match, get_restriction_from_perm(fs.st_mode));
+                            print_match(&entry_full_path[conf->root_prefix_length], path_match, get_restriction_from_perm(fs.st_mode));
                         }
                     }
                     if (free_entry_full_path) {

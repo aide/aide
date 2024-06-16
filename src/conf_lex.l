@@ -14,7 +14,7 @@ O	[a-z_]
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2004-2006, 2010-2013, 2015-2016, 2019-2023
+ * Copyright (C) 1999-2002, 2004-2006, 2010-2013, 2015-2016, 2019-2024
  *               Rami Lehti, Pablo Virolainen, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -112,10 +112,17 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_DEBUG;
 }
 
 <CONFIG>"!/" {
-  LOG_LEX_TOKEN(lex_log_level, TNEGRXRULE, "!")
+  LOG_LEX_TOKEN(lex_log_level, TRECNEGRXRULE, "!")
   yyless(strchr(conftext,'/')-conftext);
   BEGIN(PATH);
-  return (TNEGRXRULE);
+  return (TRECNEGRXRULE);
+}
+
+<CONFIG>"-/" {
+  LOG_LEX_TOKEN(lex_log_level, TNONRECNEGRXRULE, "-")
+  yyless(strchr(conftext,'/')-conftext);
+  BEGIN(PATH);
+  return (TNONRECNEGRXRULE);
 }
 
 <EXPREQUHUNT>{E} {

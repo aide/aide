@@ -32,6 +32,8 @@
 #include <time.h>
 #include <stdbool.h>
 #include <string.h>
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include <pcre2.h>
 
 #if HAVE_UNISTD_H
 #include <unistd.h>
@@ -733,18 +735,21 @@ int main(int argc,char**argv)
   }
 
   if (conf->check_path) {
-      rx_rule* rule = NULL;
-      match_result match = check_rxtree(conf->check_path, conf->tree, &rule, conf->check_file_type, "disk (path-check)");
-      print_match(conf->check_path, rule, match, conf->check_file_type);
-      switch (match) {
+      match_t path_match = check_rxtree(conf->check_path, conf->tree, conf->check_file_type, "disk (path-check)", true);
+      print_match(conf->check_path, path_match, conf->check_file_type);
+      switch (path_match.result) {
           case RESULT_PARTIAL_LIMIT_MATCH:
           case RESULT_NO_LIMIT_MATCH:
               exit(2);
           case RESULT_EQUAL_MATCH:
           case RESULT_SELECTIVE_MATCH:
               exit(0);
-          case RESULT_NO_MATCH:
+          case RESULT_NON_RECURSIVE_NEGATIVE_MATCH:
+          case RESULT_RECURSIVE_NEGATIVE_MATCH:
+          case RESULT_NEGATIVE_PARENT_MATCH:
+          case RESULT_NO_RULE_MATCH:
           case RESULT_PARTIAL_MATCH:
+          case RESULT_PART_LIMIT_AND_NO_RECURSE_MATCH:
               exit(1);
       }
   }
@@ -795,7 +800,7 @@ int main(int argc,char**argv)
       db_lex_buffer(&(conf->database_in));
       db_line* entry=NULL;
       while((entry = db_readline(&(conf->database_in))) != NULL) {
-          if (check_limit(entry->filename) == 0) {
+          if (check_limit(entry->filename, true) == 0) {
               log_msg(LOG_LEVEL_RULE, "\u252c process '%s' (filetype: %c)", entry->filename, get_restriction_char(entry->perm));
               fprintf(stdout, "%s\n", entry->filename);
               for (int j=0; j < report_attrs_order_length; ++j) {

@@ -21,8 +21,7 @@
 
 #ifndef _GEN_LIST_H_INCLUDED
 #define _GEN_LIST_H_INCLUDED
-#define PCRE2_CODE_UNIT_WIDTH 8
-#include <pcre2.h>
+#include <stdbool.h>
 #include "attributes.h"
 #include "rx_rule.h"
 #include "db_config.h"
@@ -40,20 +39,11 @@ void populate_tree(seltree*);
 
 void write_tree(seltree*);
 
-typedef enum match_result {
-    RESULT_NO_MATCH = 0,
-    RESULT_SELECTIVE_MATCH = 2,
-    RESULT_EQUAL_MATCH = 4,
-    RESULT_PARTIAL_MATCH = 16,
-    RESULT_NO_LIMIT_MATCH = 32,
-    RESULT_PARTIAL_LIMIT_MATCH = 64,
-} match_result;
-
-match_result check_rxtree(char*,seltree*, rx_rule* *, RESTRICTION_TYPE, char *);
-match_result check_limit(char*);
+match_t check_rxtree(char*,seltree*, RESTRICTION_TYPE, char *, bool);
+match_result check_limit(char*, bool);
 
 struct db_line* get_file_attrs(char*,DB_ATTR_TYPE, struct stat *);
 void add_file_to_tree(seltree*, db_line*, int, const database *, struct stat *);
 
-void print_match(char*, rx_rule*, match_result, RESTRICTION_TYPE);
+void print_match(char*, match_t, RESTRICTION_TYPE);
 #endif /*_GEN_LIST_H_INCLUDED*/

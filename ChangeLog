@@ -1,3 +1,10 @@
+2024-06-16 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Add non-recursive negative rules (-<regex>)
+	  - change semantic of unrestricted (recursive) negative rules
+	  - refactor rule matching code
+	  - improve output for --path-check and --dry-run
+	  - improve file tree processing when using limit
+
 2024-06-15 Walter Doekes <walter+github@wjd.nu>
 	* Fix escacped typo
 	* Fix JSON escaping of filenames in different_attributes

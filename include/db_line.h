@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2004-2006, 2010, 2013, 2019-2022
+ * Copyright (C) 1999-2002, 2004-2006, 2010, 2013, 2019-2022,2024
  *               Rami Lehti, Pablo Virolainen, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -23,8 +23,6 @@
 #ifndef _DB_LINE_H_INCLUDED
 #define _DB_LINE_H_INCLUDED
 
-#define PCRE2_CODE_UNIT_WIDTH 8
-#include <pcre2.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <sys/types.h>

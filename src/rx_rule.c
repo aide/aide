@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2016, 2020-2022 Hannes von Haugwitz
+ * Copyright (C) 2016, 2020-2022,2024 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -127,7 +127,8 @@ char* get_rule_type_long_string(AIDE_RULE_TYPE rule_type) {
     switch (rule_type) {
         case AIDE_SELECTIVE_RULE: return "selective rule";
         case AIDE_EQUAL_RULE: return "equal rule";
-        case AIDE_NEGATIVE_RULE: return "negative rule";
+        case AIDE_RECURSIVE_NEGATIVE_RULE: return "recursive negative rule";
+        case AIDE_NON_RECURSIVE_NEGATIVE_RULE: return "non-recursive negative rule";
     }
     return NULL;
 }
@@ -136,7 +137,34 @@ char* get_rule_type_char(AIDE_RULE_TYPE rule_type) {
     switch (rule_type) {
         case AIDE_SELECTIVE_RULE: return "";
         case AIDE_EQUAL_RULE: return "=";
-        case AIDE_NEGATIVE_RULE: return "!";
+        case AIDE_RECURSIVE_NEGATIVE_RULE: return "!";
+        case AIDE_NON_RECURSIVE_NEGATIVE_RULE: return "-";
     }
     return NULL;
+}
+
+char *get_match_result_string(match_result match) {
+    switch(match) {
+        case RESULT_NO_RULE_MATCH:
+            return "RESULT_NO_RULE_MATCH";
+        case RESULT_RECURSIVE_NEGATIVE_MATCH:
+            return "RESULT_RECURSIVE_NEGATIVE_MATCH";
+        case RESULT_NON_RECURSIVE_NEGATIVE_MATCH:
+            return "RESULT_NON_RECURSIVE_NEGATIVE_MATCH";
+        case RESULT_EQUAL_MATCH:
+            return "RESULT_EQUAL_MATCH";
+        case RESULT_SELECTIVE_MATCH:
+            return "RESULT_SELECTIVE_MATCH";
+        case RESULT_PARTIAL_MATCH:
+            return "RESULT_PARTIAL_MATCH";
+        case RESULT_NO_LIMIT_MATCH:
+            return "RESULT_NO_LIMIT_MATCH";
+        case RESULT_PARTIAL_LIMIT_MATCH:
+            return "RESULT_PARTIAL_LIMIT_MATCH";
+        case RESULT_PART_LIMIT_AND_NO_RECURSE_MATCH:
+            return "RESULT_PART_LIMIT_AND_NO_RECURSE_MATCH";
+        case RESULT_NEGATIVE_PARENT_MATCH:
+            return "RESULT_NEGATIVE_PARENT_MATCH";
+    }
+    return "unknown match result";
 }

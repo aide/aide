@@ -6,7 +6,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006, 2010-2013, 2015-2016, 2019-2023 Rami Lehti,
+ * Copyright (C) 1999-2006, 2010-2013, 2015-2016, 2019-2024 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -81,7 +81,8 @@ void conferror(ast**, const char *);
 
 %token <s> TSELRXRULE "regular rule"
 %token <s> TEQURXRULE "equals rule"
-%token <s> TNEGRXRULE "negative rule"
+%token <s> TRECNEGRXRULE "recursive negative rule"
+%token <s> TNONRECNEGRXRULE "non-recursive negative rule"
 
 %token <option> CONFIGOPTION "configuration option"
 
@@ -163,12 +164,18 @@ bool_expression: TBOOLNOT bool_expression { $$ = new_bool_expression(BOOL_OP_NOT
 
 rule_statement: TSELRXRULE string_expression attribute_expression { $$ = new_rule_statement(AIDE_SELECTIVE_RULE, $2, NULL, $3); }
               | TEQURXRULE string_expression attribute_expression { $$ = new_rule_statement(AIDE_EQUAL_RULE, $2, NULL, $3); }
-              | TNEGRXRULE string_expression { $$ = new_rule_statement(AIDE_NEGATIVE_RULE, $2, NULL, NULL); }
+              | TRECNEGRXRULE string_expression { $$ = new_rule_statement(AIDE_RECURSIVE_NEGATIVE_RULE, $2, NULL, NULL); }
+              | TNONRECNEGRXRULE string_expression { $$ = new_rule_statement(AIDE_NON_RECURSIVE_NEGATIVE_RULE, $2, NULL, NULL); }
               | TSELRXRULE string_expression restriction_expression attribute_expression { $$ = new_rule_statement(AIDE_SELECTIVE_RULE, $2, $3, $4); }
               | TEQURXRULE string_expression restriction_expression attribute_expression { $$ = new_rule_statement(AIDE_EQUAL_RULE, $2, $3, $4); }
-              | TNEGRXRULE string_expression restriction_expression { $$ = new_rule_statement(AIDE_NEGATIVE_RULE, $2, $3, NULL); }
-              | TNEGRXRULE string_expression restriction_expression attribute_expression {
-                log_msg(LOG_LEVEL_ERROR, "%s:%d: negative rule must not have an attribute expression (line: '%s')", conf_filename, conf_linenumber, conf_linebuf);
+              | TRECNEGRXRULE string_expression restriction_expression { $$ = new_rule_statement(AIDE_RECURSIVE_NEGATIVE_RULE, $2, $3, NULL); }
+              | TNONRECNEGRXRULE string_expression restriction_expression { $$ = new_rule_statement(AIDE_NON_RECURSIVE_NEGATIVE_RULE, $2, $3, NULL); }
+              | TRECNEGRXRULE string_expression restriction_expression attribute_expression {
+                log_msg(LOG_LEVEL_ERROR, "%s:%d: recursive negative rule must not have an attribute expression (line: '%s')", conf_filename, conf_linenumber, conf_linebuf);
+                YYABORT;
+              }
+              | TNONRECNEGRXRULE string_expression restriction_expression attribute_expression {
+                log_msg(LOG_LEVEL_ERROR, "%s:%d: non-recursive negative rule must not have an attribute expression (line: '%s')", conf_filename, conf_linenumber, conf_linebuf);
                 YYABORT;
               }
 

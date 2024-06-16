@@ -441,12 +441,21 @@ Files and directories matching the regular expression
 are added to the database.
 
 .TP
-.B "Negative rule:"
+.B "Recursive Negative rule:"
 !<regex>
 
-Files and directories matching the regular expression
-are ignored and not added to the database.
-The children of matching directories are also ignored.
+Files and directories matching the regular expression are excluded and NOT
+added to the database. The children of directories and sub-directories are
+recursed into and only not added to the database if they also match the regular
+expression.
+
+.TP
+.B "Non-recursive negative rule (added in AIDE v0.19)"
+-<regex>
+
+Files and directories matching the regular expression are excluded and NOT added
+the database. The children of directories and sub-directories are not recursed
+into and hence not added to the database by any means.
 
 .TP
 .B "Equals rule:"

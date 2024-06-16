@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2019-2023 Hannes von Haugwitz
+ * Copyright (C) 2019-2024 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -25,6 +25,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include <pcre2.h>
 #include "attributes.h"
 #include "conf_ast.h"
 #include "db_config.h"

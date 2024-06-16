@@ -1,5 +1,12 @@
 Version 0.19 (UNRELEASED)
     * BACKWARDS INCOMPATIBLE CHANGES
+        - semantic change of unrestricted negative rules (!<regex>): The
+          children and sub-directories of matching directories are no longer
+          ignored by default but recursed into and only ignored if they also
+          match the regular expression. This makes the behaviour consistent
+          with restricted (recursive) negative rules. Use the new non-recursive
+          negative rules (-<regex>) to always ignore children and
+          sub-directories of matched directories.
         - 'database' config option is no longer supported, use
           'database_in' instead
         - 'summarize_changes' config option is no longer supported, use

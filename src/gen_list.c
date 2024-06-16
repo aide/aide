@@ -39,7 +39,6 @@
 #include "seltree_struct.h"
 #include "rx_rule.h"
 #include "url.h"
-#include "list.h"
 #include "gen_list.h"
 #include "md.h"
 #include "db.h"

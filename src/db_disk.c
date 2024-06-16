@@ -32,7 +32,6 @@
 #include "db_config.h"
 #include "log.h"
 #include "rx_rule.h"
-#include "seltree.h"
 #include "gen_list.h"
 #include "db.h"
 #include "db_line.h"

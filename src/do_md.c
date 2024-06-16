@@ -21,7 +21,6 @@
  */
 
 #include "config.h"
-#include "aide.h"
 #include <stdbool.h>
 
 #include <limits.h>
@@ -32,7 +31,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <signal.h>
 #include <sys/mman.h>
 #include <sys/wait.h>
 

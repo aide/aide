@@ -19,7 +19,6 @@
  */
 
 #include "config.h"
-#include <errno.h>
 #include <pthread.h>
 #include <stdarg.h>
 #include <stdio.h>

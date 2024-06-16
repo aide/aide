@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2011, 2021-2023 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002, 2011, 2021-2024 Rami Lehti, Pablo Virolainen,
  *               Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -23,7 +23,6 @@
 #define _DB_DISK_H_INCLUDED
 
 #include <stdbool.h>
-#include "db_config.h"
 
 void db_scan_disk(bool);
 

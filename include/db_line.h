@@ -29,8 +29,6 @@
 #include "config.h"
 #include "attributes.h"
 #include "hashsum.h"
-#include "list.h"
-#include "rx_rule.h"
 #include "util.h"
 
 #ifdef WITH_POSIX_ACL

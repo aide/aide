@@ -31,7 +31,6 @@
 #include "log.h"
 #include "md.h"
 #include "util.h"
-#include "errorcodes.h"
 
 #ifdef WITH_MHASH
 #include <mhash.h>
@@ -39,6 +38,7 @@
 
 #ifdef WITH_GCRYPT
 #include <gcrypt.h>
+#include "errorcodes.h"
 #endif
 
 /*

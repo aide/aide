@@ -6,6 +6,7 @@
 	  - improve file tree processing when using limit
 	* Specify PCRE2 variant in README
 	* Fix typo in macro name
+	* Clean up #include statements
 
 2024-06-15 Walter Doekes <walter+github@wjd.nu>
 	* Fix escacped typo

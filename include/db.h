@@ -61,7 +61,7 @@ void free_db_line(db_line* dl);
 #define NODE_MOVED_IN     (1<<12)
 #define NODE_ALLOW_NEW    (1<<13)
 #define NODE_ALLOW_RM	  (1<<14)
-#define NODE_CHECK_INODE_CHILDS (1<<15)
+#define NODE_CHECK_INODE           (1<<15)
 #define NODE_HAS_SUB_RULES         (1<<16)
 #define NODE_PARENT_POSTIVE_MATCH  (1<<17)
 #define NODE_PARENT_NEGATIVE_MATCH (1<<18)

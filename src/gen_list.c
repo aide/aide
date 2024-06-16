@@ -572,10 +572,10 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
       if (db_flags&DB_OLD) {
           if(file->attr & ATTR(attr_checkinode)) {
               log_msg(compare_log_level, "'%s' (inode: %li) has check inode attribute set, set NODE_CHECK_INODE_CHILD for parent '%s'", file->filename, file->inode, (node->parent)->path);
-              (node->parent)->checked |= NODE_CHECK_INODE_CHILDS;
+              (node->parent)->checked |= NODE_CHECK_INODE;
           }
       } else {
-          if( (node->parent)->checked&NODE_CHECK_INODE_CHILDS && node->new_data != NULL ) {
+          if( (node->parent)->checked&NODE_CHECK_INODE && node->new_data != NULL ) {
               log_msg(compare_log_level, "┝ parent directory (%s) of '%s' (inode: %li) has entries with check inode attribute set, search for source file with same inode", (node->parent)->path, (node->new_data)->filename, (node->new_data)->inode);
               seltree* moved_node = NULL;
               for(tree_node *x = tree_walk_first((node->parent)->children); x != NULL ; x = tree_walk_next(x)) {

@@ -158,18 +158,24 @@ static hashsums_file hashsum_open(int filedes, char* fullpath, bool uncompress) 
     }
 }
 
-static size_t hashsum_read(hashsums_file file, void *buf, size_t count) {
-    switch (file.compression) {
+static off_t hashsum_read(hashsums_file file, void *buf, size_t count) {
+    off_t size = -1;
+    do {
+        switch (file.compression) {
         case COMPRESSION_PLAIN:
-             return read(file.fd.plain, buf, count);
+             size = read(file.fd.plain, buf, count);
+             break;
 #ifdef WITH_ZLIB
         case COMPRESSION_GZIP:
-             return gzread(file.fd.gzip, buf, count);
+             size = gzread(file.fd.gzip, buf, count);
+             break;
 #endif
         case COMPRESSION_ERROR:
-             return -1;
-    }
-    return -1;
+             size = -2;
+             break;
+        }
+    } while (size == -1 && errno == EINTR); /* retry on EINTR */
+    return size;
 }
 
 static int hashsum_close(hashsums_file file) {
@@ -250,7 +256,7 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
 #if READ_BLOCK_SIZE>SSIZE_MAX
 #error "READ_BLOCK_SIZE" is too large. Max value is SSIZE_MAX, and current is READ_BLOCK_SIZE
 #endif
-                while ((size=TEMP_FAILURE_RETRY(hashsum_read(file,buf,READ_BLOCK_SIZE)))>0) {
+                while ((size = hashsum_read(file,buf,READ_BLOCK_SIZE)) > 0) {
 
                     off_t update_md_size;
                     if (limit_size > 0 && r_size+size > limit_size) {

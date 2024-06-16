@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2004-2006, 2010-2011, 2019, 2022 Rami Lehti,
+ * Copyright (C) 1999-2002, 2004-2006, 2010-2011, 2019, 2022, 2024 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -24,18 +24,6 @@
 
 #include "config.h"
 #include "db_config.h"
-
-#ifndef TEMP_FAILURE_RETRY
-/* Evaluate EXPRESSION, and repeat as long as it returns -1 with errno'
-   set to EINTR.  */
-
-# define TEMP_FAILURE_RETRY(expression) \
-   (__extension__                                                              \
-     ({ long int __result;                                                     \
-        do __result = (long int) (expression);                                 \
-        while (__result == -1L && errno == EINTR);                             \
-        __result; }))
-#endif
 
 #ifndef O_NOATIME
 #if defined(__linux__) && (defined(__i386__) || defined(__PPC__))

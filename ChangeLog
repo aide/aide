@@ -1,3 +1,6 @@
+2024-07-08 Marc 'Zugschlus' Haber <mh+github@zugschlus.de>
+	* Allow version.sh to accept GIT_VERSION from environment
+
 2024-06-16 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Add non-recursive negative rules (-<regex>)
 	  - change semantic of unrestricted (recursive) negative rules

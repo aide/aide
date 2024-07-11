@@ -20,7 +20,7 @@ jobs:
       - name: update path
         run: echo /opt/homebrew/opt/bison/bin >> ${GITHUB_PATH}
       - name: autoconf
-        run: sh autogen.sh
+        run: autogen.sh
       - name: configure
         run: ./configure
         env:

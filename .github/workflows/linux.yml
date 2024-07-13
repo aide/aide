@@ -18,7 +18,7 @@ jobs:
       - name: Install dependencies
         run: sudo apt install autoconf-archive bison flex libmhash-dev libpcre2-dev zlib1g-dev check
       - name: autoconf
-        run: autogen.sh
+        run: ./autogen.sh
       - name: configure
         run: ./configure
         env:

@@ -569,9 +569,6 @@ Suite *make_seltree_suite(void) {
     tcase_add_test(tc_check_seltree, test_f_type_restricted_deep_selective_rule);
     tcase_add_test(tc_check_seltree, test_f_type_restricted_forbid_root);
 
-    set_log_level(LOG_LEVEL_DEBUG);
-    set_colored_log(false);
-
     suite_add_tcase (s, tc_check_seltree);
 
     return s;

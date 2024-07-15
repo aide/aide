@@ -323,14 +323,7 @@ bool add_rx_rule_to_tree(char* rx, char* rule_prefix, RESTRICTION_TYPE restricti
     }else {
         r->prefix = rule_prefix;
 
-        char *str;
-
-        DB_ATTR_TYPE unsupported_hashes = attr&(get_hashes(true)&~get_hashes(false));
-        if (unsupported_hashes) {
-            LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_WARNING, "ignoring unsupported hash algorithm(s): %s", str = diff_attributes(0, unsupported_hashes));
-            free(str);
-            attr &= ~unsupported_hashes;
-        }
+        attr &= validate_hashes(attr, linenumber, filename, linebuf);
 
         DB_ATTR_TYPE unsupported_attrs = attr&
             (0
@@ -352,6 +345,7 @@ bool add_rx_rule_to_tree(char* rx, char* rule_prefix, RESTRICTION_TYPE restricti
             )
             ;
         if (unsupported_attrs) {
+            char *str;
             LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_WARNING, "ignoring not compiiled-in attribute(s): %s", str = diff_attributes(0, unsupported_attrs));
             free(str);
             attr &= ~unsupported_attrs;

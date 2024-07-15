@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002,2004,2006,2019-2020,2021,2023 Rami Lehti,
+ * Copyright (C) 1999-2002,2004,2006,2019-2020,2021,2023,2024 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -70,6 +70,9 @@ typedef enum {
    attr_stribog512,
    attr_growing,
    attr_compressed,
+   attr_sha512_256,
+   attr_sha3_256,
+   attr_sha3_512,
    attr_unknown
 } ATTRIBUTE;
 

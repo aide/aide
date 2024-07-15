@@ -22,7 +22,15 @@
 #ifndef _DB_DISK_H_INCLUDED
 #define _DB_DISK_H_INCLUDED
 
+#include "attributes.h"
 #include <stdbool.h>
+
+typedef struct disk_entry {
+    char *filename;
+    DB_ATTR_TYPE attr;
+    DB_ATTR_TYPE extra_hashsums;
+    struct stat fs;
+} disk_entry;
 
 void db_scan_disk(bool);
 

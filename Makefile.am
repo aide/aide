@@ -73,7 +73,7 @@ aide_CFLAGS = @AIDE_DEFS@ -I$(top_srcdir)/include -W -Wall -g \
 			${E2FSATTRS_CFLAGS} \
 			${ELF_CFLAGS} \
 			${GCRYPT_CFLAGS} \
-			${MHASH_CFLAGS} \
+			${NETTLE_CFLAGS} \
 			${PCRE2_CFLAGS} \
 			${POSIX_ACL_CFLAGS} \
 			${PTHREAD_CFLAGS} \
@@ -87,7 +87,7 @@ aide_LDADD = -lm \
 			${E2FSATTRS_LIBS} \
 			${ELF_LIBS} \
 			${GCRYPT_LIBS} \
-			${MHASH_LIBS} \
+			${NETTLE_LIBS} \
 			${PCRE2_LIBS} \
 			${POSIX_ACL_LIBS} \
 			${PTHREAD_LIBS} \
@@ -101,18 +101,19 @@ check_PROGRAMS		= check_aide
 check_aide_SOURCES	= tests/check_aide.c tests/check_aide.h \
 					  tests/check_attributes.c src/attributes.c \
 					  tests/check_base64.c src/base64.c \
+					  tests/check_hashsum.c src/hashsum.c \
 					  tests/check_seltree.c src/seltree.c \
 					  tests/check_progress.c \
-					  src/log.c src/util.c src/list.c src/tree.c src/rx_rule.c
+					  src/md.c src/log.c src/util.c src/list.c src/tree.c src/rx_rule.c
 check_aide_CFLAGS	= -I$(top_srcdir)/include \
 				$(CHECK_CFLAGS) \
 				${GCRYPT_CFLAGS} \
-				${MHASH_CFLAGS} \
+				${NETTLE_CFLAGS} \
 				${PCRE2_CFLAGS}
 check_aide_LDADD	= -lm \
 				$(CHECK_LIBS) \
 				${GCRYPT_LIBS} \
-				${MHASH_LIBS} \
+				${NETTLE_LIBS} \
 				${PCRE2_LIBS}
 endif # HAVE_CHECK
 

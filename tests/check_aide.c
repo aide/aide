@@ -21,15 +21,23 @@
 #include <stdlib.h>
 
 #include "check_aide.h"
+#include "hashsum.h"
+#include "log.h"
 
 int main (void) {
     int number_failed;
     SRunner *sr;
 
+    init_hashsum_lib();
+
     sr = srunner_create (make_attributes_suite());
     srunner_add_suite(sr, make_base64_suite());
     srunner_add_suite(sr, make_progress_suite());
     srunner_add_suite(sr, make_seltree_suite());
+    srunner_add_suite(sr, make_hashsum_suite());
+
+    set_log_level(LOG_LEVEL_DEBUG);
+    set_colored_log(false);
 
     srunner_run_all (sr, CK_NORMAL);
     number_failed = srunner_ntests_failed (sr);

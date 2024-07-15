@@ -39,6 +39,7 @@
 #include "util.h"
 #include "queue.h"
 #include "errorcodes.h"
+#include "seltree_struct.h"
 
 #include <pthread.h>
 
@@ -74,45 +75,53 @@ static char *name_construct (const char *dirpath, const char *filename) {
     return ret;
 }
 
-typedef struct scan_dir_entry {
-    char *filename;
-    DB_ATTR_TYPE attr;
-    struct stat fs;
-} scan_dir_entry;
-
 typedef struct database_entry {
     db_line *line;
     struct stat fs;
 } database_entry;
 
-static void handle_matched_file(char *entry_full_path, DB_ATTR_TYPE attr, struct stat fs) {
-    char *filename = checked_strdup(entry_full_path); /* not te be freed, reused as fullname in db_line */;
+static void handle_matched_file(disk_entry *disk_file) {
+    DB_ATTR_TYPE transition_hashsums = 0LL;
+    if (conf->action&DO_COMPARE && disk_file->attr&get_hashes(false)) {
+        const seltree *node = get_seltree_node(conf->tree, &disk_file->filename[conf->root_prefix_length]);
+        if (node && node->old_data) {
+            transition_hashsums = get_transition_hashsums(
+                    (node->old_data)->filename, (node->old_data)->attr,
+                    &disk_file->filename[conf->root_prefix_length], disk_file->attr
+                );
+        }
+    }
+    disk_entry *file = checked_malloc(sizeof(disk_entry)); /* freed in file_attrs_worker else below */
+    file->filename = checked_strdup(disk_file->filename); /* not te be freed, reused as fullname in db_line */
+    file->attr = disk_file->attr;
+    file->fs = disk_file->fs;
+    file->extra_hashsums = transition_hashsums;
+
     if (conf->num_workers) {
-        scan_dir_entry *data;
-        data = checked_malloc(sizeof(scan_dir_entry)); /* freed in file_attrs_worker */
-        data->filename = filename;
-        data->attr = attr;
-        data->fs = fs;
-        log_msg(LOG_LEVEL_THREAD, "%10s: scan_dir: add entry %p to list of worker files (filename: '%s' (%p))", whoami_main,  (void*) data, data->filename, (void*) data->filename);
-        queue_ts_enqueue(queue_worker_files, data, whoami_main);
+        log_msg(LOG_LEVEL_THREAD, "%10s: scan_dir: add entry %p to list of worker files (filename: '%s' (%p))", whoami_main,  (void*) file, file->filename, (void*) file->filename);
+        queue_ts_enqueue(queue_worker_files, file, whoami_main);
     } else {
-        db_line *line = get_file_attrs(filename, attr, &fs);
-        add_file_to_tree(conf->tree, line, DB_NEW|DB_DISK, NULL, &fs);
+        db_line *line = get_file_attrs(file);
+        add_file_to_tree(conf->tree, line, DB_NEW|DB_DISK, NULL, &file->fs);
+        free(file);
     }
 }
 
 void scan_dir(char *root_path, bool dry_run) {
     char* full_path;
-    struct stat fs;
+    disk_entry disk_file;
 
     log_msg(LOG_LEVEL_DEBUG,"scan_dir: process root directory '%s' (fullpath: '%s')", &root_path[conf->root_prefix_length], root_path);
-    if (!get_file_status(root_path, &fs)) {
-        match_t path_match = check_rxtree (&root_path[conf->root_prefix_length], conf->tree, get_restriction_from_perm(fs.st_mode), "disk", false);
+
+    disk_file.filename = root_path;
+    if (!get_file_status(root_path, &disk_file.fs)) {
+        match_t path_match = check_rxtree (&root_path[conf->root_prefix_length], conf->tree, get_restriction_from_perm(disk_file.fs.st_mode), "disk", false);
         if (dry_run) {
-            print_match(&root_path[conf->root_prefix_length], path_match, get_restriction_from_perm(fs.st_mode));
+            print_match(&root_path[conf->root_prefix_length], path_match, get_restriction_from_perm(disk_file.fs.st_mode));
         }
         if (!dry_run && path_match.result&(RESULT_EQUAL_MATCH|RESULT_SELECTIVE_MATCH)) {
-            handle_matched_file(root_path, path_match.rule->attr, fs);
+            disk_file.attr = path_match.rule->attr;
+            handle_matched_file(&disk_file);
         }
         if (path_match.result & (RESULT_NO_RULE_MATCH|RESULT_NON_RECURSIVE_NEGATIVE_MATCH|RESULT_PART_LIMIT_AND_NO_RECURSE_MATCH)) {
             return;
@@ -138,43 +147,45 @@ void scan_dir(char *root_path, bool dry_run) {
                     char *entry_full_path = name_construct(full_path, entp->d_name);
                     bool free_entry_full_path = true;
                     log_msg(log_level, "scan_dir: process child directory '%s' (fullpath: '%s')", &entry_full_path[conf->root_prefix_length], entry_full_path);
-                    if (!get_file_status(entry_full_path, &fs)) {
-                        match_t path_match = check_rxtree (&entry_full_path[conf->root_prefix_length], conf->tree, get_restriction_from_perm(fs.st_mode), "disk", false);
+                    disk_file.filename = entry_full_path;
+                    if (!get_file_status(entry_full_path, &disk_file.fs)) {
+                        match_t path_match = check_rxtree (&entry_full_path[conf->root_prefix_length], conf->tree, get_restriction_from_perm(disk_file.fs.st_mode), "disk", false);
                         switch (path_match.result) {
                             case RESULT_SELECTIVE_MATCH:
                             case RESULT_EQUAL_MATCH:
-                                if (S_ISDIR(fs.st_mode)) {
+                                if (S_ISDIR(disk_file.fs.st_mode)) {
                                     log_msg(log_level, "scan_dir: add child directory '%s' to scan stack (reason: selective/equal match)", &entry_full_path[conf->root_prefix_length]);
                                     queue_enqueue(stack, entry_full_path);
                                     free_entry_full_path = false;
                                 }
                                 if (!dry_run) {
-                                    handle_matched_file(entry_full_path, path_match.rule->attr, fs);
+                                    disk_file.attr = path_match.rule->attr;
+                                    handle_matched_file(&disk_file);
                                 }
                                 break;
                             case RESULT_PARTIAL_MATCH:
-                                if (S_ISDIR(fs.st_mode)) {
+                                if (S_ISDIR(disk_file.fs.st_mode)) {
                                     log_msg(log_level, "scan_dir: add child directory '%s' to scan stack (reason: partial match)", &entry_full_path[conf->root_prefix_length]);
                                     queue_enqueue(stack, entry_full_path);
                                     free_entry_full_path = false;
                                 }
                                 break;
                             case RESULT_RECURSIVE_NEGATIVE_MATCH:
-                                if (S_ISDIR(fs.st_mode)) {
+                                if (S_ISDIR(disk_file.fs.st_mode)) {
                                     log_msg(log_level, "scan_dir: add child directory '%s' to scan stack (reason: recursive negative match)", &entry_full_path[conf->root_prefix_length]);
                                     queue_enqueue(stack, entry_full_path);
                                     free_entry_full_path = false;
                                 }
                                 break;
                             case RESULT_PARTIAL_LIMIT_MATCH:
-                                if(S_ISDIR(fs.st_mode)) {
+                                if(S_ISDIR(disk_file.fs.st_mode)) {
                                     log_msg(log_level, "scan_dir: add child directory '%s' to scan stack (reason: partial limit match)", &entry_full_path[conf->root_prefix_length]);
                                     queue_enqueue(stack, entry_full_path);
                                     free_entry_full_path = false;
                                 }
                                 break;
                             case RESULT_NON_RECURSIVE_NEGATIVE_MATCH:
-                                if(S_ISDIR(fs.st_mode)) {
+                                if(S_ISDIR(disk_file.fs.st_mode)) {
                                     log_msg(log_level, "scan_dir: do NOT add child directory '%s' to scan stack (reason: non-recursive negative match)", &entry_full_path[conf->root_prefix_length]);
                                 }
                                 break;
@@ -185,7 +196,7 @@ void scan_dir(char *root_path, bool dry_run) {
                                 break;
                         }
                         if (dry_run) {
-                            print_match(&entry_full_path[conf->root_prefix_length], path_match, get_restriction_from_perm(fs.st_mode));
+                            print_match(&entry_full_path[conf->root_prefix_length], path_match, get_restriction_from_perm(disk_file.fs.st_mode));
                         }
                     }
                     if (free_entry_full_path) {
@@ -259,11 +270,11 @@ static void * file_attrs_worker( __attribute__((unused)) void *arg) {
 
     while (1) {
         log_msg(LOG_LEVEL_THREAD, "%10s: file_attrs_worker: check/wait for files", whoami);
-        scan_dir_entry *data = queue_ts_dequeue_wait(queue_worker_files, whoami);
+        disk_entry *data = queue_ts_dequeue_wait(queue_worker_files, whoami);
         if (data) {
             log_msg(LOG_LEVEL_THREAD, "%10s: file_attrs_workers: got entry %p from list of files (filename: '%s' (%p))", whoami, (void*) data, data->filename, (void*) data->filename);
 
-            db_line *line = get_file_attrs (data->filename, data->attr, &data->fs);
+            db_line *line = get_file_attrs(data);
             database_entry *db_data;
             db_data = checked_malloc(sizeof(database_entry)); /* freed in db_scan_disk */
             db_data->line = line;

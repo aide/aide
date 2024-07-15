@@ -628,6 +628,9 @@ int db_writeline_file(db_line* line,db_config* dbconf, url_t* url){
     WRITE_HASHSUM(sha256)
     WRITE_HASHSUM(sha512)
     WRITE_HASHSUM(whirlpool)
+    WRITE_HASHSUM(sha512_256)
+    WRITE_HASHSUM(sha3_256)
+    WRITE_HASHSUM(sha3_512)
     case attr_attr : {
       db_write_attr(line->attr, dbconf->database_out.fp,i);
       break;

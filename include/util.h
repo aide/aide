@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2006, 2013, 2020-2023 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002, 2006, 2013, 2020-2024 Rami Lehti, Pablo Virolainen,
  *               Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -99,6 +99,8 @@ char *get_progress_bar_string(const char *, const char *, long unsigned, long un
 char* perm_to_char(mode_t perm);
 
 char *expand_tilde(char * path);
+
+char* byte_to_base16(const byte*, size_t);
 
 char* pipe2string(int);
 

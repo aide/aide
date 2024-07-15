@@ -175,12 +175,7 @@ static void set_database_attr_option(DB_ATTR_TYPE attr, int linenumber, char *fi
             free(str);
             exit(INVALID_CONFIGURELINE_ERROR);
         }
-        DB_ATTR_TYPE unsupported_hashes = attr&(get_hashes(true)&~get_hashes(false));
-        if (unsupported_hashes) {
-            LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_WARNING, "ignoring unsupported hash algorithm(s): %s", str = diff_attributes(0, unsupported_hashes));
-            free(str);
-            attr &= ~unsupported_hashes;
-        }
+        attr &= validate_hashes(attr, linenumber, filename, linebuf);
         LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, "set 'database_attrs' option to: %s", str = diff_attributes(0, attr));
         free(str);
         conf->db_attrs = attr;

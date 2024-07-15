@@ -311,6 +311,9 @@ db_line* db_char2line(char** ss, database* db){
     CHAR2HASH(gostr3411_94)
     CHAR2HASH(stribog256)
     CHAR2HASH(stribog512)
+    CHAR2HASH(sha512_256)
+    CHAR2HASH(sha3_256)
+    CHAR2HASH(sha3_512)
     case attr_acl : {
 #ifdef WITH_POSIX_ACL
       char *tval = NULL;

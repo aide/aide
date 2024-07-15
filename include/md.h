@@ -23,8 +23,14 @@
 #define _MD_H_INCLUDED
 
 #include "config.h"
-#ifdef WITH_MHASH
-#include <mhash.h>
+#ifdef WITH_NETTLE
+#include <nettle/md5.h>
+#include <nettle/sha1.h>
+#include <nettle/sha2.h>
+#include <nettle/sha3.h>
+#include <nettle/ripemd160.h>
+#include <nettle/gosthash94.h>
+#include <nettle/streebog.h>
 #endif
 #ifdef WITH_GCRYPT
 #include <gcrypt.h>
@@ -32,6 +38,7 @@
 #include <sys/types.h>
 #include "attributes.h"
 #include "hashsum.h"
+#include "util.h"
 struct db_line;
 
 /*
@@ -53,8 +60,20 @@ typedef struct md_container {
   /*
     Variables needed to cope with the library.
    */
-#ifdef WITH_MHASH
-  MHASH mhash_mdh[num_hashes];
+#ifdef WITH_NETTLE
+      union {
+          struct md5_ctx md5;
+          struct sha1_ctx sha1;
+          struct sha256_ctx sha256;
+          struct sha512_ctx sha512;
+          struct ripemd160_ctx ripemd160;
+          struct gosthash94_ctx gosthash94;
+          struct streebog256_ctx streebog256;
+          struct streebog512_ctx streebog512;
+          struct sha512_256_ctx sha512_256;
+          struct sha3_512_ctx sha3_256;
+          struct sha3_256_ctx sha3_512;
+      } ctx[num_hashes];
 #endif
 
 #ifdef WITH_GCRYPT
@@ -72,5 +91,7 @@ int init_md(struct md_container*, const char*);
 int update_md(struct md_container*,void*,ssize_t);
 int close_md(struct md_container*, md_hashsums *, const char*);
 void hashsums2line(md_hashsums*, struct db_line*);
+
+DB_ATTR_TYPE copy_hashsums(char *, md_hashsums *, byte* (*)[num_hashes]);
 
 #endif /*_MD_H_INCLUDED*/

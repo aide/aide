@@ -31,14 +31,46 @@
 #include "log.h"
 #include "md.h"
 #include "util.h"
-
-#ifdef WITH_MHASH
-#include <mhash.h>
-#endif
+#include "errorcodes.h"
 
 #ifdef WITH_GCRYPT
 #include <gcrypt.h>
-#include "errorcodes.h"
+#endif
+
+#ifdef WITH_NETTLE
+#include <nettle/nettle-types.h>
+#include <nettle/md5.h>
+#include <nettle/sha1.h>
+#include <nettle/sha2.h>
+#include <nettle/sha3.h>
+#include <nettle/ripemd160.h>
+#include <nettle/gosthash94.h>
+#include <nettle/streebog.h>
+
+typedef struct {
+  nettle_hash_init_func *init;
+  nettle_hash_update_func *update;
+  nettle_hash_digest_func *digest;
+} nettle_fucntions_t;
+
+nettle_fucntions_t nettle_functions[] = {  /* order must match hashsums array */
+    { (nettle_hash_init_func*) md5_init,    (nettle_hash_update_func*) md5_update,    (nettle_hash_digest_func*) md5_digest    },
+    { (nettle_hash_init_func*) sha1_init,   (nettle_hash_update_func*) sha1_update,   (nettle_hash_digest_func*) sha1_digest   },
+    { (nettle_hash_init_func*) sha256_init, (nettle_hash_update_func*) sha256_update, (nettle_hash_digest_func*) sha256_digest },
+    { (nettle_hash_init_func*) sha512_init, (nettle_hash_update_func*) sha512_update, (nettle_hash_digest_func*) sha512_digest },
+    { (nettle_hash_init_func*) ripemd160_init, (nettle_hash_update_func*) ripemd160_update, (nettle_hash_digest_func*) ripemd160_digest },
+    { NULL,                                 NULL,                                     NULL                                     },
+    { NULL,                                 NULL,                                     NULL                                     },
+    { NULL,                                 NULL,                                     NULL                                     },
+    { NULL,                                 NULL,                                     NULL                                     },
+    { NULL,                                 NULL,                                     NULL                                     },
+    { (nettle_hash_init_func*) gosthash94_init, (nettle_hash_update_func*) gosthash94_update, (nettle_hash_digest_func*) gosthash94_digest },
+    { (nettle_hash_init_func*) streebog256_init, (nettle_hash_update_func*) streebog256_update, (nettle_hash_digest_func*) streebog256_digest },
+    { (nettle_hash_init_func*) streebog512_init, (nettle_hash_update_func*) streebog512_update, (nettle_hash_digest_func*) streebog512_digest },
+    { (nettle_hash_init_func*) sha512_256_init, (nettle_hash_update_func*) sha512_256_update, (nettle_hash_digest_func*) sha512_256_digest },
+    { (nettle_hash_init_func*) sha3_256_init, (nettle_hash_update_func*) sha3_256_update, (nettle_hash_digest_func*) sha3_256_digest },
+    { (nettle_hash_init_func*) sha3_512_init, (nettle_hash_update_func*) sha3_512_update, (nettle_hash_digest_func*) sha3_512_digest },
+};
 #endif
 
 /*
@@ -57,22 +89,15 @@ int init_md(struct md_container* md, const char *filename) {
     We don't have calculator for this yet :)
   */
   md->calc_attr=0;
-#ifdef WITH_MHASH
+#ifdef WITH_NETTLE
    for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
        DB_ATTR_TYPE h = ATTR(hashsums[i].attribute);
        if (h&md->todo_attr) {
-           md->mhash_mdh[i]=mhash_init(algorithms[i]);
-           if (md->mhash_mdh[i]!=MHASH_FAILED) {
-               md->calc_attr|=h;
-           } else {
-               log_msg(LOG_LEVEL_WARNING,"%s: mhash_init (%s) failed for '%s'", filename, attributes[hashsums[i].attribute].db_name, filename);
-               md->todo_attr&=~h;
-           }
-       } else {
-           md->mhash_mdh[i]=MHASH_FAILED;
+           nettle_functions[i].init(&md->ctx[i]);
+           md->calc_attr|=h;
        }
    }
-#endif 
+#endif
 #ifdef WITH_GCRYPT
 	if(gcry_md_open(&md->mdh,0,0)!=GPG_ERR_NO_ERROR){
 		log_msg(LOG_LEVEL_ERROR,"gcrypt_md_open failed");
@@ -111,13 +136,14 @@ int update_md(struct md_container* md,void* data,ssize_t size) {
   }
 #endif
 
-#ifdef WITH_MHASH
-  for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
-      if(md->mhash_mdh[i] != MHASH_FAILED){
-          mhash(md->mhash_mdh[i], data, size);
-      }
-  }
-#endif /* WITH_MHASH */
+#ifdef WITH_NETTLE
+   for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
+       DB_ATTR_TYPE h = ATTR(hashsums[i].attribute);
+       if (h&md->calc_attr) {
+           nettle_functions[i].update(&md->ctx[i], size, data);
+       }
+   }
+#endif
 #ifdef WITH_GCRYPT
 	gcry_md_write(md->mdh, data, size);
 #endif
@@ -136,13 +162,6 @@ int close_md(struct md_container* md, md_hashsums * hs, const char *filename) {
   }
 #endif
   log_msg(LOG_LEVEL_DEBUG, "%s> free md_container (%p)", filename, (void*) md);
-#ifdef WITH_MHASH
-  for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
-      if(md->mhash_mdh[i] != MHASH_FAILED){
-          mhash(md->mhash_mdh[i], NULL, 0);
-      }
-  }
-#endif /* WITH_MHASH */
 #ifdef WITH_GCRYPT
   gcry_md_final(md->mdh); 
 
@@ -157,10 +176,13 @@ int close_md(struct md_container* md, md_hashsums * hs, const char *filename) {
   gcry_md_reset(md->mdh);
 #endif  
 
-#ifdef WITH_MHASH
-  for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
-      if(md->mhash_mdh[i]!=MHASH_FAILED){
-          mhash_deinit(md->mhash_mdh[i],hs?hs->hashsums[i]:NULL);
+#ifdef WITH_NETTLE
+  if (hs) {
+      for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
+          DB_ATTR_TYPE h = ATTR(hashsums[i].attribute);
+          if (h&md->calc_attr) {
+              nettle_functions[i].digest(&md->ctx[i].md5, hashsums[i].length, hs->hashsums[i]);
+          }
       }
   }
 #endif
@@ -168,6 +190,24 @@ int close_md(struct md_container* md, md_hashsums * hs, const char *filename) {
       hs->attrs = md->calc_attr;
   }
   return RETOK;
+}
+
+DB_ATTR_TYPE copy_hashsums(char *context, md_hashsums *hs, byte* (*target)[num_hashes]) {
+    DB_ATTR_TYPE disabled_hashsums = 0LL;
+    for (int i = 0 ; i < num_hashes ; ++i) {
+        DB_ATTR_TYPE attr = ATTR(hashsums[i].attribute);
+        if (hs->attrs&attr) {
+            (*target)[i] = checked_malloc(hashsums[i].length);
+            memcpy((*target)[i],hs->hashsums[i],hashsums[i].length);
+            char* hashsum_str = encode_base64((*target)[i], hashsums[i].length);
+            log_msg(LOG_LEVEL_TRACE, "%s: copy %s hashsum (%s) to %p", context, attributes[hashsums[i].attribute].db_name, hashsum_str, (void*) (*target)[i]);
+            free (hashsum_str);
+        } else {
+            disabled_hashsums |= attr;
+            (*target)[i] = NULL;
+        }
+    }
+    return disabled_hashsums;
 }
 
 /*
@@ -182,22 +222,6 @@ void hashsums2line(md_hashsums *hs, struct db_line* line) {
   }
 #endif
 
-   for (int i = 0 ; i < num_hashes ; ++i) {
-       DB_ATTR_TYPE attr = ATTR(hashsums[i].attribute);
-       if (line->attr&attr) {
-           if (hs->attrs&attr) {
-               line->hashsums[i] = checked_malloc(hashsums[i].length);
-               memcpy(line->hashsums[i],hs->hashsums[i],hashsums[i].length);
-               char* hashsum_str = encode_base64(hs->hashsums[i], hashsums[i].length);
-               log_msg(LOG_LEVEL_TRACE, "%s: copy %s hashsum (%s) to %p", line->filename, attributes[hashsums[i].attribute].db_name, hashsum_str, (void*) line->hashsums[i]);
-               free (hashsum_str);
-           } else {
-               line->attr&=~attr;
-               line->hashsums[i] = NULL;
-           }
-       } else {
-            line->hashsums[i] = NULL;
-        }
-   }
+  line->attr &= ~(copy_hashsums(line->filename, hs, &line->hashsums));
 
 }

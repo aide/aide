@@ -67,11 +67,6 @@ char* after = NULL;
 #define MAXHOSTNAMELEN 256
 #endif
 
-#ifdef WITH_GCRYPT
-#include <gcrypt.h>
-#define NEED_LIBGCRYPT_VERSION "1.8.0"
-#endif
-
 static void usage(int exitvalue)
 {
   fprintf(stdout,
@@ -118,18 +113,6 @@ static void init_sighandler(void)
   signal(SIGUSR1,sig_handler);
 
   return;
-}
-
-static void init_crypto_lib(void) {
-/* libmhash does not need to be initialized */
-#ifdef WITH_GCRYPT
-  if(!gcry_check_version(NEED_LIBGCRYPT_VERSION)) {
-      log_msg(LOG_LEVEL_ERROR, "libgcrypt is too old (need %s, have %s)", NEED_LIBGCRYPT_VERSION, gcry_check_version (NULL));
-      exit(VERSION_MISMATCH_ERROR);
-  }
-  gcry_control(GCRYCTL_DISABLE_SECMEM, 0);
-  gcry_control(GCRYCTL_INITIALIZATION_FINISHED, 0);
-#endif
 }
 
 static void sig_handler(int signum)
@@ -570,18 +553,8 @@ static void setdefaults_before_config(void)
   DB_ATTR_TYPE common_attrs = ATTR(attr_perm)|ATTR(attr_ftype)|ATTR(attr_inode)|ATTR(attr_linkcount)|ATTR(attr_uid)|ATTR(attr_gid);
 
   DB_ATTR_TYPE GROUP_R_HASHES=0LLU;
-#ifdef WITH_MHASH
-  GROUP_R_HASHES=ATTR(attr_md5);
-#endif
-#ifdef WITH_GCRYPT
-  if (gcry_fips_mode_active()) {
-    char* str;
-    log_msg(LOG_LEVEL_NOTICE, "libgcrypt is running in FIPS mode, the following hash(es) are not available: %s", str = diff_attributes(0, ATTR(attr_md5)));
-    free(str);
-  } else {
-    GROUP_R_HASHES = ATTR(attr_md5);
-  }
-#endif
+
+  GROUP_R_HASHES=ATTR(attr_sha3_256);
 
   log_msg(LOG_LEVEL_INFO, "define default groups definitions");
   do_groupdef("R",common_attrs|ATTR(attr_size)|ATTR(attr_linkname)|ATTR(attr_mtime)|ATTR(attr_ctime)|GROUP_R_HASHES|X);
@@ -701,7 +674,7 @@ int main(int argc,char**argv)
       }
   }
 
-  init_crypto_lib();
+  init_hashsum_lib();
 
   /* get hostname */
   conf->hostname = checked_malloc(sizeof(char) * MAXHOSTNAMELEN + 1);

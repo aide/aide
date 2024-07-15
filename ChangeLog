@@ -1,3 +1,13 @@
+2024-07-15 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Switch from libmhash to libnettle (closes: #150, #164)
+	  - add 'sha512_256', sha3_256, and 'sha3_512' hashsums
+	  - switch hashsum in R default group from md5 to sha3_256
+	  - deprecate legacy hashsums (md5, sha1, rmd160, gost)
+	  - remove unsupported hashsums (haval, crc32, crc32b, tiger,
+	    whirlpool)
+	  - add limited support for hashsum transitions
+	  - add check_hashsum unit test
+
 2024-07-11 Zopolis4 <creatorsmithmdt@gmail.com>
 	* Set autogen.sh and version.sh as executable	
 

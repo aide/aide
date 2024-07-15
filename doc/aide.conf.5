@@ -408,7 +408,7 @@ See ATTRIBUTES for a description of all available attributes.
 .B Default groups
 .TP
 .B "R"
-p+ftype+i+l+n+u+g+s+m+c+md5+X
+p+ftype+i+l+n+u+g+s+m+c+sha3_256+X
 .TP
 .B "L"
 p+ftype+i+l+n+u+g+X
@@ -830,7 +830,7 @@ uncompressed file in the old database.
 The old uncompressed and the new compressed file have to be located in the same
 directory and must share the same attributes (except for special attributes
 \fBANF\fR, \fBARF\fR, \fBI\fR, \fBgrowing\fR, and \fBcompressed\fR) including at least
-one hashsum.
+one common hashsum.
 
 Changes of the \fBinode\fR, \fBsize\fR, \fBbcount\fR and \fBctime\fR attributes are ignored.
 
@@ -853,14 +853,10 @@ When 'ARF' is used, files missing on disk are omitted from the new database,
 but are ignored in the report.
 .PP
 
-.B Hashsums attributes
-.TP
-.B "md5"
-MD5 checksum
-(not in \fIlibgcrypt\fR FIPS mode)
-.TP
-.B "sha1"
-SHA-1 checksum
+.B Hashsums attributes (calculated for regular files)
+
+.RS 3
+
 .TP
 .B "sha256"
 SHA-256 checksum
@@ -868,39 +864,60 @@ SHA-256 checksum
 .B "sha512"
 SHA-512 checksum
 .TP
-.B "rmd160"
+.IP "\fBsha512_256\fR (added in AIDE v0.19)"
+SHA-512 checksum truncated to 256 output bits
+.TP
+.IP "\fBsha3_256\fR (added in AIDE v0.19)"
+SHA3-256 checksum
+.TP
+.IP "\fBsha3_512\fR (added in AIDE v0.19)"
+SHA3-512 checksum
+.TP
+.IP "\fBstribog256\fR (added in AIDE v0.17)"
+GOST R 34.11-2012, 256 bit checksum
+.TP
+.IP "\fBstribog512\fR (added in AIDE v0.17)"
+GOST R 34.11-2012, 512 bit checksum
+.TP
+.IP "md5 (\fBDEPRECATED\fR since AIDE v0.19, will be removed in AIDE v0.21)"
+MD5 checksum
+(not in \fIlibgcrypt\fR FIPS mode)
+.TP
+.IP "sha1 (\fBDEPRECATED\fR since AIDE v0.19, will be removed in AIDE v0.21)"
+SHA-1 checksum
+.TP
+.IP "rmd160 (\fBDEPRECATED\fR since AIDE v0.19, will be removed in AIDE v0.21)"
 RIPEMD-160 checksum
 .TP
-.B "tiger"
-tiger checksum
-.TP
-.B "haval"
-haval256 checksum
-(\fIlibmhash\fR only)
-.TP
-.B "crc32"
-crc32 checksum
-.TP
-.B "crc32b"
-crc32 checksum
-(\fIlibmhash\fR only)
-.TP
-.B "gost"
+.IP "gost (\fBDEPRECATED\fR since AIDE v0.19, will be removed in AIDE v0.21)"
 GOST R 34.11-94 checksum
 .TP
-.B "whirlpool"
+.IP "crc32 (\fBREMOVED\fR in AIDE v0.19)"
+crc32 checksum
+.TP
+.IP "crc32b (\fBREMOVED\fR in AIDE v0.19)"
+crc32 checksum
+.TP
+.IP "haval (\fBREMOVED\fR in AIDE v0.19)"
+haval256 checksum
+.TP
+.IP "tiger (\fBREMOVED\fR in AIDE v0.19)"
+tiger checksum
+.TP
+.IP "whirlpool (\fBREMOVED\fR in AIDE v0.19)"
 whirlpool checksum
-.TP
-.B "stribog256"
-GOST R 34.11-2012, 256 bit checksum
-(\fIlibgcrypt\fR only, added in AIDE v0.17)
-.TP
-.B "stribog512"
-GOST R 34.11-2012, 512 bit checksum
-(\fIlibgcrypt\fR only, added in AIDE v0.17)
 .PP
 
 Use 'aide --version' to show which hashsums are available.
+
+.B Hashsum transitions (since AIDE v0.19):
+
+AIDE has limited support for hashsum transitions (i.e. ensuring hashsum
+validation when hashsums are added/removed from existing entries). If
+both the old and the new entry do mot share common hashsum(s) AIDE tries to
+additonally calculate the removed hashsum(s) also for the new entry (this is
+especieally not supported for moved (\fBI\fR attribute) and compressed
+(\fBcompressed\fR attribute) entries).
 
 .RE
 

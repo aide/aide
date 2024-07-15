@@ -340,34 +340,27 @@ AIDE_PKG_CHECK(e2fsattrs, e2fsattrs, no, E2FSATTRS, e2p, e2fsattrs)
 
 AIDE_PKG_CHECK(curl, cURL, no, CURL, libcurl)
 
-AC_MSG_CHECKING(for Mhash)
-AC_ARG_WITH([mhash], AS_HELP_STRING([--with-mhash], [use Mhash (default: check)]), [with_mhash=$withval], [with_mhash=check])
-AC_MSG_RESULT([$with_mhash])
+AC_MSG_CHECKING(for Nettle)
+AC_ARG_WITH([nettle], AS_HELP_STRING([--with-nettle], [use Nettle crypto library (default: check)]), [with_nettle=$withval], [with_nettle=check])
+AC_MSG_RESULT([$with_nettle])
 
 AC_MSG_CHECKING(for GNU crypto library)
 AC_ARG_WITH([gcrypt], AS_HELP_STRING([--with-gcrypt], [use GNU crypto library (default: check)]), [with_gcrypt=$withval], [with_gcrypt=check])
 AC_MSG_RESULT([$with_gcrypt])
 
-AIDE_PKG_CHECK_MODULES_OPTIONAL(mhash, MHASH, mhash)
-AS_IF([test x"$with_mhash" = xyes], [
-    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-        [[#include <mhash.h>
-        int i=MHASH_WHIRLPOOL;
-        ]]
-    )],AC_DEFINE(HAVE_MHASH_WHIRLPOOL,1,[mhash has whirlpool]))
-    AS_IF([test x"$with_gcrypt" = xcheck], [
-    with_gcrypt=no
-    ])
-])
+AIDE_PKG_CHECK_MODULES_OPTIONAL(nettle, NETTLE, nettle)
+AS_IF([test x"$with_nettle" = xyes], [
+    AS_IF([test x"$with_gcrypt" = xcheck], [ with_gcrypt=no ])
+] )
 AIDE_PKG_CHECK_MODULES_OPTIONAL(gcrypt, GCRYPT, libgcrypt)
-AS_IF([test x"$with_mhash" != xno && test x"$with_gcrypt" != xno], [
-    AC_MSG_ERROR([Using gcrypt together with mhash makes no sense. To disable mhash use --without-mhash])
+AS_IF([test x"$with_nettle" != xno && test x"$with_gcrypt" != xno], [
+    AC_MSG_ERROR([Using gcrypt together with Nettle makes no sense. To disable nettle use --without-nettle])
 ])
-AS_IF([test x"$with_mhash" = xno && test x"$with_gcrypt" = xno], [
-    AC_MSG_ERROR([AIDE requires mhash or libcrypt for hashsum calculation])
+AS_IF([test x"$with_nettle" = xno && test x"$with_gcrypt" = xno], [
+    AC_MSG_ERROR([AIDE requires nettle or libcrypt for hashsum calculation])
 ])
-compoptionstring="${compoptionstring}use Mhash: $with_mhash\\n"
-AM_CONDITIONAL(HAVE_MHASH, [test "x$MHASH_LIBS" != "x"])
+compoptionstring="${compoptionstring}use Nettle crypto library: $with_nettle\\n"
+AM_CONDITIONAL(HAVE_NETTLE, [test "x$NETTLE_LIBS" != "x"])
 compoptionstring="${compoptionstring}use GNU crypto library: $with_gcrypt\\n"
 AM_CONDITIONAL(HAVE_GCRYPT, [test "x$GCRYPT_LIBS" != "x"])
 

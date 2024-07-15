@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2015,2016,2019-2023 Hannes von Haugwitz
+ * Copyright (C) 2015,2016,2019-2024 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -68,6 +68,9 @@ attributes_t attributes[] = {
     { ATTR(attr_stribog512),     "stribog512",   "STRIBOG512",  "stribog512",   "stribog512",   '\0'  },
     { ATTR(attr_growing),        "growing",      NULL,          NULL,           NULL,           '\0'  },
     { ATTR(attr_compressed),     "compressed",   NULL,          NULL,           NULL,           '\0'  },
+    { ATTR(attr_sha512_256),     "sha512_256",   "SHA512/256",  "sha512_256",   "sha512-256",   '\0'  },
+    { ATTR(attr_sha3_256),       "sha3_256",     "SHA3-256",    "sha3_256",     "sha3-256",     '\0'  },
+    { ATTR(attr_sha3_512),       "sha3_512",     "SHA3-512",    "sha3_512",     "sha3-512",     '\0'  },
 };
 
 DB_ATTR_TYPE num_attrs = sizeof(attributes)/sizeof(attributes_t);

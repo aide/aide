@@ -507,14 +507,6 @@ bool init_report_urls(void) {
     }
     return true;
 }
-static char* byte_to_base16(byte* src, size_t ssize) {
-    char* str = checked_malloc((2*ssize+1) * sizeof (char));
-    size_t i;
-    for(i=0; i < ssize; ++i) {
-        snprintf(&str[2*i], 3, "%02x", src[i]);
-    }
-    return str;
-}
 
 char* get_time_string(const time_t *tm) {
     const char time_format[] = "%Y-%m-%d %H:%M:%S %z";
@@ -567,6 +559,24 @@ snprintf(*values[0], l, "%s",s);
 } else if (a&attr) { \
     *values[0] = get_time_string(&(line->b)); \
 
+    if (line!=NULL && attr&get_hashes(true)) {
+        for (int i = 0 ; i < num_hashes ; ++i) {
+            if (ATTR(hashsums[i].attribute)&attr) {
+                if (line->hashsums[i]) {
+                    *values = checked_malloc(1 * sizeof (char*));
+                    if (r==NULL || r->base16) {
+                        *values[0] = byte_to_base16(line->hashsums[i], hashsums[i].length);
+                    } else {
+                        *values[0] = encode_base64(line->hashsums[i], hashsums[i].length);
+                    }
+                    return 1;
+                } else {
+                    return 0;
+                }
+            }
+        }
+    }
+
     if (ATTR(attr_attr)&attr) {
         return attributes2array(line->attr, values);
     } else
@@ -612,18 +622,6 @@ snprintf(*values[0], l, "%s",s);
             easy_string(line->capabilities)
 #endif
         } else {
-
-  for (int i = 0 ; i < num_hashes ; ++i) {
-    if (ATTR(hashsums[i].attribute)&attr) {
-        if (r==NULL || r->base16) {
-            *values[0] = byte_to_base16(line->hashsums[i], hashsums[i].length);
-        } else {
-            *values[0] = encode_base64(line->hashsums[i], hashsums[i].length);
-        }
-        return 1;
-      }
-  }
-
             easy_string("unknown attribute")
         }
         return 1;

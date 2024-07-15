@@ -26,6 +26,8 @@
 #include "rx_rule.h"
 #include "db_config.h"
 #include "seltree.h"
+#include "db_disk.h"
+
 struct stat;
 
 /* DB_FOO are anded together to form rx_rule's attr */
@@ -42,7 +44,7 @@ void write_tree(seltree*);
 match_t check_rxtree(char*,seltree*, RESTRICTION_TYPE, char *, bool);
 match_result check_limit(char*, bool);
 
-struct db_line* get_file_attrs(char*,DB_ATTR_TYPE, struct stat *);
+struct db_line* get_file_attrs(disk_entry *);
 void add_file_to_tree(seltree*, db_line*, int, const database *, struct stat *);
 
 void print_match(char*, match_t, RESTRICTION_TYPE);

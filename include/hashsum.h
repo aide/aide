@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2020,2022 Hannes von Haugwitz
+ * Copyright (C) 2020,2022,2024 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -43,6 +43,9 @@ typedef enum {
     hash_gostr3411_94,
     hash_stribog256,
     hash_stribog512,
+    hash_sha512_256,
+    hash_sha3_256,
+    hash_sha3_512,
     num_hashes,
 } HASHSUM;
 
@@ -53,6 +56,13 @@ extern hashsum_t hashsums[];
 
 extern int algorithms[];
 
+void init_hashsum_lib(void);
+
 DB_ATTR_TYPE get_hashes(bool);
+
+DB_ATTR_TYPE validate_hashes(DB_ATTR_TYPE, int, char*, char*);
+
+DB_ATTR_TYPE get_transition_hashsums(char *, DB_ATTR_TYPE, char *, DB_ATTR_TYPE);
+DB_ATTR_TYPE get_hashsums_to_ignore(char *, DB_ATTR_TYPE, char *, DB_ATTR_TYPE);
 
 #endif /* _HASHSUM_H_INCLUDED */

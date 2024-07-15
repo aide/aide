@@ -215,6 +215,14 @@ char* encode_string (const char* s)
   return res;
 }
 
+char* byte_to_base16(const byte* src, size_t ssize) {
+    char* str = checked_malloc((2*ssize+1) * sizeof (char));
+    for(size_t i=0; i < ssize; ++i) {
+        snprintf(&str[2*i], 3, "%02x", src[i]);
+    }
+    return str;
+}
+
 char *get_progress_bar_string(const char* state_str, const char* path, long unsigned num_entries, long unsigned num_skipped, int elapsed, int length) {
     char *progress_bar = checked_malloc(length+1);
     int n = 0;

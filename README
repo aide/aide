@@ -22,8 +22,7 @@
 
         o  File attributes monitored: permissions, inode, user, group
            file size, mtime, atime, ctime, links and growing size.
-        o  Checksums and hashes supported: SHA1, MD5, RMD160, and TIGER.
-           CRC32, HAVAL and GOST if Mhash support is compiled in.
+        o  Multiple checksums and hashes supported
         o  Plain text configuration files and database for simplicity.
         o  Rules, variables and macros that can be customized to local
            site or system policies.
@@ -64,11 +63,6 @@
         $ make install
 
     See './configure --help' for the available configuration options.
-
-    For AIX 5.3 it has been reported there is a problem with using mhash
-    which causes an "Undefined symbol: .rpl_malloc" error. This is a problem
-    in mhash_config.h which can be fixed by removing the line that reads
-    #define malloc rpl_malloc
 
     Dynamic versus Static Linking
     -----------------------------
@@ -132,11 +126,7 @@
        o  GNU make.
        o  pkg-config
        o  PCRE2 library (libpcre2-8, library with 8-bit code unit support)
-       o  Mhash (optional, but highly recommended). Mhash is currently
-          available from http://mhash.sourceforge.net/. A static version of
-          libmhash needs to be build using the --enable-static=yes
-          configure option.
-          Aide requires at least mhash version 0.9.2
+       o  libnettle or libgcrypt
 
        o  libcheck (optional, needed for 'make check', license: LGPL-2.1)
 

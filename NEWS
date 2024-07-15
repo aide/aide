@@ -1,5 +1,6 @@
 Version 0.19 (UNRELEASED)
     * BACKWARDS INCOMPATIBLE CHANGES
+        - switch from libmhash to libnettle
         - semantic change of unrestricted negative rules (!<regex>): The
           children and sub-directories of matching directories are no longer
           ignored by default but recursed into and only ignored if they also
@@ -18,6 +19,16 @@ Version 0.19 (UNRELEASED)
         - SIGINT, SIGTERM or SIGHUP are now handled by removing an incompletly
           written database (if file was created by aide) and exiting aide (code 25)
         - move COMPARE log level before RULE log level
+        - remove unsupported hashsums (haval, crc32, crc32b, tiger, whirlpool)
+    * Deprecations (to be removed in the release after next):
+        - md5 hashsum
+        - sha1 hashsum
+        - rmd160 hashsum
+        - gost hashsum
+    * Add limited support for hashsum transitions (see aide.conf(5)
+      for details)
+    * Add 'sha512_256', sha3_256, and 'sha3_512' hashsums
+    * Switch hashsum in default R group from md5 to sha3_256
     * Add progress bar (add '--no-progress' parameter)
     * Add colors to log output (add '--no-color' parameter)
     * Add '--list' command (to list database in human readable format)

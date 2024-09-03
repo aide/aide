@@ -5,8 +5,6 @@ G	[a-zA-Z0-9]
 V	[a-zA-Z_]+[a-zA-Z0-9_]*
 E	[\ ]*"="[\ ]*
 
-O	[a-z_]
-
 %{
 
 #define YYDEBUG 1
@@ -460,7 +458,7 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_DEBUG;
   return (CONFIGOPTION);
 }
 
-<CONFIG>({O})+ {
+<CONFIG>[a-z]+(_[a-z]+)+ {
   log_msg(LOG_LEVEL_ERROR,"%s:%d: unknown config option: '%s' (line: '%s')", conf_filename, conf_linenumber, conftext, conf_linebuf);
   exit(INVALID_CONFIGURELINE_ERROR);
 }

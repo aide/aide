@@ -1,3 +1,6 @@
+2024-09-03 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Fix parsing of lowercase group names (closes: #176)
+
 2024-07-15 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Switch from libmhash to libnettle (closes: #150, #164)
 	  - add 'sha512_256', sha3_256, and 'sha3_512' hashsums

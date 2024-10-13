@@ -45,7 +45,6 @@
 #include "db_line.h"
 #include "db_config.h"
 #include "db_disk.h"
-#include "db_lex.h"
 #include "do_md.h"
 #include "log.h"
 #include "progress.h"
@@ -842,7 +841,6 @@ void populate_tree(seltree* tree)
     if((conf->action&DO_COMPARE)||(conf->action&DO_DIFF)){
         progress_status(PROGRESS_OLDDB, NULL);
         log_msg(LOG_LEVEL_INFO, "read old entries from database: %s:%s", get_url_type_string((conf->database_in.url)->type), (conf->database_in.url)->value);
-        db_lex_buffer(&(conf->database_in));
             while((old=db_readline(&(conf->database_in))) != NULL) {
                 match_t add = check_rxtree(old->filename,tree, get_restriction_from_perm(old->perm), "database_in", true);
                 if (add.result == RESULT_SELECTIVE_MATCH || add.result == RESULT_EQUAL_MATCH) {
@@ -859,12 +857,10 @@ void populate_tree(seltree* tree)
                     old=NULL;
                 }
             }
-            db_lex_delete_buffer(&(conf->database_in));
     }
     if(conf->action&DO_DIFF){
         progress_status(PROGRESS_NEWDB, NULL);
         log_msg(LOG_LEVEL_INFO, "read new entries from database: %s:%s", get_url_type_string((conf->database_new.url)->type), (conf->database_new.url)->value);
-      db_lex_buffer(&(conf->database_new));
       while((new=db_readline(&(conf->database_new))) != NULL){
     match_t add = check_rxtree(new->filename,tree, get_restriction_from_perm(new->perm), "database_new", true);
     if (add.result == RESULT_SELECTIVE_MATCH || add.result == RESULT_EQUAL_MATCH) {
@@ -878,7 +874,6 @@ void populate_tree(seltree* tree)
           new=NULL;
 	}
       }
-      db_lex_delete_buffer(&(conf->database_new));
     }
 
     if((conf->action&DO_INIT)||(conf->action&DO_COMPARE)){

@@ -76,6 +76,12 @@
 /*    void* local; */  
 /*  }_db_config ; */
 
+typedef enum {
+   DB_FLAG_NONE     =0,
+   DB_FLAG_CREATED  =1,
+   DB_FLAG_PARSE    =2,
+} DB_FLAG;
+
 typedef struct database {
     url_t* url;
 
@@ -91,11 +97,10 @@ typedef struct database {
     long lineno;
     ATTRIBUTE* fields;
     int num_fields;
-    void *buffer_state;
     struct md_container *mdc;
     struct db_line *db_line;
 
-    bool created;
+    DB_FLAG flags;
 
 } database;
 

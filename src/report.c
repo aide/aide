@@ -24,7 +24,6 @@
 #include "aide.h"
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include <math.h>
 #ifdef WITH_AUDIT
 #include <libaudit.h>
@@ -506,16 +505,6 @@ bool init_report_urls(void) {
 
     }
     return true;
-}
-
-char* get_time_string(const time_t *tm) {
-    const char time_format[] = "%Y-%m-%d %H:%M:%S %z";
-    int time_string_len = strlen("1979-01-01 01:00:00 +0100")+1;
-
-    char *time = checked_malloc(time_string_len * sizeof (char));
-    strftime(time, time_string_len, time_format, localtime(tm));
-
-    return time;
 }
 
 static int attributes2array(ATTRIBUTE attrs, char* **values) {

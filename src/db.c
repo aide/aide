@@ -31,7 +31,6 @@
 #include <stdlib.h>
 #include "db.h"
 #include "db_line.h"
-#include "db_lex.h"
 #include "db_file.h"
 #include "md.h"
 
@@ -76,6 +75,35 @@ static long long readlonglong(char* s, database* db, char* field_name){
       LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "could not read '%s' from database: strtoll failed for '%s'", field_name, s)
   }
   return i;
+}
+
+static time_t read_time_t(char *str, database *db, const char *field_name) {
+    char *decoded = NULL;
+    char *time_t_str = str;
+    if (strcmp(str, "0") == 0) {
+        return 0;
+    }
+    if (*str >= 'M' && *str <= 'O') {
+        /* handle legacy base64 representation */
+        decoded = (char *) decode_base64(str, strlen(str), NULL);
+        if (decoded == NULL) {
+            /* warning is logged in decode_base64 */
+            return 0;
+        }
+        time_t_str = decoded;
+        log_msg(LOG_LEVEL_TRACE, "read_time_t: base64 decoded '%s' to '%s'", str, decoded);
+    }
+    char *endp = NULL;
+    time_t t = strtol(time_t_str, &endp, 10);
+    if (endp[0] != '\0') {
+        LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "could not read '%s' from database: strtoll failed for '%s'", field_name, time_t_str)
+        t = 0;
+    } else {
+        log_msg(LOG_LEVEL_TRACE, "read_time_t: converted '%s' '%s' to %lld ", field_name, time_t_str, (long long)t);
+    }
+
+    free(decoded);
+    return t;
 }
 
 static struct md_container *init_db_attrs(url_t *u) {
@@ -127,7 +155,9 @@ int db_init(database* db, bool readonly, bool gzip) {
   log_msg(LOG_LEVEL_TRACE,"db_init(): arguments: db=%p, gzip=%s", (void*) db, btoa(gzip));
   
     db->mdc = init_db_attrs(db->url);
-    fp=be_init(db->url, readonly, gzip, false, db->linenumber, db->filename, db->linebuf, &db->created);
+    bool created = false;
+    fp=be_init(db->url, readonly, gzip, false, db->linenumber, db->filename, db->linebuf, &created);
+    if (created) { db->flags |= DB_FLAG_CREATED; }
     if(fp==NULL) {
       return RETFAIL;
     } else {
@@ -175,7 +205,7 @@ byte* base64tobyte(char* src,int len,size_t *ret_len)
   return NULL;
 }
 
-static char *db_readchar(char *s)
+static char *read_linkname(char *s)
 {
   if (s == NULL)
     return (NULL);
@@ -188,12 +218,8 @@ static char *db_readchar(char *s)
     if (s[1] == '-')
       return (checked_strdup(""));
 
-    if (s[1] == '0')
-    {
-      memmove(s, s+1, strlen(s+1)+1);
-      // Hope this removes core
-      // dumping in some environments. Has something to do with
-      // memory (de)allocation.
+    if (s[1] == '0') {
+      s++;
     }
   }
 
@@ -252,9 +278,9 @@ db_line* db_char2line(char** ss, database* db){
     switch (db->fields[i]) {
     case attr_filename : {
       if(ss[db->fields[i]]!=NULL){
-	decode_string(ss[db->fields[i]]);
-	line->fullpath=checked_strdup(ss[db->fields[i]]);
-	line->filename=line->fullpath;
+          decode_string(ss[db->fields[i]]);
+          line->fullpath=checked_strdup(ss[db->fields[i]]);
+          line->filename=line->fullpath;
       } else {
         log_msg(LOG_LEVEL_ERROR, "db_char2line(): error while reading database");
 	exit(EXIT_FAILURE);
@@ -262,11 +288,11 @@ db_line* db_char2line(char** ss, database* db){
       break;
     }
     case attr_linkname : {
-      line->linkname = db_readchar(ss[db->fields[i]]);
+      line->linkname = read_linkname(ss[db->fields[i]]);
       break;
     }
     case attr_mtime : {
-      line->mtime=base64totime_t(ss[db->fields[i]], db, "mtime");
+      line->mtime=read_time_t(ss[db->fields[i]], db, "mtime");
       break;
     }
     case attr_bcount : {
@@ -274,11 +300,11 @@ db_line* db_char2line(char** ss, database* db){
       break;
     }
     case attr_atime : {
-      line->atime=base64totime_t(ss[db->fields[i]], db, "atime");
+      line->atime=read_time_t(ss[db->fields[i]], db, "atime");
       break;
     }
     case attr_ctime : {
-      line->ctime=base64totime_t(ss[db->fields[i]], db, "ctime");
+      line->ctime=read_time_t(ss[db->fields[i]], db, "ctime");
       break;
     }
     case attr_inode : {
@@ -359,7 +385,8 @@ db_line* db_char2line(char** ss, database* db){
             size_t vsz = 0;
             
             tval = strtok(NULL, ",");
-            line->xattrs->ents[num].key = db_readchar(checked_strdup(tval));
+            decode_string(tval);
+            line->xattrs->ents[num].key = checked_strdup(tval);
             tval = strtok(NULL, ",");
             val = base64tobyte(tval, strlen(tval), &vsz);
             line->xattrs->ents[num].val = val;
@@ -433,36 +460,6 @@ db_line* db_char2line(char** ss, database* db){
   return line;
 }
 
-time_t base64totime_t(char* s, database* db, const char* field_name){
-  
-  if(strcmp(s,"0")==0){
-      return 0;
-  }
-  byte* b=decode_base64(s,strlen(s),NULL);
-  char* endp;
-  
-  if (b==NULL) {
-    
-    /* Should we print error here? */
-    
-    return 0;
-  } else {
-    time_t t = strtol((char *)b,&endp,10);
-    
-    if (endp[0]!='\0') {
-      LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "could not read '%s' from database: strtoll failed for '%s' (base64 encoded value: '%s')", field_name, b, s)
-      free(b);
-      return 0;
-    }
-    log_msg(LOG_LEVEL_TRACE, "base64totime_t: converted '%s': '%s' to %lld (base64 encoded value '%s')", field_name, b, (long long) t, s);
-    free(b);
-    return t;
-  }
-  
-  
-}
-
-
 int db_writespec(db_config* dbconf)
 {
     if(
@@ -486,7 +483,7 @@ int db_writeline(db_line* line,db_config* dbconf){
        (dbconf->gzip_dbout && dbconf->database_out.gzp) ||
 #endif
        (dbconf->database_out.fp!=NULL)) {
-      if (db_writeline_file(line,dbconf,dbconf->database_out.url)==RETOK) {
+      if (db_writeline_file(line)==RETOK) {
 	return RETOK;
       }
     }

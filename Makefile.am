@@ -38,7 +38,6 @@ aide_SOURCES = src/aide.c include/aide.h \
 	include/db_line.h include/db_config.h \
 	include/db_disk.h src/db_disk.c \
 	include/db_file.h src/db_file.c \
-	include/db_lex.h src/db_lex.l \
 	include/db_list.h src/db_list.c \
 	include/do_md.h src/do_md.c \
 	include/errorcodes.h \
@@ -117,7 +116,7 @@ check_aide_LDADD	= -lm \
 				${PCRE2_LIBS}
 endif # HAVE_CHECK
 
-CLEANFILES = src/conf_yacc.h src/conf_yacc.c src/conf_lex.c src/db_lex.c
+CLEANFILES = src/conf_yacc.h src/conf_yacc.c src/conf_lex.c
 
 man_MANS = doc/aide.1 doc/aide.conf.5
 
@@ -128,9 +127,6 @@ src/conf_yacc.c: src/conf_yacc.y
 
 src/conf_lex.c: src/conf_lex.l src/conf_yacc.c
 	$(LEX) $(AM_LFLAGS) -o$@ -Pconf $<
-
-src/db_lex.c: src/db_lex.l src/conf_yacc.h
-	$(LEX) $(AM_LFLAGS) -o$@ -Pdb $<
 
 autoreconf-clean: maintainer-clean
 	-rm -f INSTALL Makefile.in aclocal.m4 compile config.guess \

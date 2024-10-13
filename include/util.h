@@ -27,6 +27,7 @@
 #include <inttypes.h>
 #include <sys/types.h>
 #include <stdarg.h>
+#include <time.h>
 #include "url.h"
 
 #define HEXD2ASC(x) (((x) < 10) ? ((x) + '0') : ((x) - 10 + 'A'))
@@ -35,8 +36,6 @@
                      ((x) - '0') : (toupper(x) - 'A' + 10))
 
 #define ISXDIGIT(x) isxdigit ((unsigned char)(x))
-
-#define CLEANDUP(x) (contains_unsafe (x) ? encode_string (x) : strdup (x))
 
 #ifndef HAVE_STRICMP
 #  define stricmp(a,b)   strcasecmp( (a), (b) )
@@ -103,6 +102,8 @@ char *expand_tilde(char * path);
 char* byte_to_base16(const byte*, size_t);
 
 char* pipe2string(int);
+
+char* get_time_string(const time_t *);
 
 void mask_sig(const char*);
 

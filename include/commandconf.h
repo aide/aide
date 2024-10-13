@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2006, 2011, 2015-2016, 2020-2023 Rami Lehti,
+ * Copyright (C) 1999-2002, 2006, 2011, 2015-2016, 2020-2024 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -27,14 +27,12 @@
 #include "attributes.h"
 #include "config.h"
 #include "db.h"
-#include "db_config.h"
 #include "rx_rule.h"
 #include "seltree.h"
 
 int parse_config(char *, char *, char *);
 
 int conf_input_wrapper(char* buf, int max_size, FILE* in);
-int db_input_wrapper(char*, int, database*);
 
 bool add_rx_rule_to_tree(char*, char*, RESTRICTION_TYPE, DB_ATTR_TYPE, int, seltree*, int, char*, char*);
 

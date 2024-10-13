@@ -1,3 +1,10 @@
+2024-10-13 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Refactor input database code
+	  - use strtok_r instead of flex for tokenizing
+	  - support integer and base64 representation for time_t
+	* Refactor output database code
+	  - save time_t as integer instead of base64 encoded string
+
 2024-09-03 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix parsing of lowercase group names (closes: #176)
 

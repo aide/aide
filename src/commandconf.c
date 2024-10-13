@@ -199,65 +199,7 @@ int parse_config(char *before, char *config, char* after) {
 int conf_input_wrapper(char* buf, int max_size, FILE* in)
 {
   int retval=0;
-
-  /* FIXME Add support for gzipped config. :) */
   retval=fread(buf,1,max_size,in);
-
-  return retval;
-}
-
-int db_input_wrapper(char* buf, int max_size, database* db)
-{
-  log_msg(LOG_LEVEL_TRACE,"db_input_wrapper(): parameters: buf=%p, max_size=%d, db=%p)", (void*) buf, max_size, (void*) db);
-  int retval=0;
-
-#ifdef WITH_CURL
-  switch ((db->url)->type) {
-  case url_http:
-  case url_https:
-  case url_ftp: {
-    retval=url_fread(buf,1,max_size,(URL_FILE *)db->fp);
-    if (db->mdc) {
-        update_md(db->mdc, buf, retval);
-    }
-    break;
-  } 
-  default:
-#endif /* WITH CURL */
-
-#ifdef WITH_ZLIB
-        if (db->gzp == NULL) {
-            db->gzp=gzdopen(fileno((FILE *)db->fp),"rb");
-            if (db->gzp == NULL) {
-                log_msg(LOG_LEVEL_ERROR, "gzdopen failed for %s:%s", get_url_type_string((db->url)->type), (db->url)->value);
-                exit(IO_ERROR);
-            }
-        }
-        retval = gzread(db->gzp, buf, max_size);
-        if (retval == 0) {
-            if (!gzeof(db->gzp)) {
-                int dummy;
-                log_msg(LOG_LEVEL_ERROR, "gzread failed for %s:%s: %s", get_url_type_string((db->url)->type), (db->url)->value, gzerror(db->gzp, &dummy));
-                exit(IO_ERROR);
-            }
-        }
-#else
-        retval = fread(buf,1,max_size,db->fp);
-        if (ferror(db->fp)) {
-            log_msg(LOG_LEVEL_ERROR, "fread failed for %s:%s", get_url_type_string((db->url)->type), (db->url)->value);
-            exit(IO_ERROR);
-        }
-#endif
-
-        if (db->mdc) {
-            update_md(db->mdc, buf, retval);
-        }
-
-
-#ifdef WITH_CURL
-  }
-#endif /* WITH CURL */
-  log_msg(LOG_LEVEL_TRACE,"db_input_wrapper(): return value: %d", retval);
   return retval;
 }
 

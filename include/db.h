@@ -24,7 +24,6 @@
 
 #include <stdbool.h>
 #include <stdio.h>
-#include <time.h>
 #include "db_config.h"
 #include "util.h"
 
@@ -35,7 +34,6 @@ typedef enum {
 } DB_TYPE;
 
 byte* base64tobyte(char*, int, size_t *);
-time_t base64totime_t(char*, database*, const char*);
 
 int db_init(database*, bool, bool);
 
@@ -66,5 +64,8 @@ void free_db_line(db_line* dl);
 #define NODE_PARENT_POSTIVE_MATCH  (1<<17)
 #define NODE_PARENT_NEGATIVE_MATCH (1<<18)
 #define NODE_PARENT_NO_RULE_MATCH  (1<<19)
+
+#define LOG_DB_FORMAT_LINE(log_level, format, ...) \
+    log_msg(log_level, "%s:%s:%li: " format , get_url_type_string((db->url)->type), (db->url)->value, db->lineno, __VA_ARGS__);
 
 #endif

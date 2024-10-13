@@ -47,7 +47,6 @@
 #include "report.h"
 #include "db_config.h"
 #include "db_disk.h"
-#include "db_lex.h"
 #include "db.h"
 #include "log.h"
 #include "progress.h"
@@ -130,7 +129,7 @@ static void sig_handler(int signum)
                   || conf->database_out.gzp != NULL
 #endif
           )) {
-              if (conf->database_out.url->type == url_file && conf->database_out.created) {
+              if (conf->database_out.url->type == url_file && conf->database_out.flags&DB_FLAG_CREATED) {
                   str = "remove database_out: file:";
                   (void) !write(STDERR_FILENO, str, strlen(str));
                   (void) !write(STDERR_FILENO, conf->database_out.url->value, strlen(conf->database_out.url->value));
@@ -457,10 +456,9 @@ static void setdefaults_before_config(void)
   conf->database_in.lineno = 0;
   conf->database_in.fields = NULL;
   conf->database_in.num_fields = 0;
-  conf->database_in.buffer_state = NULL;
   conf->database_in.mdc = NULL;
   conf->database_in.db_line = NULL;
-  conf->database_in.created = false;
+  conf->database_in.flags = DB_FLAG_NONE;
 
   conf->database_out.url = NULL;
   conf->database_out.filename=NULL;
@@ -473,10 +471,9 @@ static void setdefaults_before_config(void)
   conf->database_out.lineno = 0;
   conf->database_out.fields = NULL;
   conf->database_out.num_fields = 0;
-  conf->database_out.buffer_state = NULL;
   conf->database_out.mdc = NULL;
   conf->database_out.db_line = NULL;
-  conf->database_out.created = false;
+  conf->database_out.flags = DB_FLAG_NONE;
 
   conf->database_new.url = NULL;
   conf->database_new.filename=NULL;
@@ -489,10 +486,9 @@ static void setdefaults_before_config(void)
   conf->database_new.lineno = 0;
   conf->database_new.fields = NULL;
   conf->database_new.num_fields = 0;
-  conf->database_new.buffer_state = NULL;
   conf->database_new.mdc = NULL;
   conf->database_new.db_line = NULL;
-  conf->database_new.created = false;
+  conf->database_new.flags = DB_FLAG_NONE;
 
   conf->db_attrs = get_hashes(false);
   
@@ -770,7 +766,6 @@ int main(int argc,char**argv)
           exit(IO_ERROR);
       }
       log_msg(LOG_LEVEL_INFO, "list entries from database: %s:%s", get_url_type_string((conf->database_in.url)->type), (conf->database_in.url)->value);
-      db_lex_buffer(&(conf->database_in));
       db_line* entry=NULL;
       while((entry = db_readline(&(conf->database_in))) != NULL) {
           if (check_limit(entry->filename, true) == 0) {
@@ -800,7 +795,6 @@ int main(int argc,char**argv)
           free(entry);
           entry=NULL;
       }
-      db_lex_delete_buffer(&(conf->database_in));
       db_close();
       exit (0);
   }

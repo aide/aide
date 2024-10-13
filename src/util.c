@@ -32,6 +32,7 @@
 #include <strings.h>
 #include <unistd.h>
 #include <signal.h>
+#include <time.h>
 #include "url.h"
 /*for locale support*/
 #include "locale-aide.h"
@@ -394,6 +395,16 @@ char* pipe2string(int fd) {
         str[len] = '\0';
     }
     return str;
+}
+
+char* get_time_string(const time_t *tm) {
+    const char time_format[] = "%Y-%m-%d %H:%M:%S %z";
+    int time_string_len = strlen("1979-01-01 01:00:00 +0100")+1;
+
+    char *time = checked_malloc(time_string_len * sizeof (char));
+    strftime(time, time_string_len, time_format, localtime(tm));
+
+    return time;
 }
 
 void mask_sig(const char* whoami) {

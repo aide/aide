@@ -27,7 +27,6 @@
 /src/conf_lex.c
 /src/conf_yacc.c
 /src/conf_yacc.h
-/src/db_lex.c
 
 /tests/.deps/
 /tests/.dirstamp

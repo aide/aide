@@ -1,3 +1,6 @@
+2024-10-14 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Update aide.conf man page
+
 2024-10-13 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Refactor input database code
 	  - use strtok_r instead of flex for tokenizing

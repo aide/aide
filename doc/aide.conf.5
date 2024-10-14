@@ -604,13 +604,13 @@ Evaluates to \fBtrue\fR if \fIPATH\fR exists.
 
 .RE
 
-.IP "@@ifdef \fBVARIABLE\fR (DEPRECATED since AIDE v0.18, will be removed in AIDE v0.20)"
+.IP "@@ifdef \fBVARIABLE\fR (\fBDEPRECATED\fR since AIDE v0.18, will be removed in AIDE v0.20)"
 same as \fB@@if defined VARIABLE\fR
-.IP "@@ifndef \fBVARIABLE\fR (DEPRECATED since AIDE v0.18, will be removed in AIDE v0.20)"
+.IP "@@ifndef \fBVARIABLE\fR (\fBDEPRECATED\fR since AIDE v0.18, will be removed in AIDE v0.20)"
 same as \fB@@if not defined VARIABLE\fR
-.IP "@@ifhost \fBHOSTNAME\fR (DEPRECATED since AIDE v0.18, will be removed in AIDE v0.20)"
+.IP "@@ifhost \fBHOSTNAME\fR (\fBDEPRECATED\fR since AIDE v0.18, will be removed in AIDE v0.20)"
 same as \fB@@if hostname HOSTNAME\fR
-.IP "@@ifnhost \fBHOSTNAME\fR (DEPRECATED since AIDE v0.18, will be removed in AIDE v0.20)"
+.IP "@@ifnhost \fBHOSTNAME\fR (\fBDEPRECATED\fR since AIDE v0.18, will be removed in AIDE v0.20)"
 same as \fB@@if not hostname HOSTNAME\fR
 
 .IP "@@{\fBVAR\fR}"
@@ -782,15 +782,15 @@ Use 'aide --version' to show which compiled-in attributes are available.
 .TP
 .B "\fBS\fR"
 check for growing size
-(DEPRECATED since AIDE v0.18, will be removed in AIDE v0.20)
+(\fBDEPRECATED\fR since AIDE v0.18, will be removed in AIDE v0.20)
 
 Use \fBgrowing+s\fR attributes instead
 .TP
 .B "\fBI\fR"
 ignore changed filename
 
-When \fBI\fR is used, the inode of the old file is used to search for
-a moved file in the new database.
+When \fBI\fR is used, the inode of the new file is used to search for
+a moved source file in the old database.
 
 Source and target file have to be located in the same directory and must share
 the same attributes (except for special attributes

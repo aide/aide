@@ -22,7 +22,7 @@
 	  - add check_hashsum unit test
 
 2024-07-11 Zopolis4 <creatorsmithmdt@gmail.com>
-	* Set autogen.sh and version.sh as executable	
+	* Set autogen.sh and version.sh as executable
 
 2024-07-08 Marc 'Zugschlus' Haber <mh+github@zugschlus.de>
 	* Allow version.sh to accept GIT_VERSION from environment

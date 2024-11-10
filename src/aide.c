@@ -556,7 +556,7 @@ static void setdefaults_before_config(void)
   do_groupdef("R",common_attrs|ATTR(attr_size)|ATTR(attr_linkname)|ATTR(attr_mtime)|ATTR(attr_ctime)|GROUP_R_HASHES|X);
   do_groupdef("L",common_attrs|ATTR(attr_linkname)|X);
   do_groupdef(">",common_attrs|ATTR(attr_size)|ATTR(attr_growing)|ATTR(attr_linkname)|X);
-  do_groupdef("H",get_hashes(false));
+  do_groupdef("H",get_hashes(false)&~DEPRECATED_HASHES);
   do_groupdef("X",X);
   do_groupdef("E",0);
 

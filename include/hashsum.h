@@ -56,6 +56,9 @@ extern hashsum_t hashsums[];
 
 extern int algorithms[];
 
+extern DB_ATTR_TYPE DEPRECATED_HASHES;
+extern DB_ATTR_TYPE UNSUPPORTED_HASHES;
+
 void init_hashsum_lib(void);
 
 DB_ATTR_TYPE get_hashes(bool);

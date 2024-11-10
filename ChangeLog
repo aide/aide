@@ -1,3 +1,6 @@
+2024-11-10 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Remove deprecated hashsums from H default group (closes: #179)
+
 2024-10-14 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Update aide.conf man page
 

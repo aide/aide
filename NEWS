@@ -20,6 +20,8 @@ Version 0.19 (UNRELEASED)
           written database (if file was created by aide) and exiting aide (code 25)
         - move COMPARE log level before RULE log level
         - remove unsupported hashsums (haval, crc32, crc32b, tiger, whirlpool)
+        - H default group now contains all compiled in hashsums that are not
+          deprecated
     * Deprecations (to be removed in the release after next):
         - md5 hashsum
         - sha1 hashsum

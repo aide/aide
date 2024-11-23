@@ -259,7 +259,7 @@ rx_rule * add_rx_to_tree(char * rx, rx_restriction_t restriction, AIDE_RULE_TYPE
         if (pcre2_jit < 0) {
             PCRE2_UCHAR pcre2_error[128];
             pcre2_get_error_message(pcre2_jit, pcre2_error, 128);
-            log_msg(LOG_LEVEL_NOTICE, "JIT compilation for regex '%s' failed: %s (fall back to interpreted matching)", r->rx, pcre2_error);
+            log_msg(LOG_LEVEL_DEBUG, "JIT compilation for regex '%s' failed: %s (fall back to interpreted matching)", r->rx, pcre2_error);
         } else {
             log_msg(LOG_LEVEL_DEBUG, "JIT compilation for regex '%s' successful", r->rx);
         }

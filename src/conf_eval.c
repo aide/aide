@@ -656,29 +656,35 @@ static void eval_include_statement(include_statement statement, int include_dept
     }
 }
 
-static RESTRICTION_TYPE eval_restriction_expression(restriction_expression *expression, int linenumber, char *filename, char* linebuf) {
-    RESTRICTION_TYPE rs = FT_NULL, rs_r;
+static FT_TYPE eval_ft_restriction_expression(ft_restriction_expression *expression, int linenumber, char *filename, char* linebuf) {
+    FT_TYPE rs = FT_NULL, rs_r;
 
     if (expression) {
-        char *unrestricted = "0";
-        if (strncmp(expression->right, unrestricted, strlen(unrestricted)) == 0) {
-            rs_r = FT_NULL;
-            log_msg(eval_log_level, "eval(%p): restriction '%s', evaluates to %d", (void*) expression, unrestricted, rs);
-        } else {
-            rs_r = (strlen(expression->right) == 1)?get_restriction_from_char(*(expression->right)):FT_NULL;
-            log_msg(eval_log_level, "eval(%p): restriction file type '%s' evaluates to %d", (void*) expression, expression->right, rs_r);
-            if (rs_r == FT_NULL) {
-                LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, "invalid restriction '%s'", expression->right)
-                    exit(INVALID_CONFIGURELINE_ERROR);
-            }
+        rs_r = (strlen(expression->right) == 1)?get_f_type_from_char(*(expression->right)):FT_NULL;
+        log_msg(eval_log_level, "eval(%p): file type restriction '%s' evaluates to %u", (void*) expression, expression->right, rs_r);
+        if (rs_r == FT_NULL) {
+            LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, "invalid restriction '%s'", expression->right)
+                exit(INVALID_CONFIGURELINE_ERROR);
         }
         if (expression->left == NULL) {
             rs = rs_r;
         } else {
-            rs = eval_restriction_expression(expression->left, linenumber, filename, linebuf) | rs_r;
+            rs = eval_ft_restriction_expression(expression->left, linenumber, filename, linebuf) | rs_r;
         }
     } else {
-        log_msg(eval_log_level, "eval(%p): restriction is NULL, returning %d", (void*) expression, rs);
+        log_msg(eval_log_level, "eval(%p): file type restriction is NULL, returning %u", (void*) expression, rs);
+    }
+    return rs;
+}
+
+static rx_restriction_t eval_restriction_expression(restriction_expression *expression, int linenumber, char *filename, char* linebuf) {
+    rx_restriction_t rs = { .f_type = FT_NULL };
+
+    if (expression) {
+        rs.f_type = eval_ft_restriction_expression(expression->f_types, linenumber, filename, linebuf);
+        log_msg(eval_log_level, "eval(%p): restriction {" "file type: %u)", (void*) expression, rs.f_type);
+    } else {
+        log_msg(eval_log_level, "eval(%p): restriction is NULL, returning {" "file type: %u)", (void*) expression, rs.f_type);
     }
     return rs;
 }

@@ -52,6 +52,7 @@ void conferror(ast**, const char *);
   bool_expression* bool_expr;
   attribute_expression* attr_expr;
   restriction_expression* rs_expr;
+  ft_restriction_expression* ft_rs_expr;
   string_expression* string_expr;
 }
 
@@ -92,6 +93,7 @@ void conferror(ast**, const char *);
 %type <bool_expr> bool_expression
 %type <attr_expr> attribute_expression
 %type <rs_expr> restriction_expression
+%type <ft_rs_expr> ft_restriction_expression
 %type <string_expr> string_expression string_fragment
 
 %start config
@@ -123,8 +125,11 @@ attribute_expression: attribute_expression '+' TEXPR { $$ = new_attribute_expres
                     | attribute_expression '-' TEXPR { $$ = new_attribute_expression(ATTR_OP_MINUS, $1, $3); }
                     | TEXPR { $$ = new_attribute_expression(ATTR_OP_GROUP, NULL, $1); }
 
-restriction_expression: restriction_expression ',' TEXPR { $$ = new_restriction_expression($1, $3); }
-                      | TEXPR { $$ = new_restriction_expression(NULL, $1); }
+ft_restriction_expression: ft_restriction_expression ',' TEXPR { $$ = new_ft_restriction_expression($1, $3); }
+                      | TEXPR { $$ = new_ft_restriction_expression(NULL, $1); }
+
+restriction_expression: ft_restriction_expression { $$ = new_restriction_expression($1); }
+                      | '0' { $$ = new_restriction_expression(NULL); }
 
 define_statement: TDEFINE TVARIABLE { $$ = new_define_statement($2, NULL); }
                 | TDEFINE TVARIABLE string_expression { $$ = new_define_statement($2, $3); }

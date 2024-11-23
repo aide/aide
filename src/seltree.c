@@ -19,6 +19,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "file.h"
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -222,7 +223,7 @@ bool is_tree_empty(seltree *node) {
     return is_empty;
 }
 
-rx_rule * add_rx_to_tree(char * rx, RESTRICTION_TYPE restriction, AIDE_RULE_TYPE rule_type, seltree *tree, int linenumber, char* filename, char* linebuf, char **node_path) {
+rx_rule * add_rx_to_tree(char * rx, rx_restriction_t restriction, AIDE_RULE_TYPE rule_type, seltree *tree, int linenumber, char* filename, char* linebuf, char **node_path) {
     rx_rule* r = NULL;
     seltree *curnode = NULL;
     char *rxtok = NULL;
@@ -312,9 +313,9 @@ rx_rule * add_rx_to_tree(char * rx, RESTRICTION_TYPE restriction, AIDE_RULE_TYPE
 }
 
 #define LOG_MATCH(log_level, border, format, ...) \
-    log_msg(log_level, "%s %*c'%s' " #format " of %s (%s:%d: '%s%s%s')", border, depth, ' ', text, __VA_ARGS__, get_rule_type_long_string(rx->type), rx->config_filename, rx->config_linenumber, rx->config_line, rx->prefix?"', prefix: '":"", rx->prefix?rx->prefix:"");
+    log_msg(log_level, "%s %*c'%s' " #format " of %s (%s:%d: '%s%s%s')", border, depth, ' ', file.name, __VA_ARGS__, get_rule_type_long_string(rx->type), rx->config_filename, rx->config_linenumber, rx->config_line, rx->prefix?"', prefix: '":"", rx->prefix?rx->prefix:"");
 
-static int check_list_for_match(list* rxrlist, char* text, rx_rule* *rule, RESTRICTION_TYPE file_type, int depth)
+static int check_list_for_match(list* rxrlist, file_t file, rx_rule* *rule, int depth)
 {
   list* r=NULL;
   int retval=RESULT_NO_RULE_MATCH;
@@ -323,9 +324,9 @@ static int check_list_for_match(list* rxrlist, char* text, rx_rule* *rule, RESTR
   for(r=rxrlist;r;r=r->next){
       rx_rule *rx = (rx_rule*)r->data;
 
-      pcre_retval = pcre2_match(rx->crx, (PCRE2_SPTR) text, PCRE2_ZERO_TERMINATED, 0, PCRE2_PARTIAL_SOFT, rx->md, NULL);
+      pcre_retval = pcre2_match(rx->crx, (PCRE2_SPTR) file.name, PCRE2_ZERO_TERMINATED, 0, PCRE2_PARTIAL_SOFT, rx->md, NULL);
       if (pcre_retval >= 0) { /* matching regex */
-          if (!rx->restriction || file_type&rx->restriction) { /* no file type restriction OR matching file type */
+          if (!rx->restriction.f_type || file.type&rx->restriction.f_type) { /* no file type restriction OR matching file type */
                   *rule = rx;
                   LOG_MATCH(LOG_LEVEL_RULE, "\u251d", matches regex '%s' and restriction '%s', rx->rx, rs_str = get_restriction_string(rx->restriction))
                   free(rs_str);
@@ -369,21 +370,21 @@ static match_result _get_default_match_result(const seltree *node, int depth) {
     return RESULT_NO_RULE_MATCH;
 }
 
-static match_t check_node_for_match(seltree *pnode, char* filename, RESTRICTION_TYPE file_type) {
+static match_t check_node_for_match(seltree *pnode, file_t file) {
 
     match_t match = { RESULT_NO_RULE_MATCH, NULL, 0 };
     match_result result;
     int depth = 1;
 
-    char *last_slash = strrchr(filename,'/');
-    int parent_length = (last_slash != filename?last_slash-filename:0);
+    char *last_slash = strrchr(file.name,'/');
+    int parent_length = (last_slash != file.name?last_slash-file.name:0);
 
     pthread_mutex_lock(&pnode->mutex);
-    log_msg(LOG_LEVEL_TRACE, "\u2502 check_node_for_match: pnode: '%s' (%p), filename: '%s', file_type: %c", pnode->path, (void*) pnode, filename, get_restriction_char(file_type));
-    if (strncmp(pnode->path, filename, parent_length) == 0) {
+    log_msg(LOG_LEVEL_TRACE, "\u2502 check_node_for_match: pnode: '%s' (%p), filename: '%s', file_type: %c", pnode->path, (void*) pnode, file.name, get_f_type_char_from_f_type(file.type));
+    if (strncmp(pnode->path, file.name, parent_length) == 0) {
 
-        if (file_type == FT_DIR) {
-            if (strcmp(pnode->path, filename) == 0) {
+        if (file.type == FT_DIR) {
+            if (strcmp(pnode->path, file.name) == 0) {
                 match.result = _get_default_match_result(pnode, depth);
             } else {
                 seltree * child_node = tree_search(pnode->children, last_slash, (tree_cmp_f) strcmp);
@@ -392,14 +393,14 @@ static match_t check_node_for_match(seltree *pnode, char* filename, RESTRICTION_
                     match.result = _get_default_match_result(child_node, depth);
                     pthread_mutex_unlock(&child_node->mutex);
                 } else {
-                    log_msg(LOG_LEVEL_DEBUG, "\u2502 %*cno node for directory '%s' exists (keep default match result at RESULT_NO_RULE_MATCH)", depth, ' ', filename);
+                    log_msg(LOG_LEVEL_DEBUG, "\u2502 %*cno node for directory '%s' exists (keep default match result at RESULT_NO_RULE_MATCH)", depth, ' ', file.name);
                 }
             }
         }
 
         if (pnode->equ_rx_lst) {
             log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': check equal list", depth, ' ', pnode->path);
-            result = check_list_for_match(pnode->equ_rx_lst, filename, &match.rule, file_type, depth+2);
+            result = check_list_for_match(pnode->equ_rx_lst, file, &match.rule, depth+2);
             if (result == RESULT_EQUAL_MATCH || result == RESULT_PARTIAL_MATCH) {
                 match.result = result;
             }
@@ -434,7 +435,7 @@ static match_t check_node_for_match(seltree *pnode, char* filename, RESTRICTION_
             if (match.result != RESULT_EQUAL_MATCH && match.result != RESULT_SELECTIVE_MATCH) {
                 if (pnode->sel_rx_lst) {
                     log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': check selective list", depth, ' ', pnode->path);
-                    result = check_list_for_match(pnode->sel_rx_lst, filename, &match.rule, file_type, depth+2);
+                    result = check_list_for_match(pnode->sel_rx_lst, file, &match.rule, depth+2);
                     if (result == RESULT_SELECTIVE_MATCH || result == RESULT_PARTIAL_MATCH) {
                         match.result = result;
                     }
@@ -460,7 +461,7 @@ static match_t check_node_for_match(seltree *pnode, char* filename, RESTRICTION_
         if (match.result == RESULT_EQUAL_MATCH || match.result == RESULT_SELECTIVE_MATCH || match.result == RESULT_PARTIAL_MATCH) {
             if (pnode->neg_rx_lst) {
                 log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': check negative list (reason: previous positive/partial match)", depth, ' ', pnode->path);
-                result = check_list_for_match(pnode->neg_rx_lst, filename, &match.rule, file_type, depth+2);
+                result = check_list_for_match(pnode->neg_rx_lst, file, &match.rule, depth+2);
                 if ((match.result != RESULT_PARTIAL_MATCH && result == RESULT_RECURSIVE_NEGATIVE_MATCH) || result == RESULT_NON_RECURSIVE_NEGATIVE_MATCH) {
                     match.result = result;
                 }
@@ -475,7 +476,7 @@ static match_t check_node_for_match(seltree *pnode, char* filename, RESTRICTION_
         pthread_mutex_unlock(&pnode->mutex);
     }
     free(nodes);
-    log_msg(LOG_LEVEL_TRACE, "\u2502 check_node_for_match: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, filename);
+    log_msg(LOG_LEVEL_TRACE, "\u2502 check_node_for_match: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, file.name);
     return match;
 }
 
@@ -489,25 +490,25 @@ static seltree *_cache_parent_result(char *parent, seltree* node, seltree *pnode
     return node;
 }
 
-match_t check_seltree(seltree *tree, char *filename, RESTRICTION_TYPE file_type, bool check_parent_dirs) {
+match_t check_seltree(seltree *tree, file_t file, bool check_parent_dirs) {
     seltree* pnode=NULL;
     match_t match = { RESULT_NO_RULE_MATCH, NULL, 0 };
     bool parent_negative_match = false;
 
-    const char *next_dir = filename;
-    char *parent = checked_strdup(filename); /* freed below */
+    const char *next_dir = file.name;
+    char *parent = checked_strdup(file.name); /* freed below */
     pnode = tree;
     seltree *node = tree;
 
-    log_msg(LOG_LEVEL_TRACE, "\u2502 search for parent node for '%s'  (tree: '%s' (%p))", filename, tree->path, (void*) tree);
+    log_msg(LOG_LEVEL_TRACE, "\u2502 search for parent node for '%s'  (tree: '%s' (%p))", file.name, tree->path, (void*) tree);
 
-    if (strcmp(filename, "/") == 0) { check_parent_dirs = false; } /* do not check parent directories for '/' */
+    if (strcmp(file.name, "/") == 0) { check_parent_dirs = false; } /* do not check parent directories for '/' */
 
     char *relative_child_path = parent;
     while ((next_dir = strchr(next_dir, '/'))) {
-        int parent_length = next_dir-filename;
+        int parent_length = next_dir-file.name;
         int relative_child_path_start = parent_length;
-        if (next_dir == filename) { /* handle "/" directory */
+        if (next_dir == file.name) { /* handle "/" directory */
             parent_length = 1;
             relative_child_path_start = 0;
         }
@@ -538,7 +539,8 @@ match_t check_seltree(seltree *tree, char *filename, RESTRICTION_TYPE file_type,
                 parent_negative_match = true;
             } else {
                 log_msg(LOG_LEVEL_RULE, "\u2502 check parent directory '%s' for no-recurse match (node: '%s' (%p))", parent, pnode->path, (void*) pnode);
-                match = check_node_for_match(pnode, parent, FT_DIR);
+                match = check_node_for_match(pnode, (file_t) { .name = parent, .type = FT_DIR,
+                    });
                 if (match.result == RESULT_NON_RECURSIVE_NEGATIVE_MATCH) {
                     match.result = RESULT_NEGATIVE_PARENT_MATCH;
                     match.length = parent_length;
@@ -569,7 +571,7 @@ match_t check_seltree(seltree *tree, char *filename, RESTRICTION_TYPE file_type,
             }
         }
 
-        parent[parent_length] = filename[parent_length];
+        parent[parent_length] = file.name[parent_length];
         relative_child_path = &parent[relative_child_path_start];
         next_dir += 1;
     }
@@ -578,10 +580,10 @@ match_t check_seltree(seltree *tree, char *filename, RESTRICTION_TYPE file_type,
     pthread_mutex_unlock(&pnode->mutex);
     free(parent);
     if (!parent_negative_match) {
-        log_msg(LOG_LEVEL_RULE, "\u2502 check '%s' (filetype: %c)", filename, get_restriction_char(file_type));
-        match = check_node_for_match(pnode, filename, file_type);
+        log_msg(LOG_LEVEL_RULE, "\u2502 check '%s' (filetype: %c)", file.name, get_f_type_char_from_f_type(file.type));
+        match = check_node_for_match(pnode, file);
     }
 
-    log_msg(LOG_LEVEL_DEBUG, "\u2502 check_selree: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, filename);
+    log_msg(LOG_LEVEL_DEBUG, "\u2502 check_selree: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, file.name);
     return match;
 }

@@ -22,6 +22,7 @@
 #ifndef _SELTREE_H_INCLUDED
 #define _SELTREE_H_INCLUDED
 #include "log.h"
+#include "file.h"
 #include "rx_rule.h"
 
 typedef struct seltree seltree;
@@ -31,9 +32,9 @@ seltree* init_tree(void);
 seltree* get_seltree_node(seltree* ,char*);
 seltree* get_or_create_seltree_node(seltree*, char *);
 
-rx_rule * add_rx_to_tree(char *, RESTRICTION_TYPE, AIDE_RULE_TYPE, seltree *, int, char *, char *, char **);
+rx_rule * add_rx_to_tree(char *, rx_restriction_t, AIDE_RULE_TYPE, seltree *, int, char *, char *, char **);
 
-match_t check_seltree(seltree *, char *, RESTRICTION_TYPE, bool);
+match_t check_seltree(seltree *, file_t, bool);
 
 void log_tree(LOG_LEVEL, seltree *, int);
 bool is_tree_empty(seltree *);

@@ -115,9 +115,13 @@ void scan_dir(char *root_path, bool dry_run) {
 
     disk_file.filename = root_path;
     if (!get_file_status(root_path, &disk_file.fs)) {
-        match_t path_match = check_rxtree (&root_path[conf->root_prefix_length], conf->tree, get_restriction_from_perm(disk_file.fs.st_mode), "disk", false);
+        file_t file = {
+            .name = &root_path[conf->root_prefix_length],
+            .type = get_f_type_from_perm(disk_file.fs.st_mode),
+        };
+        match_t path_match = check_rxtree (file, conf->tree, "disk", false);
         if (dry_run) {
-            print_match(&root_path[conf->root_prefix_length], path_match, get_restriction_from_perm(disk_file.fs.st_mode));
+            print_match(file, path_match);
         }
         if (!dry_run && path_match.result&(RESULT_EQUAL_MATCH|RESULT_SELECTIVE_MATCH)) {
             disk_file.attr = path_match.rule->attr;
@@ -149,7 +153,11 @@ void scan_dir(char *root_path, bool dry_run) {
                     log_msg(log_level, "scan_dir: process child directory '%s' (fullpath: '%s')", &entry_full_path[conf->root_prefix_length], entry_full_path);
                     disk_file.filename = entry_full_path;
                     if (!get_file_status(entry_full_path, &disk_file.fs)) {
-                        match_t path_match = check_rxtree (&entry_full_path[conf->root_prefix_length], conf->tree, get_restriction_from_perm(disk_file.fs.st_mode), "disk", false);
+                        file_t file = {
+                            .name = &entry_full_path[conf->root_prefix_length],
+                            .type = get_f_type_from_perm(disk_file.fs.st_mode),
+                        };
+                        match_t path_match = check_rxtree (file, conf->tree, "disk", false);
                         switch (path_match.result) {
                             case RESULT_SELECTIVE_MATCH:
                             case RESULT_EQUAL_MATCH:
@@ -196,7 +204,7 @@ void scan_dir(char *root_path, bool dry_run) {
                                 break;
                         }
                         if (dry_run) {
-                            print_match(&entry_full_path[conf->root_prefix_length], path_match, get_restriction_from_perm(disk_file.fs.st_mode));
+                            print_match(file, path_match);
                         }
                     }
                     if (free_entry_full_path) {

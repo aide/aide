@@ -41,7 +41,7 @@
 
 #include "attributes.h"
 #include "hashsum.h"
-#include "rx_rule.h"
+#include "file.h"
 #include "url.h"
 #include "commandconf.h"
 #include "report.h"
@@ -357,16 +357,15 @@ static void read_param(int argc,char**argv)
                 log_msg(LOG_LEVEL_INFO,"(--path-check): path check command");
 
                 if (strlen(optarg) >= 3 && optarg[1] == ':') {
-                    RESTRICTION_TYPE file_type = get_restriction_from_char(*optarg);
-                    if (file_type == FT_NULL) {
+                    conf->check_file.type = get_f_type_from_char(*optarg);
+                    if (conf->check_file.type == FT_NULL) {
                         INVALID_ARGUMENT("--path-check", invalid file type '%c' (see man aide for details), *optarg)
                     } else {
-                        conf->check_file_type = file_type;
                         if (optarg[2] != '/') {
                             INVALID_ARGUMENT("--path-check", '%s' needs to be an absolute path, optarg+2)
                         } else {
-                            conf->check_path = checked_strdup(optarg+2);
-                            log_msg(LOG_LEVEL_INFO,"(--path-check): set path to '%s' (filetype: %c)", optarg+2, get_restriction_char(conf->check_file_type));
+                            conf->check_file.name = checked_strdup(optarg+2);
+                            log_msg(LOG_LEVEL_INFO,"(--path-check): set path to '%s' (filetype: %c)", optarg+2, get_f_type_from_char(conf->check_file.type));
                         }
                     }
                 } else {
@@ -420,8 +419,8 @@ static void setdefaults_before_config(void)
   conf->report_ignore_e2fsattrs = 0UL;
 #endif
 
-  conf->check_path=NULL;
-  conf->check_file_type = FT_REG;
+  conf->check_file.name = NULL;
+  conf->check_file.type = FT_NULL;
 
   conf->report_urls=NULL;
   conf->report_level=default_report_options.level;
@@ -703,9 +702,9 @@ int main(int argc,char**argv)
       log_msg(LOG_LEVEL_WARNING, "rule tree is empty, no files will be added to the database");
   }
 
-  if (conf->check_path) {
-      match_t path_match = check_rxtree(conf->check_path, conf->tree, conf->check_file_type, "disk (path-check)", true);
-      print_match(conf->check_path, path_match, conf->check_file_type);
+  if (conf->check_file.name) {
+      match_t path_match = check_rxtree(conf->check_file, conf->tree, "disk (path-check)", true);
+      print_match(conf->check_file, path_match);
       switch (path_match.result) {
           case RESULT_PARTIAL_LIMIT_MATCH:
           case RESULT_NO_LIMIT_MATCH:
@@ -769,7 +768,7 @@ int main(int argc,char**argv)
       db_line* entry=NULL;
       while((entry = db_readline(&(conf->database_in))) != NULL) {
           if (check_limit(entry->filename, true) == 0) {
-              log_msg(LOG_LEVEL_RULE, "\u252c process '%s' (filetype: %c)", entry->filename, get_restriction_char(entry->perm));
+              log_msg(LOG_LEVEL_RULE, "\u252c process '%s' (filetype: %c)", entry->filename, get_f_type_char_from_perm(entry->perm));
               fprintf(stdout, "%s\n", entry->filename);
               for (int j=0; j < report_attrs_order_length; ++j) {
                   switch(report_attrs_order[j]) {

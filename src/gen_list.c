@@ -22,6 +22,7 @@
 
 #include "config.h"
 #include "aide.h"
+#include "file.h"
 #include <string.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -341,12 +342,12 @@ static DB_ATTR_TYPE get_different_attributes(db_line* l1, db_line* l2, DB_ATTR_T
 }
 
 #define PRINT_RULE_MATCH(format, c, ...) \
-    fprintf(stdout, "[%c] %c:%s: " format "\n", c, file_type, filename, __VA_ARGS__); \
+    fprintf(stdout, "[%c] %c:%s: " format "\n", c, file_type, file.name, __VA_ARGS__);
 
-void print_match(char* filename, match_t match, RESTRICTION_TYPE restriction) {
+void print_match(file_t file, match_t match) {
     char * str;
     char* attr_str;
-    char file_type = get_restriction_char(restriction);
+    char file_type = get_f_type_char_from_f_type(file.type);
     rx_rule *rule = match.rule;
     switch (match.result) {
         case RESULT_SELECTIVE_MATCH:
@@ -365,7 +366,7 @@ void print_match(char* filename, match_t match, RESTRICTION_TYPE restriction) {
             break;
         case RESULT_NEGATIVE_PARENT_MATCH:
             str = get_restriction_string(rule->restriction);
-            PRINT_RULE_MATCH("parent directory '%.*s' matches %s: '%s%s %s' (%s:%d: '%s%s%s')", ' ', match.length, filename, get_rule_type_long_string(rule->type), get_rule_type_char(rule->type), rule->rx, str, rule->config_filename, rule->config_linenumber, rule->config_line, rule->prefix?"', prefix: '":"", rule->prefix?rule->prefix:"")
+            PRINT_RULE_MATCH("parent directory '%.*s' matches %s: '%s%s %s' (%s:%d: '%s%s%s')", ' ', match.length, file.name, get_rule_type_long_string(rule->type), get_rule_type_char(rule->type), rule->rx, str, rule->config_filename, rule->config_linenumber, rule->config_line, rule->prefix?"', prefix: '":"", rule->prefix?rule->prefix:"")
             free(str);
             break;
         case RESULT_PARTIAL_MATCH:
@@ -416,19 +417,19 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
   switch (db_flags) {
   case DB_OLD: {
     progress_status(PROGRESS_OLDDB, file->filename);
-    log_msg(add_entry_log_level, "add old database entry '%s' (%c) to node '%s' (%p) as old data", file->filename, get_file_type_char_from_perm(file->perm), node->path, (void*) node);
+    log_msg(add_entry_log_level, "add old database entry '%s' (%c) to node '%s' (%p) as old data", file->filename, get_f_type_char_from_perm(file->perm), node->path, (void*) node);
     node->old_data=file;
     break;
   }
   case DB_NEW|DB_DISK: {
     progress_status(PROGRESS_DISK, file->filename);
-    log_msg(add_entry_log_level, "add disk entry '%s' (%c) to node '%s' (%p) as new data", file->filename, get_file_type_char_from_perm(file->perm), node->path, (void*) node);
+    log_msg(add_entry_log_level, "add disk entry '%s' (%c) to node '%s' (%p) as new data", file->filename, get_f_type_char_from_perm(file->perm), node->path, (void*) node);
     node->new_data=file;
     break;
   }
   case DB_NEW: {
     progress_status(PROGRESS_NEWDB, file->filename);
-    log_msg(add_entry_log_level, "add new database entry '%s' (%c) to node '%s' (%p) as new data", file->filename, get_file_type_char_from_perm(file->perm), node->path, (void*) node);
+    log_msg(add_entry_log_level, "add new database entry '%s' (%c) to node '%s' (%p) as new data", file->filename, get_f_type_char_from_perm(file->perm), node->path, (void*) node);
     node->new_data=file;
     break;
   }
@@ -437,7 +438,7 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
     progress_status(PROGRESS_SKIPPED, NULL);
     if(conf->action&DO_INIT) {
         node->checked|=NODE_FREE;
-        log_msg(add_entry_log_level, "add old database entry '%s' (%c) to node (%p) as new data (entry does not match limit but keep it for database_out)", file->filename, get_file_type_char_from_perm(file->perm), (void*) node);
+        log_msg(add_entry_log_level, "add old database entry '%s' (%c) to node (%p) as new data (entry does not match limit but keep it for database_out)", file->filename, get_f_type_char_from_perm(file->perm), (void*) node);
     } else {
         log_msg(add_entry_log_level, "drop old database entry '%s' (entry does not match limit)", file->filename);
         free_db_line(node->new_data);
@@ -659,38 +660,37 @@ match_result check_limit(char* filename, bool log_partial_match) {
     return 0;
 }
 
-match_t check_rxtree(char* filename,seltree* tree, RESTRICTION_TYPE file_type, char* source, bool check_parent_dirs)
-{
-  match_result limit_result = check_limit(filename, !(file_type&FT_DIR));
+match_t check_rxtree(file_t file, seltree* tree, char* source, bool check_parent_dirs) {
+  match_result limit_result = check_limit(file.name, !(file.type&FT_DIR));
   match_t match;
   if (limit_result) {
-      if (limit_result == RESULT_PARTIAL_LIMIT_MATCH && file_type&FT_DIR) {
-        log_msg(LOG_LEVEL_RULE, "\u252c partial limit match (limit: '%s') for directory '%s', check for no-recurse match", conf->limit, filename);
-        match = check_seltree(tree, filename, file_type, check_parent_dirs);
+      if (limit_result == RESULT_PARTIAL_LIMIT_MATCH && file.type&FT_DIR) {
+        log_msg(LOG_LEVEL_RULE, "\u252c partial limit match (limit: '%s') for directory '%s', check for no-recurse match", conf->limit, file.name);
+        match = check_seltree(tree, file, check_parent_dirs);
         if (match.result == RESULT_NON_RECURSIVE_NEGATIVE_MATCH || match.result == RESULT_NO_RULE_MATCH) {
             match.result = RESULT_PART_LIMIT_AND_NO_RECURSE_MATCH;
-            log_msg(LOG_LEVEL_RULE, "\u2534 no-recurse match for '%s', stop directory processing", filename);
-            log_msg(LOG_LEVEL_DEBUG, "check_rxtree: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, filename);
+            log_msg(LOG_LEVEL_RULE, "\u2534 no-recurse match for '%s', stop directory processing", file.name);
+            log_msg(LOG_LEVEL_DEBUG, "check_rxtree: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, file.name);
             return match;
         } else {
-            log_msg(LOG_LEVEL_RULE, "\u2534 no no-recurse match for '%s'", filename);
+            log_msg(LOG_LEVEL_RULE, "\u2534 no no-recurse match for '%s'", file.name);
         }
       }
       match = (match_t) { limit_result, NULL, 0 };
-      log_msg(LOG_LEVEL_DEBUG, "check_rxtree: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, filename);
+      log_msg(LOG_LEVEL_DEBUG, "check_rxtree: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, file.name);
       return match;
   }
 
-  log_msg(LOG_LEVEL_RULE, "\u252c process '%s' from %s (filetype: %c)", filename, source, get_restriction_char(file_type));
-  match = check_seltree(tree, filename, file_type, check_parent_dirs);
+  log_msg(LOG_LEVEL_RULE, "\u252c process '%s' from %s (filetype: %c)", file.name, source, get_f_type_char_from_f_type(file.type));
+  match = check_seltree(tree, file, check_parent_dirs);
   if (match.result == RESULT_SELECTIVE_MATCH || match.result == RESULT_EQUAL_MATCH) {
       char *str;
-      log_msg(LOG_LEVEL_RULE, "\u2534 ADD '%s' (attr: '%s')", filename, str = diff_attributes(0, match.rule->attr));
+      log_msg(LOG_LEVEL_RULE, "\u2534 ADD '%s' (attr: '%s')", file.name, str = diff_attributes(0, match.rule->attr));
       free(str);
   } else {
-      log_msg(LOG_LEVEL_RULE, "\u2534 do NOT add '%s'", filename);
+      log_msg(LOG_LEVEL_RULE, "\u2534 do NOT add '%s'", file.name);
   }
-  log_msg(LOG_LEVEL_DEBUG, "check_rxtree: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, filename);
+  log_msg(LOG_LEVEL_DEBUG, "check_rxtree: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, file.name);
   return match;
 }
 
@@ -842,7 +842,8 @@ void populate_tree(seltree* tree)
         progress_status(PROGRESS_OLDDB, NULL);
         log_msg(LOG_LEVEL_INFO, "read old entries from database: %s:%s", get_url_type_string((conf->database_in.url)->type), (conf->database_in.url)->value);
             while((old=db_readline(&(conf->database_in))) != NULL) {
-                match_t add = check_rxtree(old->filename,tree, get_restriction_from_perm(old->perm), "database_in", true);
+                match_t add = check_rxtree((file_t) { .name = old->filename, .type = get_f_type_from_perm(old->perm),
+                        }, tree, "database_in", true);
                 if (add.result == RESULT_SELECTIVE_MATCH || add.result == RESULT_EQUAL_MATCH) {
                     add_file_to_tree(tree,old,DB_OLD, &(conf->database_in), NULL);
                 } else if (conf->limit!=NULL && (add.result == RESULT_NO_LIMIT_MATCH || add.result == RESULT_PARTIAL_LIMIT_MATCH)) {
@@ -862,7 +863,8 @@ void populate_tree(seltree* tree)
         progress_status(PROGRESS_NEWDB, NULL);
         log_msg(LOG_LEVEL_INFO, "read new entries from database: %s:%s", get_url_type_string((conf->database_new.url)->type), (conf->database_new.url)->value);
       while((new=db_readline(&(conf->database_new))) != NULL){
-    match_t add = check_rxtree(new->filename,tree, get_restriction_from_perm(new->perm), "database_new", true);
+    match_t add = check_rxtree((file_t) { .name = new->filename, .type = get_f_type_from_perm(new->perm),
+            }, tree, "database_new", true);
     if (add.result == RESULT_SELECTIVE_MATCH || add.result == RESULT_EQUAL_MATCH) {
 	  add_file_to_tree(tree,new,DB_NEW, &(conf->database_new), NULL);
 	} else {

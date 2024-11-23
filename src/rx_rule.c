@@ -19,96 +19,35 @@
  */
 
 #include "config.h"
+#include <stdio.h>
 
-#include <string.h>
-#include <sys/stat.h>
-
+#include "file.h"
 #include "rx_rule.h"
 #include "util.h"
 
-typedef struct {
-    char c;
-    RESTRICTION_TYPE r;
-    mode_t ft;
-} restriction_t;
-
-static restriction_t rs[] = {
-    { 'f', FT_REG, S_IFREG },
-    { 'd', FT_DIR, S_IFDIR },
-#ifdef S_IFIFO
-    { 'p', FT_FIFO, S_IFIFO },
-#endif
-    { 'l', FT_LNK, S_IFLNK },
-    { 'b', FT_BLK, S_IFBLK },
-    { 'c', FT_CHR, S_IFCHR },
-#ifdef S_IFSOCK
-    { 's', FT_SOCK, S_IFSOCK },
-#endif
-#ifdef S_IFDOOR
-    { 'D', FT_DOOR, S_IFDOOR },
-#endif
-#ifdef S_IFPORT
-    { 'P', FT_PORT, S_IFPORT },
-#endif
-};
-
-static int num_restrictions = sizeof(rs)/sizeof(restriction_t);
-
-RESTRICTION_TYPE get_restriction_from_perm(mode_t mode) {
-    mode_t ft = mode & S_IFMT;
-    for (int i = 0 ; i < num_restrictions; ++i) {
-        if (ft == rs[i].ft) {
-            return rs[i].r;
-        }
-    }
-    return FT_NULL;
-}
-
-char get_file_type_char_from_perm(mode_t mode) {
-    mode_t ft = mode & S_IFMT;
-    for (int i = 0 ; i < num_restrictions; ++i) {
-        if (ft == rs[i].ft) {
-            return rs[i].c;
-        }
-    }
-    return '?';
-}
-
-RESTRICTION_TYPE get_restriction_from_char(char c) {
-    for (int i = 0 ; i < num_restrictions; ++i) {
-        if (c == rs[i].c) {
-            return rs[i].r;
-        }
-    }
-    return FT_NULL;
-}
-
-char get_restriction_char(RESTRICTION_TYPE r) {
-    for (int i = 0 ; i < num_restrictions; ++i) {
-        if (r == rs[i].r) {
-            return rs[i].c;
-        }
-    }
-    return '?';
-}
-
-static int generate_restriction_string(RESTRICTION_TYPE r, char *str) {
+static int generate_restriction_string(rx_restriction_t r, char *str) {
     int n = 0;
-    if (r == FT_NULL) {
-        char *no_restriction_string = "(none)";
+    if (r.f_type == FT_NULL
+            ) {
+        const char *no_restriction_string = "(none)";
         size_t length = strlen(no_restriction_string);
-        if (str) { strncpy(str, no_restriction_string, length+1); }
-        n = length + 1;
+        if (str) { sprintf(&str[n], "%s", no_restriction_string); }
+        n = length+1;
     } else {
-        for (int i = 0; i < num_restrictions; ++i) {
-            if (rs[i].r&r) {
+        FT_TYPE f_types = r.f_type;
+        unsigned int i = 0;
+        while (f_types) {
+            FT_TYPE t = (1U<<i);
+            if (f_types&t) {
                 if (n) {
                     if (str) { str[n] = ','; }
                     n++;
                 }
-                if (str) { str[n] = rs[i].c; }
-                n ++;
+                if (str) { str[n] = get_f_type_char_from_f_type(t); }
+                n++;
             }
+            i++;
+            f_types &= ~t;
         }
         if (str) { str[n] = '\0'; }
         n++;
@@ -116,7 +55,7 @@ static int generate_restriction_string(RESTRICTION_TYPE r, char *str) {
     return n;
 }
 
-char *get_restriction_string(RESTRICTION_TYPE r) {
+char *get_restriction_string(rx_restriction_t r) {
     char *str = NULL;
     int n = generate_restriction_string(r, str);
     str = checked_malloc(n);

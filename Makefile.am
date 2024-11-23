@@ -27,6 +27,7 @@ aide_SOURCES = src/aide.c include/aide.h \
 	include/be.h src/be.c \
 	include/commandconf.h src/commandconf.c \
 	include/attributes.h src/attributes.c \
+	include/file.h src/file.c \
 	include/report.h src/report.c \
 	include/report_plain.h src/report_plain.c \
 	include/report_json.h src/report_json.c \
@@ -103,7 +104,7 @@ check_aide_SOURCES	= tests/check_aide.c tests/check_aide.h \
 					  tests/check_hashsum.c src/hashsum.c \
 					  tests/check_seltree.c src/seltree.c \
 					  tests/check_progress.c \
-					  src/md.c src/log.c src/util.c src/list.c src/tree.c src/rx_rule.c
+					  src/md.c src/file.c src/log.c src/util.c src/list.c src/tree.c src/rx_rule.c
 check_aide_CFLAGS	= -I$(top_srcdir)/include \
 				$(CHECK_CFLAGS) \
 				${GCRYPT_CFLAGS} \

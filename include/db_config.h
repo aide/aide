@@ -35,6 +35,7 @@
 #include "db_line.h"
 #include "list.h"
 #include "report.h"
+#include "file.h"
 #include "rx_rule.h"
 #include "url.h"
 
@@ -121,8 +122,7 @@ typedef struct db_config {
 
   DB_ATTR_TYPE db_out_attrs;
 
-  char *check_path;
-  RESTRICTION_TYPE check_file_type;
+  file_t check_file;
   
   char* config_file;
   char* config_version;

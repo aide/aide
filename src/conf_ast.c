@@ -187,11 +187,18 @@ attribute_expression* new_attribute_expression(attribute_operator op, attribute_
     return e;
 }
 
-restriction_expression* new_restriction_expression(restriction_expression* left, char* right) {
-    restriction_expression* e = checked_malloc(sizeof(restriction_expression));
+ft_restriction_expression* new_ft_restriction_expression(ft_restriction_expression* left, char* right) {
+    ft_restriction_expression* e = checked_malloc(sizeof(ft_restriction_expression));
     e->right = right;
     e->left = left;
-    log_msg(ast_log_level, "ast: new restriction expression (%p): left: %p, right: '%s'", (void*) e, (void*) left, right);
+    log_msg(ast_log_level, "ast: new file type restriction expression (%p): left: %p, right: '%s'", (void*) e, (void*) left, right);
+    return e;
+}
+
+restriction_expression* new_restriction_expression(ft_restriction_expression* f_types) {
+    restriction_expression* e = checked_malloc(sizeof(restriction_expression));
+    e->f_types = f_types;
+    log_msg(ast_log_level, "ast: new restriction expression (%p): f_types: '%p'", (void*) e, (void*) f_types);
     return e;
 }
 
@@ -295,12 +302,21 @@ void free_if_condition(if_condition *c) {
     free(c);
 }
 
+void free_ft_restriction_expression(ft_restriction_expression *r) {
+    if (r == NULL) {
+        return;
+    }
+    free_ft_restriction_expression(r->left);
+    free_string(r->right);
+    log_msg(ast_log_level, "ast: free file type restriction expression %p", (void*) r);
+    free(r);
+}
+
 void free_restriction_expression(restriction_expression *r) {
     if (r == NULL) {
         return;
     }
-    free_restriction_expression(r->left);
-    free_string(r->right);
+    free_ft_restriction_expression(r->f_types);
     log_msg(ast_log_level, "ast: free restriction expression %p", (void*) r);
     free(r);
 }

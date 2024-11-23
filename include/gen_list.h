@@ -25,6 +25,7 @@
 #include "attributes.h"
 #include "rx_rule.h"
 #include "db_config.h"
+#include "file.h"
 #include "seltree.h"
 #include "db_disk.h"
 
@@ -41,11 +42,11 @@ void populate_tree(seltree*);
 
 void write_tree(seltree*);
 
-match_t check_rxtree(char*,seltree*, RESTRICTION_TYPE, char *, bool);
+match_t check_rxtree(file_t, seltree*, char *, bool);
 match_result check_limit(char*, bool);
 
 struct db_line* get_file_attrs(disk_entry *);
 void add_file_to_tree(seltree*, db_line*, int, const database *, struct stat *);
 
-void print_match(char*, match_t, RESTRICTION_TYPE);
+void print_match(file_t, match_t);
 #endif /*_GEN_LIST_H_INCLUDED*/

@@ -239,7 +239,7 @@ void do_undefine(char* name, int linenumber, char* filename, char* linebuf)
   }
 }
 
-bool add_rx_rule_to_tree(char* rx, char* rule_prefix, RESTRICTION_TYPE restriction, DB_ATTR_TYPE attr, int type, seltree *tree, int linenumber, char* filename, char* linebuf) {
+bool add_rx_rule_to_tree(char* rx, char* rule_prefix, rx_restriction_t restriction, DB_ATTR_TYPE attr, int type, seltree *tree, int linenumber, char* filename, char* linebuf) {
 
     rx_rule* r=NULL;
 

@@ -22,22 +22,16 @@
 #ifndef _RX_RULE_H_INCLUDED
 #define  _RX_RULE_H_INCLUDED
 
+#include "config.h"
+#include "file.h"
 #include <sys/stat.h>
 #define PCRE2_CODE_UNIT_WIDTH 8
 #include <pcre2.h>
 #include "attributes.h"
 
-#define RESTRICTION_TYPE unsigned int
-#define FT_REG   (1U<<0) /* file */
-#define FT_DIR   (1U<<1) /* dir */
-#define FT_FIFO  (1U<<2) /* fifo */
-#define FT_LNK   (1U<<3) /* link */
-#define FT_BLK   (1U<<4) /* block device */
-#define FT_CHR   (1U<<5) /* char device */
-#define FT_SOCK  (1U<<6) /* socket */
-#define FT_DOOR  (1U<<7) /* door */
-#define FT_PORT  (1U<<8) /* port */
-#define FT_NULL  0U
+typedef struct rx_restriction_t {
+   FT_TYPE f_type;
+} rx_restriction_t;
 
 typedef enum {
     AIDE_RECURSIVE_NEGATIVE_RULE=0,
@@ -56,7 +50,7 @@ typedef struct rx_rule {
   int config_linenumber;
   char *config_line;
   char *prefix;
-  RESTRICTION_TYPE restriction;
+  rx_restriction_t restriction;
 } rx_rule;
 
 typedef enum match_result {
@@ -78,16 +72,11 @@ typedef struct match_t {
     int length;
 } match_t;
 
-RESTRICTION_TYPE get_restriction_from_char(char);
-RESTRICTION_TYPE get_restriction_from_perm(mode_t);
-char get_file_type_char_from_perm(mode_t);
-char get_restriction_char(RESTRICTION_TYPE);
-
 char* get_rule_type_long_string(AIDE_RULE_TYPE);
 char* get_rule_type_char(AIDE_RULE_TYPE);
 
 /* memory for the returned string is obtained with malloc(3), and should be freed with free(3). */
-char *get_restriction_string(RESTRICTION_TYPE);
+char *get_restriction_string(rx_restriction_t);
 
 char *get_match_result_string(match_result);
 #endif /* RX_RULE_H_INCLUDED */

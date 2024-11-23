@@ -621,7 +621,7 @@ char* get_summarize_changes_string(report_t* report, seltree* node) {
         int i;
         char* summary = checked_malloc ((report_attrs_order_length+1) * sizeof (char));
         if (node->checked&(NODE_ADDED|NODE_REMOVED)) {
-            summary[0]=get_file_type_char_from_perm(((node->checked&NODE_REMOVED)?node->old_data:node->new_data)->perm);
+            summary[0]=get_f_type_char_from_perm(((node->checked&NODE_REMOVED)?node->old_data:node->new_data)->perm);
             for(i=1;i<report_attrs_order_length;i++){
                 summary[i]=(node->checked&NODE_ADDED)?'+':'-';
             }
@@ -633,7 +633,7 @@ char* get_summarize_changes_string(report_t* report, seltree* node) {
                 d = '-'; a = '+'; g = ':'; u = '.'; s = ' ';
                 switch (i) {
                     case 0:
-                        summary[i]=get_file_type_char_from_perm((node->new_data)->perm);
+                        summary[i]=get_f_type_char_from_perm((node->new_data)->perm);
                         continue;
                     case 2:
                         if (attrs&(node->changed_attrs&(~(report->ignore_removed_attrs))) && (node->old_data)->size > (node->new_data)->size) {

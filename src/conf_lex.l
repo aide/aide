@@ -129,6 +129,11 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_DEBUG;
   return('=');
 }
 
+<EXPR>0 { /* no restriction */
+  LOG_LEX_TOKEN(lex_log_level, '0', conftext)
+  return ('0');
+}
+
 <EXPR>({L}|">")+ {
   LOG_LEX_TOKEN(lex_log_level, TEXPR, conftext)
   conflval.s=checked_strdup(conftext);

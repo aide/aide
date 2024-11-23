@@ -1,3 +1,6 @@
+2024-11-23 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Refactor code to prepare for file system type restrictions
+
 2024-11-10 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Remove deprecated hashsums from H default group (closes: #179)
 

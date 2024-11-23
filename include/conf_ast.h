@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2019-2022 Hannes von Haugwitz
+ * Copyright (C) 2019-2024 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -151,9 +151,13 @@ typedef struct group_statement {
     attribute_expression *expr;
 } group_statement;
 
-typedef struct restriction_expression {
+typedef struct ft_restriction_expression {
     char* right;
-    struct restriction_expression* left;
+    struct ft_restriction_expression* left;
+} ft_restriction_expression;
+
+typedef struct restriction_expression {
+    struct ft_restriction_expression* f_types;
 } restriction_expression;
 
 typedef struct rule_statement {
@@ -223,7 +227,9 @@ bool_expression* new_string_bool_expression(bool_operator, string_expression*);
 bool_expression* new_bool_expression(bool_operator, bool_expression*, bool_expression*);
 
 attribute_expression* new_attribute_expression(attribute_operator, attribute_expression*, char*);
-restriction_expression* new_restriction_expression(restriction_expression*, char*);
+
+ft_restriction_expression* new_ft_restriction_expression(ft_restriction_expression*, char*);
+restriction_expression* new_restriction_expression(ft_restriction_expression*);
 
 void deep_free(ast*);
 

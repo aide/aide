@@ -34,7 +34,7 @@ int parse_config(char *, char *, char *);
 
 int conf_input_wrapper(char* buf, int max_size, FILE* in);
 
-bool add_rx_rule_to_tree(char*, char*, RESTRICTION_TYPE, DB_ATTR_TYPE, int, seltree*, int, char*, char*);
+bool add_rx_rule_to_tree(char*, char*, rx_restriction_t, DB_ATTR_TYPE, int, seltree*, int, char*, char*);
 
 void do_define(char*,char*, int, char*, char*);
 

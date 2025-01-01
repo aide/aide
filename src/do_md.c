@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2004-2006, 2009-2011, 2013, 2018-2024 Rami Lehti,
+ * Copyright (C) 1999-2002, 2004-2006, 2009-2011, 2013, 2018-2025 Rami Lehti,
  *               Pablo Virolainen, Mike Markley, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -588,18 +588,21 @@ void capabilities2line(db_line* line) {
     char *txt_caps;
 
     if ((ATTR(attr_capabilities)&line->attr)) {
-
-    caps = cap_get_file(line->fullpath);
-
-    if (caps != NULL) {
-        txt_caps = cap_to_text(caps, NULL);
-        line->capabilities = checked_strdup(txt_caps);
-	cap_free(txt_caps);
-	cap_free(caps);
-    } else {
-        line->attr&=(~ATTR(attr_capabilities));
-        line->capabilities=NULL;
-    }
+       if (S_ISREG(line->perm)) {
+          caps = cap_get_file(line->fullpath);
+          if (caps != NULL) {
+              txt_caps = cap_to_text(caps, NULL);
+              line->capabilities = checked_strdup(txt_caps);
+              cap_free(txt_caps);
+              cap_free(caps);
+          } else {
+              line->attr&=(~ATTR(attr_capabilities));
+              line->capabilities=NULL;
+          }
+       } else {
+           line->attr&=(~ATTR(attr_capabilities));
+           line->capabilities=NULL;
+       }
     } else {
         line->capabilities=NULL;
     }

@@ -1,5 +1,6 @@
 2025-01-01 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix entries per second calculation for logging
+	* Limit Linux capabilities to regular files
 
 2024-11-23 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Refactor code to prepare for file system type restrictions

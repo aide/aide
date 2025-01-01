@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2023,2024 Hannes von Haugwitz
+ * Copyright (C) 2023-2025 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -33,7 +33,7 @@
 #include "errorcodes.h"
 #include "util.h"
 
-#define BILLION  1000000000L;
+#define BILLION  1000000000L
 
 pthread_t progress_updater_thread = 0LU;
 pthread_mutex_t progress_update_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -108,11 +108,14 @@ static void update_state(progress_state new_state) {
         struct timespec time_now;
         clock_gettime( CLOCK_REALTIME, &time_now);
 
-        long elapsed = time_now.tv_sec - time_start.tv_sec;
-        long elapsed_minutes = elapsed/60;
-        double elapsed_seconds = elapsed%60 + (double)( time_now.tv_nsec - time_start.tv_nsec ) / (double)BILLION;
+        long elapsed_s = time_now.tv_sec - time_start.tv_sec;
+        long elapsed_ns = time_now.tv_nsec - time_start.tv_nsec;
+        double elapsed = elapsed_s + elapsed_ns/(double)BILLION;
 
-        unsigned long performance = elapsed?num_entries/elapsed:num_entries;
+        long elapsed_minutes = elapsed_s/60;
+        double elapsed_seconds = elapsed_s%60 + elapsed_ns/(double)BILLION;
+
+        unsigned long performance = num_entries/elapsed;
         char * entries_string = num_entries == 1 ? "entry" : "entries";
 
         char *skipped_str = NULL;

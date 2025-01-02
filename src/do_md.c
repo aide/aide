@@ -228,8 +228,8 @@ md_hashsums calc_hashsums(char* fullpath, DB_ATTR_TYPE attr, struct stat* old_fs
         if ((stat_diff=stat_cmp(&new_fs, old_fs, attr&ATTR(attr_growing))) != RETOK) {
             DB_ATTR_TYPE changed_attribures = 0ULL;
             for(ATTRIBUTE i=0;i<num_attrs;i++) {
-                if (((1<<i)&stat_diff)!=0) {
-                    changed_attribures |= 1<<i;
+                if (((1LLU<<i)&stat_diff)!=0) {
+                    changed_attribures |= 1LLU<<i;
                 }
             }
             char *str;

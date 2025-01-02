@@ -1,3 +1,6 @@
+2025-01-02 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Add missing suffix to decimal constants
+
 2025-01-01 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix entries per second calculation for logging
 	* Limit Linux capabilities to regular files

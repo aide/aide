@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2022-2023 Hannes von Haugwitz
+ * Copyright (C) 2022-2023,2025 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -35,6 +35,7 @@ queue_ts_t *queue_ts_init(int (*) (const void*, const void*));
 void  queue_ts_free(queue_ts_t *);
 bool  queue_ts_enqueue(queue_ts_t * const, void * const, const char *);
 void *queue_ts_dequeue_wait(queue_ts_t * const, const char *);
+void  queue_ts_register(queue_ts_t * const, const char *);
 void  queue_ts_release(queue_ts_t * const, const char *);
 
 #endif

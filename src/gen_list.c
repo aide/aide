@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006, 2009-2012, 2015-2016, 2019-2024 Rami Lehti,
+ * Copyright (C) 1999-2006, 2009-2012, 2015-2016, 2019-2025 Rami Lehti,
  *               Pablo Virolainen, Mike Markley, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -56,7 +56,6 @@
 
 void hsymlnk(db_line* line);
 void fs2db_line(struct stat* fs,db_line* line);
-void no_hash(db_line* line);
 
 LOG_LEVEL compare_log_level = LOG_LEVEL_COMPARE;
 
@@ -153,29 +152,24 @@ static int has_e2fsattrs_changed(unsigned long old, unsigned long new) {
 
 static DB_ATTR_TYPE get_changed_hashsums(byte** old_hashsums, byte** new_hashsums, db_line* old, db_line* new) {
     DB_ATTR_TYPE changed_hashsums = 0;
-    DB_ATTR_TYPE all_hashsums = get_hashes(true);
-    if (old->attr&all_hashsums && new->attr&all_hashsums) {
-        bool no_hashsums_compared = true;
-        for (int i = 0 ; i < num_hashes ; ++i) {
-            DB_ATTR_TYPE attr = ATTR(hashsums[i].attribute);
-            if (old_hashsums[i] || new_hashsums[i]) {
-                if (old_hashsums[i] && new_hashsums[i]) {
-                    no_hashsums_compared = false;
-                    bool hash_has_changed = (bytecmp(old_hashsums[i], new_hashsums[i], hashsums[i].length) != 0);
-                    log_msg(LOG_LEVEL_TRACE,"│ %s hashsum %s changed (old: %p, new: %p)", attributes[hashsums[i].attribute].db_name, hash_has_changed?"has":"has NOT", (void*) old_hashsums[i], (void*) new_hashsums[i]);
-                    if(hash_has_changed) {
-                        changed_hashsums|=attr;
-                    }
-                } else {
-                    log_msg(LOG_LEVEL_TRACE,"│ %s hashsum comparison skipped (old: %p, new: %p)", attributes[hashsums[i].attribute].db_name, (void*) old_hashsums[i], (void*) new_hashsums[i]);
+    bool no_hashsums_compared = true;
+    for (int i = 0 ; i < num_hashes ; ++i) {
+        DB_ATTR_TYPE attr = ATTR(hashsums[i].attribute);
+        if (old_hashsums[i] || new_hashsums[i]) {
+            if (old_hashsums[i] && new_hashsums[i]) {
+                no_hashsums_compared = false;
+                bool hash_has_changed = (bytecmp(old_hashsums[i], new_hashsums[i], hashsums[i].length) != 0);
+                log_msg(LOG_LEVEL_TRACE,"│ %s hashsum %s changed (old: %p, new: %p)", attributes[hashsums[i].attribute].db_name, hash_has_changed?"has":"has NOT", (void*) old_hashsums[i], (void*) new_hashsums[i]);
+                if(hash_has_changed) {
+                    changed_hashsums|=attr;
                 }
+            } else {
+                log_msg(LOG_LEVEL_TRACE,"│ %s hashsum comparison skipped (old: %p, new: %p)", attributes[hashsums[i].attribute].db_name, (void*) old_hashsums[i], (void*) new_hashsums[i]);
             }
         }
-        if (no_hashsums_compared) {
-            log_msg(LOG_LEVEL_WARNING,"cannot compare hashsums of old:'%s' and new:'%s' (no common hashsum(s) available)", old->filename, new->filename);
-        }
-    } else {
-        log_msg(LOG_LEVEL_TRACE,"│ hashsum comparison skipped (missing hashsum attributes on old or new file)");
+    }
+    if (no_hashsums_compared) {
+        log_msg(LOG_LEVEL_WARNING,"cannot compare hashsums of old:'%s' and new:'%s' (no common hashsum(s) available)", old->filename, new->filename);
     }
     return changed_hashsums;
 }
@@ -185,7 +179,7 @@ static DB_ATTR_TYPE get_changed_hashsums(byte** old_hashsums, byte** new_hashsum
  *
  * Attributes are only compared if they exist in both database lines.
 */
-static DB_ATTR_TYPE get_changed_attributes(db_line* l1,db_line* l2, DB_ATTR_TYPE ignore_attrs, struct stat* fs, bool compare_hashsums) {
+static DB_ATTR_TYPE get_changed_attributes(db_line* l1,db_line* l2, DB_ATTR_TYPE ignore_attrs, disk_entry *entry, bool compare_hashsums) {
 
 #define easy_growing_compare(a,b) \
     if(((a&l1->attr) && (a&l2->attr))) { \
@@ -230,8 +224,8 @@ static DB_ATTR_TYPE get_changed_attributes(db_line* l1,db_line* l2, DB_ATTR_TYPE
     easy_compare(ATTR(attr_inode),inode);
     easy_compare(ATTR(attr_linkcount),nlink);
 
-
-    if (compare_hashsums && S_ISREG(l1->perm) && S_ISREG(l2->perm)) {
+    DB_ATTR_TYPE all_hashsums = get_hashes(true);
+    if (compare_hashsums && l1->attr&all_hashsums && l2->attr&all_hashsums) {
         log_msg(LOG_LEVEL_TRACE, "│ compare hashsums of old:'%s' and new:'%s'", l1->filename, l2->filename);
         DB_ATTR_TYPE changed_hashsums = get_changed_hashsums(l1->hashsums, l2->hashsums, l1, l2);
         if (changed_hashsums) {
@@ -246,7 +240,7 @@ static DB_ATTR_TYPE get_changed_attributes(db_line* l1,db_line* l2, DB_ATTR_TYPE
                             log_msg(compare_log_level, "┝ old:'%s' has growing attribute set, check for growing hashsums", l1->filename);
                             log_msg(compare_log_level, "│ compare hashsums of old:'%s' and new:'%s' (limited to old size %lld)", l1->filename, l2->filename, l1->size);
                             DB_ATTR_TYPE transition_hashsums = get_transition_hashsums(l1->filename, l1->attr, l2->filename, l2->attr);
-                            md_hashsums hs = calc_hashsums(l2->fullpath, l2->attr|transition_hashsums, fs, l1->size, false);
+                            md_hashsums hs = calc_hashsums(entry, l2->attr|transition_hashsums, l1->size, false);
 
                             byte* new_hashsums[num_hashes];
                             copy_hashsums(l2->fullpath, &hs, &new_hashsums);
@@ -394,7 +388,7 @@ void print_match(file_t file, match_t match) {
 /*
  * add_file_to_tree
  */
-void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *db, struct stat* fs)
+void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *db, disk_entry *entry)
 {
   log_msg(LOG_LEVEL_TRACE, "add_file_to_tree: '%s'", file->filename);
   seltree* node=NULL;
@@ -457,7 +451,7 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
         if((node->checked&DB_OLD)&&(node->checked&DB_NEW)){
     log_msg(compare_log_level, "┝ compare attributes of '%s'", node->path);
     get_different_attributes(node->old_data,node->new_data, 0);
-    node->changed_attrs=get_changed_attributes(node->old_data,node->new_data, 0, fs, true);
+    node->changed_attrs=get_changed_attributes(node->old_data,node->new_data, 0, entry, true);
     /* Free the data if same else leave as is for report_tree */
     if(node->changed_attrs==RETOK && !((node->old_data)->attr^(node->new_data)->attr)) {
       log_msg(LOG_LEVEL_DEBUG, "│ free old data (node '%s' is unchanged)", node->path);
@@ -496,7 +490,7 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
 
                   seltree *moved_node = NULL;
 
-                  md_hashsums hs = calc_hashsums(new_file->fullpath, new_file->attr, fs, -1, true);
+                  md_hashsums hs = calc_hashsums(entry, new_file->attr, -1, true);
                   if (hs.attrs) {
                       byte* new_hashsums[num_hashes];
                       copy_hashsums(new_file->fullpath, &hs, &new_hashsums);
@@ -541,7 +535,7 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
                           DB_ATTR_TYPE compressed_ignored_attr = default_move_ignored_attr | get_hashsums_to_ignore((moved_node->old_data)->filename, (moved_node->old_data)->attr, new_file->filename, new_file->attr);
                           if (get_different_attributes(moved_node->old_data, new_file, compressed_ignored_attr)) {
                               log_msg(compare_log_level, "│ ignore old:'%s' as original file of compressed file new:'%s' (due to different attributes)", (moved_node->old_data)->filename, new_file->filename);
-                          } else if (get_changed_attributes((moved_node->old_data), new_file, ATTR(attr_ctime)|ATTR(attr_size)|ATTR(attr_bcount)|ATTR(attr_inode), fs, false) == RETOK) {
+                          } else if (get_changed_attributes((moved_node->old_data), new_file, ATTR(attr_ctime)|ATTR(attr_size)|ATTR(attr_bcount)|ATTR(attr_inode), entry, false) == RETOK) {
                               node->checked |= NODE_MOVED_IN;
                               moved_node->checked |= NODE_MOVED_OUT;
                               log_msg(compare_log_level,_("│ accept old:'%s' as original file of compressed file new:'%s'"), (moved_node->old_data)->filename, new_file->filename);
@@ -602,7 +596,7 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
                   DB_ATTR_TYPE move_ignored_attr = default_move_ignored_attr | get_hashsums_to_ignore(oldData->filename, oldData->attr, newData->filename, newData->attr);
                   if (get_different_attributes(oldData, newData, move_ignored_attr)) {
                       log_msg(compare_log_level, "│ ignore old:'%s' as source file of target file new:'%s' (due to different attributes)", oldData->filename, newData->filename);
-                  } else if (get_changed_attributes(oldData, newData, ATTR(attr_ctime), fs, true) == RETOK) {
+                  } else if (get_changed_attributes(oldData, newData, ATTR(attr_ctime), entry, true) == RETOK) {
                       node->checked |= NODE_MOVED_IN;
                       moved_node->checked |= NODE_MOVED_OUT;
                       log_msg(compare_log_level, "│ accept old:'%s' as source file of target file new:'%s'", oldData->filename, newData->filename);
@@ -694,16 +688,12 @@ match_t check_rxtree(file_t file, seltree* tree, char* source, bool check_parent
   return match;
 }
 
-db_line* get_file_attrs(disk_entry *file) {
+db_line* get_file_attrs(disk_entry *file, DB_ATTR_TYPE attrs, DB_ATTR_TYPE extra_hashsums) {
   log_msg(LOG_LEVEL_DEBUG, "get file attributes '%s' (fullpath: '%s')", &file->filename[conf->root_prefix_length], file->filename);
   db_line* line=NULL;
   time_t cur_time;
 
-  char *str;
-  log_msg(LOG_LEVEL_DEBUG, "%s> requested attributes: %s", file->filename, str = diff_attributes(0, file->attr));
-  free(str);
-
-  if(!(file->attr&ATTR(attr_rdev))) {
+  if(!(attrs&ATTR(attr_rdev))) {
     (file->fs).st_rdev=0;
   }
   /*
@@ -725,20 +715,14 @@ db_line* get_file_attrs(disk_entry *file) {
       log_msg(LOG_LEVEL_NOTICE,_("%s ctime in future"),file->filename);
     }
   }
-  
-  /*
-    Malloc if we have something to store..
-  */
-  
-  line=(db_line*)checked_malloc(sizeof(db_line));
-  
-  memset(line,0,sizeof(db_line));
-  
+
+  line = checked_calloc(1, sizeof(db_line));
+
   /*
     We want filename
   */
 
-  line->attr=file->attr|ATTR(attr_filename);
+  line->attr=attrs|ATTR(attr_filename);
 
   /*
     Just copy some needed fields.
@@ -766,47 +750,35 @@ db_line* get_file_attrs(disk_entry *file) {
   */
 
 #ifdef WITH_ACL
-  acl2line(line);
+  acl2line(line, file->fd);
 #endif
 
 #ifdef WITH_XATTR
-  xattrs2line(line);
+  xattrs2line(line, file->fd);
 #endif
 
 #ifdef WITH_SELINUX
-  selinux2line(line);
+  selinux2line(line, file->fd);
 #endif
 
 #ifdef WITH_E2FSATTRS
-    e2fsattrs2line(line);
+    e2fsattrs2line(line, file->fd);
 #endif
 
 #ifdef WITH_CAPABILITIES
-    capabilities2line(line);
+    capabilities2line(line, file->fd);
 #endif
 
-  if (line->attr&get_hashes(true) && S_ISREG(file->fs.st_mode)) {
-    md_hashsums hs = calc_hashsums(line->fullpath, line->attr|file->extra_hashsums, &file->fs, -1, false);
+  DB_ATTR_TYPE all_hashsums = get_hashes(true);
+  if (line->attr&all_hashsums) {
+    md_hashsums hs = calc_hashsums(file, line->attr|extra_hashsums, -1, false);
     if (hs.attrs) {
         hashsums2line(&hs,line);
     } else {
-        no_hash(line);
+        line->attr&=~all_hashsums;
     }
-  } else {
-    /*
-      We cannot calculate hash for nonfile.
-      Mark it to attr.
-    */
-    no_hash(line);
   }
-  /* attr_filename is always needed/returned but never requested */
-  DB_ATTR_TYPE returned_attr = (~ATTR(attr_filename)&line->attr);
-  log_msg(LOG_LEVEL_DEBUG, "%s> returned attributes: %llu (%s)", file->filename, returned_attr, str = diff_attributes(0, returned_attr));
-  free(str);
-  if (returned_attr^file->attr) {
-      log_msg(LOG_LEVEL_DEBUG, "%s> requested (%llu) and returned (%llu) attributes are not equal: %s", file->filename, file->attr, returned_attr,  str = diff_attributes(file->attr, returned_attr));
-      free(str);
-  }
+
   return line;
 }
 

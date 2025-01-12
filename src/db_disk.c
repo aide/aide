@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006, 2010-2011, 2016-2017, 2019-2024 Rami Lehti,
+ * Copyright (C) 1999-2006, 2010-2011, 2016-2017, 2019-2025 Rami Lehti,
  *               Pablo Virolainen, Mike Markley, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -21,50 +21,41 @@
  */
 
 #include "config.h"
-#include "aide.h"
-#include <stdio.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <stdlib.h>
 #include <dirent.h>
 #include <errno.h>
-#include <stdbool.h>
-#include "db_config.h"
-#include "log.h"
-#include "rx_rule.h"
-#include "gen_list.h"
-#include "db.h"
-#include "db_line.h"
-#include "db_disk.h"
-#include "util.h"
-#include "queue.h"
-#include "errorcodes.h"
-#include "seltree_struct.h"
-
+#include <fcntl.h>
 #include <pthread.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include "aide.h"
+#include "attributes.h"
+#include "db.h"
+#include "db_config.h"
+#include "db_disk.h"
+#include "db_line.h"
+#include "errorcodes.h"
+#include "gen_list.h"
+#include "log.h"
+#include "queue.h"
+#include "rx_rule.h"
+#include "seltree_struct.h"
+#include "util.h"
 
-static int get_file_status(char *filename, struct stat *fs) {
-    int sres = 0;
-    sres = lstat(filename,fs);
-    if(sres == -1){
-        char* er = strerror(errno);
-        if (er == NULL) {
-            log_msg(LOG_LEVEL_WARNING, "get_file_status: lstat() failed for %s. strerror() failed with %i", filename, errno);
-        } else {
-            log_msg(LOG_LEVEL_WARNING, "get_file_status: lstat() failed for %s: %s", filename, er);
-        }
-    }
-    return sres;
-}
+queue_ts_t *queue_worker_entries = NULL;
 
-queue_ts_t *queue_worker_files = NULL;
-queue_ts_t *queue_database_entries = NULL;
+struct worker_args {
+    long worker_index;
+    bool dry_run;
+};
 
-pthread_t wait_for_workers_thread = 0;
-
-pthread_t *file_attributes_threads = 0;
-
-const char *whoami_main = "(main)";
+typedef struct worker_thread {
+    pthread_t thread;
+    struct worker_args args;
+} worker_thread;
 
 static char *name_construct (const char *dirpath, const char *filename) {
     int dirpath_len = strlen (dirpath);
@@ -75,275 +66,281 @@ static char *name_construct (const char *dirpath, const char *filename) {
     return ret;
 }
 
-typedef struct database_entry {
-    db_line *line;
-    struct stat fs;
-} database_entry;
+static void process_path(char *path, bool dry_run, const char *whoami) {
+    db_line *line = NULL;
 
-static void handle_matched_file(disk_entry *disk_file) {
-    DB_ATTR_TYPE transition_hashsums = 0LL;
-    if (conf->action&DO_COMPARE && disk_file->attr&get_hashes(false)) {
-        const seltree *node = get_seltree_node(conf->tree, &disk_file->filename[conf->root_prefix_length]);
-        if (node && node->old_data) {
-            transition_hashsums = get_transition_hashsums(
-                    (node->old_data)->filename, (node->old_data)->attr,
-                    &disk_file->filename[conf->root_prefix_length], disk_file->attr
-                );
-        }
+    log_msg(LOG_LEVEL_DEBUG, "process '%s' (fullpath: '%s')", &path[conf->root_prefix_length], path);
+
+    int fd = -1;
+    int errno_read = 0;
+#ifdef O_NOATIME
+    if ((fd = open(path, O_NOFOLLOW | O_RDONLY | O_NOATIME)) == -1) {
+        log_msg(LOG_LEVEL_DEBUG, "%s> open() with O_NOATIME flag failed: %s (retrying without O_NOATIME)", path, strerror(errno));
+#endif
+        fd = open(path, O_NOFOLLOW | O_RDONLY);
+#ifdef O_NOATIME
     }
-    disk_entry *file = checked_malloc(sizeof(disk_entry)); /* freed in file_attrs_worker else below */
-    file->filename = checked_strdup(disk_file->filename); /* not te be freed, reused as fullname in db_line */
-    file->attr = disk_file->attr;
-    file->fs = disk_file->fs;
-    file->extra_hashsums = transition_hashsums;
-
-    if (conf->num_workers) {
-        log_msg(LOG_LEVEL_THREAD, "%10s: scan_dir: add entry %p to list of worker files (filename: '%s' (%p))", whoami_main,  (void*) file, file->filename, (void*) file->filename);
-        queue_ts_enqueue(queue_worker_files, file, whoami_main);
+#endif
+    struct stat stat;
+    if (fd == -1) {
+#ifdef O_PATH
+        log_msg(LOG_LEVEL_DEBUG, "%s> open() with O_RDONLY flag failed: %s (retrying with O_PATH)", path, strerror(errno));
+        errno_read = errno;
+        fd = open(path, O_NOFOLLOW | O_PATH);
+    }
+    if (fd == -1) {
+        log_msg(LOG_LEVEL_WARNING, "open() failed for '%s': %s (skipping)", path, strerror(errno));
     } else {
-        db_line *line = get_file_attrs(file);
-        add_file_to_tree(conf->tree, line, DB_NEW|DB_DISK, NULL, &file->fs);
-        free(file);
+        if (fstat(fd, &stat) == -1) {
+            log_msg(LOG_LEVEL_WARNING, "fstat() failed for %s: %s", path, strerror(errno));
+        }
+#else
+        log_msg(LOG_LEVEL_DEBUG, "%s> open() with O_RDONLY flag failed: %s (falling back to lstat())", path, strerror(errno));
+        errno_read = errno;
     }
-}
-
-void scan_dir(char *root_path, bool dry_run) {
-    char* full_path;
-    disk_entry disk_file;
-
-    log_msg(LOG_LEVEL_DEBUG,"scan_dir: process root directory '%s' (fullpath: '%s')", &root_path[conf->root_prefix_length], root_path);
-
-    disk_file.filename = root_path;
-    if (!get_file_status(root_path, &disk_file.fs)) {
+    if(lstat(path, &stat) == -1) {
+        log_msg(LOG_LEVEL_WARNING, "lstat() failed for '%s': %s (skipping)", path, strerror(errno));
+    } else {
+#endif
         file_t file = {
-            .name = &root_path[conf->root_prefix_length],
-            .type = get_f_type_from_perm(disk_file.fs.st_mode),
+            .name = &path[conf->root_prefix_length],
+            .type = get_f_type_from_perm(stat.st_mode),
         };
-        match_t path_match = check_rxtree (file, conf->tree, "disk", false);
+
+        match_t path_match = check_rxtree(file, conf->tree, "disk", false);
+        if (S_ISDIR(stat.st_mode)) {
+            DIR *dir = NULL;
+            switch (path_match.result) {
+                case RESULT_SELECTIVE_MATCH:
+                case RESULT_EQUAL_MATCH:
+                case RESULT_PARTIAL_MATCH:
+                case RESULT_RECURSIVE_NEGATIVE_MATCH:
+                case RESULT_PARTIAL_LIMIT_MATCH:
+                    log_msg(LOG_LEVEL_DEBUG, "read directory contents of '%s' (reason: %s)", path, get_match_result_desc(path_match.result));
+                    int dupfd = dup(fd);
+                    if (dupfd == -1) {
+                        log_msg(LOG_LEVEL_WARNING, "'%s': failed to duplicate file descriptor: %s", path, strerror(errno));
+                    } else {
+                        if ((dir = fdopendir(dupfd)) == NULL) {
+                            log_msg(LOG_LEVEL_WARNING, "failed to open directory '%s' for reading directory contents: %s (skipping recursion)", path,
+                                    strerror(errno == EBADF && errno_read ? errno_read : errno));
+                        } else {
+                            const struct dirent *entp = NULL;
+                            while ((entp = readdir(dir)) != NULL) {
+                                if (strcmp(entp->d_name, ".") != 0 && strcmp(entp->d_name, "..") != 0) {
+                                    char *entry_full_path = name_construct(path, entp->d_name);
+                                    log_msg(LOG_LEVEL_THREAD,
+                                            "%10s: add entry %p to queue of worker entries (filename: '%s')", whoami,
+                                            (void *)entry_full_path, entry_full_path);
+                                    queue_ts_enqueue(queue_worker_entries, entry_full_path, whoami);
+                                }
+                            }
+                            if (closedir(dir) < 0) {
+                                log_msg(LOG_LEVEL_WARNING, "closedir() failed for '%s': %s", path, strerror(errno));
+                            }
+                        }
+                    }
+                    break;
+                case RESULT_NON_RECURSIVE_NEGATIVE_MATCH:
+                case RESULT_NEGATIVE_PARENT_MATCH:
+                case RESULT_NO_RULE_MATCH:
+                case RESULT_NO_LIMIT_MATCH:
+                case RESULT_PART_LIMIT_AND_NO_RECURSE_MATCH:
+                    log_msg(LOG_LEVEL_DEBUG, "do NOT read directory contents of '%s' (reason: %s)", path, get_match_result_desc(path_match.result));
+                    break;
+            }
+        }
         if (dry_run) {
             print_match(file, path_match);
-        }
-        if (!dry_run && path_match.result&(RESULT_EQUAL_MATCH|RESULT_SELECTIVE_MATCH)) {
-            disk_file.attr = path_match.rule->attr;
-            handle_matched_file(&disk_file);
-        }
-        if (path_match.result & (RESULT_NO_RULE_MATCH|RESULT_NON_RECURSIVE_NEGATIVE_MATCH|RESULT_PART_LIMIT_AND_NO_RECURSE_MATCH)) {
-            return;
-        }
-    }
-
-    queue_ts_t *stack = queue_init(NULL);
-    log_msg(LOG_LEVEL_TRACE, "initialized scan stack queue %p", (void*) stack);
-
-    queue_enqueue(stack, checked_strdup(root_path)); /* freed below */
-
-    while((full_path = queue_dequeue(stack)) != NULL) {
-        DIR *dir;
-        char *file_path = &full_path[conf->root_prefix_length];
-        log_msg(LOG_LEVEL_DEBUG,"scan_dir: process directory '%s' (fullpath: '%s')", file_path, full_path);
-        if((dir = opendir(full_path)) == NULL) {
-            log_msg(LOG_LEVEL_WARNING,"opendir() failed for '%s' (fullpath: '%s'): %s", file_path, full_path, strerror(errno));
         } else {
-            struct dirent *entp;
-            while ((entp = readdir(dir)) != NULL) {
-                LOG_LEVEL log_level = LOG_LEVEL_TRACE;
-                if (strcmp(entp->d_name, ".") != 0 && strcmp(entp->d_name, "..") != 0) {
-                    char *entry_full_path = name_construct(full_path, entp->d_name);
-                    bool free_entry_full_path = true;
-                    log_msg(log_level, "scan_dir: process child directory '%s' (fullpath: '%s')", &entry_full_path[conf->root_prefix_length], entry_full_path);
-                    disk_file.filename = entry_full_path;
-                    if (!get_file_status(entry_full_path, &disk_file.fs)) {
-                        file_t file = {
-                            .name = &entry_full_path[conf->root_prefix_length],
-                            .type = get_f_type_from_perm(disk_file.fs.st_mode),
-                        };
-                        match_t path_match = check_rxtree (file, conf->tree, "disk", false);
-                        switch (path_match.result) {
-                            case RESULT_SELECTIVE_MATCH:
-                            case RESULT_EQUAL_MATCH:
-                                if (S_ISDIR(disk_file.fs.st_mode)) {
-                                    log_msg(log_level, "scan_dir: add child directory '%s' to scan stack (reason: selective/equal match)", &entry_full_path[conf->root_prefix_length]);
-                                    queue_enqueue(stack, entry_full_path);
-                                    free_entry_full_path = false;
-                                }
-                                if (!dry_run) {
-                                    disk_file.attr = path_match.rule->attr;
-                                    handle_matched_file(&disk_file);
-                                }
-                                break;
-                            case RESULT_PARTIAL_MATCH:
-                                if (S_ISDIR(disk_file.fs.st_mode)) {
-                                    log_msg(log_level, "scan_dir: add child directory '%s' to scan stack (reason: partial match)", &entry_full_path[conf->root_prefix_length]);
-                                    queue_enqueue(stack, entry_full_path);
-                                    free_entry_full_path = false;
-                                }
-                                break;
-                            case RESULT_RECURSIVE_NEGATIVE_MATCH:
-                                if (S_ISDIR(disk_file.fs.st_mode)) {
-                                    log_msg(log_level, "scan_dir: add child directory '%s' to scan stack (reason: recursive negative match)", &entry_full_path[conf->root_prefix_length]);
-                                    queue_enqueue(stack, entry_full_path);
-                                    free_entry_full_path = false;
-                                }
-                                break;
-                            case RESULT_PARTIAL_LIMIT_MATCH:
-                                if(S_ISDIR(disk_file.fs.st_mode)) {
-                                    log_msg(log_level, "scan_dir: add child directory '%s' to scan stack (reason: partial limit match)", &entry_full_path[conf->root_prefix_length]);
-                                    queue_enqueue(stack, entry_full_path);
-                                    free_entry_full_path = false;
-                                }
-                                break;
-                            case RESULT_NON_RECURSIVE_NEGATIVE_MATCH:
-                                if(S_ISDIR(disk_file.fs.st_mode)) {
-                                    log_msg(log_level, "scan_dir: do NOT add child directory '%s' to scan stack (reason: non-recursive negative match)", &entry_full_path[conf->root_prefix_length]);
-                                }
-                                break;
-                            case RESULT_NEGATIVE_PARENT_MATCH:
-                            case RESULT_NO_RULE_MATCH:
-                            case RESULT_NO_LIMIT_MATCH:
-                            case RESULT_PART_LIMIT_AND_NO_RECURSE_MATCH:
-                                break;
-                        }
-                        if (dry_run) {
-                            print_match(file, path_match);
-                        }
+            if (path_match.result & RESULT_SELECTIVE_MATCH || path_match.result & RESULT_EQUAL_MATCH) {
+
+                DB_ATTR_TYPE attrs = path_match.rule->attr;
+                char *attrs_str = NULL;
+
+                /* disable unsupported attributes */
+                DB_ATTR_TYPE attrs_to_disable;
+                LOG_LEVEL log_level_unavailable = LOG_LEVEL_DEBUG;
+                if (!S_ISREG(stat.st_mode)) {
+                    /* hashsum attributes */
+                    attrs_to_disable = attrs & get_hashes(false);
+                    if (attrs_to_disable) {
+                        attrs_str = diff_attributes(0, attrs_to_disable);
+                        log_msg(log_level_unavailable, "%s> disabling hashsum attribute(s) for non-regular file: %s)",
+                                path, attrs_str);
+                        free(attrs_str);
+                        attrs &= ~attrs_to_disable;
                     }
-                    if (free_entry_full_path) {
-                        free(entry_full_path);
+#ifdef WITH_CAPABILITIES
+                    /* capability attribute */
+                    attrs_to_disable = attrs & ATTR(attr_capabilities);
+                    if (attrs_to_disable) {
+                        log_msg(log_level_unavailable, "%s> disabling capability attribute for non-regular file", path);
+                        attrs &= ~attrs_to_disable;
+                    }
+#endif
+                }
+                if (!S_ISLNK(stat.st_mode)) {
+                    /* linkname attribute */
+                    attrs_to_disable = attrs & ATTR(attr_linkname);
+                    if (attrs_to_disable) {
+                        log_msg(log_level_unavailable, "%s> disabling linkname attribute for non-symlink file", path);
+                        attrs &= ~attrs_to_disable;
                     }
                 }
+#ifdef WITH_E2FSATTRS
+                if (!(S_ISDIR(stat.st_mode) || S_ISREG(stat.st_mode))) {
+                    /* e2fsattrs attribute */
+                    attrs_to_disable = attrs & ATTR(attr_e2fsattrs);
+                    if (attrs_to_disable) {
+                        log_msg(log_level_unavailable,
+                                "%s> disabling e2fsattrs attribute for non-directory/non-regular file", path);
+                        attrs &= ~attrs_to_disable;
+                    }
+                }
+#endif
+                if (errno_read
+#ifdef O_PATH
+                        && errno_read != ELOOP
+#endif
+                   ) {
+                    /* disable attributes requiring read permissions */
+                    attrs_to_disable = attrs & (get_hashes(false)
+#ifdef WITH_E2FSATTRS
+                            | ATTR(attr_e2fsattrs)
+#endif
+                    );
+                    if (attrs_to_disable) {
+                        attrs_str = diff_attributes(0, attrs_to_disable);
+                        log_msg(
+                                LOG_LEVEL_WARNING,
+                                "failed to open '%s' for reading: %s (disabling attributes requiring read permissions: %s)",
+                                path, strerror(errno_read), attrs_str);
+                        free(attrs_str);
+                        attrs &= ~attrs_to_disable;
+                    }
+                }
+
+                DB_ATTR_TYPE transition_hashsums = 0LL;
+                if (conf->action & DO_COMPARE && attrs & get_hashes(false)) {
+                    const seltree *node = get_seltree_node(conf->tree, &path[conf->root_prefix_length]);
+                    if (node && node->old_data) {
+                        transition_hashsums = get_transition_hashsums(
+                                (node->old_data)->filename, (node->old_data)->attr, &path[conf->root_prefix_length], attrs);
+                    }
+                }
+
+                disk_entry entry = {
+                    .filename = checked_strdup(path),
+                    .fs = stat,
+                    .fd = fd,
+                };
+
+                attrs_str = diff_attributes(0, attrs);
+                log_msg(LOG_LEVEL_DEBUG, "%s> requested attributes: %s", entry.filename, attrs_str);
+                free(attrs_str);
+
+                line = get_file_attrs(&entry, attrs, transition_hashsums);
+
+                /* attr_filename is always needed/returned but never requested */
+                DB_ATTR_TYPE returned_attr = (~ATTR(attr_filename) & line->attr);
+                attrs_str = diff_attributes(0, returned_attr);
+                log_msg(LOG_LEVEL_DEBUG, "%s> returned attributes: %llu (%s)", entry.filename, returned_attr, attrs_str);
+                free(attrs_str);
+                if (returned_attr ^ attrs) {
+                    attrs_str = diff_attributes(attrs, returned_attr);
+                    log_msg(LOG_LEVEL_DEBUG, "%s> requested (%llu) and returned (%llu) attributes are not equal: %s", entry.filename, attrs, returned_attr, attrs_str);
+                    free(attrs_str);
+                }
+
+                add_file_to_tree(conf->tree, line, DB_NEW | DB_DISK, NULL, &entry);
             }
-            closedir(dir);
         }
-        free(full_path);
-        full_path = NULL;
+#ifndef O_PATH
+        if (fd != -1) {
+#endif
+            if (close(fd) < 0) {
+                log_msg(LOG_LEVEL_WARNING, "close() failed for '%s': %s", path, strerror(errno));
+            }
+#ifndef O_PATH
+        }
+#endif
     }
-    if (conf->num_workers && !dry_run) {
-        queue_ts_release(queue_worker_files, whoami_main);
-    }
-    queue_free(stack);
 }
 
-static void * add2tree( __attribute__((unused)) void *arg) {
-    const char *whoami = "(add2tree)";
+static void process_disk_entries(bool dry_run, const char *whoami) {
+    while (1) {
+        log_msg(LOG_LEVEL_THREAD, "%10s: process_disk_entries: wait for entries", whoami);
+        char *data = queue_ts_dequeue_wait(queue_worker_entries, whoami);
+        if (data) {
+            log_msg(LOG_LEVEL_THREAD, "%10s: process_disk_entries: got entry %p from queue of worker entries (path: '%s' )", whoami, (void*) data, data);
+            process_path(data, dry_run, whoami);
+            free(data);
+        } else {
+            log_msg(LOG_LEVEL_THREAD, "%10s: process_disk_entries: queue empty", whoami);
+            break;
+        }
+    }
+}
+
+static void * worker(void *arg) {
+    struct worker_args args = *(struct worker_args *)arg;
+    char whoami[32];
+    snprintf(whoami, 32, "(work-%03li)", args.worker_index);
 
     mask_sig(whoami);
 
-    log_msg(LOG_LEVEL_THREAD, "%10s: wait for database entries", whoami);
-    database_entry *data;
-    while ((data = queue_ts_dequeue_wait(queue_database_entries, whoami)) != NULL) {
-        log_msg(LOG_LEVEL_THREAD, "%10s: got line '%s'", whoami, (data->line)->filename);
-        add_file_to_tree(conf->tree, data->line, DB_NEW|DB_DISK, NULL, &data->fs);
-        free(data);
-    }
-    queue_ts_free(queue_database_entries);
-    log_msg(LOG_LEVEL_TRACE, "%10s: finished (queue empty)", whoami);
+    queue_ts_register(queue_worker_entries, whoami);
 
+    log_msg(LOG_LEVEL_THREAD, "%10s: worker: initialized worker thread #%ld", whoami, args.worker_index);
+
+    process_disk_entries(args.dry_run, whoami);
+
+    log_msg(LOG_LEVEL_THREAD, "%10s: worker: exit thread", whoami);
     return (void *) pthread_self();
 }
 
 void db_scan_disk(bool dry_run) {
-    char* full_path=checked_malloc((conf->root_prefix_length+2)*sizeof(char));
+    const char *whoami_main = "(main)";
+
+    char* full_path=checked_malloc((conf->root_prefix_length+2)*sizeof(char)); /* freed in process_disk_entries() */
     strncpy(full_path, conf->root_prefix, conf->root_prefix_length+1);
     strcat (full_path, "/");
 
-    pthread_t add2tree_thread = 0;
+    if (dry_run || conf->num_workers == 0) {
+        queue_worker_entries = queue_ts_init(NULL); /* freed below */
+        queue_ts_enqueue(queue_worker_entries, full_path, whoami_main);
+        queue_ts_release(queue_worker_entries, whoami_main);
 
-    if (!dry_run && conf->num_workers) {
-        if (pthread_create(&add2tree_thread, NULL, &add2tree, NULL) != 0) {
-            log_msg(LOG_LEVEL_ERROR, "failed to start add2tree thread");
-            exit(THREAD_ERROR);
+        process_disk_entries(dry_run, whoami_main);
+
+        queue_ts_free(queue_worker_entries);
+    } else {
+        queue_worker_entries = queue_ts_init(NULL); /* freed below */
+        log_msg(LOG_LEVEL_THREAD, "initialized worker entries queue %p", (void*) queue_worker_entries);
+
+        worker_thread *worker_threads = checked_malloc(conf->num_workers * sizeof(worker_thread)); /* freed below */
+
+        for (int i = 0 ; i < conf->num_workers ; ++i) {
+            worker_threads[i].args.worker_index = i + 1L;
+            worker_threads[i].args.dry_run = dry_run;
+            if (pthread_create(&worker_threads[i].thread, NULL, &worker, (void *) &worker_threads[i].args) != 0) {
+                log_msg(LOG_LEVEL_ERROR, "failed to start file attributes worker thread #%d", i+1);
+                exit(THREAD_ERROR);
+            }
         }
-    }
 
-    scan_dir(full_path, dry_run);
+        queue_ts_enqueue(queue_worker_entries, full_path, whoami_main);
+        queue_ts_release(queue_worker_entries, whoami_main);
 
-    if (!dry_run && conf->num_workers) {
-        if (pthread_join(add2tree_thread, NULL) != 0) {
-            log_msg(LOG_LEVEL_ERROR, "failed to join add2tree thread");
-            exit(THREAD_ERROR);
+        log_msg(LOG_LEVEL_THREAD, "wait for worker threads to be finished");
+        for (int i = 0 ; i < conf->num_workers ; ++i) {
+            if (pthread_join(worker_threads[i].thread, NULL) != 0) {
+                log_msg(LOG_LEVEL_WARNING, "failed to join file attributes thread #%d", i);
+            }
+            log_msg(LOG_LEVEL_THREAD, "worker thread #%d finished", i);
         }
+        free(worker_threads);
+        queue_ts_free(queue_worker_entries);
     }
-
-    free(full_path);
-}
-
-static void * file_attrs_worker( __attribute__((unused)) void *arg) {
-    long worker_index = (long) arg;
-    char whoami[32];
-    snprintf(whoami, 32, "(work-%03li)", worker_index );
-
-    mask_sig(whoami);
-
-    log_msg(LOG_LEVEL_THREAD, "%10s: file_attrs_worker: initialized worker thread #%ld", whoami, worker_index);
-
-    while (1) {
-        log_msg(LOG_LEVEL_THREAD, "%10s: file_attrs_worker: check/wait for files", whoami);
-        disk_entry *data = queue_ts_dequeue_wait(queue_worker_files, whoami);
-        if (data) {
-            log_msg(LOG_LEVEL_THREAD, "%10s: file_attrs_workers: got entry %p from list of files (filename: '%s' (%p))", whoami, (void*) data, data->filename, (void*) data->filename);
-
-            db_line *line = get_file_attrs(data);
-            database_entry *db_data;
-            db_data = checked_malloc(sizeof(database_entry)); /* freed in db_scan_disk */
-            db_data->line = line;
-            db_data->fs = data->fs;
-            log_msg(LOG_LEVEL_THREAD, "%10s: file_attrs_worker: add entry %p to list of database entries (filename: '%s')", whoami, (void*) line, line->filename);
-            queue_ts_enqueue(queue_database_entries, db_data, whoami);
-
-            free(data);
-        } else {
-            log_msg(LOG_LEVEL_THREAD, "%10s: file_attrs_worker: queue empty, exit thread", whoami);
-            break;
-        }
-    }
-
-    return (void *) pthread_self();
-}
-
-static void * wait_for_workers( __attribute__((unused)) void *arg) {
-    const char *whoami = "(wait)";
-
-    mask_sig(whoami);
-
-    log_msg(LOG_LEVEL_THREAD, "%10s: wait for file_attrs_worker threads to be finished", whoami);
-    for (int i = 0 ; i < conf->num_workers ; ++i) {
-        if (pthread_join(file_attributes_threads[i], NULL) != 0) {
-            log_msg(LOG_LEVEL_WARNING, "failed to join file attributes thread #%d", i);
-        }
-        log_msg(LOG_LEVEL_THREAD, "%10s: file_attrs_worker thread #%d finished", whoami, i);
-    }
-    free(file_attributes_threads);
-    queue_ts_release(queue_database_entries, whoami);
-    queue_ts_free(queue_worker_files);
-    return (void *) pthread_self();
-}
-
-int db_disk_start_threads(void) {
-    queue_database_entries = queue_ts_init(NULL); /* freed in add2tree */
-    log_msg(LOG_LEVEL_THREAD, "%10s: initialized database entries queue %p", whoami_main, (void*) queue_database_entries);
-    queue_worker_files = queue_ts_init(NULL); /* freed in wait_for_workers */
-    log_msg(LOG_LEVEL_THREAD, "%10s: initialized worker files queue %p", whoami_main, (void*) queue_worker_files);
-
-    file_attributes_threads = checked_malloc(conf->num_workers * sizeof(pthread_t)); /* freed in wait_for_workers */
-
-    for (int i = 0 ; i < conf->num_workers ; ++i) {
-        if (pthread_create(&file_attributes_threads[i], NULL, &file_attrs_worker, (void *) (i+1L)) != 0) {
-            log_msg(LOG_LEVEL_ERROR, "failed to start file attributes worker thread #%d", i+1);
-            return RETFAIL;
-        }
-    }
-    if (pthread_create(&wait_for_workers_thread, NULL, &wait_for_workers, NULL) != 0) {
-        log_msg(LOG_LEVEL_ERROR, "failed to start wait_for_workers thread");
-        return RETFAIL;
-    }
-    return RETOK;
-}
-
-int db_disk_finish_threads(void) {
-    if (pthread_join(wait_for_workers_thread, NULL) != 0) {
-        log_msg(LOG_LEVEL_ERROR, "failed to join wait_for_workers thread");
-        return RETFAIL;
-    }
-    log_msg(LOG_LEVEL_THREAD, "%10s: wait_for_workers thread finished", whoami_main);
-    return RETOK;
 }

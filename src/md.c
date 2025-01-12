@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2005-2006, 2010, 2019-2024 Rami Lehti,
+ * Copyright (C) 1999-2002, 2005-2006, 2010, 2019-2025 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -157,39 +157,35 @@ int update_md(struct md_container* md,void* data,ssize_t size) {
 
 int close_md(struct md_container* md, md_hashsums * hs, const char *filename) {
 #ifdef _PARAMETER_CHECK_
-  if (md==NULL) {
-    return RETFAIL;
-  }
+    if (md==NULL) {
+        return RETFAIL;
+    }
 #endif
-  log_msg(LOG_LEVEL_DEBUG, "%s> free md_container (%p)", filename, (void*) md);
-#ifdef WITH_GCRYPT
-  gcry_md_final(md->mdh); 
-
-  if (hs) {
-      for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
-          if (md->calc_attr&ATTR(hashsums[i].attribute)) {
-              memcpy(hs->hashsums[i],gcry_md_read(md->mdh, algorithms[i]), hashsums[i].length);
-          }
-      }
-  }
-
-  gcry_md_reset(md->mdh);
-#endif  
-
+    if (hs) {
+        log_msg(LOG_LEVEL_DEBUG, "%s> copy hashsums from md_container (%p)", filename, (void*) md);
 #ifdef WITH_NETTLE
-  if (hs) {
-      for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
-          DB_ATTR_TYPE h = ATTR(hashsums[i].attribute);
-          if (h&md->calc_attr) {
-              nettle_functions[i].digest(&md->ctx[i].md5, hashsums[i].length, hs->hashsums[i]);
-          }
-      }
-  }
+        for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
+            DB_ATTR_TYPE h = ATTR(hashsums[i].attribute);
+            if (h&md->calc_attr) {
+                nettle_functions[i].digest(&md->ctx[i].md5, hashsums[i].length, hs->hashsums[i]);
+            }
+        }
 #endif
-  if (hs) {
-      hs->attrs = md->calc_attr;
-  }
-  return RETOK;
+#ifdef WITH_GCRYPT
+        for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
+            if (md->calc_attr&ATTR(hashsums[i].attribute)) {
+                memcpy(hs->hashsums[i],gcry_md_read(md->mdh, algorithms[i]), hashsums[i].length);
+            }
+        }
+#endif
+        hs->attrs = md->calc_attr;
+    }
+    log_msg(LOG_LEVEL_DEBUG, "%s> free md_container (%p)", filename, (void*) md);
+    /* Nettle doesn’t do memory allocation */
+#ifdef WITH_GCRYPT
+    gcry_md_close(md->mdh);
+#endif
+    return RETOK;
 }
 
 DB_ATTR_TYPE copy_hashsums(char *context, md_hashsums *hs, byte* (*target)[num_hashes]) {

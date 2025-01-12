@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2006, 2010-2011, 2019, 2022, 2023 Rami Lehti, Pablo
+ * Copyright (C) 1999-2002,2006,2010-2011,2019,2022,2023,2025 Rami Lehti, Pablo
  *               Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -24,31 +24,33 @@
 
 #include "config.h"
 #include <stdbool.h>
+#include <stdio.h>
+#include "db_disk.h"
 #include "list.h"
 #include "db_config.h"
 #include "md.h"
 
 list* do_md(list* file_lst,db_config* conf);
-md_hashsums calc_hashsums(char*, DB_ATTR_TYPE, struct stat*, ssize_t, bool);
+md_hashsums calc_hashsums(disk_entry *, DB_ATTR_TYPE, ssize_t, bool);
 
 #ifdef WITH_ACL
-void acl2line(db_line* line);
+void acl2line(db_line* line, int);
 #endif
 
 #ifdef WITH_XATTR
-void xattrs2line(db_line *line);
+void xattrs2line(db_line *line, int);
 #endif
 
 #ifdef WITH_SELINUX
-void selinux2line(db_line *line);
+void selinux2line(db_line *line, int);
 #endif
 
 #ifdef WITH_E2FSATTRS
-void e2fsattrs2line(db_line* line);
+void e2fsattrs2line(db_line* line, int);
 #endif
 
 #ifdef WITH_CAPABILITIES
-void capabilities2line(db_line* line);
+void capabilities2line(db_line* line, int);
 #endif
 
 #endif /* _DO_MD_H_INCLUDED */

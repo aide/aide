@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2006, 2016, 2020-2024 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002, 2006, 2016, 2020-2025 Rami Lehti, Pablo Virolainen,
  *               Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -79,4 +79,5 @@ char* get_rule_type_char(AIDE_RULE_TYPE);
 char *get_restriction_string(rx_restriction_t);
 
 char *get_match_result_string(match_result);
+char *get_match_result_desc(match_result);
 #endif /* RX_RULE_H_INCLUDED */

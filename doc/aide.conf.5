@@ -728,7 +728,7 @@ permissions
 inode
 .TP
 .B "\fBl\fR"
-link name
+link name (symbolic links only)
 .TP
 .B "\fBn\fR"
 number of links
@@ -756,24 +756,24 @@ ctime
 .TP
 .B "\fBacl\fR"
 access control list
-(requires \fIlibacl\fR)
+(requires \fIlibacl\fR, Linux-only)
 .TP
 .B "\fBselinux\fR"
 selinux attributes
-(requires \fIlibselinux\fR)
+(requires \fIlibselinux\fR, Linux-only)
 .TP
 .B "\fBxattrs\fR"
 extended attributes
-(requires \fIlibattr\fR)
+(requires \fIlibattr\fR, Linux-only)
 .TP
 .B "\fBe2fsattrs\fR"
-file attributes on a second extended file system,
+file attributes on a Linux file system,
 see also \fB report_ignore_e2fsattrs \fP option
 (requires \fIlibext2fs\fR, added in AIDE v0.15)
 .TP
 .B "\fBcaps\fR"
 file capabilities (regular files only)
-(requires \fIlibcap2\fR, added in AIDE v0.17)
+(requires \fIlibcap\fR, Linux-only, added in AIDE v0.17)
 .PP
 
 Use 'aide --version' to show which compiled-in attributes are available.
@@ -853,7 +853,7 @@ When 'ARF' is used, files missing on disk are omitted from the new database,
 but are ignored in the report.
 .PP
 
-.B Hashsums attributes (calculated for regular files)
+.B Hashsums attributes (regular files only)
 
 .RS 3
 

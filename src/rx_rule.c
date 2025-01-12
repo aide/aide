@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2016, 2020-2022,2024 Hannes von Haugwitz
+ * Copyright (C) 2016, 2020-2022,2024,2025 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -105,6 +105,32 @@ char *get_match_result_string(match_result match) {
             return "RESULT_PART_LIMIT_AND_NO_RECURSE_MATCH";
         case RESULT_NEGATIVE_PARENT_MATCH:
             return "RESULT_NEGATIVE_PARENT_MATCH";
+    }
+    return "unknown match result";
+}
+
+char *get_match_result_desc(match_result match) {
+    switch(match) {
+        case RESULT_NO_RULE_MATCH:
+            return "no rule match";
+        case RESULT_RECURSIVE_NEGATIVE_MATCH:
+            return "recursive negative match";
+        case RESULT_NON_RECURSIVE_NEGATIVE_MATCH:
+            return "non-recursive negative match";
+        case RESULT_EQUAL_MATCH:
+            return "equal match";
+        case RESULT_SELECTIVE_MATCH:
+            return "selective match";
+        case RESULT_PARTIAL_MATCH:
+            return "partial match";
+        case RESULT_NO_LIMIT_MATCH:
+            return "no limit match";
+        case RESULT_PARTIAL_LIMIT_MATCH:
+            return "partial limit match";
+        case RESULT_PART_LIMIT_AND_NO_RECURSE_MATCH:
+            return "partial limit match but non-recursive negative match";
+        case RESULT_NEGATIVE_PARENT_MATCH:
+            return "negative parent match";
     }
     return "unknown match result";
 }

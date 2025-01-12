@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2011, 2021-2024 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002, 2011, 2021-2025 Rami Lehti, Pablo Virolainen,
  *               Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -22,18 +22,15 @@
 #ifndef _DB_DISK_H_INCLUDED
 #define _DB_DISK_H_INCLUDED
 
-#include "attributes.h"
+#include "config.h"
+#include <sys/stat.h>
 #include <stdbool.h>
 
 typedef struct disk_entry {
     char *filename;
-    DB_ATTR_TYPE attr;
-    DB_ATTR_TYPE extra_hashsums;
     struct stat fs;
+    int fd;
 } disk_entry;
 
 void db_scan_disk(bool);
-
-int db_disk_start_threads(void);
-int db_disk_finish_threads(void);
 #endif

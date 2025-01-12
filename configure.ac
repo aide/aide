@@ -278,45 +278,6 @@ AC_CHECK_FUNCS(fcntl ftruncate posix_fadvise asprintf snprintf \
 AC_CHECK_FUNCS(sigabbrev_np)
 AC_CHECK_HEADERS(sys/prctl.h)
 
-# Linux has the O_NOATIME flag, sometimes
-AC_CACHE_CHECK([for open/O_NOATIME], db_cv_open_o_noatime, [
-echo "test for working open/O_NOATIME" > __o_noatime_file
-AC_RUN_IFELSE([AC_LANG_SOURCE([
-#include <fcntl.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#ifndef O_NOATIME
-#if defined(__linux__) && (defined(__i386__) || defined(__PPC__))
-#define O_NOATIME 01000000
-#else
-#define O_NOATIME 0
-#endif
-#endif
-int main(void) {
-int c, fd = open("__o_noatime_file", O_RDONLY | O_NOATIME, 0);
-exit ((!O_NOATIME) || (fd == -1) || (read(fd, &c, 1) != 1));
-} ]) ], [db_cv_open_o_noatime=yes], [db_cv_open_o_noatime=no],
-AC_LINK_IFELSE([AC_LANG_PROGRAM([
-#include <fcntl.h>
-#include <sys/types.h
-#include <sys/stat.h>>
-#ifndef O_NOATIME
-#if defined(__linux__) && (defined(__i386__) || defined(__PPC__))
-#define O_NOATIME 01000000
-#else
-#define O_NOATIME 0
-#endif
-#endif
-], [ open("__o_noatime_file", O_RDONLY | O_NOATIME, 0);
-]) ], [db_cv_open_o_noatime=yes], [db_cv_open_o_noatime=no]))
-rm -f __o_noatime_file])
-if test "$db_cv_open_o_noatime" = yes; then
-	AC_DEFINE(HAVE_O_NOATIME)
-	AH_TEMPLATE(HAVE_O_NOATIME, [Define to 1 if you have the O_NOATIME flag.])
-fi
-
 AC_CHECK_HEADERS(syslog.h inttypes.h fcntl.h ctype.h)
 
 AIDE_PKG_CHECK_MANDATORY(pcre2, PCRE2, libpcre2-8)

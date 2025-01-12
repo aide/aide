@@ -1,3 +1,12 @@
+2025-01-12 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Refactor file processing code
+	  - operate on file descriptor (opened once)
+	  - significantly reduce "file has changed" warnings
+	  - warn about file change after hash calculation
+	  - disable attributes if not supported by file type
+	  - improve error handling
+	  - improve logging
+
 2025-01-02 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Add missing suffix to decimal constants
 

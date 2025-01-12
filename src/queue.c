@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2022-2024 Hannes von Haugwitz
+ * Copyright (C) 2022-2025 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -45,6 +45,8 @@ struct queue_s {
     pthread_cond_t cond;
 
     bool release;
+    bool wait_for_consumers;
+    int active_consumers;
 
     int (*sort_func) (const void*, const void*);
 };
@@ -154,6 +156,8 @@ queue_ts_t *queue_ts_init(int (*sort_func) (const void*, const void*)) {
     pthread_mutex_lock(&queue->mutex);
 
     queue->release = false;
+    queue->wait_for_consumers = false;
+    queue->active_consumers = 0;
 
     queue->head = NULL;
     queue->tail = NULL;
@@ -191,12 +195,19 @@ void *queue_ts_dequeue_wait(queue_ts_t * const queue, const char *whoami) {
     void *data = NULL;
     pthread_mutex_lock(&queue->mutex);
 
-    while ((head = queue->head) == NULL && queue->release == false){
+    if (queue->wait_for_consumers) {
+        queue->active_consumers--;
+        if (queue->active_consumers == 0 && queue->release) {
+            pthread_cond_broadcast(&queue->cond);
+        }
+    }
+    while ((head = queue->head) == NULL && (queue->release == false || queue->active_consumers > 0)) {
         log_msg(LOG_LEVEL_THREAD, "%10s: queue(%p): waiting for new node", whoami, (void*) queue);
         pthread_cond_wait(&queue->cond, &queue->mutex);
         log_msg(LOG_LEVEL_THREAD, "%10s: queue(%p): got broadcast (head: %p)", whoami, (void*) queue, (void*) queue->head);
     }
     if (head != NULL) {
+        if (queue->wait_for_consumers) { queue->active_consumers++; }
         if ((queue->head = head->prev) == NULL) {
             queue->tail = NULL;
         } else {
@@ -210,6 +221,14 @@ void *queue_ts_dequeue_wait(queue_ts_t * const queue, const char *whoami) {
     }
     pthread_mutex_unlock(&queue->mutex);
     return data;
+}
+
+void queue_ts_register(queue_ts_t * const queue, const char *whoami) {
+    pthread_mutex_lock(&queue->mutex);
+    queue->wait_for_consumers = true;
+    queue->active_consumers++;
+    pthread_mutex_unlock(&queue->mutex);
+    log_msg(LOG_LEVEL_THREAD, "%10s: queue(%p): register thread", whoami, (void*) queue);
 }
 
 void queue_ts_release(queue_ts_t * const queue, const char *whoami) {

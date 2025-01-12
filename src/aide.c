@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006, 2010-2013, 2015-2017, 2019-2024 Rami Lehti,
+ * Copyright (C) 1999-2006, 2010-2013, 2015-2017, 2019-2025 Rami Lehti,
  *               Pablo Virolainen, Mike Markley, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -837,17 +837,7 @@ int main(int argc,char**argv)
 	exit(IO_ERROR);
     }
 
-    if((conf->action&DO_INIT || conf->action&DO_COMPARE) && conf->num_workers){
-      if(db_disk_start_threads()==RETFAIL)
-          exit(THREAD_ERROR);
-    }
-
     populate_tree(conf->tree);
-
-    if((conf->action&DO_INIT || conf->action&DO_COMPARE) && conf->num_workers){
-      if(db_disk_finish_threads() == RETFAIL)
-          exit(THREAD_ERROR);
-    }
 
     if(conf->action&DO_INIT) {
         progress_status(PROGRESS_WRITEDB, NULL);

@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
 
@@ -108,12 +109,10 @@ static void update_state(progress_state new_state) {
         struct timespec time_now;
         clock_gettime( CLOCK_REALTIME, &time_now);
 
-        long elapsed_s = time_now.tv_sec - time_start.tv_sec;
-        long elapsed_ns = time_now.tv_nsec - time_start.tv_nsec;
-        double elapsed = elapsed_s + elapsed_ns/(double)BILLION;
+        double elapsed = (time_now.tv_sec - time_start.tv_sec) + (time_now.tv_nsec - time_start.tv_nsec)/(double)BILLION;
 
-        long elapsed_minutes = elapsed_s/60;
-        double elapsed_seconds = elapsed_s%60 + elapsed_ns/(double)BILLION;
+        long elapsed_minutes = (long)floor(elapsed)/60;
+        double elapsed_seconds = elapsed - elapsed_minutes*60;
 
         unsigned long performance = num_entries/elapsed;
         char * entries_string = num_entries == 1 ? "entry" : "entries";

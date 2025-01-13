@@ -1,3 +1,6 @@
+2025-01-13 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Fix calculation of duration
+
 2025-01-12 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Refactor file processing code
 	  - operate on file descriptor (opened once)

@@ -489,7 +489,7 @@ static void setdefaults_before_config(void)
   conf->database_new.db_line = NULL;
   conf->database_new.flags = DB_FLAG_NONE;
 
-  conf->db_attrs = get_hashes(false);
+  conf->db_attrs = get_hashes(false)&~DEPRECATED_HASHES;
   
 #ifdef WITH_ZLIB
   conf->gzip_dbout=0;

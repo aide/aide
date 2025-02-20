@@ -1,3 +1,8 @@
+2025-02-21 yixiangzhike <yixiangzhike007@163.com>
+	* Fix some issues with libgcrypt
+	  - should call init_hashsum_lib before print_version
+	  - hashsums crc32,tiger,whirlpool are still supported by libgcrypt
+
 2025-02-20 yixiangzhike <yixiangzhike007@163.com>
 	* Remove deprecated hashsums from default config option database_attrs
 

@@ -634,6 +634,7 @@ int main(int argc,char**argv)
   umask(0177);
 
   init_sighandler();
+  init_hashsum_lib();
 
   setdefaults_before_config();
 
@@ -668,8 +669,6 @@ int main(int argc,char**argv)
           }
       }
   }
-
-  init_hashsum_lib();
 
   /* get hostname */
   conf->hostname = checked_malloc(sizeof(char) * MAXHOSTNAMELEN + 1);

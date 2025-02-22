@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2007, 2010-2013, 2015-2016, 2018-2024 Rami Lehti,
+ * Copyright (C) 1999-2007, 2010-2013, 2015-2016, 2018-2025 Rami Lehti,
  *               Pablo Virolainen, Mike Markley, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -244,7 +244,6 @@ char* get_file_type_string(mode_t mode) {
 #ifdef S_IFPORT
         case S_IFPORT: return _("Port");
 #endif
-        case 0: return NULL;
         default: return _("Unknown file type");
     }
 }

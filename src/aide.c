@@ -635,6 +635,8 @@ int main(int argc,char**argv)
 
   init_sighandler();
 
+  init_hashsum_lib();
+
   setdefaults_before_config();
 
   log_msg(LOG_LEVEL_INFO, "read command line parameters");
@@ -668,8 +670,6 @@ int main(int argc,char**argv)
           }
       }
   }
-
-  init_hashsum_lib();
 
   /* get hostname */
   conf->hostname = checked_malloc(sizeof(char) * MAXHOSTNAMELEN + 1);

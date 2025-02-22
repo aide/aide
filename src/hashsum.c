@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2020,2022,2024 Hannes von Haugwitz
+ * Copyright (C) 2020,2022,2024-2025 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -51,7 +51,7 @@ hashsum_t hashsums[] = {
 };
 
 DB_ATTR_TYPE DEPRECATED_HASHES = ATTR(attr_md5)|ATTR(attr_sha1)|ATTR(attr_rmd160)|ATTR(attr_gostr3411_94);
-DB_ATTR_TYPE UNSUPPORTED_HASHES = ATTR(attr_crc32)|ATTR(attr_crc32b)|ATTR(attr_haval)|ATTR(attr_tiger)|ATTR(attr_whirlpool);
+DB_ATTR_TYPE REMOVED_HASHES = ATTR(attr_crc32)|ATTR(attr_crc32b)|ATTR(attr_haval)|ATTR(attr_tiger)|ATTR(attr_whirlpool);
 
 #ifdef WITH_NETTLE
 int algorithms[] = { /* order must match hashsums array */
@@ -81,11 +81,11 @@ int algorithms[] = { /* order must match hashsums array */
   GCRY_MD_SHA256,
   GCRY_MD_SHA512,
   GCRY_MD_RMD160,
-  GCRY_MD_TIGER,
-  GCRY_MD_CRC32,
+  -1, /* tiger is no longer supported by aide */
+  -1, /* crc32 is no longer supported by aide */
   -1, /* CRC32B is not available */
   -1, /* GCRY_MD_HAVAL is not (yet) implemented */
-  GCRY_MD_WHIRLPOOL,
+  -1, /* whirlpool is no longer supported by aide */
   GCRY_MD_GOSTR3411_94,
   GCRY_MD_STRIBOG256,
   GCRY_MD_STRIBOG512,
@@ -136,7 +136,7 @@ DB_ATTR_TYPE validate_hashes(DB_ATTR_TYPE attrs, int linenumber, char *filename,
         LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_NOTICE, "hashsum(s) '%s' are DEPRECATED and will be removed in the release after next, please update your config", attr_str)
         free(attr_str);
     }
-    DB_ATTR_TYPE requested_unsupported = requested_hashes&UNSUPPORTED_HASHES;
+    DB_ATTR_TYPE requested_unsupported = requested_hashes&REMOVED_HASHES;
     if (requested_unsupported) {
         DB_ATTR_TYPE remaining_hashes = requested_hashes & ~requested_unsupported;
         if (remaining_hashes) {

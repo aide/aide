@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2020,2022,2024 Hannes von Haugwitz
+ * Copyright (C) 2020,2022,2024,2025 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -57,7 +57,7 @@ extern hashsum_t hashsums[];
 extern int algorithms[];
 
 extern DB_ATTR_TYPE DEPRECATED_HASHES;
-extern DB_ATTR_TYPE UNSUPPORTED_HASHES;
+extern DB_ATTR_TYPE REMOVED_HASHES;
 
 void init_hashsum_lib(void);
 

@@ -489,8 +489,6 @@ static void setdefaults_before_config(void)
   conf->database_new.db_line = NULL;
   conf->database_new.flags = DB_FLAG_NONE;
 
-  conf->db_attrs = get_hashes(false);
-  
 #ifdef WITH_ZLIB
   conf->gzip_dbout=0;
 #endif
@@ -558,6 +556,8 @@ static void setdefaults_before_config(void)
   do_groupdef("H",get_hashes(false)&~DEPRECATED_HASHES);
   do_groupdef("X",X);
   do_groupdef("E",0);
+
+  conf->db_attrs = get_groupval("H");
 
 }
 

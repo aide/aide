@@ -1,3 +1,7 @@
+2025-02-22 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Apply rules only to file system entries and no longer to database
+	  entries
+
 2025-02-22 yixiangzhike <yixiangzhike007@163.com>
 	* Remove deprecated hashsums from default config option database_attrs
 

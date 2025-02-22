@@ -22,6 +22,9 @@ Version 0.19 (UNRELEASED)
         - remove unsupported hashsums (haval, crc32, crc32b, tiger, whirlpool)
         - H default group now contains all compiled in hashsums that are not
           deprecated
+        - rules are no longer applied to the database entries but only to the
+          file system, meaning aide displays files/directories that are no
+          longer matched by any rule as removed entries in the report
     * Deprecations (to be removed in the release after next):
         - md5 hashsum
         - sha1 hashsum

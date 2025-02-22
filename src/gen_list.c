@@ -803,31 +803,15 @@ void populate_tree(seltree* tree)
 {
   db_line* old=NULL;
   db_line* new=NULL;
-  int initdbwarningprinted=0;
-  
-  /* With this we avoid unnecessary checking of removed files. */
-  if(conf->action&DO_INIT){
-    initdbwarningprinted=1;
-  }
   
     if((conf->action&DO_COMPARE)||(conf->action&DO_DIFF)){
         progress_status(PROGRESS_OLDDB, NULL);
         log_msg(LOG_LEVEL_INFO, "read old entries from database: %s:%s", get_url_type_string((conf->database_in.url)->type), (conf->database_in.url)->value);
             while((old=db_readline(&(conf->database_in))) != NULL) {
-                match_t add = check_rxtree((file_t) { .name = old->filename, .type = get_f_type_from_perm(old->perm),
-                        }, tree, "database_in", true);
-                if (add.result == RESULT_SELECTIVE_MATCH || add.result == RESULT_EQUAL_MATCH) {
-                    add_file_to_tree(tree,old,DB_OLD, &(conf->database_in), NULL);
-                } else if (conf->limit!=NULL && (add.result == RESULT_NO_LIMIT_MATCH || add.result == RESULT_PARTIAL_LIMIT_MATCH)) {
+                if (check_limit(old->filename, !(get_f_type_from_perm(old->perm)&FT_DIR))) {
                     add_file_to_tree(tree,old,DB_OLD|DB_NEW, &(conf->database_in), NULL);
-                }else{
-                    if(!initdbwarningprinted){
-                        log_msg(LOG_LEVEL_WARNING, _("%s:%s: old database entry '%s' has no matching rule, run --init or --update (this warning is only shown once)"), get_url_type_string((conf->database_in.url)->type), (conf->database_in.url)->value, old->filename);
-                        initdbwarningprinted=1;
-                    }
-                    free_db_line(old);
-                    free(old);
-                    old=NULL;
+                } else {
+                    add_file_to_tree(tree,old,DB_OLD, &(conf->database_in), NULL);
                 }
             }
     }
@@ -835,18 +819,14 @@ void populate_tree(seltree* tree)
         progress_status(PROGRESS_NEWDB, NULL);
         log_msg(LOG_LEVEL_INFO, "read new entries from database: %s:%s", get_url_type_string((conf->database_new.url)->type), (conf->database_new.url)->value);
       while((new=db_readline(&(conf->database_new))) != NULL){
-    match_t add = check_rxtree((file_t) { .name = new->filename, .type = get_f_type_from_perm(new->perm),
-            }, tree, "database_new", true);
-    if (add.result == RESULT_SELECTIVE_MATCH || add.result == RESULT_EQUAL_MATCH) {
-	  add_file_to_tree(tree,new,DB_NEW, &(conf->database_new), NULL);
-	} else {
-          if (add.result == RESULT_NO_LIMIT_MATCH || add.result == RESULT_PARTIAL_LIMIT_MATCH) {
+          if (check_limit(new->filename, !(get_f_type_from_perm(new->perm)&FT_DIR))) {
               progress_status(PROGRESS_SKIPPED, NULL);
+              free_db_line(new);
+              free(new);
+              new=NULL;
+          } else {
+              add_file_to_tree(tree,new,DB_NEW, &(conf->database_new), NULL);
           }
-          free_db_line(new);
-          free(new);
-          new=NULL;
-	}
       }
     }
 

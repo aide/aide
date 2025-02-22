@@ -51,7 +51,11 @@ hashsum_t hashsums[] = {
 };
 
 DB_ATTR_TYPE DEPRECATED_HASHES = ATTR(attr_md5)|ATTR(attr_sha1)|ATTR(attr_rmd160)|ATTR(attr_gostr3411_94);
+#ifdef WITH_NETTLE
 DB_ATTR_TYPE UNSUPPORTED_HASHES = ATTR(attr_crc32)|ATTR(attr_crc32b)|ATTR(attr_haval)|ATTR(attr_tiger)|ATTR(attr_whirlpool);
+#else
+DB_ATTR_TYPE UNSUPPORTED_HASHES = ATTR(attr_crc32b)|ATTR(attr_haval);
+#endif
 
 #ifdef WITH_NETTLE
 int algorithms[] = { /* order must match hashsums array */

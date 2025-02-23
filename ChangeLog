@@ -1,3 +1,6 @@
+2025-02-23 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Fix omission of file type in database report section
+
 2025-02-22 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Apply rules only to file system entries and no longer to database
 	  entries

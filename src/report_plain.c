@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006, 2010, 2011, 2013, 2015-2016, 2018-2024 Rami Lehti,
+ * Copyright (C) 1999-2006, 2010, 2011, 2013, 2015-2016, 2018-2025 Rami Lehti,
  *               Pablo Virolainen, Mike Markley, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -151,12 +151,12 @@ static void print_line_plain(report_t* report, char* filename, int node_checked,
 
 static void print_report_dbline_attributes_plain(report_t *report, db_line* oline, db_line* nline, DB_ATTR_TYPE report_attrs) {
     if  (report_attrs)  {
-        char *file_type = get_file_type_string((nline==NULL?oline:nline)->perm);
+        db_line* line = nline==NULL?oline:nline;
         report_printf(report, "\n");
-        if (file_type) {
-            report_printf(report, "%s: ", file_type);
+        if (line->perm) {
+            report_printf(report, "%s: ", get_file_type_string(line->perm));
         }
-        report_printf(report, "%s\n", (nline==NULL?oline:nline)->filename);
+        report_printf(report, "%s\n", line->filename);
 
         print_dbline_attrs(report, oline, nline, report_attrs, _print_attribute);
     }

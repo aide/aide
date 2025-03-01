@@ -287,7 +287,7 @@ summarize_changes (REMOVED in AIDE v0.19)
 Summarize changes in the added, removed and changed files
 sections of the report.
 
-The general format is like the string YlZbpugamcinHAXSEC, where Y is
+The general format is like the string YlZbpugamcinHAXSECF, where Y is
 replaced by the file-type ('\fBf\fP' for a regular file, '\fBd\fP' for a
 directory, '\fBl\fP' for a symbolic link, '\fBc\fP' for a character
 device, '\fBb\fP' for a block device, '\fBp\fP' for a FIFO, '\fBs\fP' for
@@ -332,6 +332,8 @@ An \fBi\fP means that the inode has changed.
 An \fBn\fP means that the link count has changed.
 .IP o
 An \fBH\fP means that one or more message digests have changed.
+.IP o
+An \fBF\fP means that one file system type has changed (Linux only).
 .RE
 
 .RS
@@ -487,9 +489,86 @@ the AIDE manual.
 .IP
 .PP
 .SH "RESTRICTED RULES"
-.PP
 Restricted rules are like normal rules but can be
-restricted to file types (added in AIDE v0.16). The following file types are supported:
+restricted to file types (added in AIDE v0.16) and/or file system types (added
+in AIDE v0.19, Linux only).
+
+The syntax of restricted rules is as follows:
+
+.B "Restricted regular rule"
+.RS 3
+
+.nf
+<regex> <restriction expression> <attribute expression>
+.fi
+
+Files and directories matching both the regular expression and the restriction
+expression are added the database.
+
+.RE
+
+.B "Restricted recursive negative rule"
+.RS 3
+
+.nf
+!<regex> <restriction expression>
+.fi
+
+Files and directories matching both the regular expression and the restriction
+expression are excluded and NOT added the database. The children of directories
+and sub-directories are recursed into and only excluded if they also match the
+regular expression as well as the restriction.
+
+.RE
+
+.B "Restricted non-recursive negative rule (added in AIDE v0.19)"
+.RS 3
+
+.nf
+-<regex> <restriction expression>
+.fi
+
+Files and directories matching both the regular expression and the restriction
+expression are excluded and NOT added the database. The children of directories
+and sub-directories are not recursed into and hence not added to the database
+by any means.
+
+.RE
+
+.B "Restricted equals rule"
+.RS 3
+
+.nf
+=<regex> <restriction expression> <attribute expression>
+.fi
+
+Files and directories matching both the regular expression and the restriction
+expression are added the database. The children of directories are only added
+if the regular expression ends with a "/". The children of sub-directories are
+not added to the database.
+
+.RE
+
+.B Restriction expression
+
+.RS 3
+
+An restriction expression is of the following form:
+
+.nf
+<restriction expression>: <file types>
+             | =<file system type>
+             | <file types>=<file system type>
+.fi
+.RE
+
+.B File types
+
+.RS 3
+
+The following file types are supported:
+
+.RS 3
 
 .TP
 .B "\fBf\fP"
@@ -518,25 +597,77 @@ restrict rule to Solaris doors
 .TP
 .B "\fBP\fP"
 restrict rule to Solaris event ports
-.TP
-.B "\fB0\fR"
-empty restriction,
-i.e. don't restrict rule (added in AIDE v0.18)
-.PP
-Multiple restrictions can be given
-as a comma-separated list.
-.PP
-The syntax of restricted rules is as follows:
-.TP
-.B "Restricted regular rule"
-<regex> <file types> <attribute expression>
-.TP
-.B "Restricted negative rule"
-!<regex> <file types>
-.TP
-.B "Restricted equals rule"
-=<regex> <file types> <attribute expression>
 
+.RE
+
+.PP
+Multiple file type restrictions can be given
+as a comma-separated list.
+
+.RE
+
+.B "File system types (Linux only)"
+
+.RS 3
+
+The file system type restriction can be specified by file system types magic
+number (e.g. '0x01021994' for tmpfs) or by its name (use 'aide --version' to
+list the available file system type names). The magic number must start
+with '0x' and be formatted in hexdecimal format.
+
+.RE
+
+.B "Empty restriction"
+
+.RS 3
+
+To explicitly don't restrict a rule use
+.B "\fB0\fR"
+(added in AIDE v0.18).
+
+.RE
+
+.B Examples:
+
+.RS 3
+.nf
+/ d,f R
+.fi
+
+.RS 3
+Only add directories and files to the database.
+.RE
+.RE
+
+.RS 3
+.nf
+/boot/efi$ d=vfat R
+.fi
+
+.RS 3
+Only add \fB/boot/efi\fR to the database if it is a directory and mounted on \fBvfat\fR.
+.RE
+.RE
+
+.RS 3
+.nf
+!/dev =0x01021994
+.fi
+
+.RS 3
+Exclude \fB/dev\fR and any children that are mounted on \fBtmpfs\fR (\fBtmpfs\fR magic number: \fB0x01021994\fR).
+.RE
+.RE
+
+.RS 3
+.nf
+-/dev =tmpfs
+.fi
+
+.RS 3
+Exclude \fB/dev\fR and all children, if \fB/dev\fR is mounted on \fBtmpfs\fR.
+.RE
+.RE
 
 .PP
 .SH "MACRO LINES"
@@ -720,6 +851,9 @@ Output is written to syslog using \fILOG_FACILITY\fR.
 .TP
 .B "\fBftype\fR"
 file type (added in AIDE v0.15)
+.TP
+.B "\fBfstype\fR"
+file system type (Linux-only, added in AIDE v0.19)
 .TP
 .B "\fBp\fR"
 permissions

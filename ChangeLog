@@ -1,3 +1,9 @@
+2025-03-01 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Add support for file system type restricted rules (Linux only)
+	  - add 'fstype' attribute
+	  - add '--without-fstype' configure option
+	  - closes: #39
+
 2025-02-23 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix omission of file type in database report section
 

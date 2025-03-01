@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2019-2024 Hannes von Haugwitz
+ * Copyright (C) 2019-2025 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -195,10 +195,11 @@ ft_restriction_expression* new_ft_restriction_expression(ft_restriction_expressi
     return e;
 }
 
-restriction_expression* new_restriction_expression(ft_restriction_expression* f_types) {
+restriction_expression* new_restriction_expression(ft_restriction_expression* f_types, char* fs_type) {
     restriction_expression* e = checked_malloc(sizeof(restriction_expression));
     e->f_types = f_types;
-    log_msg(ast_log_level, "ast: new restriction expression (%p): f_types: '%p'", (void*) e, (void*) f_types);
+    e->fs_type = fs_type;
+    log_msg(ast_log_level, "ast: new restriction expression (%p): f_types: '%p', fs_type: %s", (void*) e, (void*) f_types, (fs_type != NULL) ? fs_type : "(null)");
     return e;
 }
 
@@ -316,6 +317,9 @@ void free_restriction_expression(restriction_expression *r) {
     if (r == NULL) {
         return;
     }
+#ifdef HAVE_FSTYPE
+    free_string(r->fs_type);
+#endif
     free_ft_restriction_expression(r->f_types);
     log_msg(ast_log_level, "ast: free restriction expression %p", (void*) r);
     free(r);

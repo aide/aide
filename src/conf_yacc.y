@@ -6,7 +6,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006, 2010-2013, 2015-2016, 2019-2024 Rami Lehti,
+ * Copyright (C) 1999-2006, 2010-2013, 2015-2016, 2019-2025 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -128,8 +128,10 @@ attribute_expression: attribute_expression '+' TEXPR { $$ = new_attribute_expres
 ft_restriction_expression: ft_restriction_expression ',' TEXPR { $$ = new_ft_restriction_expression($1, $3); }
                       | TEXPR { $$ = new_ft_restriction_expression(NULL, $1); }
 
-restriction_expression: ft_restriction_expression { $$ = new_restriction_expression($1); }
-                      | '0' { $$ = new_restriction_expression(NULL); }
+restriction_expression: ft_restriction_expression '=' TEXPR { $$ = new_restriction_expression($1, $3); }
+                      | '=' TEXPR { $$ = new_restriction_expression(NULL, $2); }
+                      | ft_restriction_expression { $$ = new_restriction_expression($1, NULL); }
+                      | '0' { $$ = new_restriction_expression(NULL, NULL); }
 
 define_statement: TDEFINE TVARIABLE { $$ = new_define_statement($2, NULL); }
                 | TDEFINE TVARIABLE string_expression { $$ = new_define_statement($2, $3); }

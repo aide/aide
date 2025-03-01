@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2004-2006, 2010, 2013, 2019-2022,2024
+ * Copyright (C) 1999-2002, 2004-2006, 2010, 2013, 2019-2022, 2024, 2025
  *               Rami Lehti, Pablo Virolainen, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -28,6 +28,9 @@
 #include <sys/types.h>
 #include "config.h"
 #include "attributes.h"
+#ifdef HAVE_FSTYPE
+#include "file.h"
+#endif
 #include "hashsum.h"
 #include "util.h"
 
@@ -63,6 +66,9 @@ typedef struct db_line {
 
   mode_t perm;
   mode_t perm_o; /* Permission for tree traverse */
+#ifdef HAVE_FSTYPE
+  FS_TYPE fs_type;
+#endif
   long uid; /* uid_t */
   long gid; /* gid_t */
   time_t atime;

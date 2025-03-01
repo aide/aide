@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2019-2024 Hannes von Haugwitz
+ * Copyright (C) 2019-2025 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -678,13 +678,60 @@ static FT_TYPE eval_ft_restriction_expression(ft_restriction_expression *express
 }
 
 static rx_restriction_t eval_restriction_expression(restriction_expression *expression, int linenumber, char *filename, char* linebuf) {
-    rx_restriction_t rs = { .f_type = FT_NULL };
+    rx_restriction_t rs = { .f_type = FT_NULL,
+#ifdef HAVE_FSTYPE
+        .fs_type = 0
+#endif
+    };
 
     if (expression) {
-        rs.f_type = eval_ft_restriction_expression(expression->f_types, linenumber, filename, linebuf);
-        log_msg(eval_log_level, "eval(%p): restriction {" "file type: %u)", (void*) expression, rs.f_type);
+        if (
+            expression->fs_type == NULL &&
+            expression->f_types == NULL) {
+            log_msg(eval_log_level, "eval(%p): restriction is '0', returning {"
+#ifdef HAVE_FSTYPE
+                    "fs_type 0x%lx, "
+#endif
+                    "file type: %u)", (void*) expression,
+#ifdef HAVE_FSTYPE
+                    rs.fs_type,
+#endif
+                    rs.f_type);
+        } else {
+            rs.f_type = eval_ft_restriction_expression(expression->f_types, linenumber, filename, linebuf);
+            if (expression->fs_type != NULL) {
+#ifdef HAVE_FSTYPE
+                rs.fs_type = get_fs_type_from_string(expression->fs_type);
+                if (rs.fs_type == 0) {
+                    LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, "invalid file system restriction '%s'", expression->fs_type)
+                        exit(INVALID_CONFIGURELINE_ERROR);
+                }
+                log_msg(eval_log_level, "eval(%p): file system restriction '%s' evaluates to 0x%lx", (void*) expression, expression->fs_type, rs.fs_type);
+#else
+                LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, "%s", "file system type restriction is not supported on non-Linux platforms")
+                exit(INVALID_CONFIGURELINE_ERROR);
+#endif
+            }
+            log_msg(eval_log_level, "eval(%p): restriction {"
+#ifdef HAVE_FSTYPE
+                    "fs_type 0x%lx, "
+#endif
+                    "file type: %u)", (void*) expression,
+#ifdef HAVE_FSTYPE
+                    rs.fs_type,
+#endif
+                    rs.f_type);
+        }
     } else {
-        log_msg(eval_log_level, "eval(%p): restriction is NULL, returning {" "file type: %u)", (void*) expression, rs.f_type);
+        log_msg(eval_log_level, "eval(%p): restriction is NULL, returning {"
+#ifdef HAVE_FSTYPE
+                    "fs_type 0x%lx, "
+#endif
+                    "file type: %u)", (void*) expression,
+#ifdef HAVE_FSTYPE
+                    rs.fs_type,
+#endif
+                    rs.f_type);
     }
     return rs;
 }

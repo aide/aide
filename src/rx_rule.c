@@ -28,6 +28,9 @@
 static int generate_restriction_string(rx_restriction_t r, char *str) {
     int n = 0;
     if (r.f_type == FT_NULL
+#ifdef HAVE_FSTYPE
+        && r.fs_type == 0
+#endif
             ) {
         const char *no_restriction_string = "(none)";
         size_t length = strlen(no_restriction_string);
@@ -49,6 +52,15 @@ static int generate_restriction_string(rx_restriction_t r, char *str) {
             i++;
             f_types &= ~t;
         }
+#ifdef HAVE_FSTYPE
+        if (r.fs_type != 0) {
+            if (str) { str[n] = '='; }
+            n++;
+            size_t length = generate_fs_type_string(r.fs_type, NULL);
+            if (str) { generate_fs_type_string(r.fs_type, &str[n]); }
+            n += length;
+        }
+#endif
         if (str) { str[n] = '\0'; }
         n++;
     }

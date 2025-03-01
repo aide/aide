@@ -41,16 +41,23 @@ detailed report output of new files). Note that the checksums are base16 encoded
 Stops after reading in the configuration file. Any errors will be reported.
 To change the log level in this mode please use the \fB--log-level\fR
 command line parameter.
-.IP "--path-check=\fIfile_type\fR:\fIpath\fR, -p \fIfile_type\fR:\fIpath\fR (added in AIDE v0.17)"
-Read configuration and match provided file_type and path against rule tree. The
-path is independent of what is in the actual file system and needs to be
+.IP "--path-check=\fIfile_type\fR[=\fIfile_system_type\fR]:\fIpath\fR, -p \fIfile_type\fR[=\fIfile_system_type\fR]:\fIpath\fR (added in AIDE v0.17)"
+Read configuration and match provided file_type, optionally file system type
+(added in AIDE v0.19, Linux only) and path against rule tree.
+
+The path is independent of what is in the actual file system and needs to be
 absolute. See RESTRICTED RULES section in aide.conf (5) for supported file
-types.
+types and file system types.
+
+Please note that the specified file system type is only applied to the file and
+not to the parent directories of the path. If a restricted rule cannot be
+matched against a parent directory due to the missing file system type aide
+raises a warning.
 
 To change the log level in this mode please use the \fB--log-level\fR command line parameter.
 
 In this mode aide exits with status 0 if the file would be added to the tree, 1
-if not and 2 if the file does not match a specified limit.
+if not and 2 if the file does not match the specified limit.
 
 .SH PARAMETERS
 .IP "--config=\fBconfigfile\fR , -c \fBconfigfile\fR"

@@ -43,7 +43,9 @@
 #include "log.h"
 #include "rx_rule.h"
 #include "seltree_struct.h"
-
+#ifdef HAVE_FSTYPE
+#include "file.h"
+#endif
 #include "attributes.h"
 #include "base64.h"
 #include "conf_ast.h"
@@ -99,6 +101,9 @@ const ATTRIBUTE report_attrs_order[] = {
 #endif
 #ifdef WITH_CAPABILITIES
    attr_capabilities,
+#endif
+#ifdef HAVE_FSTYPE
+    attr_fs_type,
 #endif
 };
 
@@ -584,6 +589,10 @@ snprintf(*values[0], l, "%s",s);
         *values = checked_malloc(1 * sizeof (char*));
         if (ATTR(attr_ftype)&attr) {
             easy_string(get_file_type_string(line->perm))
+#ifdef HAVE_FSTYPE
+        } else if (ATTR(attr_fs_type)&attr) {
+            *values[0] = get_fs_type_string_from_magic(line->fs_type);
+#endif
         } else if (ATTR(attr_linkname)&attr) {
             easy_string(line->linkname)
         easy_number((ATTR(attr_size)|ATTR(attr_sizeg)),size,"%lli")

@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2007, 2010-2013, 2016, 2018-2024 Rami Lehti,
+ * Copyright (C) 1999-2007, 2010-2013, 2016, 2018-2025 Rami Lehti,
  *               Pablo Virolainen, Mike Markley, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -488,6 +488,12 @@ static int construct_database_line(db_line *line, char *str) {
 #ifdef WITH_CAPABILITIES
                 n += byte_base64(str, n, (byte *)line->capabilities,
                  line->capabilities ? strlen(line->capabilities) : 0);
+#endif
+                break;
+            }
+            case attr_fs_type : {
+#ifdef HAVE_FSTYPE
+                n += str_format(str, n, " %llu", (unsigned long long) line->fs_type);
 #endif
                 break;
             }

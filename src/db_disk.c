@@ -30,6 +30,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#ifdef HAVE_FSTYPE
+#include <sys/vfs.h>
+#endif
 #include <unistd.h>
 #include "aide.h"
 #include "attributes.h"
@@ -82,6 +85,9 @@ static void process_path(char *path, bool dry_run, const char *whoami) {
     }
 #endif
     struct stat stat;
+#ifdef HAVE_FSTYPE
+        struct statfs statfs;
+#endif
     if (fd == -1) {
 #ifdef O_PATH
         log_msg(LOG_LEVEL_DEBUG, "%s> open() with O_RDONLY flag failed: %s (retrying with O_PATH)", path, strerror(errno));
@@ -105,7 +111,17 @@ static void process_path(char *path, bool dry_run, const char *whoami) {
         file_t file = {
             .name = &path[conf->root_prefix_length],
             .type = get_f_type_from_perm(stat.st_mode),
+#ifdef HAVE_FSTYPE
+            .fs_type = 0UL,
+#endif
         };
+#ifdef HAVE_FSTYPE
+        if (fstatfs(fd, &statfs) == -1) {
+            log_msg(LOG_LEVEL_WARNING, "fstatfs() failed for %s: %s", path, strerror(errno));
+        } else {
+            file.fs_type = statfs.f_type;
+        }
+#endif
 
         match_t path_match = check_rxtree(file, conf->tree, "disk", false);
         if (S_ISDIR(stat.st_mode)) {
@@ -233,6 +249,9 @@ static void process_path(char *path, bool dry_run, const char *whoami) {
                 disk_entry entry = {
                     .filename = checked_strdup(path),
                     .fs = stat,
+#ifdef HAVE_FSTYPE
+                    .fs_type = file.fs_type,
+#endif
                     .fd = fd,
                 };
 

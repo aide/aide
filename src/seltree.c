@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006, 2009-2011, 2015-2016, 2019-2024 Rami Lehti,
+ * Copyright (C) 1999-2006, 2009-2011, 2015-2016, 2019-2025 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -327,6 +327,12 @@ static int check_list_for_match(list* rxrlist, file_t file, rx_rule* *rule, int 
       pcre_retval = pcre2_match(rx->crx, (PCRE2_SPTR) file.name, PCRE2_ZERO_TERMINATED, 0, PCRE2_PARTIAL_SOFT, rx->md, NULL);
       if (pcre_retval >= 0) { /* matching regex */
           if (!rx->restriction.f_type || file.type&rx->restriction.f_type) { /* no file type restriction OR matching file type */
+#ifdef HAVE_FSTYPE
+              if (rx->restriction.fs_type && file.fs_type == 0) { /* no file system data but file system type restricted rule */
+                    log_msg(LOG_LEVEL_WARNING, "unable to match the file system type restriction of %s (%s:%d: '%s%s%s'): file system type missing for '%s'", get_rule_type_long_string(rx->type), rx->config_filename, rx->config_linenumber, rx->config_line, rx->prefix?"', prefix: '":"", rx->prefix?rx->prefix:"", file.name);
+                    /* RESULT_NO_RULE_MATCH */
+              } else if (!rx->restriction.fs_type || rx->restriction.fs_type == file.fs_type) { /* no file system restriction OR matching file sytem */
+#endif
                   *rule = rx;
                   LOG_MATCH(LOG_LEVEL_RULE, "\u251d", matches regex '%s' and restriction '%s', rx->rx, rs_str = get_restriction_string(rx->restriction))
                   free(rs_str);
@@ -345,6 +351,13 @@ static int check_list_for_match(list* rxrlist, file_t file, rx_rule* *rule, int 
                           break;
                   }
                   break;
+#ifdef HAVE_FSTYPE
+              } else { /* file system restriction does not match */
+                  LOG_MATCH(LOG_LEVEL_DEBUG, "\u2502", does not match file system of restriction '%s', rs_str = get_restriction_string(rx->restriction))
+                  free(rs_str);
+                  retval=RESULT_PARTIAL_MATCH;
+              }
+#endif
           } else { /* file type restriction does not match */
               LOG_MATCH(LOG_LEVEL_DEBUG, "\u2502", does not match file type of rule restriction '%s', rs_str = get_restriction_string(rx->restriction))
               free(rs_str);
@@ -540,6 +553,9 @@ match_t check_seltree(seltree *tree, file_t file, bool check_parent_dirs) {
             } else {
                 log_msg(LOG_LEVEL_RULE, "\u2502 check parent directory '%s' for no-recurse match (node: '%s' (%p))", parent, pnode->path, (void*) pnode);
                 match = check_node_for_match(pnode, (file_t) { .name = parent, .type = FT_DIR,
+#ifdef HAVE_FSTYPE
+                        .fs_type = 0UL
+#endif
                     });
                 if (match.result == RESULT_NON_RECURSIVE_NEGATIVE_MATCH) {
                     match.result = RESULT_NEGATIVE_PARENT_MATCH;

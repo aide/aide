@@ -23,12 +23,18 @@
 #define _DB_DISK_H_INCLUDED
 
 #include "config.h"
+#ifdef HAVE_FSTYPE
+#include "file.h"
+#endif
 #include <sys/stat.h>
 #include <stdbool.h>
 
 typedef struct disk_entry {
     char *filename;
     struct stat fs;
+#ifdef HAVE_FSTYPE
+    FS_TYPE fs_type;
+#endif
     int fd;
 } disk_entry;
 

@@ -12,7 +12,7 @@ E	[\ ]*"="[\ ]*
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2004-2006, 2010-2013, 2015-2016, 2019-2024
+ * Copyright (C) 1999-2002, 2004-2006, 2010-2013, 2015-2016, 2019-2025
  *               Rami Lehti, Pablo Virolainen, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -153,6 +153,11 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_DEBUG;
 <EXPR>, { /* restriction seperator */
   LOG_LEX_TOKEN(lex_log_level, ',', conftext)
   return (',');
+}
+
+<EXPR>= { /* restriction file system type separator */
+  LOG_LEX_TOKEN(lex_log_level, '=', conftext)
+  return ('=');
 }
 
 <DEFSTMT>({L})+ {

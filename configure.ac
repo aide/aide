@@ -284,6 +284,25 @@ AIDE_PKG_CHECK_MANDATORY(pcre2, PCRE2, libpcre2-8)
 
 AX_PTHREAD(compoptionstring="${compoptionstring}use pthread: mandatory\\n", [AC_MSG_ERROR([AIDE requires pthread])])
 
+AC_ARG_WITH([fstype],
+            AS_HELP_STRING([--without-fstype],
+            [Disable file system type support for restricted rules (Linux only)]),
+            [with_fstype=$withval],
+            [with_fstype=yes]
+        )
+AC_MSG_CHECKING(for fstype support (Linux only))
+case "${target_os}" in
+    linux*)
+        if test "x$with_fstype" != xno; then
+            AC_DEFINE(HAVE_FSTYPE,1,[file system type support?])
+        fi
+        AC_MSG_RESULT($with_fstype);
+    ;;
+    *)
+        AC_MSG_RESULT(no);
+    ;;
+esac
+
 AIDE_PKG_CHECK(zlib, zlib compression, yes, ZLIB, zlib)
 
 AIDE_PKG_CHECK([posix-acl], POSIX ACLs, no, POSIX_ACL, libacl, acl)

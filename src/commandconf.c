@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006, 2010-2011, 2013, 2015-2016, 2019-2024 Rami Lehti,
+ * Copyright (C) 1999-2006, 2010-2011, 2013, 2015-2016, 2019-2025 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -283,6 +283,9 @@ bool add_rx_rule_to_tree(char* rx, char* rule_prefix, rx_restriction_t restricti
 #endif
 #ifndef WITH_CAPABILITIES
              |ATTR(attr_capabilities)
+#endif
+#ifndef HAVE_FSTYPE
+             |ATTR(attr_fs_type)
 #endif
             )
             ;

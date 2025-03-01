@@ -224,6 +224,10 @@ static DB_ATTR_TYPE get_changed_attributes(db_line* l1,db_line* l2, DB_ATTR_TYPE
     easy_compare(ATTR(attr_inode),inode);
     easy_compare(ATTR(attr_linkcount),nlink);
 
+#ifdef HAVE_FSTYPE
+    easy_compare(ATTR(attr_fs_type), fs_type);
+#endif
+
     DB_ATTR_TYPE all_hashsums = get_hashes(true);
     if (compare_hashsums && l1->attr&all_hashsums && l2->attr&all_hashsums) {
         log_msg(LOG_LEVEL_TRACE, "│ compare hashsums of old:'%s' and new:'%s'", l1->filename, l2->filename);
@@ -335,13 +339,27 @@ static DB_ATTR_TYPE get_different_attributes(db_line* l1, db_line* l2, DB_ATTR_T
     return ret;
 }
 
+#ifdef HAVE_FSTYPE
+#define PRINT_RULE_MATCH(format, c, ...) \
+    if (file.fs_type) { \
+        fs_type_str = get_fs_type_string_from_magic(file.fs_type); \
+        fprintf(stdout, "[%c] %c=%s:%s: " format "\n", c, file_type, fs_type_str, file.name, __VA_ARGS__); \
+        free(fs_type_str); \
+    } else { \
+        fprintf(stdout, "[%c] %c:%s: " format "\n", c, file_type, file.name, __VA_ARGS__); \
+    }
+#else
 #define PRINT_RULE_MATCH(format, c, ...) \
     fprintf(stdout, "[%c] %c:%s: " format "\n", c, file_type, file.name, __VA_ARGS__);
+#endif
 
 void print_match(file_t file, match_t match) {
     char * str;
     char* attr_str;
     char file_type = get_f_type_char_from_f_type(file.type);
+#ifdef HAVE_FSTYPE
+    char *fs_type_str = NULL;
+#endif
     rx_rule *rule = match.rule;
     switch (match.result) {
         case RESULT_SELECTIVE_MATCH:
@@ -675,7 +693,13 @@ match_t check_rxtree(file_t file, seltree* tree, char* source, bool check_parent
       return match;
   }
 
+#ifdef HAVE_FSTYPE
+  char * fs_type_str = get_fs_type_string_from_magic(file.fs_type);
+  log_msg(LOG_LEVEL_RULE, "\u252c process '%s' from %s (filetype: %c, file system type: %s)", file.name, source, get_f_type_char_from_f_type(file.type), fs_type_str);
+  free(fs_type_str);
+#else
   log_msg(LOG_LEVEL_RULE, "\u252c process '%s' from %s (filetype: %c)", file.name, source, get_f_type_char_from_f_type(file.type));
+#endif
   match = check_seltree(tree, file, check_parent_dirs);
   if (match.result == RESULT_SELECTIVE_MATCH || match.result == RESULT_EQUAL_MATCH) {
       char *str;
@@ -732,6 +756,14 @@ db_line* get_file_attrs(disk_entry *file, DB_ATTR_TYPE attrs, DB_ATTR_TYPE extra
   line->filename=&file->filename[conf->root_prefix_length];
   line->perm_o=file->fs.st_mode;
   line->linkname=NULL;
+
+#ifdef HAVE_FSTYPE
+  if(ATTR(attr_fs_type)&line->attr) {
+      line->fs_type = file->fs_type;
+  } else {
+      line->fs_type = 0;
+  }
+#endif
 
   /*
     Handle symbolic link

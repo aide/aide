@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006, 2010-2011, 2013, 2019-2024 Rami Lehti,
+ * Copyright (C) 1999-2006, 2010-2011, 2013, 2019-2025 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -66,6 +66,19 @@ static long readlong(char* s, database* db, char* field_name){
   }
   return i;
 }
+
+#ifdef HAVE_FSTYPE
+static unsigned long readunsignedlong(char* s, database* db, char* field_name){
+  unsigned long i;
+  char* e;
+  i=strtoul(s,&e,10);
+  if (e[0]!='\0') {
+      LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "could not read '%s' from database: strtoul failed for '%s'", field_name, s)
+      return 0;
+  }
+  return i;
+}
+#endif
 
 static long long readlonglong(char* s, database* db, char* field_name){
   long long int i;
@@ -432,6 +445,12 @@ db_line* db_char2line(char** ss, database* db){
 
       val = base64tobyte(ss[db->fields[i]], strlen(ss[db->fields[i]]),NULL);
       line->capabilities = (char *)val;
+      break;
+    }
+    case attr_fs_type : {
+#ifdef HAVE_FSTYPE
+      line->fs_type = readunsignedlong(ss[db->fields[i]], db, attributes[attr_fs_type].db_name);
+#endif
       break;
     }
     case attr_bsize :

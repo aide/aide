@@ -30,6 +30,9 @@ Version 0.19 (UNRELEASED)
         - sha1 hashsum
         - rmd160 hashsum
         - gost hashsum
+    * Add support for file system type restricted rules (Linux only)
+        - add 'fstype' attribute
+        - add '--without-fstype' configure option
     * Add limited support for hashsum transitions (see aide.conf(5)
       for details)
     * Add 'sha512_256', sha3_256, and 'sha3_512' hashsums

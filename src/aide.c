@@ -188,6 +188,13 @@ static void print_version(void)
       fprintf(stdout, "%s: %s\n", attributes[hashsums[i].attribute].config_name, ATTR(hashsums[i].attribute)&available_hashsums?"yes":"no");
   }
 
+#ifdef HAVE_FSTYPE
+  fprintf(stdout, "\nAvailable file system type names:\n");
+  for (int i = 0 ; i < num_filesystems; ++i) {
+      fprintf(stdout, "%-20s%s", filesystems[i].str, i%4 == 3 || i+1 == num_filesystems?"\n":"");
+  }
+#endif
+
   fprintf(stdout, "\nDefault compound groups:\n");
   char* predefined_groups[] = { "R", "L", ">", "H", "X" };
   for (unsigned long i = 0 ; i < sizeof(predefined_groups)/sizeof(char*); ++i) {
@@ -355,23 +362,58 @@ static void read_param(int argc,char**argv)
             if(conf->action==0){
                 conf->action=DO_DRY_RUN;
                 log_msg(LOG_LEVEL_INFO,"(--path-check): path check command");
-
-                if (strlen(optarg) >= 3 && optarg[1] == ':') {
+                if (optarg && *optarg) {
                     conf->check_file.type = get_f_type_from_char(*optarg);
                     if (conf->check_file.type == FT_NULL) {
                         INVALID_ARGUMENT("--path-check", invalid file type '%c' (see man aide for details), *optarg)
                     } else {
-                        if (optarg[2] != '/') {
-                            INVALID_ARGUMENT("--path-check", '%s' needs to be an absolute path, optarg+2)
-                        } else {
-                            conf->check_file.name = checked_strdup(optarg+2);
-                            log_msg(LOG_LEVEL_INFO,"(--path-check): set path to '%s' (filetype: %c)", optarg+2, get_f_type_from_char(conf->check_file.type));
+                        char * tmp = optarg+1;
+#ifdef HAVE_FSTYPE
+                        if (optarg[1] == '=') {
+                            char* colon = strchr(optarg+2, ':');
+                            if (colon) {
+                                char* fs_type_str = NULL;
+                                fs_type_str = checked_strndup(optarg+2, colon-(optarg+2));
+                                if (*fs_type_str) {
+                                    conf->check_file.fs_type = get_fs_type_from_string(fs_type_str);
+                                    if (conf->check_file.fs_type == 0) {
+                                        INVALID_ARGUMENT("--path-check", invalid file system type '%s' (see man aide for details), fs_type_str)
+                                    }
+                                    free(fs_type_str);
+                                    tmp = colon;
+                                } else {
+                                    INVALID_ARGUMENT("--path-check", %s, "missing file system type (see man aide for details)")
+                                }
+                            } else {
+                                INVALID_ARGUMENT("--path-check", %s, "missing ':' (see man aide for details)")
+                            }
                         }
+#endif
+                            if (*tmp == ':') {
+                                char* path = tmp+1;
+                                if (*path) {
+                                    if (*path == '/') {
+                                        conf->check_file.name = checked_strdup(path);
+#ifdef HAVE_FSTYPE
+                                        char* fs_type_str = get_fs_type_string_from_magic(conf->check_file.fs_type);
+                                        log_msg(LOG_LEVEL_INFO,"(--path-check): set path to '%s' (f_type: %c, fs_type: '%s')", path, get_f_type_char_from_f_type(conf->check_file.type), fs_type_str);
+                                        free(fs_type_str);
+#else
+                                        log_msg(LOG_LEVEL_INFO,"(--path-check): set path to '%s' (filetype: %c)", path , get_f_type_char_from_f_type(conf->check_file.type));
+#endif
+                                    } else {
+                                        INVALID_ARGUMENT("--path-check", '%s' needs to be an absolute path, path)
+                                    }
+                                } else {
+                                    INVALID_ARGUMENT("--path-check", %s, "missing path")
+                                }
+                            } else {
+                                INVALID_ARGUMENT("--path-check", %s, "missing ':' (see man aide for details)")
+                            }
                     }
                 } else {
-                    INVALID_ARGUMENT("--path-check", %s, "missing file type or path (see man aide for details)")
+                    INVALID_ARGUMENT("--path-check", %s, "missing file type (see man aide for details)")
                 }
-
             } else {
                 INVALID_ARGUMENT("--path-check", %s, "cannot have multiple commands on a single commandline")
             }
@@ -421,6 +463,9 @@ static void setdefaults_before_config(void)
 
   conf->check_file.name = NULL;
   conf->check_file.type = FT_NULL;
+#ifdef HAVE_FSTYPE
+  conf->check_file.fs_type = 0;
+#endif
 
   conf->report_urls=NULL;
   conf->report_level=default_report_options.level;

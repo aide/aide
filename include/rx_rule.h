@@ -31,6 +31,9 @@
 
 typedef struct rx_restriction_t {
    FT_TYPE f_type;
+#ifdef HAVE_FSTYPE
+   FS_TYPE fs_type;
+#endif
 } rx_restriction_t;
 
 typedef enum {

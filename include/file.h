@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2016,2020,2021,2024 Hannes von Haugwitz
+ * Copyright (C) 2016,2020,2021,2024,2025 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -43,9 +43,28 @@ char get_f_type_char_from_perm(mode_t);
 FT_TYPE get_f_type_from_char(char);
 FT_TYPE get_f_type_from_perm(mode_t);
 
+#ifdef HAVE_FSTYPE
+#define FS_TYPE unsigned long
+
+typedef struct {
+    char *str;
+    unsigned int magic;
+} filesystem_t;
+
+FS_TYPE get_fs_type_from_string(const char *);
+int generate_fs_type_string(FS_TYPE, char*);
+char * get_fs_type_string_from_magic(FS_TYPE);
+
+extern filesystem_t filesystems[];
+extern int num_filesystems;
+#endif
+
 typedef struct file_t {
     char* name;
     FT_TYPE type;
+#ifdef HAVE_FSTYPE
+    FS_TYPE fs_type;
+#endif
 } file_t;
 
 #endif

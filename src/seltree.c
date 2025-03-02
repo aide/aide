@@ -551,7 +551,7 @@ match_t check_seltree(seltree *tree, file_t file, bool check_parent_dirs) {
                 match.result = RESULT_NO_RULE_MATCH;
                 parent_negative_match = true;
             } else {
-                log_msg(LOG_LEVEL_RULE, "\u2502 check parent directory '%s' for no-recurse match (node: '%s' (%p))", parent, pnode->path, (void*) pnode);
+                log_msg(LOG_LEVEL_RULE, "\u2502 check parent directory '%s' for non-recurse match (node: '%s' (%p))", parent, pnode->path, (void*) pnode);
                 match = check_node_for_match(pnode, (file_t) { .name = parent, .type = FT_DIR,
 #ifdef HAVE_FSTYPE
                         .fs_type = 0UL
@@ -578,7 +578,7 @@ match_t check_seltree(seltree *tree, file_t file, bool check_parent_dirs) {
                     pthread_mutex_unlock(&node->mutex);
                 }
                 if (!parent_negative_match) {
-                    log_msg(LOG_LEVEL_RULE, "\u2502 no no-recurse match found for parent directory '%s'", parent);
+                    log_msg(LOG_LEVEL_RULE, "\u2502 no non-recurse match found for parent directory '%s'", parent);
                 }
             }
             pthread_mutex_unlock(&pnode->mutex);

@@ -319,7 +319,7 @@ static void read_param(int argc,char**argv)
                 if (pcre2_jit < 0) {
                     PCRE2_UCHAR pcre2_error[128];
                     pcre2_get_error_message(pcre2_jit, pcre2_error, 128);
-                    log_msg(LOG_LEVEL_NOTICE, "JIT compilation for limit '%s' failed: %s (fall back to interpreted matching)", conf->limit, pcre2_error);
+                    log_msg(LOG_LEVEL_DEBUG, "JIT compilation for limit '%s' failed: %s (fall back to interpreted matching)", conf->limit, pcre2_error);
                 } else {
                     log_msg(LOG_LEVEL_DEBUG, "JIT compilation for limit '%s' successful", conf->limit);
                 }

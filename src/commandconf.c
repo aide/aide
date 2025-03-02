@@ -428,15 +428,11 @@ bool do_dbdef(DB_TYPE dbtype ,char* val, int linenumber, char* filename, char* l
 
 bool do_repurldef(char* val, int linenumber, char* filename, char* linebuf) {
     url_t* u = parse_url(val, linenumber, filename, linebuf);
-    if (add_report_url(u, linenumber, filename, linebuf)) {
-        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, "set 'report_url' to '%s%s%s'", get_url_type_string(u->type), u->value?":":"", u->value?u->value:"")
-            return true;
-    }
-    return false;
+    return add_report_url(u, linenumber, filename, linebuf);
 }
 
 bool do_reportlevel(char* val, int linenumber, char* filename, char* linebuf) {
-  REPORT_LEVEL report_level=0;
+  REPORT_LEVEL report_level = REPORT_LEVEL_UNKNOWN;
 
   report_level = get_report_level(val);
   if (report_level) {

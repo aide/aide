@@ -259,7 +259,7 @@ static void eval_config_statement(config_option_statement statement, int linenum
         case REPORT_FORMAT_OPTION:
             str = eval_string_expression(statement.e, linenumber, filename, linebuf);
             REPORT_FORMAT report_format = get_report_format(str);
-            if (report_format) {
+            if (report_format != REPORT_FORMAT_UNKNOWN) {
                 conf->report_format = report_format;
                 LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, "set 'report_format' option to '%s' (raw: %d)", str, report_format)
             } else {

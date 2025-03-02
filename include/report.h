@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2006, 2010, 2019-2024 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002, 2006, 2010, 2019-2025 Rami Lehti, Pablo Virolainen,
  *               Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -33,6 +33,7 @@
 
 /* report level */
 typedef enum { /* preserve order */
+    REPORT_LEVEL_UNKNOWN = 0,
     REPORT_LEVEL_MINIMAL = 1,
     REPORT_LEVEL_SUMMARY = 2,
     REPORT_LEVEL_DATABASE_ATTRIBUTES = 3,
@@ -44,6 +45,7 @@ typedef enum { /* preserve order */
 
 /* report format */
 typedef enum {
+    REPORT_FORMAT_UNKNOWN = 0,
     REPORT_FORMAT_PLAIN = 1,
     REPORT_FORMAT_JSON = 2,
 } REPORT_FORMAT;

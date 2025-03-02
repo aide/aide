@@ -47,32 +47,12 @@ struct queue_s {
     bool release;
     bool wait_for_consumers;
     int active_consumers;
-
-    int (*sort_func) (const void*, const void*);
 };
 
 LOG_LEVEL queue_log_level = LOG_LEVEL_TRACE;
 
-queue_ts_t *queue_init(int (*sort_func) (const void*, const void*)) {
-    queue_ts_t *queue = checked_malloc (sizeof(queue_ts_t));
-
-    queue->head = NULL;
-    queue->tail = NULL;
-
-    queue->sort_func = sort_func;
-
-    log_msg(queue_log_level, "queue(%p): create new queue (sorted: %s)", (void*) queue, btoa(sort_func != NULL));
-    return queue;
-}
-
-void queue_free(queue_ts_t *queue) {
-    if (queue) {
-        free(queue);
-    }
-}
-
-bool queue_enqueue(queue_ts_t * const queue, void * const data) {
-    qnode_t *new, *current;
+static bool queue_enqueue(queue_ts_t * const queue, void * const data) {
+    qnode_t *new;
     new = checked_malloc(sizeof(qnode_t)); /* freed in queue_dequeue */
     new->data = data;
 
@@ -86,36 +66,6 @@ bool queue_enqueue(queue_ts_t * const queue, void * const data) {
         new->prev = NULL;
         new_head_tail = true;
         log_msg(queue_log_level, "queue(%p): add node %p with payload %p as new head and new tail", (void*) queue, (void*) new, (void*) new->data);
-    } else if (queue->sort_func) {
-        /* add element in sorted, non-empty queue (use insertion sort) */
-        current = queue->head;
-        if (queue->sort_func(new->data, current->data) <= 0) {
-            /* new node is new head */
-            queue->head = new;
-            current->next = new;
-            new->prev = current;
-            new->next = NULL;
-            log_msg(queue_log_level, "queue(%p): add node %p with payload %p as new head", (void*) queue, (void*) new, (void*) new->data);
-        } else {
-            while (current != NULL && queue->sort_func(new->data, current->data) > 0) {
-                current = current->prev;
-            }
-            if (current == NULL) {
-                /* new node is new tail */
-                (queue->tail)->prev = new;
-                new->next = queue->tail;
-                new->prev = NULL;
-                queue->tail = new;
-                log_msg(queue_log_level, "queue(%p): add node %p with payload %p as new tail", (void*) queue, (void*) new, (void*) new->data);
-            } else {
-                /* new node is inner node */
-                (current->next)->prev = new;
-                new->next = current->next;
-                current->next = new;
-                new->prev = current;
-                log_msg(queue_log_level, "queue(%p): add node %p with payload %p as inner element between %p and %p", (void*) queue, (void*) new, (void*) new->data, (void*) new->prev, (void*) new->next);
-            }
-        }
     } else {
         /* new node is new tail */
         (queue->tail)->prev = new;
@@ -127,24 +77,7 @@ bool queue_enqueue(queue_ts_t * const queue, void * const data) {
     return new_head_tail;
 }
 
-void *queue_dequeue(queue_ts_t * const queue) {
-    qnode_t *head;
-    void *data = NULL;
-
-    if ((head = queue->head) != NULL) {
-        if ((queue->head = head->prev) == NULL) {
-            queue->tail = NULL;
-        } else {
-            (queue->head)->next = NULL;
-        }
-        log_msg(queue_log_level, "queue(%p): return head node %p with payload %p", (void*) queue, (void*) head, (void*) head->data);
-        data = head->data;
-        free(head);
-    }
-    return data;
-}
-
-queue_ts_t *queue_ts_init(int (*sort_func) (const void*, const void*)) {
+queue_ts_t *queue_ts_init(void) {
     queue_ts_t *queue = checked_malloc (sizeof(queue_ts_t));
 
     pthread_mutexattr_t attr;
@@ -162,11 +95,9 @@ queue_ts_t *queue_ts_init(int (*sort_func) (const void*, const void*)) {
     queue->head = NULL;
     queue->tail = NULL;
 
-    queue->sort_func = sort_func;
-
     pthread_mutex_unlock(&queue->mutex);
 
-    log_msg(queue_log_level, "queue(%p): create new queue (sorted: %s)", (void*) queue, btoa(sort_func != NULL));
+    log_msg(queue_log_level, "queue(%p): create new queue", (void*) queue);
     return queue;
 }
 
@@ -174,7 +105,7 @@ void queue_ts_free(queue_ts_t *queue) {
     if (queue) {
         pthread_cond_destroy(&queue->cond);
         pthread_mutex_destroy(&queue->mutex);
-        queue_free(queue);
+        free(queue);
     }
 }
 

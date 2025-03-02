@@ -135,7 +135,7 @@ static struct report_level report_level_array[] = {
  { REPORT_LEVEL_CHANGED_ATTRIBUTES, "changed_attributes" },
  { REPORT_LEVEL_ADDED_REMOVED_ATTRIBUTES, "added_removed_attributes" },
  { REPORT_LEVEL_ADDED_REMOVED_ENTRIES, "added_removed_entries" },
- { 0, NULL }
+ { REPORT_LEVEL_UNKNOWN, NULL }
 };
 
 struct report_format {
@@ -146,7 +146,7 @@ struct report_format {
 static struct report_format report_format_array[] = {
  { REPORT_FORMAT_PLAIN, "plain" },
  { REPORT_FORMAT_JSON, "json" },
- { 0, NULL }
+ { REPORT_FORMAT_UNKNOWN, NULL }
 };
 
 #ifdef WITH_XATTR
@@ -202,6 +202,7 @@ static int xattrs2array(xattrs_type* xattrs, char* **values) {
 #ifdef WITH_ACL
 static int acl2array(acl_type* acl, char* **values) {
     int n = 0;
+    *values = NULL;
 #ifdef WITH_POSIX_ACL
 #define easy_posix_acl(x,y) \
         if (acl->x) { \
@@ -269,7 +270,7 @@ REPORT_LEVEL get_report_level(char *str) {
             return level->report_level;
         }
     }
-    return 0;
+    return REPORT_LEVEL_UNKNOWN;
 }
 
 static const char* get_report_format_string(REPORT_FORMAT report_format) {
@@ -284,7 +285,7 @@ REPORT_FORMAT get_report_format(char *str) {
             return level->report_format;
         }
     }
-    return 0;
+    return REPORT_FORMAT_UNKNOWN;
 }
 
 static void report_vprintf(report_t*, const char *, va_list)
@@ -480,6 +481,7 @@ bool add_report_url(url_t* url, int linenumber, char* filename, char* linebuf) {
 
     log_msg(LOG_LEVEL_DEBUG, _("add report_url (%p): url(: %s:%s, level: %d"), (void*) r, get_url_type_string((r->url)->type), (r->url)->value, r->level);
     conf->report_urls=list_sorted_insert(conf->report_urls, (void*) r, compare_report_t_by_report_level);
+    LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, "set 'report_url' to '%s%s%s'", get_url_type_string(url->type), url->value?":":"", url->value?url->value:"")
     return true;
 
 }
@@ -851,7 +853,7 @@ void print_report_details(report_t *report, seltree* node, void (*print_attribut
 
 #ifdef WITH_AUDIT
   /* Something changed, send audit anomaly message */
-void send_audit_report()
+void send_audit_report(void)
 {
   if(nadd!=0||nrem!=0||nchg!=0){
     int fd=audit_open();
@@ -961,8 +963,11 @@ int gen_report(seltree* node) {
             case REPORT_FORMAT_PLAIN:
                 print_report(report, node, report_module_plain);
                 break;
-            case REPORT_FORMAT_JSON: ;
+            case REPORT_FORMAT_JSON:
                 print_report(report, node, report_module_json);
+                break;
+            case REPORT_FORMAT_UNKNOWN:
+                /* skip unknown report format */
                 break;
         }
     }

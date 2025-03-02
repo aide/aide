@@ -1,3 +1,6 @@
+2025-03-02 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Minor code improvements and code cleanup
+
 2025-03-01 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Add support for file system type restricted rules (Linux only)
 	  - add 'fstype' attribute

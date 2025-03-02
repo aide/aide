@@ -150,7 +150,7 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_DEBUG;
   return ('-');
 }
 
-<EXPR>, { /* restriction seperator */
+<EXPR>, { /* restriction separator */
   LOG_LEX_TOKEN(lex_log_level, ',', conftext)
   return (',');
 }

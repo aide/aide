@@ -84,7 +84,7 @@ void* be_init(url_t* u, bool readonly, bool iszipped, bool append, int linenumbe
     }
 #if HAVE_FCNTL && HAVE_FTRUNCATE
     if(!readonly) {
-     if (strncmp(u->value, "/dev/null", strlen("/dev/null"))) {
+     if (strcmp(u->value, "/dev/null")) {
       fl.l_type = F_WRLCK;
       fl.l_whence = SEEK_SET;
       fl.l_start = 0;

@@ -327,7 +327,7 @@ void db_scan_disk(bool dry_run) {
     strcat (full_path, "/");
 
     if (dry_run || conf->num_workers == 0) {
-        queue_worker_entries = queue_ts_init(NULL); /* freed below */
+        queue_worker_entries = queue_ts_init(); /* freed below */
         queue_ts_enqueue(queue_worker_entries, full_path, whoami_main);
         queue_ts_release(queue_worker_entries, whoami_main);
 
@@ -335,7 +335,7 @@ void db_scan_disk(bool dry_run) {
 
         queue_ts_free(queue_worker_entries);
     } else {
-        queue_worker_entries = queue_ts_init(NULL); /* freed below */
+        queue_worker_entries = queue_ts_init(); /* freed below */
         log_msg(LOG_LEVEL_THREAD, "initialized worker entries queue %p", (void*) queue_worker_entries);
 
         worker_thread *worker_threads = checked_malloc(conf->num_workers * sizeof(worker_thread)); /* freed below */

@@ -533,6 +533,7 @@ void db_close(void) {
 #ifdef WITH_CURL
         if (conf->database_out.fp!=NULL) {
             url_fclose(conf->database_out.fp);
+            conf->database_out.fp = NULL;
         }
 #endif /* WITH CURL */
       break;

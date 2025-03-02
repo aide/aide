@@ -25,13 +25,7 @@
 
 typedef struct queue_s queue_ts_t;
 
-queue_ts_t *queue_init(int (*) (const void*, const void*));
-void queue_free(queue_ts_t *);
-
-bool  queue_enqueue(queue_ts_t * const, void * const);
-void *queue_dequeue(queue_ts_t * const);
-
-queue_ts_t *queue_ts_init(int (*) (const void*, const void*));
+queue_ts_t *queue_ts_init(void);
 void  queue_ts_free(queue_ts_t *);
 bool  queue_ts_enqueue(queue_ts_t * const, void * const, const char *);
 void *queue_ts_dequeue_wait(queue_ts_t * const, const char *);

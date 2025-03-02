@@ -473,7 +473,7 @@ static void include_file(const char* file, bool execute, int include_depth, char
             char* config_str = pipe2string(p_stdout[0]);
             close(p_stdout[0]);
             char* child_stderr = pipe2string(p_stderr[0]);
-            close(p_stdout[0]);
+            close(p_stderr[0]);
 
             int wstatus;
             waitpid(pid, &wstatus, 0);

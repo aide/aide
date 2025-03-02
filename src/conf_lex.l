@@ -607,4 +607,11 @@ void conf_lex_file(const char * config) {
 
 void conf_lex_delete_buffer(void) {
     conf_delete_buffer( YY_CURRENT_BUFFER );
+    if (confin && confin != stdin) {
+        if (fclose(confin)) {
+            log_msg(LOG_LEVEL_WARNING, "fclose() failed for '%s': %s", conf_filename, strerror(errno));
+        } else {
+            confin = NULL;
+        }
+    }
 }

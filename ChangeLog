@@ -1,3 +1,6 @@
+2025-03-07 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Escape further special characters in JSON strings (closes: #189)
+
 2025-03-02 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Minor code improvements and code cleanup
 	* Properly close file descriptors of included config files

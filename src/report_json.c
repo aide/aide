@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2022-2024 Hannes von Haugwitz
+ * Copyright (C) 2022-2025 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -57,12 +57,48 @@ static int _escape_json_string(const char *src, char *escaped_string) {
     int n = 0;
 
     for (i = 0; i < strlen(src); ++i) {
-        if (src[i] == '\\') {
-            if (escaped_string) { escaped_string[n] = '\\'; }
-            n++;
+        switch(src[i]) {
+            case '\n':
+                if (escaped_string) { escaped_string[n] = '\\'; }
+                n++;
+                if (escaped_string) { escaped_string[n] = 'n'; }
+                n++;
+                break;
+            case '\t':
+                if (escaped_string) { escaped_string[n] = '\\'; }
+                n++;
+                if (escaped_string) { escaped_string[n] = 't'; }
+                n++;
+                break;
+            case '\b':
+                if (escaped_string) { escaped_string[n] = '\\'; }
+                n++;
+                if (escaped_string) { escaped_string[n] = 'b'; }
+                n++;
+                break;
+            case '\f':
+                if (escaped_string) { escaped_string[n] = '\\'; }
+                n++;
+                if (escaped_string) { escaped_string[n] = 'f'; }
+                n++;
+                break;
+            case '\r':
+                if (escaped_string) { escaped_string[n] = '\\'; }
+                n++;
+                if (escaped_string) { escaped_string[n] = 'r'; }
+                n++;
+                break;
+            case '"':
+            case '\\':
+                if (escaped_string) { escaped_string[n] = '\\'; }
+                n++;
+                if (escaped_string) { escaped_string[n] = src[i]; }
+                n++;
+                break;
+            default:
+                if (escaped_string) { escaped_string[n] = src[i]; }
+                n++;
         }
-        if (escaped_string) { escaped_string[n] = src[i]; }
-        n++;
     }
     if (escaped_string) { escaped_string[n] = '\0'; }
     n++;

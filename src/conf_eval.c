@@ -98,6 +98,9 @@ static char* eval_string_expression(struct string_expression* expression, int li
             if ((entry = list_find(expression->str, conf->defsyms))) {
                 str = checked_strdup(((symba*)entry->data)->value?((symba*)entry->data)->value:"");
                 LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, "variable substitution: replace '@@%c%s%c' with '%s'", '{', expression->str, '}', str)
+            } else if (strcmp(expression->str, "AIDE_VERSION") == 0) {
+                str = checked_strdup(conf->aide_version);
+                LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, "variable substitution: replace '@@%c%s%c' with '%s'", '{', expression->str, '}', str)
             } else if (strcmp(expression->str, "HOSTNAME") == 0 && conf->hostname) {
                 str = checked_strdup(conf->hostname);
                 LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, "variable substitution: replace '@@%c%s%c' with '%s'", '{', expression->str, '}', str)

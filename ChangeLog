@@ -1,3 +1,6 @@
+2025-03-09 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Use O_NONBLOCK when opening files
+
 2025-03-07 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Escape further special characters in JSON strings (closes: #189)
 

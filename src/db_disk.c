@@ -77,10 +77,10 @@ static void process_path(char *path, bool dry_run, const char *whoami) {
     int fd = -1;
     int errno_read = 0;
 #ifdef O_NOATIME
-    if ((fd = open(path, O_NOFOLLOW | O_RDONLY | O_NOATIME)) == -1) {
+    if ((fd = open(path, O_NOFOLLOW | O_RDONLY | O_NOATIME | O_NONBLOCK)) == -1) {
         log_msg(LOG_LEVEL_DEBUG, "%s> open() with O_NOATIME flag failed: %s (retrying without O_NOATIME)", path, strerror(errno));
 #endif
-        fd = open(path, O_NOFOLLOW | O_RDONLY);
+        fd = open(path, O_NOFOLLOW | O_RDONLY | O_NONBLOCK);
 #ifdef O_NOATIME
     }
 #endif

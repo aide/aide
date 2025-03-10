@@ -35,6 +35,7 @@ Version 0.19 (UNRELEASED)
         - add '--without-fstype' configure option
     * Add limited support for hashsum transitions (see aide.conf(5)
       for details)
+    * Add 'version_ge' boolean operator
     * Add 'sha512_256', sha3_256, and 'sha3_512' hashsums
     * Add AIDE_VERSION macro variable
     * Switch hashsum in default R group from md5 to sha3_256

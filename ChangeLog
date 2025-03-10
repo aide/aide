@@ -1,3 +1,6 @@
+2025-03-10 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Add 'version_ge' boolean operator (closes: #83)
+
 2025-03-09 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Use O_NONBLOCK when opening files
 	* Add AIDE_VERSION macro variable

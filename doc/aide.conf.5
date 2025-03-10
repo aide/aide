@@ -733,6 +733,21 @@ Evaluates to \fBtrue\fR if \fIPATH\fR exists.
 .RE
 .RE
 
+.RS 3
+.nf
+.B \fIVERSION_STRING1\fR \fBversion_ge\fR \fIVERSION_STRING2\fR (added in AIDE v0.19)
+.fi
+
+.RS 3
+Evaluates to \fBtrue\fR if \fIVERSION_STRING1\fR is greater than or equal to
+\fIVERSION_STRING2\fR (e.g. 0.19.1 \fBversion_ge\fR 0.18 evaluates to
+\fBtrue\fR and 2.17 \fBversion_ge\fR 1.1 to \fBfalse\fR). The version strings
+must be in the formaat MAJOR.MINOR.PATCH (minor and patch version can be
+omitted, any version suffix (e.g. for pre-release) will be truncated).
+.RE
+
+.RE
+
 .RE
 
 .IP "@@ifdef \fBVARIABLE\fR (\fBDEPRECATED\fR since AIDE v0.18, will be removed in AIDE v0.20)"

@@ -318,39 +318,94 @@ static void eval_config_statement(config_option_statement statement, int linenum
     }
 }
 
+static void parse_version(const char * version_str, long version[3], int linenumber, char *filename, char* linebuf) {
+    char * endptr = NULL;
+    int i = 0;
+
+    const char *ptr = version_str;
+    while (*ptr && i < 3) {
+        version[i] = strtol(ptr, &endptr, 10);
+        if ( ptr == endptr || errno==ERANGE || version[i] < 0) {
+            LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, "invalid version string: '%s', expected MAJOR.MINOR.PATCH", version_str);
+            exit(INVALID_CONFIGURELINE_ERROR);
+        }
+        if (*endptr != '.') {
+            break;
+        }
+        ptr = endptr + 1;
+        i++;
+    }
+    if (endptr && *endptr) {
+        LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_DEBUG, "ignore suffix '%s' of version string '%s'", endptr, version_str);
+    }
+
+    LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_DEBUG, "parse version string '%s' to major: %ld, minor: %ld, patch: %ld version", version_str, version[0], version[1], version[2] );
+}
+
+static bool compare_version_ge(const char *left_version_str, const char *right_version_str, int linenumber, char *filename, char* linebuf) {
+    long left_version[3] = { 0 };
+    long right_version[3] = { 0 };
+    parse_version(left_version_str, left_version, linenumber, filename, linebuf);
+    parse_version(right_version_str, right_version, linenumber, filename, linebuf);
+
+    for (int i = 0 ; i <= 2 ; ++i) {
+        if (left_version[i] < right_version[i]) {
+            return false;
+        } else if (left_version[i] > right_version[i]) {
+            return true;
+        }
+    }
+    return true;
+}
+
 static bool eval_bool_expression(struct bool_expression* expression, int linenumber, char *filename, char* linebuf) {
-    bool result = false, left;
-    char * str;
+    bool result = false;
+    union {
+        bool _bool;
+        char *_str;
+    } left;
+    union {
+        bool _bool;
+        char *_str;
+    } right;
 
     switch (expression->op) {
         case BOOL_OP_EXISTS:
-            str = eval_string_expression(expression->expr, linenumber, filename, linebuf);
-            int retval = access(str, F_OK);
+            left._str = eval_string_expression(expression->left._str, linenumber, filename, linebuf);
+            int retval = access(left._str, F_OK);
             result = (retval == 0);
-            log_msg(LOG_LEVEL_DEBUG, "access('%s', F_OK) returns %d: (%s)", str, retval, result?"Success":strerror(errno));
-            log_msg(eval_log_level, "eval(%p): bool exists '%s': %s", (void*) expression, str, btoa(result));
-            free(str);
+            log_msg(LOG_LEVEL_DEBUG, "access('%s', F_OK) returns %d: (%s)", left._str, retval, result?"Success":strerror(errno));
+            log_msg(eval_log_level, "eval(%p): bool exists '%s': %s", (void*) expression, left._str, btoa(result));
+            free(left._str);
             break;
         case BOOL_OP_DEFINED:
-            str = eval_string_expression(expression->expr, linenumber, filename, linebuf);
-            result = list_find(str, conf->defsyms) != NULL;
-            log_msg(eval_log_level, "eval(%p): bool defined '%s': %s", (void*) expression, str, btoa(result));
-            free(str);
+            left._str = eval_string_expression(expression->left._str, linenumber, filename, linebuf);
+            result = list_find(left._str, conf->defsyms) != NULL;
+            log_msg(eval_log_level, "eval(%p): bool defined '%s': %s", (void*) expression, left._str, btoa(result));
+            free(left._str);
             break;
         case BOOL_OP_HOSTNAME:
-            str = eval_string_expression(expression->expr, linenumber, filename, linebuf);
+            left._str = eval_string_expression(expression->left._str, linenumber, filename, linebuf);
             if (conf->hostname) {
-                result = strcmp(str, conf->hostname) == 0;
+                result = strcmp(left._str, conf->hostname) == 0;
             } else {
                 LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_WARNING, "%s", "hostname not available; ifhost and ifnhost always evaluate to 'false'")
             }
-            log_msg(eval_log_level, "eval(%p): bool hostname '%s' (hostname: '%s'): %s", (void*) expression, str, conf->hostname, btoa(result));
-            free(str);
+            log_msg(eval_log_level, "eval(%p): bool hostname '%s' (hostname: '%s'): %s", (void*) expression, left._str, conf->hostname, btoa(result));
+            free(left._str);
             break;
         case BOOL_OP_NOT:
-            left = eval_bool_expression(expression->left, linenumber, filename, linebuf);
-            result = !left;
-            log_msg(eval_log_level, "eval(%p): bool !%s: %s", (void*) expression, btoa(left), btoa(result));
+            left._bool = eval_bool_expression(expression->left._bool, linenumber, filename, linebuf);
+            result = !left._bool;
+            log_msg(eval_log_level, "eval(%p): bool !%s: %s", (void*) expression, btoa(left._bool), btoa(result));
+            break;
+        case BOOL_OP_VERSION_GE:
+            left._str = eval_string_expression(expression->left._str, linenumber, filename, linebuf);
+            right._str = eval_string_expression(expression->right._str, linenumber, filename, linebuf);
+            result = compare_version_ge(left._str, right._str, linenumber, filename, linebuf);
+            log_msg(eval_log_level, "eval(%p): bool %s version_ge %s: %s", (void*) expression, left._str, right._str, btoa(result));
+            free(left._str);
+            free(right._str);
             break;
     }
     return result;

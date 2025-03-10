@@ -145,22 +145,20 @@ ast* new_group_statement(char* name, attribute_expression* expr) {
       return a;
 }
 
-bool_expression* new_string_bool_expression(bool_operator op, string_expression* expr) {
+bool_expression* new_string_bool_expression(bool_operator op, string_expression* left, string_expression* right) {
     bool_expression* e = checked_malloc(sizeof(bool_expression));
     e->op = op;
-    e->expr = expr;
-    e->left = NULL;
-    e->right = NULL;
-    log_msg(ast_log_level, "ast: new bool expression (%p): op: %d, expr: %p", (void*) e, op, (void*) expr);
+    e->left._str = left;
+    e->right._str = right;
+    log_msg(ast_log_level, "ast: new string bool expression (%p): op: %d, left: %p, right: %p", (void*) e, op, (void*) left, (void*) right);
     return e;
 }
 
 bool_expression* new_bool_expression(bool_operator op, bool_expression* left, bool_expression* right) {
     bool_expression* e = checked_malloc(sizeof(bool_expression));
     e->op = op;
-    e->expr = NULL;
-    e->left = left;
-    e->right = right;
+    e->left._bool = left;
+    e->right._bool = right;
     log_msg(ast_log_level, "ast: new bool expression (%p): op: %d, left: %p, right: %p", (void*) e, op, (void*) left, (void*) right);
     return e;
 }
@@ -289,9 +287,20 @@ void free_bool_expression(bool_expression *b) {
     if (b == NULL) {
         return;
     }
-    free_string_expression(b->expr);
-    free_bool_expression(b->left);
-    free_bool_expression(b->right);
+    switch (b->op) {
+        case BOOL_OP_NOT:
+            free_bool_expression(b->left._bool);
+            break;
+        case BOOL_OP_EXISTS:
+        case BOOL_OP_DEFINED:
+        case BOOL_OP_HOSTNAME:
+            free_string_expression(b->left._str);
+            break;
+        case BOOL_OP_VERSION_GE:
+            free_string_expression(b->left._str);
+            free_string_expression(b->right._str);
+            break;
+    }
     log_msg(ast_log_level, "ast: free bool expression %p", (void*) b);
     free(b);
 }

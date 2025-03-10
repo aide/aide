@@ -64,7 +64,8 @@ void conferror(ast**, const char *);
 %token TIFHOST "@@ifhost"
 %token TIF "@@if"
 %token TBOOLNOT "not"
-%token <operator> TBOOLFUNC "boolean operator or function"
+%token <operator> TBOOLFUNC "boolean function"
+%token <operator> TBOOLOP "boolean operator"
 %token TELSE "@@else"
 %token TENDIF "@@endif"
 %token TINCLUDE "@@include"
@@ -160,14 +161,15 @@ x_include_setenv_statement: TSETENV TVARIABLE string_expression { $$ = new_x_inc
 if_statement: if_condition TNEWLINE statements TENDIF { $$ = new_if_statement($1, $3, NULL); }
             | if_condition TNEWLINE statements TELSE TNEWLINE statements TENDIF { $$ = new_if_statement($1, $3, $6); }
 
-if_condition: TIFDEF string_expression { $$=new_if_condition(new_string_bool_expression(BOOL_OP_DEFINED, $2)); }
-            | TIFNDEF string_expression { $$=new_if_condition(new_bool_expression(BOOL_OP_NOT, new_string_bool_expression(BOOL_OP_DEFINED, $2), NULL)); }
-            | TIFHOST string_expression { $$=new_if_condition(new_string_bool_expression(BOOL_OP_HOSTNAME, $2)); }
-            | TIFNHOST string_expression { $$=new_if_condition(new_bool_expression(BOOL_OP_NOT, new_string_bool_expression(BOOL_OP_HOSTNAME, $2), NULL)); }
+if_condition: TIFDEF string_expression { $$=new_if_condition(new_string_bool_expression(BOOL_OP_DEFINED, $2, NULL)); }
+            | TIFNDEF string_expression { $$=new_if_condition(new_bool_expression(BOOL_OP_NOT, new_string_bool_expression(BOOL_OP_DEFINED, $2, NULL), NULL)); }
+            | TIFHOST string_expression { $$=new_if_condition(new_string_bool_expression(BOOL_OP_HOSTNAME, $2, NULL)); }
+            | TIFNHOST string_expression { $$=new_if_condition(new_bool_expression(BOOL_OP_NOT, new_string_bool_expression(BOOL_OP_HOSTNAME, $2, NULL), NULL)); }
             | TIF bool_expression { $$=new_if_condition($2); }
 
 bool_expression: TBOOLNOT bool_expression { $$ = new_bool_expression(BOOL_OP_NOT, $2, NULL); }
-               | TBOOLFUNC string_expression { $$ = new_string_bool_expression($1, $2); }
+               | TBOOLFUNC string_expression { $$ = new_string_bool_expression($1, $2, NULL); }
+               | string_expression TBOOLOP string_expression { $$ = new_string_bool_expression($2, $1, $3); }
 
 rule_statement: TSELRXRULE string_expression attribute_expression { $$ = new_rule_statement(AIDE_SELECTIVE_RULE, $2, NULL, $3); }
               | TEQURXRULE string_expression attribute_expression { $$ = new_rule_statement(AIDE_EQUAL_RULE, $2, NULL, $3); }

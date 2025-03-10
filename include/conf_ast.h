@@ -100,14 +100,21 @@ typedef enum bool_operator {
         BOOL_OP_DEFINED,
         BOOL_OP_HOSTNAME,
         BOOL_OP_EXISTS,
+        BOOL_OP_VERSION_GE,
 } bool_operator;
 
 typedef struct bool_expression {
     bool_operator op;
 
-    string_expression* expr;
-    struct bool_expression* left;
-    struct bool_expression* right;
+    union {
+        string_expression* _str;
+        struct bool_expression* _bool;
+    } left;
+    union {
+        string_expression* _str;
+        struct bool_expression* _bool;
+    } right;
+
 } bool_expression;
 
 typedef struct if_condition {
@@ -224,7 +231,7 @@ ast* new_rule_statement(AIDE_RULE_TYPE, string_expression*, restriction_expressi
 
 if_condition* new_if_condition(struct bool_expression*);
 
-bool_expression* new_string_bool_expression(bool_operator, string_expression*);
+bool_expression* new_string_bool_expression(bool_operator, string_expression*, string_expression*);
 bool_expression* new_bool_expression(bool_operator, bool_expression*, bool_expression*);
 
 attribute_expression* new_attribute_expression(attribute_operator, attribute_expression*, char*);

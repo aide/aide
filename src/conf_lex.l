@@ -66,7 +66,7 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_DEBUG;
 
 %option noinput nounput
 
-%x CONFIG DEFSTMT ENVVAR EXPR EXPREQUHUNT PATH STRING STRINGS STRINGEQHUNT STRINGHUNT CONDITION
+%x CONFIG DEFSTMT ENVVAR EXPR EXPREQUHUNT PATH STRING STRINGS STRINGEQHUNT STRINGHUNT CONDITION CONDSTRING
 
 %%
 <INITIAL><<EOF>> {
@@ -209,6 +209,19 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_DEBUG;
   conflval.operator = BOOL_OP_EXISTS;
   BEGIN(STRINGHUNT);
   return (TBOOLFUNC);
+}
+
+<CONDITION>"version_ge" {
+  LOG_LEX_TOKEN(lex_log_level, TBOOLOP (BOOL_OP_VERSION_GE), conftext)
+  conflval.operator = BOOL_OP_VERSION_GE;
+  BEGIN(STRINGHUNT);
+  return (TBOOLOP);
+}
+
+<CONDITION>[^\ \t\r\n] {
+  LOG_LEX_TOKEN(LOG_LEVEL_DEBUG, found string -> unput, conftext)
+  yyless(0);
+  BEGIN(CONDSTRING);
 }
 
 <CONFIG>"\@\@ifdef" {
@@ -494,7 +507,7 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_DEBUG;
   return('=');
 }
 
-<STRINGS,STRING,PATH>"@@{"({L}+)"}" {
+<CONDSTRING,STRINGS,STRING,PATH>"@@{"({L}+)"}" {
   size_t length = strlen(conftext)-4;
   conflval.s=checked_malloc(length+1);
   strncpy(conflval.s, conftext+3, length);
@@ -503,19 +516,19 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_DEBUG;
   return (TVARIABLE);
 }
 
-<STRINGS,STRING,PATH>[^@\\ \t\r\n]+ {
+<CONDSTRING,STRINGS,STRING,PATH>[^@\\ \t\r\n]+ {
   LOG_LEX_TOKEN(lex_log_level, TSTRING, conftext)
   conflval.s=checked_strdup(conftext);
   return (TSTRING);
 }
 
-<STRINGS,STRING,PATH>\\[\\@ ] {
+<CONDSTRING,STRINGS,STRING,PATH>\\[\\@ ] {
   LOG_LEX_TOKEN(lex_log_level, (escaped) TSTRING, conftext)
   conflval.s=checked_strdup(conftext+1);
   return (TSTRING);
 }
 
-<STRINGS,STRING,PATH>[\\@] {
+<CONDSTRING,STRINGS,STRING,PATH>[\\@] {
   LOG_LEX_TOKEN(lex_log_level, (single-character) TSTRING, conftext)
   conflval.s=checked_strdup(conftext);
   return (TSTRING);
@@ -529,6 +542,11 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_DEBUG;
 <STRING>[\ \t]+ {
   LOG_LEX_TOKEN(LOG_LEVEL_DEBUG, skip tab(s)/whitespace(s), conftext)
   BEGIN(CONFIG);
+}
+
+<CONDSTRING>[\ \t]+ {
+  LOG_LEX_TOKEN(LOG_LEVEL_DEBUG, skip tab(s)/whitespace(s), conftext)
+  BEGIN(CONDITION);
 }
 
 <PATH>[\ \t]+ {

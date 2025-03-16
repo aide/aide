@@ -154,9 +154,9 @@ static void process_path(char *path, bool dry_run, const char *whoami) {
 
     log_msg(LOG_LEVEL_DEBUG, "process '%s' (fullpath: '%s')", &path[conf->root_prefix_length], path);
 
-struct stat stat;
-#ifdef O_PATH
+    struct stat stat;
     int fd = -1;
+#ifdef O_PATH
     fd = open(path, O_NOFOLLOW | O_PATH);
     if (fd == -1) {
         log_msg(LOG_LEVEL_WARNING, "open() with O_PATH failed for '%s': %s (skipping)", path, strerror(errno));

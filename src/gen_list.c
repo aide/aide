@@ -752,8 +752,8 @@ db_line* get_file_attrs(disk_entry *file, DB_ATTR_TYPE attrs, DB_ATTR_TYPE extra
     Just copy some needed fields.
   */
   
-  line->fullpath=file->filename;
-  line->filename=&file->filename[conf->root_prefix_length];
+  line->fullpath = checked_strdup(file->filename);
+  line->filename=&line->fullpath[conf->root_prefix_length];
   line->perm_o=file->fs.st_mode;
   line->linkname=NULL;
 

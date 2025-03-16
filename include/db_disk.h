@@ -22,6 +22,7 @@
 #ifndef _DB_DISK_H_INCLUDED
 #define _DB_DISK_H_INCLUDED
 
+#include "attributes.h"
 #include "config.h"
 #ifdef HAVE_FSTYPE
 #include "file.h"
@@ -36,6 +37,7 @@ typedef struct disk_entry {
     FS_TYPE fs_type;
 #endif
     int fd;
+    DB_ATTR_TYPE attrs;
 } disk_entry;
 
 void db_scan_disk(bool);

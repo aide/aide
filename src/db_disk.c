@@ -36,11 +36,13 @@
 #include <unistd.h>
 #include "aide.h"
 #include "attributes.h"
+#include "do_md.h"
 #include "db.h"
 #include "db_config.h"
 #include "db_disk.h"
 #include "db_line.h"
 #include "errorcodes.h"
+#include "file.h"
 #include "gen_list.h"
 #include "log.h"
 #include "queue.h"
@@ -69,41 +71,102 @@ static char *name_construct (const char *dirpath, const char *filename) {
     return ret;
 }
 
+static bool open_for_reading(disk_entry *entry, bool dir_rec) {
+    int fd = -1;
+    struct stat fs;
+    char* failure_str = NULL;
+    char* error_str = NULL;
+
+    DB_ATTR_TYPE attrs_req_read = entry->attrs & (get_hashes(false)
+#ifdef WITH_E2FSATTRS
+            | ATTR(attr_e2fsattrs)
+#endif
+            );
+    if (attrs_req_read || dir_rec) {
+#ifdef O_NOATIME
+        if ((fd = open(entry->filename, O_NOFOLLOW | O_RDONLY | O_NOATIME | O_NONBLOCK)) == -1) {
+            log_msg(LOG_LEVEL_DEBUG, "%s> open() with O_NOATIME flag failed: %s (retrying without O_NOATIME)", entry->filename, strerror(errno));
+#endif
+            fd = open(entry->filename, O_NOFOLLOW | O_RDONLY | O_NONBLOCK);
+#ifdef O_NOATIME
+        }
+#endif
+        if (fd == -1) {
+            failure_str = "open() failed";
+            error_str = checked_strdup(strerror(errno));
+        } else {
+            log_msg(LOG_LEVEL_TRACE, "%s> open() returned O_RDONLY fd %d", entry->filename, fd);
+            if (fstat(fd, &fs) != 0) {
+                failure_str = "fstat() failed";
+                error_str = checked_strdup(strerror(errno));
+                if (close(fd) < 0) {
+                    log_msg(LOG_LEVEL_WARNING, "close() failed for '%s' (fd: %d): %s", entry->filename, fd, strerror(errno));
+                }
+                fd = -1;
+            } else {
+                if(!(entry->attrs&ATTR(attr_rdev))) {
+                    fs.st_rdev=0;
+                }
+                DB_ATTR_TYPE stat_diff;
+                if ((stat_diff = stat_cmp(&entry->fs, &fs, entry->attrs&ATTR(attr_growing))) != RETOK) {
+                    failure_str = "stat fields changed";
+                    error_str = diff_attributes(0, stat_diff);
+                    if (close(fd) < 0) {
+                        log_msg(LOG_LEVEL_WARNING, "close() failed for '%s' (fd: %d): %s", entry->filename, fd, strerror(errno));
+                    }
+                    fd = -1;
+                }
+            }
+        }
+
+        if (fd == -1) {
+            char *attrs_str = diff_attributes(0, attrs_req_read);
+            log_msg(LOG_LEVEL_WARNING,
+                    "failed to open %s '%s' for reading: %s: %s (%s%s%s%s)",
+                    get_f_type_string_from_perm(entry->fs.st_mode), entry->filename,
+                    failure_str,
+                    error_str,
+                    dir_rec ? "skipping recursion" : "",
+                    dir_rec && attrs_req_read ? ", " : "",
+                    attrs_req_read ? "disabling attrs requiring read permissions: " : "",
+                    attrs_req_read ? attrs_str : ""
+                   );
+            free(error_str);
+            free(attrs_str);
+            entry->attrs &= ~attrs_req_read;
+            return false;
+        } else {
+            if (entry->fd >= 0) {
+                log_msg(LOG_LEVEL_TRACE, "%s> replace O_PATH fd %d with O_RDONLY fd %d", entry->filename, entry->fd, fd);
+                if (close(entry->fd) < 0) {
+                    log_msg(LOG_LEVEL_WARNING, "close() failed for '%s' (fd: %d): %s", entry->filename, entry->fd, strerror(errno));
+                }
+            }
+            entry->fd = fd;
+            return true;
+        }
+    }
+    return false;
+}
+
 static void process_path(char *path, bool dry_run, const char *whoami) {
     db_line *line = NULL;
 
     log_msg(LOG_LEVEL_DEBUG, "process '%s' (fullpath: '%s')", &path[conf->root_prefix_length], path);
 
-    int fd = -1;
-    int errno_read = 0;
-#ifdef O_NOATIME
-    if ((fd = open(path, O_NOFOLLOW | O_RDONLY | O_NOATIME | O_NONBLOCK)) == -1) {
-        log_msg(LOG_LEVEL_DEBUG, "%s> open() with O_NOATIME flag failed: %s (retrying without O_NOATIME)", path, strerror(errno));
-#endif
-        fd = open(path, O_NOFOLLOW | O_RDONLY | O_NONBLOCK);
-#ifdef O_NOATIME
-    }
-#endif
-    struct stat stat;
-#ifdef HAVE_FSTYPE
-        struct statfs statfs;
-#endif
-    if (fd == -1) {
+struct stat stat;
 #ifdef O_PATH
-        log_msg(LOG_LEVEL_DEBUG, "%s> open() with O_RDONLY flag failed: %s (retrying with O_PATH)", path, strerror(errno));
-        errno_read = errno;
-        fd = open(path, O_NOFOLLOW | O_PATH);
-    }
+    int fd = -1;
+    fd = open(path, O_NOFOLLOW | O_PATH);
     if (fd == -1) {
-        log_msg(LOG_LEVEL_WARNING, "open() failed for '%s': %s (skipping)", path, strerror(errno));
-    } else {
-        if (fstat(fd, &stat) == -1) {
-            log_msg(LOG_LEVEL_WARNING, "fstat() failed for %s: %s", path, strerror(errno));
-        }
-#else
-        log_msg(LOG_LEVEL_DEBUG, "%s> open() with O_RDONLY flag failed: %s (falling back to lstat())", path, strerror(errno));
-        errno_read = errno;
+        log_msg(LOG_LEVEL_WARNING, "open() with O_PATH failed for '%s': %s (skipping)", path, strerror(errno));
+        return;
     }
+    log_msg(LOG_LEVEL_TRACE, "%s> open() returned O_PATH fd %d", path, fd);
+    if (fstat(fd, &stat) == -1) {
+        log_msg(LOG_LEVEL_WARNING, "fstat() failed for %s: %s (skipping)", path, strerror(errno));
+    } else {
+#else
     if(lstat(path, &stat) == -1) {
         log_msg(LOG_LEVEL_WARNING, "lstat() failed for '%s': %s (skipping)", path, strerror(errno));
     } else {
@@ -116,14 +179,69 @@ static void process_path(char *path, bool dry_run, const char *whoami) {
 #endif
         };
 #ifdef HAVE_FSTYPE
+        struct statfs statfs;
         if (fstatfs(fd, &statfs) == -1) {
-            log_msg(LOG_LEVEL_WARNING, "fstatfs() failed for %s: %s", path, strerror(errno));
+            log_msg(LOG_LEVEL_WARNING, "fstatfs() failed for %s: %s (file system type information missing)", path, strerror(errno));
         } else {
             file.fs_type = statfs.f_type;
         }
 #endif
-
         match_t path_match = check_rxtree(file, conf->tree, "disk", false);
+        char *attrs_str = NULL;
+        disk_entry entry = {
+            .filename = path,
+            .fs = stat,
+            .attrs = 0LLU,
+#ifdef HAVE_FSTYPE
+            .fs_type = file.fs_type,
+#endif
+            .fd = fd,
+        };
+        if (!dry_run && path_match.result & (RESULT_SELECTIVE_MATCH|RESULT_EQUAL_MATCH)) {
+            entry.attrs = path_match.rule->attr;
+
+            /* disable unsupported attributes */
+            DB_ATTR_TYPE attrs_to_disable;
+            LOG_LEVEL log_level_unavailable = LOG_LEVEL_DEBUG;
+            if (!S_ISREG(stat.st_mode)) {
+                /* hashsum attributes */
+                attrs_to_disable = entry.attrs & get_hashes(false);
+                if (attrs_to_disable) {
+                    attrs_str = diff_attributes(0, attrs_to_disable);
+                    log_msg(log_level_unavailable, "%s> disabling hashsum attribute(s) for non-regular file: %s)",
+                            path, attrs_str);
+                    free(attrs_str);
+                    entry.attrs &= ~attrs_to_disable;
+                }
+#ifdef WITH_CAPABILITIES
+                /* capability attribute */
+                attrs_to_disable = entry.attrs & ATTR(attr_capabilities);
+                if (attrs_to_disable) {
+                    log_msg(log_level_unavailable, "%s> disabling capability attribute for non-regular file", path);
+                    entry.attrs &= ~attrs_to_disable;
+                }
+#endif
+            }
+            if (!S_ISLNK(stat.st_mode)) {
+                /* linkname attribute */
+                attrs_to_disable = entry.attrs & ATTR(attr_linkname);
+                if (attrs_to_disable) {
+                    log_msg(log_level_unavailable, "%s> disabling linkname attribute for non-symlink file", path);
+                    entry.attrs &= ~attrs_to_disable;
+                }
+        }
+#ifdef WITH_E2FSATTRS
+        if (!(S_ISDIR(stat.st_mode) || S_ISREG(stat.st_mode))) {
+            /* e2fsattrs attribute */
+            attrs_to_disable = entry.attrs & ATTR(attr_e2fsattrs);
+            if (attrs_to_disable) {
+                log_msg(log_level_unavailable,
+                        "%s> disabling e2fsattrs attribute for non-directory/non-regular file", path);
+                entry.attrs &= ~attrs_to_disable;
+            }
+        }
+#endif
+        }
         if (S_ISDIR(stat.st_mode)) {
             DIR *dir = NULL;
             switch (path_match.result) {
@@ -133,26 +251,28 @@ static void process_path(char *path, bool dry_run, const char *whoami) {
                 case RESULT_RECURSIVE_NEGATIVE_MATCH:
                 case RESULT_PARTIAL_LIMIT_MATCH:
                     log_msg(LOG_LEVEL_DEBUG, "read directory contents of '%s' (reason: %s)", path, get_match_result_desc(path_match.result));
-                    int dupfd = dup(fd);
-                    if (dupfd == -1) {
-                        log_msg(LOG_LEVEL_WARNING, "'%s': failed to duplicate file descriptor: %s", path, strerror(errno));
-                    } else {
-                        if ((dir = fdopendir(dupfd)) == NULL) {
-                            log_msg(LOG_LEVEL_WARNING, "failed to open directory '%s' for reading directory contents: %s (skipping recursion)", path,
-                                    strerror(errno == EBADF && errno_read ? errno_read : errno));
+                    if (open_for_reading(&entry, true)) {
+                        int dupfd = dup(entry.fd);
+                        if (dupfd == -1) {
+                            log_msg(LOG_LEVEL_WARNING, "'%s': failed to duplicate file descriptor: %s", path, strerror(errno));
                         } else {
-                            const struct dirent *entp = NULL;
-                            while ((entp = readdir(dir)) != NULL) {
-                                if (strcmp(entp->d_name, ".") != 0 && strcmp(entp->d_name, "..") != 0) {
-                                    char *entry_full_path = name_construct(path, entp->d_name);
-                                    log_msg(LOG_LEVEL_THREAD,
-                                            "%10s: add entry %p to queue of worker entries (filename: '%s')", whoami,
-                                            (void *)entry_full_path, entry_full_path);
-                                    queue_ts_enqueue(queue_worker_entries, entry_full_path, whoami);
+                            if ((dir = fdopendir(dupfd)) == NULL) {
+                                log_msg(LOG_LEVEL_WARNING, "failed to open directory '%s' for reading directory contents: %s (skipping recursion)",
+                                        path, strerror(errno));
+                            } else {
+                                const struct dirent *entp = NULL;
+                                while ((entp = readdir(dir)) != NULL) {
+                                    if (strcmp(entp->d_name, ".") != 0 && strcmp(entp->d_name, "..") != 0) {
+                                        char *entry_full_path = name_construct(path, entp->d_name);
+                                        log_msg(LOG_LEVEL_THREAD,
+                                                "%10s: add entry %p to queue of worker entries (filename: '%s')", whoami,
+                                                (void *)entry_full_path, entry_full_path);
+                                        queue_ts_enqueue(queue_worker_entries, entry_full_path, whoami);
+                                    }
                                 }
-                            }
-                            if (closedir(dir) < 0) {
-                                log_msg(LOG_LEVEL_WARNING, "closedir() failed for '%s': %s", path, strerror(errno));
+                                if (closedir(dir) < 0) {
+                                    log_msg(LOG_LEVEL_WARNING, "closedir() failed for '%s': %s", path, strerror(errno));
+                                }
                             }
                         }
                     }
@@ -169,121 +289,46 @@ static void process_path(char *path, bool dry_run, const char *whoami) {
         if (dry_run) {
             print_match(file, path_match);
         } else {
-            if (path_match.result & RESULT_SELECTIVE_MATCH || path_match.result & RESULT_EQUAL_MATCH) {
+            DB_ATTR_TYPE transition_hashsums = 0LL;
 
-                DB_ATTR_TYPE attrs = path_match.rule->attr;
-                char *attrs_str = NULL;
-
-                /* disable unsupported attributes */
-                DB_ATTR_TYPE attrs_to_disable;
-                LOG_LEVEL log_level_unavailable = LOG_LEVEL_DEBUG;
-                if (!S_ISREG(stat.st_mode)) {
-                    /* hashsum attributes */
-                    attrs_to_disable = attrs & get_hashes(false);
-                    if (attrs_to_disable) {
-                        attrs_str = diff_attributes(0, attrs_to_disable);
-                        log_msg(log_level_unavailable, "%s> disabling hashsum attribute(s) for non-regular file: %s)",
-                                path, attrs_str);
-                        free(attrs_str);
-                        attrs &= ~attrs_to_disable;
-                    }
-#ifdef WITH_CAPABILITIES
-                    /* capability attribute */
-                    attrs_to_disable = attrs & ATTR(attr_capabilities);
-                    if (attrs_to_disable) {
-                        log_msg(log_level_unavailable, "%s> disabling capability attribute for non-regular file", path);
-                        attrs &= ~attrs_to_disable;
-                    }
-#endif
-                }
-                if (!S_ISLNK(stat.st_mode)) {
-                    /* linkname attribute */
-                    attrs_to_disable = attrs & ATTR(attr_linkname);
-                    if (attrs_to_disable) {
-                        log_msg(log_level_unavailable, "%s> disabling linkname attribute for non-symlink file", path);
-                        attrs &= ~attrs_to_disable;
-                    }
-                }
-#ifdef WITH_E2FSATTRS
-                if (!(S_ISDIR(stat.st_mode) || S_ISREG(stat.st_mode))) {
-                    /* e2fsattrs attribute */
-                    attrs_to_disable = attrs & ATTR(attr_e2fsattrs);
-                    if (attrs_to_disable) {
-                        log_msg(log_level_unavailable,
-                                "%s> disabling e2fsattrs attribute for non-directory/non-regular file", path);
-                        attrs &= ~attrs_to_disable;
-                    }
-                }
-#endif
-                if (errno_read
-#ifdef O_PATH
-                        && errno_read != ELOOP
-#endif
-                   ) {
-                    /* disable attributes requiring read permissions */
-                    attrs_to_disable = attrs & (get_hashes(false)
-#ifdef WITH_E2FSATTRS
-                            | ATTR(attr_e2fsattrs)
-#endif
-                    );
-                    if (attrs_to_disable) {
-                        attrs_str = diff_attributes(0, attrs_to_disable);
-                        log_msg(
-                                LOG_LEVEL_WARNING,
-                                "failed to open '%s' for reading: %s (disabling attributes requiring read permissions: %s)",
-                                path, strerror(errno_read), attrs_str);
-                        free(attrs_str);
-                        attrs &= ~attrs_to_disable;
+            if (path_match.result & (RESULT_SELECTIVE_MATCH|RESULT_EQUAL_MATCH)) {
+                if (S_ISREG(stat.st_mode)) {
+                    if (open_for_reading(&entry, false)) {
+                        if (conf->action & DO_COMPARE && entry.attrs & get_hashes(false)) {
+                            const seltree *node = get_seltree_node(conf->tree, &path[conf->root_prefix_length]);
+                            if (node && node->old_data) {
+                                transition_hashsums = get_transition_hashsums(
+                                        (node->old_data)->filename, (node->old_data)->attr, &path[conf->root_prefix_length], entry.attrs);
+                            }
+                        }
                     }
                 }
 
-                DB_ATTR_TYPE transition_hashsums = 0LL;
-                if (conf->action & DO_COMPARE && attrs & get_hashes(false)) {
-                    const seltree *node = get_seltree_node(conf->tree, &path[conf->root_prefix_length]);
-                    if (node && node->old_data) {
-                        transition_hashsums = get_transition_hashsums(
-                                (node->old_data)->filename, (node->old_data)->attr, &path[conf->root_prefix_length], attrs);
-                    }
-                }
-
-                disk_entry entry = {
-                    .filename = checked_strdup(path),
-                    .fs = stat,
-#ifdef HAVE_FSTYPE
-                    .fs_type = file.fs_type,
-#endif
-                    .fd = fd,
-                };
-
-                attrs_str = diff_attributes(0, attrs);
+                attrs_str = diff_attributes(0, entry.attrs);
                 log_msg(LOG_LEVEL_DEBUG, "%s> requested attributes: %s", entry.filename, attrs_str);
                 free(attrs_str);
 
-                line = get_file_attrs(&entry, attrs, transition_hashsums);
+                line = get_file_attrs(&entry, entry.attrs, transition_hashsums);
 
                 /* attr_filename is always needed/returned but never requested */
                 DB_ATTR_TYPE returned_attr = (~ATTR(attr_filename) & line->attr);
                 attrs_str = diff_attributes(0, returned_attr);
                 log_msg(LOG_LEVEL_DEBUG, "%s> returned attributes: %llu (%s)", entry.filename, returned_attr, attrs_str);
                 free(attrs_str);
-                if (returned_attr ^ attrs) {
-                    attrs_str = diff_attributes(attrs, returned_attr);
-                    log_msg(LOG_LEVEL_DEBUG, "%s> requested (%llu) and returned (%llu) attributes are not equal: %s", entry.filename, attrs, returned_attr, attrs_str);
+                if (returned_attr ^ entry.attrs) {
+                    attrs_str = diff_attributes(entry.attrs, returned_attr);
+                    log_msg(LOG_LEVEL_DEBUG, "%s> requested (%llu) and returned (%llu) attributes are not equal: %s", entry.filename, entry.attrs, returned_attr, attrs_str);
                     free(attrs_str);
                 }
 
                 add_file_to_tree(conf->tree, line, DB_NEW | DB_DISK, NULL, &entry);
             }
         }
-#ifndef O_PATH
-        if (fd != -1) {
-#endif
-            if (close(fd) < 0) {
+        if (entry.fd != -1) {
+            if (close(entry.fd) < 0) {
                 log_msg(LOG_LEVEL_WARNING, "close() failed for '%s': %s", path, strerror(errno));
             }
-#ifndef O_PATH
         }
-#endif
     }
 }
 

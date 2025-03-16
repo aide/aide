@@ -1,3 +1,6 @@
+2025-03-16 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Open files for reading only after rule tree matching
+
 2025-03-10 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Add 'version_ge' boolean operator (closes: #83)
 

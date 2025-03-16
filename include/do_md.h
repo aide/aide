@@ -31,6 +31,7 @@
 #include "md.h"
 
 list* do_md(list* file_lst,db_config* conf);
+int stat_cmp(struct stat*, struct stat*, bool);
 md_hashsums calc_hashsums(disk_entry *, DB_ATTR_TYPE, ssize_t, bool);
 
 #ifdef WITH_ACL

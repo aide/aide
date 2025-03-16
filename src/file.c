@@ -72,27 +72,28 @@ int num_filesystems = sizeof(filesystems)/sizeof(filesystem_t);
 
 typedef struct {
     char c;
+    char *s;
     FT_TYPE r;
     mode_t ft;
 } f_type_t;
 
 static f_type_t filetypes[] = {
-    { 'f', FT_REG, S_IFREG },
-    { 'd', FT_DIR, S_IFDIR },
+    { 'f', "regular file", FT_REG, S_IFREG },
+    { 'd', "directory", FT_DIR, S_IFDIR },
 #ifdef S_IFIFO
-    { 'p', FT_FIFO, S_IFIFO },
+    { 'p', "FIFO", FT_FIFO, S_IFIFO },
 #endif
-    { 'l', FT_LNK, S_IFLNK },
-    { 'b', FT_BLK, S_IFBLK },
-    { 'c', FT_CHR, S_IFCHR },
+    { 'l', "symbolic link",    FT_LNK, S_IFLNK },
+    { 'b', "block device",     FT_BLK, S_IFBLK },
+    { 'c', "character device", FT_CHR, S_IFCHR },
 #ifdef S_IFSOCK
-    { 's', FT_SOCK, S_IFSOCK },
+    { 's', "socket", FT_SOCK, S_IFSOCK },
 #endif
 #ifdef S_IFDOOR
-    { 'D', FT_DOOR, S_IFDOOR },
+    { 'D', "door", FT_DOOR, S_IFDOOR },
 #endif
 #ifdef S_IFPORT
-    { 'P', FT_PORT, S_IFPORT },
+    { 'P', "port", FT_PORT, S_IFPORT },
 #endif
 };
 
@@ -107,6 +108,15 @@ char get_f_type_char_from_f_type(FT_TYPE r) {
     return '?';
 }
 
+char *get_f_type_string_from_f_type(FT_TYPE r) {
+    for (int i = 0 ; i < num_filetypes; ++i) {
+        if (r == filetypes[i].r) {
+            return filetypes[i].s;
+        }
+    }
+    return "unknown file type";
+}
+
 char get_f_type_char_from_perm(mode_t mode) {
     mode_t ft = mode & S_IFMT;
     for (int i = 0 ; i < num_filetypes; ++i) {
@@ -115,6 +125,16 @@ char get_f_type_char_from_perm(mode_t mode) {
         }
     }
     return '?';
+}
+
+char *get_f_type_string_from_perm(mode_t mode) {
+    mode_t ft = mode & S_IFMT;
+    for (int i = 0 ; i < num_filetypes; ++i) {
+        if (ft == filetypes[i].ft) {
+            return filetypes[i].s;
+        }
+    }
+    return "unknown file type";
 }
 
 FT_TYPE get_f_type_from_char(char c) {

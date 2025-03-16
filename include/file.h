@@ -39,7 +39,9 @@
 #define FT_PORT  (1U<<8) /* port */
 
 char get_f_type_char_from_f_type(FT_TYPE);
+char *get_f_type_string_from_f_type(FT_TYPE);
 char get_f_type_char_from_perm(mode_t);
+char *get_f_type_string_from_perm(mode_t);
 FT_TYPE get_f_type_from_char(char);
 FT_TYPE get_f_type_from_perm(mode_t);
 

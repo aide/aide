@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2004-2005, 2013, 2016, 2020, 2022-2024 Rami Lehti,
+ * Copyright (C) 1999-2002, 2004-2005, 2013, 2016, 2020, 2022-2025 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -61,9 +61,6 @@ void free_db_line(db_line* dl);
 #define NODE_ALLOW_RM	  (1<<14)
 #define NODE_CHECK_INODE           (1<<15)
 #define NODE_HAS_SUB_RULES         (1<<16)
-#define NODE_PARENT_POSTIVE_MATCH  (1<<17)
-#define NODE_PARENT_NEGATIVE_MATCH (1<<18)
-#define NODE_PARENT_NO_RULE_MATCH  (1<<19)
 
 #define LOG_DB_FORMAT_LINE(log_level, format, ...) \
     log_msg(log_level, "%s:%s:%li: " format , get_url_type_string((db->url)->type), (db->url)->value, db->lineno, __VA_ARGS__);

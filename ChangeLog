@@ -1,3 +1,6 @@
+2025-03-22 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Remove no longer needed caching code
+
 2025-03-16 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Open files for reading only after rule tree matching
 	* Fix compilation when O_PATH is not defined

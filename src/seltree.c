@@ -493,16 +493,6 @@ static match_t check_node_for_match(seltree *pnode, file_t file) {
     return match;
 }
 
-static seltree *_cache_parent_result(char *parent, seltree* node, seltree *pnode, int flag) {
-    if (!node) {
-        node = _insert_new_node(parent, pnode);
-    }
-    pthread_mutex_lock(&node->mutex);
-    node->checked |= flag;
-    pthread_mutex_unlock(&node->mutex);
-    return node;
-}
-
 match_t check_seltree(seltree *tree, file_t file, bool check_parent_dirs) {
     seltree* pnode=NULL;
     match_t match = { RESULT_NO_RULE_MATCH, NULL, 0 };
@@ -539,51 +529,22 @@ match_t check_seltree(seltree *tree, file_t file, bool check_parent_dirs) {
 
         if (check_parent_dirs) {
             pthread_mutex_lock(&pnode->mutex);
-            if (pnode == node && pnode->checked&NODE_PARENT_POSTIVE_MATCH) {
-                log_msg(LOG_LEVEL_DEBUG, "\u2502 (cache) positive match for parent directory '%s' (node: '%s' (%p))", parent, pnode->path, (void*) pnode);
-            } else if (pnode == node && pnode->checked&NODE_PARENT_NEGATIVE_MATCH) {
-                log_msg(LOG_LEVEL_RULE, "\u2502 (cache) negative match for parent directory '%s' (node: '%s' (%p))", parent, pnode->path, (void*) pnode);
-                match.result = RESULT_NEGATIVE_PARENT_MATCH;
-                match.length = parent_length;
-                parent_negative_match = true;
-            } else if (pnode == node && pnode->checked&NODE_PARENT_NO_RULE_MATCH) {
-                log_msg(LOG_LEVEL_RULE, "\u2502 (cache) no rule match for parent directory '%s' (node: '%s' (%p))", parent, pnode->path, (void*) pnode);
-                match.result = RESULT_NO_RULE_MATCH;
-                parent_negative_match = true;
-            } else {
-                log_msg(LOG_LEVEL_RULE, "\u2502 check parent directory '%s' for non-recurse match (node: '%s' (%p))", parent, pnode->path, (void*) pnode);
-                match = check_node_for_match(pnode, (file_t) { .name = parent, .type = FT_DIR,
+            log_msg(LOG_LEVEL_RULE, "\u2502 check parent directory '%s' for non-recurse match (node: '%s' (%p))", parent, pnode->path, (void*) pnode);
+            match = check_node_for_match(pnode, (file_t) { .name = parent, .type = FT_DIR,
 #ifdef HAVE_FSTYPE
-                        .fs_type = 0UL
+                    .fs_type = 0UL
 #endif
-                    });
-                if (match.result == RESULT_NON_RECURSIVE_NEGATIVE_MATCH) {
-                    match.result = RESULT_NEGATIVE_PARENT_MATCH;
-                    match.length = parent_length;
-                    parent_negative_match = true;
-                    node = _cache_parent_result(parent, node, pnode, NODE_PARENT_NEGATIVE_MATCH);
-                    pthread_mutex_lock(&node->mutex);
-                    log_msg(LOG_LEVEL_DEBUG, "\u2502 cache non-recursive negative match of parent directory '%s' (node: '%s' (%p))", parent, node->path, (void*) node);
-                    pthread_mutex_unlock(&node->mutex);
-                } else if(match.result == RESULT_NO_RULE_MATCH) {
-                    parent_negative_match = true;
-                    node = _cache_parent_result(parent, node, pnode, NODE_PARENT_NO_RULE_MATCH);
-                    pthread_mutex_lock(&node->mutex);
-                    log_msg(LOG_LEVEL_DEBUG, "\u2502 cache no rule match of parent directory '%s' (node: '%s' (%p))", parent, node->path, (void*) node);
-                    pthread_mutex_unlock(&node->mutex);
-                } else {
-                    node = _cache_parent_result(parent, node, pnode, NODE_PARENT_POSTIVE_MATCH);
-                    pthread_mutex_lock(&node->mutex);
-                    log_msg(LOG_LEVEL_DEBUG, "\u2502 cache positive match of parent directory '%s' (node: '%s' (%p))", parent, node->path, (void*) node);
-                    pthread_mutex_unlock(&node->mutex);
-                }
-                if (!parent_negative_match) {
-                    log_msg(LOG_LEVEL_RULE, "\u2502 no non-recurse match found for parent directory '%s'", parent);
-                }
-            }
+            });
             pthread_mutex_unlock(&pnode->mutex);
-            if (parent_negative_match) {
+            if (match.result == RESULT_NON_RECURSIVE_NEGATIVE_MATCH) {
+                match.result = RESULT_NEGATIVE_PARENT_MATCH;
+                parent_negative_match = true;
                 break;
+            } else if (match.result == RESULT_NO_RULE_MATCH) {
+                parent_negative_match = true;
+                break;
+            } else {
+                log_msg(LOG_LEVEL_RULE, "\u2502 no non-recurse match found for parent directory '%s'", parent);
             }
         }
 

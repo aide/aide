@@ -23,6 +23,7 @@
 #include "config.h"
 #include "aide.h"
 #include "file.h"
+#include <pthread.h>
 #include <string.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -413,13 +414,15 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
 
   node = get_or_create_seltree_node(tree,file->filename);
 
-  pthread_mutex_lock(&node->mutex);
-
-  if (db && node->checked&db_flags) {
+  pthread_rwlock_rdlock(&node->rwlock);
+  int node_flags = node->checked&db_flags;
+  pthread_rwlock_unlock(&node->rwlock);
+  if (db && node_flags) {
       LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "duplicate database entry found for '%s' (skip line)", file->filename)
       free_db_line(file);
       free(file);
   } else {
+    pthread_rwlock_wrlock(&node->rwlock);
 
   /* add note to this node which db has modified it */
   node->checked|=db_flags;
@@ -446,26 +449,31 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
     break;
   }
   case DB_OLD|DB_NEW: {
-    node->new_data=file;
     progress_status(PROGRESS_SKIPPED, NULL);
     if(conf->action&DO_INIT) {
+        node->new_data=file;
         node->checked|=NODE_FREE;
         log_msg(add_entry_log_level, "add old database entry '%s' (%c) to node (%p) as new data (entry does not match limit but keep it for database_out)", file->filename, get_f_type_char_from_perm(file->perm), (void*) node);
     } else {
         log_msg(add_entry_log_level, "drop old database entry '%s' (entry does not match limit)", file->filename);
-        free_db_line(node->new_data);
-        free(node->new_data);
-        node->new_data=NULL;
+        free_db_line(file);
+        free(file);
+        file = NULL;
     }
-    pthread_mutex_unlock(&node->mutex);
+    pthread_rwlock_unlock(&node->rwlock);
     return;
   }
   }
+  pthread_rwlock_unlock(&node->rwlock);
 
     if (conf->action&(DO_COMPARE|DO_DIFF)) {
       if (!(db_flags&DB_OLD)) {
+        pthread_rwlock_rdlock(&node->rwlock);
         log_msg(compare_log_level, "┬ handle '%s' from %s", node->path, db_flags==DB_OLD ? "old database": (db_flags==DB_NEW ? "new database": "disk"));
+        pthread_rwlock_unlock(&node->rwlock);
       }
+
+    pthread_rwlock_wrlock(&node->rwlock);
         if((node->checked&DB_OLD)&&(node->checked&DB_NEW)){
     log_msg(compare_log_level, "┝ compare attributes of '%s'", node->path);
     get_different_attributes(node->old_data,node->new_data, 0);
@@ -490,16 +498,19 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
           node->new_data=NULL;
       }
       log_msg(compare_log_level, "┴ finished '%s'", node->path);
-      pthread_mutex_unlock(&node->mutex);
+      pthread_rwlock_unlock(&node->rwlock);
       return;
     }
   } else if(node->checked&DB_NEW) {
       log_msg(LOG_LEVEL_DEBUG, "│ '%s' is new (no old data exists)", node->path);
   }
+  pthread_rwlock_unlock(&node->rwlock);
 
   DB_ATTR_TYPE default_move_ignored_attr = ATTR(attr_allownewfile)|ATTR(attr_allowrmfile)|ATTR(attr_checkinode)|ATTR(attr_compressed)|ATTR(attr_growing);
   if (db_flags&DB_NEW) {
+      pthread_rwlock_rdlock(&node->rwlock);
       db_line *new_file = node->new_data;
+      pthread_rwlock_unlock(&node->rwlock);
       if (new_file->attr&ATTR(attr_compressed)) {
           DB_ATTR_TYPE available_hashsums = get_hashes(false);
           if (new_file->attr&available_hashsums) {
@@ -514,10 +525,11 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
                       copy_hashsums(new_file->fullpath, &hs, &new_hashsums);
                       log_msg(compare_log_level, "│ search for original file with uncompressed hashsums of new:'%s'", new_file->filename);
 
+                      pthread_rwlock_rdlock(&(node->parent)->rwlock);
                       for(tree_node *x = tree_walk_first((node->parent)->children); x != NULL ; x = tree_walk_next(x)) {
                           moved_node = tree_get_data(x);
                           if (moved_node != node) {
-                              pthread_mutex_lock(&moved_node->mutex);
+                              pthread_rwlock_rdlock(&moved_node->rwlock);
                               if (moved_node->old_data) {
                                   if ((new_file->attr&(moved_node->old_data)->attr)&available_hashsums) {
                                       log_msg(LOG_LEVEL_TRACE, "│ compare hashsums of old:'%s' with uncompressed hashsums of new:'%s'", (moved_node->old_data)->filename, new_file->filename);
@@ -528,6 +540,7 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
                                           free(str);
                                       } else {
                                           log_msg(LOG_LEVEL_DEBUG, "│ hashsums of old:'%s' and uncompressed hashsums of new:'%s' have NOT been changed)", (moved_node->old_data)->filename, new_file->filename);
+                                          pthread_rwlock_unlock(&moved_node->rwlock);
                                           break;
                                       }
                                   } else {
@@ -538,15 +551,19 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
                                       free(new_hashsums_str);
                                   }
                               }
-                              pthread_mutex_unlock(&moved_node->mutex);
+                              pthread_rwlock_unlock(&moved_node->rwlock);
                           }
                           moved_node = NULL;
                       }
+                      pthread_rwlock_unlock(&(node->parent)->rwlock);
 
                       for (int i = 0 ; i < num_hashes ; ++i) {
                           free(new_hashsums[i]);
                       }
                       if (moved_node) {
+                          pthread_rwlock_wrlock(&moved_node->rwlock);
+                          pthread_rwlock_wrlock(&node->rwlock);
+                          if (!(moved_node->checked&NODE_MOVED_OUT)) {
                           log_msg(compare_log_level, "│ found old:'%s' with same common hashsum(s) as uncompressed file new:'%s'", (moved_node->old_data)->filename, new_file->filename);
                           log_msg(compare_log_level, "│ compare attributes of original file old:'%s' and compressed file new:'%s'", (moved_node->old_data)->filename, new_file->filename);
 
@@ -558,13 +575,17 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
                               moved_node->checked |= NODE_MOVED_OUT;
                               log_msg(compare_log_level,_("│ accept old:'%s' as original file of compressed file new:'%s'"), (moved_node->old_data)->filename, new_file->filename);
                               log_msg(compare_log_level, "┴ finished '%s'", node->path);
-                              pthread_mutex_unlock(&moved_node->mutex);
-                              pthread_mutex_unlock(&node->mutex);
+                              pthread_rwlock_unlock(&node->rwlock);
+                              pthread_rwlock_unlock(&moved_node->rwlock);
                               return;
                           } else {
                               log_msg(compare_log_level,"│ ignore '%s' as original file of compressed file '%s' (due to changed attributes)", (moved_node->old_data)->filename, new_file->filename);
                           }
-                          pthread_mutex_unlock(&moved_node->mutex);
+                          } else {
+                              log_msg(compare_log_level, "│ '%s' has been already moved out", (moved_node->old_data)->filename);
+                          }
+                          pthread_rwlock_unlock(&node->rwlock);
+                          pthread_rwlock_unlock(&moved_node->rwlock);
                       } else {
                           log_msg(compare_log_level, "│ NO original file with same hashsum(s) found for compressed file new:'%s'", new_file->filename);
                       }
@@ -582,35 +603,45 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
 
   if (node->parent != NULL) { /* root (/) has no parent */
       if (db_flags&DB_OLD) {
+          pthread_rwlock_wrlock(&(node->parent)->rwlock);
           if(file->attr & ATTR(attr_checkinode)) {
               log_msg(compare_log_level, "'%s' (inode: %li) has check inode attribute set, set NODE_CHECK_INODE_CHILD for parent '%s'", file->filename, file->inode, (node->parent)->path);
               (node->parent)->checked |= NODE_CHECK_INODE;
           }
+          pthread_rwlock_unlock(&(node->parent)->rwlock);
       } else {
-          if( (node->parent)->checked&NODE_CHECK_INODE && node->new_data != NULL ) {
-              log_msg(compare_log_level, "┝ parent directory (%s) of '%s' (inode: %li) has entries with check inode attribute set, search for source file with same inode", (node->parent)->path, (node->new_data)->filename, (node->new_data)->inode);
+            pthread_rwlock_rdlock(&node->rwlock);
+            db_line *new_file = node->new_data;
+            pthread_rwlock_unlock(&node->rwlock);
+
+            pthread_rwlock_rdlock(&(node->parent)->rwlock);
+          if( (node->parent)->checked&NODE_CHECK_INODE && new_file != NULL ) {
+              log_msg(compare_log_level, "┝ parent directory (%s) of '%s' (inode: %li) has entries with check inode attribute set, search for source file with same inode", (node->parent)->path, new_file->filename, new_file->inode);
               seltree* moved_node = NULL;
               for(tree_node *x = tree_walk_first((node->parent)->children); x != NULL ; x = tree_walk_next(x)) {
                   moved_node = tree_get_data(x);
                   if (moved_node != node) {
-                      pthread_mutex_lock(&moved_node->mutex);
-                      if (!(moved_node->checked&NODE_MOVED_OUT) && moved_node->old_data != NULL && (moved_node->old_data)->attr & ATTR(attr_checkinode)) {
-                          if ((moved_node->old_data)->inode == (node->new_data)->inode) {
+                      pthread_rwlock_rdlock(&moved_node->rwlock);
+                      if (moved_node->old_data != NULL && (moved_node->old_data)->attr & ATTR(attr_checkinode)) {
+                          if ((moved_node->old_data)->inode == new_file->inode) {
+                              pthread_rwlock_unlock(&moved_node->rwlock);
                               break;
                           } else {
-                              log_msg(LOG_LEVEL_DEBUG, "│ '%s' has check inode attribute set and not already been moved but different inode", (moved_node->old_data)->filename);
+                              log_msg(LOG_LEVEL_DEBUG, "│ '%s' has check inode attribute set but different inode", (moved_node->old_data)->filename);
                           }
                       }
-                      pthread_mutex_unlock(&moved_node->mutex);
+                      pthread_rwlock_unlock(&moved_node->rwlock);
                   }
                   moved_node = NULL;
               }
              if(moved_node != NULL) {
-                  db_line *newData = node->new_data;
+                 pthread_rwlock_wrlock(&moved_node->rwlock);
+                 pthread_rwlock_wrlock(&node->rwlock);
+                  db_line *newData = new_file;
                   db_line *oldData = moved_node->old_data;
+                if (!(moved_node->checked&NODE_MOVED_OUT)) {
                   log_msg(compare_log_level, "│ found old:'%s' with check inode attribute set and same inode as file new:'%s'", oldData->filename, newData->filename);
                   log_msg(compare_log_level, "│ compare attributes of source file old:'%s' and target file new:'%s'", oldData->filename, newData->filename);
-
                   DB_ATTR_TYPE move_ignored_attr = default_move_ignored_attr | get_hashsums_to_ignore(oldData->filename, oldData->attr, newData->filename, newData->attr);
                   if (get_different_attributes(oldData, newData, move_ignored_attr)) {
                       log_msg(compare_log_level, "│ ignore old:'%s' as source file of target file new:'%s' (due to different attributes)", oldData->filename, newData->filename);
@@ -619,20 +650,27 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
                       moved_node->checked |= NODE_MOVED_OUT;
                       log_msg(compare_log_level, "│ accept old:'%s' as source file of target file new:'%s'", oldData->filename, newData->filename);
                       log_msg(compare_log_level, "┴ finished '%s'", node->path);
-                      pthread_mutex_unlock(&moved_node->mutex);
-                      pthread_mutex_unlock(&node->mutex);
+                      pthread_rwlock_unlock(&node->rwlock);
+                      pthread_rwlock_unlock(&moved_node->rwlock);
+                      pthread_rwlock_unlock(&(node->parent)->rwlock);
                       return;
                   } else {
                       log_msg(compare_log_level, "│ ignore old:'%s' as source file of target file new:'%s' (due to changed attributes)", oldData->filename, newData->filename);
                   }
-                  pthread_mutex_unlock(&moved_node->mutex);
+                } else {
+                      log_msg(compare_log_level, "│ '%s' has been already moved out", oldData->filename);
+                }
+                pthread_rwlock_unlock(&node->rwlock);
+                pthread_rwlock_unlock(&moved_node->rwlock);
               } else {
-                  log_msg(compare_log_level, "│ no source file found for target file '%s'", (node->new_data)->filename);
+                  log_msg(compare_log_level, "│ no source file found for target file '%s'", new_file->filename);
               }
           }
+          pthread_rwlock_unlock(&(node->parent)->rwlock);
       }
   }
 
+  pthread_rwlock_wrlock(&node->rwlock);
   if( (db_flags&DB_NEW) &&
       (node->new_data!=NULL) &&
       (file->attr & ATTR(attr_allownewfile)) ){
@@ -648,9 +686,9 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
       if (!(db_flags&DB_OLD)) {
   log_msg(compare_log_level,"┴ finished '%s'", node->path);
       }
+      pthread_rwlock_unlock(&node->rwlock);
     }
   }
-  pthread_mutex_unlock(&node->mutex);
 }
 
 match_result check_limit(char* filename, bool log_partial_match) {
@@ -815,7 +853,7 @@ db_line* get_file_attrs(disk_entry *file, DB_ATTR_TYPE attrs, DB_ATTR_TYPE extra
 }
 
 void write_tree(seltree* node) {
-    pthread_mutex_lock(&node->mutex);
+    pthread_rwlock_rdlock(&node->rwlock);
     if (node->checked&DB_NEW) {
         progress_status(PROGRESS_WRITEDB, (node->new_data)->filename);
         db_writeline(node->new_data,conf);
@@ -828,7 +866,7 @@ void write_tree(seltree* node) {
     for(tree_node *n = tree_walk_first(node->children); n != NULL ; n = tree_walk_next(n)) {
         write_tree(tree_get_data(n));
     }
-    pthread_mutex_unlock(&node->mutex);
+    pthread_rwlock_unlock(&node->rwlock);
 }
 
 void populate_tree(seltree* tree)

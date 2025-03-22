@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2010, 2020, 2023 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002, 2010, 2020, 2023, 2025 Rami Lehti, Pablo Virolainen,
  *               Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -28,7 +28,7 @@
 
 struct seltree {
 
-  pthread_mutex_t mutex;
+  pthread_rwlock_t rwlock;
 
   list* sel_rx_lst;
   list* neg_rx_lst;

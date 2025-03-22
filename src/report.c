@@ -705,7 +705,7 @@ static DB_ATTR_TYPE get_report_attributes(seltree* node, report_t *report) {
 static void terse_report(seltree* node) {
     list* l = NULL;
 
-    pthread_mutex_lock(&node->mutex);
+    pthread_rwlock_rdlock(&node->rwlock);
     for (l=conf->report_urls; l; l=l->next) {
         report_t* r = l->data;
 
@@ -778,12 +778,12 @@ static void terse_report(seltree* node) {
     for(tree_node *x = tree_walk_first(node->children); x != NULL ; x = tree_walk_next(x)) {
         terse_report(tree_get_data(x));
     }
-    pthread_mutex_unlock(&node->mutex);
+    pthread_rwlock_unlock(&node->rwlock);
 }
 
 void print_report_entries(report_t *report, seltree* node, const int node_status, void (*print_line)(report_t*, char*, int, seltree*)) {
 
-    pthread_mutex_lock(&node->mutex);
+    pthread_rwlock_rdlock(&node->rwlock);
     if (node->checked&node_status)  {
             if (!(node->changed_attrs) || ~(report->ignore_changed_attrs)&(node->changed_attrs
 #ifdef WITH_E2FSATTRS
@@ -797,7 +797,7 @@ void print_report_entries(report_t *report, seltree* node, const int node_status
     for(tree_node *x = tree_walk_first(node->children); x != NULL ; x = tree_walk_next(x)) {
         print_report_entries(report, tree_get_data(x), node_status, print_line);
     }
-    pthread_mutex_unlock(&node->mutex);
+    pthread_rwlock_unlock(&node->rwlock);
 }
 
 void print_dbline_attrs(report_t * report, db_line* oline, db_line* nline, DB_ATTR_TYPE report_attrs, void (*print_attribute)(report_t *, db_line*, db_line*, ATTRIBUTE)) {
@@ -833,7 +833,7 @@ void print_databases_attrs(report_t *report, void (*print_database_attributes)(r
 }
 
 void print_report_details(report_t *report, seltree* node, void (*print_attributes)(report_t *, db_line*, db_line*, DB_ATTR_TYPE)) {
-    pthread_mutex_lock(&node->mutex);
+    pthread_rwlock_rdlock(&node->rwlock);
     if (node->checked&NODE_CHANGED) {
         print_attributes(report, node->old_data, node->new_data, get_report_attributes(node, report));
     }
@@ -848,7 +848,7 @@ void print_report_details(report_t *report, seltree* node, void (*print_attribut
     for(tree_node *x = tree_walk_first(node->children); x != NULL ; x = tree_walk_next(x)) {
         print_report_details(report, tree_get_data(x), print_attributes);
     }
-    pthread_mutex_unlock(&node->mutex);
+    pthread_rwlock_unlock(&node->rwlock);
 }
 
 #ifdef WITH_AUDIT

@@ -42,7 +42,7 @@ void log_tree(LOG_LEVEL log_level, seltree* node, int depth) {
     list* r;
     rx_rule* rxc;
 
-    pthread_mutex_lock(&node->mutex);
+    pthread_rwlock_rdlock(&node->rwlock);
 
     log_msg(log_level, "%-*s %s:", depth, depth?"\u251d":"\u250c", node->path);
 
@@ -70,7 +70,7 @@ void log_tree(LOG_LEVEL log_level, seltree* node, int depth) {
         log_tree(log_level, tree_get_data(n), depth+2);
     }
 
-    pthread_mutex_unlock(&node->mutex);
+    pthread_rwlock_unlock(&node->rwlock);
 
     if (depth == 0) {
         log_msg(log_level, "%s", "\u2514");
@@ -128,10 +128,7 @@ static seltree *create_seltree_node(char *path, seltree *parent) {
     node->path = checked_strdup(path); /* not to be freed */
     node->parent = parent;
 
-    pthread_mutexattr_t attr;
-    pthread_mutexattr_init (&attr);
-    pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE);
-    pthread_mutex_init(&node->mutex, &attr);
+    pthread_rwlock_init(&node->rwlock, NULL);
 
     node->sel_rx_lst = NULL;
     node->neg_rx_lst = NULL;
@@ -149,17 +146,17 @@ static seltree *create_seltree_node(char *path, seltree *parent) {
 
 static seltree *_insert_new_node(char *path, seltree *parent) {
     seltree *node = create_seltree_node(path, parent);
-    pthread_mutex_lock(&parent->mutex);
+    pthread_rwlock_wrlock(&parent->rwlock);
     parent ->children = tree_insert(parent->children, strrchr(node->path,'/'), (void*)node, (tree_cmp_f) strcmp);
-    pthread_mutex_unlock(&parent->mutex);
+    pthread_rwlock_unlock(&parent->rwlock);
     return node;
 }
 
 static seltree* _get_seltree_node(seltree* node, char *path, bool create) {
     LOG_LEVEL log_level = LOG_LEVEL_TRACE;
-    pthread_mutex_lock(&node->mutex);
+    pthread_rwlock_rdlock(&node->rwlock);
     log_msg(log_level, "_get_seltree_node(): %s> node: '%s' (%p), create: %s", path, node->path, (void*) node, btoa(create));
-    pthread_mutex_unlock(&node->mutex);
+    pthread_rwlock_unlock(&node->rwlock);
     seltree *parent = NULL;
     char *tmp = checked_strdup(path);
     if (node && strcmp(node->path, path) != 0) {
@@ -168,10 +165,10 @@ static seltree* _get_seltree_node(seltree* node, char *path, bool create) {
             parent = node;
             next_dir = strchr(&next_dir[1], '/');
             if (next_dir) { tmp[next_dir-path] = '\0'; }
-            pthread_mutex_lock(&parent->mutex);
+            pthread_rwlock_rdlock(&parent->rwlock);
             log_msg(log_level, "_get_seltree_node(): %s> search for child node '%s' (parent: '%s' (%p))", path, strrchr(tmp,'/'), parent->path, (void*) parent);
             node = tree_search(parent->children, strrchr(tmp,'/'), (tree_cmp_f) strcmp);
-            pthread_mutex_unlock(&parent->mutex);
+            pthread_rwlock_unlock(&parent->rwlock);
             if (next_dir) { tmp[next_dir-path] = '/'; }
         } while (node != NULL && next_dir);
         if (create && node == NULL) {
@@ -191,9 +188,9 @@ static seltree* _get_seltree_node(seltree* node, char *path, bool create) {
     if (node == NULL) {
         log_msg(log_level, "_get_seltree_node(): %s> return NULL (node == NULL)", path);
     } else {
-        pthread_mutex_lock(&node->mutex);
+        pthread_rwlock_rdlock(&node->rwlock);
         log_msg(log_level, "_get_seltree_node(): %s> return node: '%s' (%p)", path, node->path, (void*) node);
-        pthread_mutex_unlock(&node->mutex);
+        pthread_rwlock_unlock(&node->rwlock);
     }
     return node;
 }
@@ -213,13 +210,13 @@ seltree *init_tree(void) {
 }
 
 bool is_tree_empty(seltree *node) {
-    pthread_mutex_lock(&node->mutex);
+    pthread_rwlock_rdlock(&node->rwlock);
     bool is_empty = (node->children == NULL
           && node->equ_rx_lst == NULL
           && node->sel_rx_lst == NULL
           && node->neg_rx_lst == NULL
         );
-    pthread_mutex_unlock(&node->mutex);
+    pthread_rwlock_unlock(&node->rwlock);
     return is_empty;
 }
 
@@ -276,7 +273,7 @@ rx_rule * add_rx_to_tree(char * rx, rx_restriction_t restriction, AIDE_RULE_TYPE
 
         curnode = get_or_create_seltree_node(tree, rxtok);
 
-        pthread_mutex_lock(&curnode->mutex);
+        pthread_rwlock_wrlock(&curnode->rwlock);
         *node_path = curnode->path;
         switch (rule_type){
             case AIDE_RECURSIVE_NEGATIVE_RULE:
@@ -293,20 +290,20 @@ rx_rule * add_rx_to_tree(char * rx, rx_restriction_t restriction, AIDE_RULE_TYPE
                 break;
             }
         }
-        pthread_mutex_unlock(&curnode->mutex);
+        pthread_rwlock_unlock(&curnode->rwlock);
         free(rxtok);
 
         while (curnode) {
-            pthread_mutex_t *mutex = &curnode->mutex;
-            pthread_mutex_lock(mutex);
+            pthread_rwlock_t *rwlock = &curnode->rwlock;
+            pthread_rwlock_wrlock(rwlock);
             if(curnode->checked&NODE_HAS_SUB_RULES) {
-                curnode = NULL;;
+                curnode = NULL;
             } else {
                 log_msg(LOG_LEVEL_DEBUG, "set NODE_HAS_SUB_RULES for node '%s' (%p)", curnode->path, (void*) curnode);
                 curnode->checked |= NODE_HAS_SUB_RULES;
                 curnode = curnode->parent;
             }
-            pthread_mutex_unlock(mutex);
+            pthread_rwlock_unlock(rwlock);
         }
     }
     return r;
@@ -392,7 +389,7 @@ static match_t check_node_for_match(seltree *pnode, file_t file) {
     char *last_slash = strrchr(file.name,'/');
     int parent_length = (last_slash != file.name?last_slash-file.name:0);
 
-    pthread_mutex_lock(&pnode->mutex);
+    pthread_rwlock_rdlock(&pnode->rwlock);
     log_msg(LOG_LEVEL_TRACE, "\u2502 check_node_for_match: pnode: '%s' (%p), filename: '%s', file_type: %c", pnode->path, (void*) pnode, file.name, get_f_type_char_from_f_type(file.type));
     if (strncmp(pnode->path, file.name, parent_length) == 0) {
 
@@ -402,9 +399,9 @@ static match_t check_node_for_match(seltree *pnode, file_t file) {
             } else {
                 seltree * child_node = tree_search(pnode->children, last_slash, (tree_cmp_f) strcmp);
                 if (child_node) {
-                    pthread_mutex_lock(&child_node->mutex);
+                    pthread_rwlock_rdlock(&child_node->rwlock);
                     match.result = _get_default_match_result(child_node, depth);
-                    pthread_mutex_unlock(&child_node->mutex);
+                    pthread_rwlock_unlock(&child_node->rwlock);
                 } else {
                     log_msg(LOG_LEVEL_DEBUG, "\u2502 %*cno node for directory '%s' exists (keep default match result at RESULT_NO_RULE_MATCH)", depth, ' ', file.name);
                 }
@@ -423,17 +420,17 @@ static match_t check_node_for_match(seltree *pnode, file_t file) {
     } else {
         log_msg(LOG_LEVEL_DEBUG, "\u2502 %*cnode: '%s' skip equal list (reason: not on top level)", depth, ' ', pnode->path);
     }
-    pthread_mutex_unlock(&pnode->mutex);
+    pthread_rwlock_unlock(&pnode->rwlock);
 
     /* seltree* stack for negative rules */
     int i = 0;
     seltree * p = pnode;
     while (p) {
-        pthread_mutex_t *mutex = &p->mutex;
-        pthread_mutex_lock(mutex);
+        pthread_rwlock_t *rwlock = &p->rwlock;
+        pthread_rwlock_rdlock(rwlock);
         p = p->parent;
         i++;
-        pthread_mutex_unlock(mutex);
+        pthread_rwlock_unlock(rwlock);
     }
     seltree* *nodes = checked_malloc(sizeof(seltree*)*i);
 
@@ -441,7 +438,7 @@ static match_t check_node_for_match(seltree *pnode, file_t file) {
     seltree *next_parent = NULL;;
     /* check selective rules down -> top */
     do {
-        pthread_mutex_lock(&pnode->mutex);
+        pthread_rwlock_rdlock(&pnode->rwlock);
         if (pnode->sel_rx_lst || pnode->neg_rx_lst) {
             nodes[i++] = pnode;
 
@@ -463,14 +460,14 @@ static match_t check_node_for_match(seltree *pnode, file_t file) {
             log_msg(LOG_LEVEL_DEBUG, "\u2502 %*cnode: '%s': skip selective and negative list (reason: lists are empty)", depth, ' ', pnode->path);
         }
         next_parent = pnode->parent;
-        pthread_mutex_unlock(&pnode->mutex);
+        pthread_rwlock_unlock(&pnode->rwlock);
     } while ((pnode = next_parent));
 
     /* check negative rules top -> down */
     while (--i >=0) {
         pnode = nodes[i];
         depth--;
-        pthread_mutex_lock(&pnode->mutex);
+        pthread_rwlock_rdlock(&pnode->rwlock);
         if (match.result == RESULT_EQUAL_MATCH || match.result == RESULT_SELECTIVE_MATCH || match.result == RESULT_PARTIAL_MATCH) {
             if (pnode->neg_rx_lst) {
                 log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': check negative list (reason: previous positive/partial match)", depth, ' ', pnode->path);
@@ -486,7 +483,7 @@ static match_t check_node_for_match(seltree *pnode, file_t file) {
         } else {
             log_msg(LOG_LEVEL_DEBUG, "\u2502 %*cnode: '%s': skip negative list (reason: no previous positive/partial match)", depth, ' ', pnode->path);
         }
-        pthread_mutex_unlock(&pnode->mutex);
+        pthread_rwlock_unlock(&pnode->rwlock);
     }
     free(nodes);
     log_msg(LOG_LEVEL_TRACE, "\u2502 check_node_for_match: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, file.name);
@@ -520,22 +517,22 @@ match_t check_seltree(seltree *tree, file_t file, bool check_parent_dirs) {
         if (node && relative_child_path_start) {
             node = get_seltree_node(pnode, relative_child_path);
             if (node) {
-                pthread_mutex_lock(&node->mutex);
+                pthread_rwlock_rdlock(&pnode->rwlock);
                 log_msg(LOG_LEVEL_TRACE, "\u2502 got %s (%p) for '%s'", node->path, (void*) node, relative_child_path);
-                pthread_mutex_unlock(&node->mutex);
+                pthread_rwlock_unlock(&pnode->rwlock);
                 pnode = node;
             }
         }
 
         if (check_parent_dirs) {
-            pthread_mutex_lock(&pnode->mutex);
+            pthread_rwlock_rdlock(&pnode->rwlock);
             log_msg(LOG_LEVEL_RULE, "\u2502 check parent directory '%s' for non-recurse match (node: '%s' (%p))", parent, pnode->path, (void*) pnode);
             match = check_node_for_match(pnode, (file_t) { .name = parent, .type = FT_DIR,
 #ifdef HAVE_FSTYPE
                     .fs_type = 0UL
 #endif
             });
-            pthread_mutex_unlock(&pnode->mutex);
+            pthread_rwlock_unlock(&pnode->rwlock);
             if (match.result == RESULT_NON_RECURSIVE_NEGATIVE_MATCH) {
                 match.result = RESULT_NEGATIVE_PARENT_MATCH;
                 parent_negative_match = true;
@@ -552,9 +549,9 @@ match_t check_seltree(seltree *tree, file_t file, bool check_parent_dirs) {
         relative_child_path = &parent[relative_child_path_start];
         next_dir += 1;
     }
-    pthread_mutex_lock(&pnode->mutex);
+    pthread_rwlock_rdlock(&pnode->rwlock);
     log_msg(LOG_LEVEL_TRACE, "\u2502 got parent node '%s' (%p) for parent name '%s'", pnode->path, (void*) pnode, parent);
-    pthread_mutex_unlock(&pnode->mutex);
+    pthread_rwlock_unlock(&pnode->rwlock);
     free(parent);
     if (!parent_negative_match) {
         log_msg(LOG_LEVEL_RULE, "\u2502 check '%s' (filetype: %c)", file.name, get_f_type_char_from_f_type(file.type));

@@ -4,6 +4,7 @@
 	* Fix writing of negative time values
 	* Fix listing of attributes
 	* Improve logging
+	* Fix missing parent directory in path check output
 
 2025-03-22 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Remove no longer needed caching code

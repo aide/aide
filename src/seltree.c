@@ -535,6 +535,7 @@ match_t check_seltree(seltree *tree, file_t file, bool check_parent_dirs, const 
             pthread_rwlock_unlock(&pnode->rwlock);
             if (match.result == RESULT_NON_RECURSIVE_NEGATIVE_MATCH) {
                 match.result = RESULT_NEGATIVE_PARENT_MATCH;
+                match.length = parent_length;
                 parent_negative_match = true;
                 break;
             } else if (match.result == RESULT_NO_RULE_MATCH) {

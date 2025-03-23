@@ -424,15 +424,15 @@ static int construct_database_line(db_line *line, char *str) {
                 break;
             }
             case attr_atime: {
-                n += str_format(str, n, " %llu", (unsigned long long)line->atime);
+                n += str_format(str, n, " %ld", (long)line->atime);
                 break;
             }
             case attr_ctime: {
-                n += str_format(str, n, " %llu", (unsigned long long)line->ctime);
+                n += str_format(str, n, " %ld", (long)line->ctime);
                 break;
             }
             case attr_mtime: {
-                n += str_format(str, n, " %llu", (unsigned long long)line->mtime);
+                n += str_format(str, n, " %ld", (long)line->mtime);
                 break;
             }
             case attr_linkname: {

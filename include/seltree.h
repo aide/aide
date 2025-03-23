@@ -34,7 +34,7 @@ seltree* get_or_create_seltree_node(seltree*, char *);
 
 rx_rule * add_rx_to_tree(char *, rx_restriction_t, AIDE_RULE_TYPE, seltree *, int, char *, char *, char **);
 
-match_t check_seltree(seltree *, file_t, bool);
+match_t check_seltree(seltree *, file_t, bool, const char *);
 
 void log_tree(LOG_LEVEL, seltree *, int);
 bool is_tree_empty(seltree *);

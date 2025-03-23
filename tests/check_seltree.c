@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2024 Hannes von Haugwitz
+ * Copyright (C) 2024,2015 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -52,7 +52,7 @@ static seltree *add_rules(check_seltree_rule_t rules[], size_t num_of_rules) {
 static void test_rules(seltree *tree, check_seltree_test_t tests[], size_t num_of_tests) {
     for (size_t i = 0 ; i < num_of_tests ; i++) {
         log_msg(LOG_LEVEL_RULE, "\u252c check '%s' (filetype: %c)", tests[i].file.name, get_f_type_char_from_f_type(tests[i].file.type));
-        match_t match = check_seltree(tree, tests[i].file, true);
+        match_t match = check_seltree(tree, tests[i].file, true, NULL);
         log_msg(LOG_LEVEL_RULE, "\u2534 result: %s", get_match_result_string(match.result));
 
         ck_assert_msg(tests[i].expected_match == match.result , "check_seltree %s (f_type: %c): returned %s (%d) (expected: %s (%d))",

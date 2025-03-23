@@ -77,7 +77,7 @@ nettle_fucntions_t nettle_functions[] = {  /* order must match hashsums array */
   Initialise md_container according its todo_attr field
  */
 
-int init_md(struct md_container* md, const char *filename) {
+int init_md(struct md_container* md, const char *filename, const char *whoami) {
   
   /*    First we check the parameter..   */
 #ifdef _PARAMETER_CHECK_
@@ -117,7 +117,7 @@ int init_md(struct md_container* md, const char *filename) {
   }
 #endif
   char *str;
-  log_msg(LOG_LEVEL_DEBUG, "%s> initialized md_container: %s (%p)", filename, str = diff_attributes(0, md->calc_attr), (void*) md);
+  LOG_WHOAMI(LOG_LEVEL_DEBUG, "%s> initialized md_container: %s (%p)", filename, str = diff_attributes(0, md->calc_attr), (void*) md);
   free(str);
   return RETOK;
 }
@@ -128,7 +128,6 @@ int init_md(struct md_container* md, const char *filename) {
  */
 
 int update_md(struct md_container* md,void* data,ssize_t size) {
-  log_msg(LOG_LEVEL_TRACE,"update_md(md=%p, data=%p, size=%zi)", (void*) md, (void*) data, size);
 
 #ifdef _PARAMETER_CHECK_
   if (md==NULL||data==NULL) {
@@ -155,14 +154,14 @@ int update_md(struct md_container* md,void* data,ssize_t size) {
   After this calling update_db is not a good idea.
 */
 
-int close_md(struct md_container* md, md_hashsums * hs, const char *filename) {
+int close_md(struct md_container* md, md_hashsums * hs, const char *filename, const char *whoami) {
 #ifdef _PARAMETER_CHECK_
     if (md==NULL) {
         return RETFAIL;
     }
 #endif
     if (hs) {
-        log_msg(LOG_LEVEL_DEBUG, "%s> copy hashsums from md_container (%p)", filename, (void*) md);
+        LOG_WHOAMI(LOG_LEVEL_DEBUG, "%s> copy hashsums from md_container (%p)", filename, (void*) md);
 #ifdef WITH_NETTLE
         for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
             DB_ATTR_TYPE h = ATTR(hashsums[i].attribute);
@@ -180,7 +179,7 @@ int close_md(struct md_container* md, md_hashsums * hs, const char *filename) {
 #endif
         hs->attrs = md->calc_attr;
     }
-    log_msg(LOG_LEVEL_DEBUG, "%s> free md_container (%p)", filename, (void*) md);
+    LOG_WHOAMI(LOG_LEVEL_DEBUG, "%s> free md_container (%p)", filename, (void*) md);
     /* Nettle doesn’t do memory allocation */
 #ifdef WITH_GCRYPT
     gcry_md_close(md->mdh);
@@ -188,7 +187,7 @@ int close_md(struct md_container* md, md_hashsums * hs, const char *filename) {
     return RETOK;
 }
 
-DB_ATTR_TYPE copy_hashsums(char *context, md_hashsums *hs, byte* (*target)[num_hashes]) {
+DB_ATTR_TYPE copy_hashsums(char *context, md_hashsums *hs, byte* (*target)[num_hashes], const char *whoami) {
     DB_ATTR_TYPE disabled_hashsums = 0LL;
     for (int i = 0 ; i < num_hashes ; ++i) {
         DB_ATTR_TYPE attr = ATTR(hashsums[i].attribute);
@@ -196,7 +195,7 @@ DB_ATTR_TYPE copy_hashsums(char *context, md_hashsums *hs, byte* (*target)[num_h
             (*target)[i] = checked_malloc(hashsums[i].length);
             memcpy((*target)[i],hs->hashsums[i],hashsums[i].length);
             char* hashsum_str = encode_base64((*target)[i], hashsums[i].length);
-            log_msg(LOG_LEVEL_TRACE, "%s: copy %s hashsum (%s) to %p", context, attributes[hashsums[i].attribute].db_name, hashsum_str, (void*) (*target)[i]);
+            LOG_WHOAMI(LOG_LEVEL_TRACE, "%s: copy %s hashsum (%s) to %p", context, attributes[hashsums[i].attribute].db_name, hashsum_str, (void*) (*target)[i]);
             free (hashsum_str);
         } else {
             disabled_hashsums |= attr;
@@ -210,7 +209,7 @@ DB_ATTR_TYPE copy_hashsums(char *context, md_hashsums *hs, byte* (*target)[num_h
   Writes md_container to db_line.
  */
 
-void hashsums2line(md_hashsums *hs, struct db_line* line) {
+void hashsums2line(md_hashsums *hs, struct db_line* line ,const char *whoami) {
   
 #ifdef _PARAMETER_CHECK_
   if (md==NULL||line==NULL) {
@@ -218,6 +217,6 @@ void hashsums2line(md_hashsums *hs, struct db_line* line) {
   }
 #endif
 
-  line->attr &= ~(copy_hashsums(line->filename, hs, &line->hashsums));
+  line->attr &= ~(copy_hashsums(line->filename, hs, &line->hashsums, whoami));
 
 }

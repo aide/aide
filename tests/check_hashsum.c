@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2024 Hannes von Haugwitz
+ * Copyright (C) 2024,2025 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -101,9 +101,9 @@ START_TEST(test_hashsum) {
 
     struct md_container mdc;
     mdc.todo_attr = get_hashes(false);
-    init_md(&mdc, dummy_filename);
+    init_md(&mdc, dummy_filename, NULL);
     update_md(&mdc, message, hashsum_tests[_i].size);
-    close_md(&mdc, &md, dummy_filename);
+    close_md(&mdc, &md, dummy_filename, NULL);
 
     for (int i = 0; i < num_hashes; ++i) {
         if (algorithms[i] >= 0) {

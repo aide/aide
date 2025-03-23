@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2000-2002, 2005-2006, 2020, 2022, 2024 Rami Lehti,
+ * Copyright (C) 2000-2002, 2005-2006, 2020, 2022, 2024, 2025 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -87,11 +87,11 @@ typedef struct md_hashsums {
   DB_ATTR_TYPE attrs;
 } md_hashsums;
 
-int init_md(struct md_container*, const char*);
+int init_md(struct md_container*, const char*, const char *);
 int update_md(struct md_container*,void*,ssize_t);
-int close_md(struct md_container*, md_hashsums *, const char*);
-void hashsums2line(md_hashsums*, struct db_line*);
+int close_md(struct md_container*, md_hashsums *, const char*, const char *);
+void hashsums2line(md_hashsums*, struct db_line*, const char *);
 
-DB_ATTR_TYPE copy_hashsums(char *, md_hashsums *, byte* (*)[num_hashes]);
+DB_ATTR_TYPE copy_hashsums(char *, md_hashsums *, byte* (*)[num_hashes], const char *);
 
 #endif /*_MD_H_INCLUDED*/

@@ -151,7 +151,7 @@ static int has_e2fsattrs_changed(unsigned long old, unsigned long new) {
 }
 #endif
 
-static DB_ATTR_TYPE get_changed_hashsums(byte** old_hashsums, byte** new_hashsums, db_line* old, db_line* new) {
+static DB_ATTR_TYPE get_changed_hashsums(byte** old_hashsums, byte** new_hashsums, db_line* old, db_line* new, const char* whoami) {
     DB_ATTR_TYPE changed_hashsums = 0;
     bool no_hashsums_compared = true;
     for (int i = 0 ; i < num_hashes ; ++i) {
@@ -160,12 +160,12 @@ static DB_ATTR_TYPE get_changed_hashsums(byte** old_hashsums, byte** new_hashsum
             if (old_hashsums[i] && new_hashsums[i]) {
                 no_hashsums_compared = false;
                 bool hash_has_changed = (bytecmp(old_hashsums[i], new_hashsums[i], hashsums[i].length) != 0);
-                log_msg(LOG_LEVEL_TRACE,"│ %s hashsum %s changed (old: %p, new: %p)", attributes[hashsums[i].attribute].db_name, hash_has_changed?"has":"has NOT", (void*) old_hashsums[i], (void*) new_hashsums[i]);
+                LOG_WHOAMI(LOG_LEVEL_TRACE,"│ %s hashsum %s changed (old: %p, new: %p)", attributes[hashsums[i].attribute].db_name, hash_has_changed?"has":"has NOT", (void*) old_hashsums[i], (void*) new_hashsums[i]);
                 if(hash_has_changed) {
                     changed_hashsums|=attr;
                 }
             } else {
-                log_msg(LOG_LEVEL_TRACE,"│ %s hashsum comparison skipped (old: %p, new: %p)", attributes[hashsums[i].attribute].db_name, (void*) old_hashsums[i], (void*) new_hashsums[i]);
+                LOG_WHOAMI(LOG_LEVEL_TRACE,"│ %s hashsum comparison skipped (old: %p, new: %p)", attributes[hashsums[i].attribute].db_name, (void*) old_hashsums[i], (void*) new_hashsums[i]);
             }
         }
     }
@@ -180,13 +180,13 @@ static DB_ATTR_TYPE get_changed_hashsums(byte** old_hashsums, byte** new_hashsum
  *
  * Attributes are only compared if they exist in both database lines.
 */
-static DB_ATTR_TYPE get_changed_attributes(db_line* l1,db_line* l2, DB_ATTR_TYPE ignore_attrs, disk_entry *entry, bool compare_hashsums) {
+static DB_ATTR_TYPE get_changed_attributes(db_line* l1,db_line* l2, DB_ATTR_TYPE ignore_attrs, disk_entry *entry, bool compare_hashsums, const char* whoami) {
 
 #define easy_growing_compare(a,b) \
     if(((a&l1->attr) && (a&l2->attr))) { \
         if (l1->attr&ATTR(attr_growing)) { \
             if (l1->b < l2->b) { \
-                log_msg(compare_log_level, "│ ignore growing " #b " change of old:'%s' and new:'%s'", l1->filename, l2->filename); \
+                LOG_WHOAMI(compare_log_level, "│ ignore growing " #b " change of old:'%s' and new:'%s'", l1->filename, l2->filename); \
             } else if (l1->b > l2->b) { \
                 ret|=a; \
             } \
@@ -208,7 +208,7 @@ static DB_ATTR_TYPE get_changed_attributes(db_line* l1,db_line* l2, DB_ATTR_TYPE
     DB_ATTR_TYPE ret=0;
 
     if (l1->attr&ATTR(attr_growing)) {
-        log_msg(compare_log_level, "│ old:'%s' has growing attribute set, ignore growing changes", l1->filename);
+        LOG_WHOAMI(compare_log_level, "│ old:'%s' has growing attribute set, ignore growing changes", l1->filename);
     }
 
     if ((ATTR(attr_ftype)&l1->attr && ATTR(attr_ftype)&l2->attr) && (l1->perm&S_IFMT)!=(l2->perm&S_IFMT)) { ret|=ATTR(attr_ftype); }
@@ -231,26 +231,26 @@ static DB_ATTR_TYPE get_changed_attributes(db_line* l1,db_line* l2, DB_ATTR_TYPE
 
     DB_ATTR_TYPE all_hashsums = get_hashes(true);
     if (compare_hashsums && l1->attr&all_hashsums && l2->attr&all_hashsums) {
-        log_msg(LOG_LEVEL_TRACE, "│ compare hashsums of old:'%s' and new:'%s'", l1->filename, l2->filename);
-        DB_ATTR_TYPE changed_hashsums = get_changed_hashsums(l1->hashsums, l2->hashsums, l1, l2);
+        LOG_WHOAMI(LOG_LEVEL_TRACE, "│ compare hashsums of old:'%s' and new:'%s'", l1->filename, l2->filename);
+        DB_ATTR_TYPE changed_hashsums = get_changed_hashsums(l1->hashsums, l2->hashsums, l1, l2, whoami);
         if (changed_hashsums) {
             char *str;
             str = diff_attributes(0,changed_hashsums);
-            log_msg(compare_log_level, "│ old:'%s' and new:'%s' have CHANGED hashsum(s): %s", l1->filename, l2->filename, str);
+            LOG_WHOAMI(compare_log_level, "│ old:'%s' and new:'%s' have CHANGED hashsum(s): %s", l1->filename, l2->filename, str);
             free(str);
             if (l1->attr&ATTR(attr_growing)) {
                 if (conf->action&DO_COMPARE) {
                     if(l1->size < l2->size) {
                         if (l1->size) {
-                            log_msg(compare_log_level, "┝ old:'%s' has growing attribute set, check for growing hashsums", l1->filename);
-                            log_msg(compare_log_level, "│ compare hashsums of old:'%s' and new:'%s' (limited to old size %lld)", l1->filename, l2->filename, l1->size);
+                            LOG_WHOAMI(compare_log_level, "┝ old:'%s' has growing attribute set, check for growing hashsums", l1->filename);
+                            LOG_WHOAMI(compare_log_level, "│ compare hashsums of old:'%s' and new:'%s' (limited to old size %lld)", l1->filename, l2->filename, l1->size);
                             DB_ATTR_TYPE transition_hashsums = get_transition_hashsums(l1->filename, l1->attr, l2->filename, l2->attr);
-                            md_hashsums hs = calc_hashsums(entry, l2->attr|transition_hashsums, l1->size, false);
+                            md_hashsums hs = calc_hashsums(entry, l2->attr|transition_hashsums, l1->size, false, whoami);
 
                             byte* new_hashsums[num_hashes];
-                            copy_hashsums(l2->fullpath, &hs, &new_hashsums);
+                            copy_hashsums(l2->fullpath, &hs, &new_hashsums, whoami);
 
-                            DB_ATTR_TYPE new_changed = get_changed_hashsums(l1->hashsums, new_hashsums, l1, l2);
+                            DB_ATTR_TYPE new_changed = get_changed_hashsums(l1->hashsums, new_hashsums, l1, l2, whoami);
 
                             for (int i = 0 ; i < num_hashes ; ++i) {
                                 free(new_hashsums[i]);
@@ -258,26 +258,26 @@ static DB_ATTR_TYPE get_changed_attributes(db_line* l1,db_line* l2, DB_ATTR_TYPE
 
                             if (new_changed) {
                                 str = diff_attributes(0,new_changed);
-                                log_msg(compare_log_level, "│ keep hashsums as CHANGED (hashsums of new:'%s' limited to old size %lld have been changed: %s)", l2->filename, l1->size, str);
+                                LOG_WHOAMI(compare_log_level, "│ keep hashsums as CHANGED (hashsums of new:'%s' limited to old size %lld have been changed: %s)", l2->filename, l1->size, str);
                                 free(str);
                             } else {
-                                log_msg(compare_log_level, "│ set hashsums as UNCHANGED (hashsums of new:'%s' limited to old size %lld have NOT been changed)", l2->filename, l1->size);
+                                LOG_WHOAMI(compare_log_level, "│ set hashsums as UNCHANGED (hashsums of new:'%s' limited to old size %lld have NOT been changed)", l2->filename, l1->size);
                                 changed_hashsums = 0;
                             }
                         } else {
-                            log_msg(compare_log_level, "│ old:'%s' has growing attribute set, but skip hashsums calculation (file was empty before)", l1->filename);
-                            log_msg(compare_log_level, "│ set hashsums as UNCHANGED (old size equals zero)");
+                            LOG_WHOAMI(compare_log_level, "│ old:'%s' has growing attribute set, but skip hashsums calculation (file was empty before)", l1->filename);
+                            LOG_WHOAMI(compare_log_level, "%s", "│ set hashsums as UNCHANGED (old size equals zero)");
                             changed_hashsums = 0;
                         }
                     } else {
-                        log_msg(compare_log_level, "┝ old:'%s' has growing attribute set, but skip hashsum calculation (old size is greater than or equal to new size)", l1->filename);
+                        LOG_WHOAMI(compare_log_level, "┝ old:'%s' has growing attribute set, but skip hashsum calculation (old size is greater than or equal to new size)", l1->filename);
                     }
                 } else {
-                    log_msg(compare_log_level, "┝ old:'%s' has growing attribute set, but skip hashsum calculation (NOT supported in dataase compare mode)", l1->filename);
+                    LOG_WHOAMI(compare_log_level, "┝ old:'%s' has growing attribute set, but skip hashsum calculation (NOT supported in dataase compare mode)", l1->filename);
                 }
             }
         } else {
-            log_msg(LOG_LEVEL_DEBUG, "│ old:'%s' and new:'%s' have NO changed hashsum(s)", l1->filename, l2->filename);
+            LOG_WHOAMI(LOG_LEVEL_DEBUG, "│ old:'%s' and new:'%s' have NO changed hashsum(s)", l1->filename, l2->filename);
         }
         ret |= changed_hashsums;
     }
@@ -301,7 +301,7 @@ static DB_ATTR_TYPE get_changed_attributes(db_line* l1,db_line* l2, DB_ATTR_TYPE
     char *str;
     if (ignore_attrs) {
         str = diff_attributes(0, ignore_attrs);
-        log_msg(compare_log_level, "│ attribute changes to ignore: %s", str);
+        LOG_WHOAMI(compare_log_level, "│ attribute changes to ignore: %s", str);
         free(str);
     }
     DB_ATTR_TYPE ignored_attributes = ret&ignore_attrs;
@@ -309,21 +309,21 @@ static DB_ATTR_TYPE get_changed_attributes(db_line* l1,db_line* l2, DB_ATTR_TYPE
     ret &= ~ignore_attrs;
     if (ret) {
         str = diff_attributes(0, ret);
-        log_msg(compare_log_level, "│ old:'%s' and new:'%s' have CHANGED attributes: %s (ignored attributes: %s)", l1->filename, l2->filename, str, ignored_attrs_str?ignored_attrs_str:"<none>");
+        LOG_WHOAMI(compare_log_level, "│ old:'%s' and new:'%s' have CHANGED attributes: %s (ignored attributes: %s)", l1->filename, l2->filename, str, ignored_attrs_str?ignored_attrs_str:"<none>");
         free(str);
     } else {
-        log_msg(compare_log_level, "│ old:'%s' and new:'%s' have NO changed attributes (ignored attributes: %s)", l1->filename, l2->filename, ignored_attrs_str?ignored_attrs_str:"<none>");
+        LOG_WHOAMI(compare_log_level, "│ old:'%s' and new:'%s' have NO changed attributes (ignored attributes: %s)", l1->filename, l2->filename, ignored_attrs_str?ignored_attrs_str:"<none>");
     }
     free(ignored_attrs_str);
     return ret;
 }
 
-static DB_ATTR_TYPE get_different_attributes(db_line* l1, db_line* l2, DB_ATTR_TYPE ignore_attrs) {
+static DB_ATTR_TYPE get_different_attributes(db_line* l1, db_line* l2, DB_ATTR_TYPE ignore_attrs, const char *whoami) {
     DB_ATTR_TYPE ret = l1->attr^l2->attr;
     char *str;
     if (ignore_attrs) {
         str = diff_attributes(0, ignore_attrs);
-        log_msg(compare_log_level, "│ attribute differences to ignore: %s", str);
+        LOG_WHOAMI(compare_log_level, "│ attribute differences to ignore: %s", str);
         free(str);
     }
     DB_ATTR_TYPE ignored_attributes = ret&ignore_attrs;
@@ -331,10 +331,10 @@ static DB_ATTR_TYPE get_different_attributes(db_line* l1, db_line* l2, DB_ATTR_T
     ret &= ~ignore_attrs;
     if (ret) {
         str = diff_attributes(l1->attr&~ignore_attrs, l2->attr&~ignore_attrs);
-        log_msg(compare_log_level, "│ old:'%s' and new:'%s' have different attributes: %s (ignored attributes: %s)", l1->filename, l2->filename, str, ignored_attrs_str?ignored_attrs_str:"<none>");
+        LOG_WHOAMI(compare_log_level, "│ old:'%s' and new:'%s' have different attributes: %s (ignored attributes: %s)", l1->filename, l2->filename, str, ignored_attrs_str?ignored_attrs_str:"<none>");
         free(str);
     } else {
-        log_msg(compare_log_level, "│ old:'%s' and new:'%s' have NO different attributes (ignored attributes: %s)", l1->filename, l2->filename, ignored_attrs_str?ignored_attrs_str:"<none>");
+        LOG_WHOAMI(compare_log_level, "│ old:'%s' and new:'%s' have NO different attributes (ignored attributes: %s)", l1->filename, l2->filename, ignored_attrs_str?ignored_attrs_str:"<none>");
     }
     free(ignored_attrs_str);
     return ret;
@@ -407,9 +407,9 @@ void print_match(file_t file, match_t match) {
 /*
  * add_file_to_tree
  */
-void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *db, disk_entry *entry)
+void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *db, disk_entry *entry, const char *whoami)
 {
-  log_msg(LOG_LEVEL_TRACE, "add_file_to_tree: '%s'", file->filename);
+  LOG_WHOAMI(LOG_LEVEL_TRACE, "add_file_to_tree: '%s'", file->filename);
   seltree* node=NULL;
 
   node = get_or_create_seltree_node(tree,file->filename);
@@ -432,19 +432,19 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
   switch (db_flags) {
   case DB_OLD: {
     progress_status(PROGRESS_OLDDB, file->filename);
-    log_msg(add_entry_log_level, "add old database entry '%s' (%c) to node '%s' (%p) as old data", file->filename, get_f_type_char_from_perm(file->perm), node->path, (void*) node);
+    LOG_WHOAMI(add_entry_log_level, "add old database entry '%s' (%c) to node '%s' (%p) as old data", file->filename, get_f_type_char_from_perm(file->perm), node->path, (void*) node);
     node->old_data=file;
     break;
   }
   case DB_NEW|DB_DISK: {
     progress_status(PROGRESS_DISK, file->filename);
-    log_msg(add_entry_log_level, "add disk entry '%s' (%c) to node '%s' (%p) as new data", file->filename, get_f_type_char_from_perm(file->perm), node->path, (void*) node);
+    LOG_WHOAMI(add_entry_log_level, "add disk entry '%s' (%c) to node '%s' (%p) as new data", file->filename, get_f_type_char_from_perm(file->perm), node->path, (void*) node);
     node->new_data=file;
     break;
   }
   case DB_NEW: {
     progress_status(PROGRESS_NEWDB, file->filename);
-    log_msg(add_entry_log_level, "add new database entry '%s' (%c) to node '%s' (%p) as new data", file->filename, get_f_type_char_from_perm(file->perm), node->path, (void*) node);
+    LOG_WHOAMI(add_entry_log_level, "add new database entry '%s' (%c) to node '%s' (%p) as new data", file->filename, get_f_type_char_from_perm(file->perm), node->path, (void*) node);
     node->new_data=file;
     break;
   }
@@ -453,9 +453,9 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
     if(conf->action&DO_INIT) {
         node->new_data=file;
         node->checked|=NODE_FREE;
-        log_msg(add_entry_log_level, "add old database entry '%s' (%c) to node (%p) as new data (entry does not match limit but keep it for database_out)", file->filename, get_f_type_char_from_perm(file->perm), (void*) node);
+        LOG_WHOAMI(add_entry_log_level, "add old database entry '%s' (%c) to node (%p) as new data (entry does not match limit but keep it for database_out)", file->filename, get_f_type_char_from_perm(file->perm), (void*) node);
     } else {
-        log_msg(add_entry_log_level, "drop old database entry '%s' (entry does not match limit)", file->filename);
+        LOG_WHOAMI(add_entry_log_level, "drop old database entry '%s' (entry does not match limit)", file->filename);
         free_db_line(file);
         free(file);
         file = NULL;
@@ -469,18 +469,18 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
     if (conf->action&(DO_COMPARE|DO_DIFF)) {
       if (!(db_flags&DB_OLD)) {
         pthread_rwlock_rdlock(&node->rwlock);
-        log_msg(compare_log_level, "┬ handle '%s' from %s", node->path, db_flags==DB_OLD ? "old database": (db_flags==DB_NEW ? "new database": "disk"));
+        LOG_WHOAMI(compare_log_level, "┬ handle '%s' from %s", node->path, db_flags==DB_OLD ? "old database": (db_flags==DB_NEW ? "new database": "disk"));
         pthread_rwlock_unlock(&node->rwlock);
       }
 
     pthread_rwlock_wrlock(&node->rwlock);
         if((node->checked&DB_OLD)&&(node->checked&DB_NEW)){
-    log_msg(compare_log_level, "┝ compare attributes of '%s'", node->path);
-    get_different_attributes(node->old_data,node->new_data, 0);
-    node->changed_attrs=get_changed_attributes(node->old_data,node->new_data, 0, entry, true);
+    LOG_WHOAMI(compare_log_level, "┝ compare attributes of '%s'", node->path);
+    get_different_attributes(node->old_data,node->new_data, 0, whoami);
+    node->changed_attrs=get_changed_attributes(node->old_data,node->new_data, 0, entry, true, whoami);
     /* Free the data if same else leave as is for report_tree */
     if(node->changed_attrs==RETOK && !((node->old_data)->attr^(node->new_data)->attr)) {
-      log_msg(LOG_LEVEL_DEBUG, "│ free old data (node '%s' is unchanged)", node->path);
+      LOG_WHOAMI(LOG_LEVEL_DEBUG, "│ free old data (node '%s' is unchanged)", node->path);
       node->changed_attrs=0;
 
       free_db_line(node->old_data);
@@ -489,20 +489,20 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
 
       /* Free new data if not needed for write_tree */
       if(conf->action&DO_INIT) {
-          log_msg(LOG_LEVEL_DEBUG, "│ keep new data (node '%s' is unchanged, but keep it for database_out)", node->path);
+          LOG_WHOAMI(LOG_LEVEL_DEBUG, "│ keep new data (node '%s' is unchanged, but keep it for database_out)", node->path);
           node->checked|=NODE_FREE;
       } else {
-          log_msg(LOG_LEVEL_DEBUG, "│ free new data (node '%s' is unchanged)", node->path);
+          LOG_WHOAMI(LOG_LEVEL_DEBUG, "│ free new data (node '%s' is unchanged)", node->path);
           free_db_line(node->new_data);
           free(node->new_data);
           node->new_data=NULL;
       }
-      log_msg(compare_log_level, "┴ finished '%s'", node->path);
+      LOG_WHOAMI(compare_log_level, "┴ finished '%s'", node->path);
       pthread_rwlock_unlock(&node->rwlock);
       return;
     }
   } else if(node->checked&DB_NEW) {
-      log_msg(LOG_LEVEL_DEBUG, "│ '%s' is new (no old data exists)", node->path);
+      LOG_WHOAMI(LOG_LEVEL_DEBUG, "│ '%s' is new (no old data exists)", node->path);
   }
   pthread_rwlock_unlock(&node->rwlock);
 
@@ -515,15 +515,15 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
           DB_ATTR_TYPE available_hashsums = get_hashes(false);
           if (new_file->attr&available_hashsums) {
               if (conf->action&DO_COMPARE) {
-                  log_msg(compare_log_level, "┝ '%s' has compressed attribute set, calculate uncompressed hashsums", new_file->filename);
+                  LOG_WHOAMI(compare_log_level, "┝ '%s' has compressed attribute set, calculate uncompressed hashsums", new_file->filename);
 
                   seltree *moved_node = NULL;
 
-                  md_hashsums hs = calc_hashsums(entry, new_file->attr, -1, true);
+                  md_hashsums hs = calc_hashsums(entry, new_file->attr, -1, true, whoami);
                   if (hs.attrs) {
                       byte* new_hashsums[num_hashes];
-                      copy_hashsums(new_file->fullpath, &hs, &new_hashsums);
-                      log_msg(compare_log_level, "│ search for original file with uncompressed hashsums of new:'%s'", new_file->filename);
+                      copy_hashsums(new_file->fullpath, &hs, &new_hashsums, whoami);
+                      LOG_WHOAMI(compare_log_level, "│ search for original file with uncompressed hashsums of new:'%s'", new_file->filename);
 
                       pthread_rwlock_rdlock(&(node->parent)->rwlock);
                       for(tree_node *x = tree_walk_first((node->parent)->children); x != NULL ; x = tree_walk_next(x)) {
@@ -532,21 +532,21 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
                               pthread_rwlock_rdlock(&moved_node->rwlock);
                               if (moved_node->old_data) {
                                   if ((new_file->attr&(moved_node->old_data)->attr)&available_hashsums) {
-                                      log_msg(LOG_LEVEL_TRACE, "│ compare hashsums of old:'%s' with uncompressed hashsums of new:'%s'", (moved_node->old_data)->filename, new_file->filename);
-                                      DB_ATTR_TYPE uncompressed_changed = get_changed_hashsums((moved_node->old_data)->hashsums, new_hashsums, (moved_node->old_data), new_file);
+                                      LOG_WHOAMI(LOG_LEVEL_TRACE, "│ compare hashsums of old:'%s' with uncompressed hashsums of new:'%s'", (moved_node->old_data)->filename, new_file->filename);
+                                      DB_ATTR_TYPE uncompressed_changed = get_changed_hashsums((moved_node->old_data)->hashsums, new_hashsums, (moved_node->old_data), new_file, whoami);
                                       if (uncompressed_changed) {
                                           char *str = diff_attributes(0,uncompressed_changed);
-                                          log_msg(LOG_LEVEL_DEBUG, "│ hashsums of old:'%s' and uncompressed hashsums of new:'%s' have been CHANDED: %s)", (moved_node->old_data)->filename, new_file->filename, str);
+                                          LOG_WHOAMI(LOG_LEVEL_DEBUG, "│ hashsums of old:'%s' and uncompressed hashsums of new:'%s' have been CHANGED: %s)", (moved_node->old_data)->filename, new_file->filename, str);
                                           free(str);
                                       } else {
-                                          log_msg(LOG_LEVEL_DEBUG, "│ hashsums of old:'%s' and uncompressed hashsums of new:'%s' have NOT been changed)", (moved_node->old_data)->filename, new_file->filename);
+                                          LOG_WHOAMI(LOG_LEVEL_DEBUG, "│ hashsums of old:'%s' and uncompressed hashsums of new:'%s' have NOT been changed)", (moved_node->old_data)->filename, new_file->filename);
                                           pthread_rwlock_unlock(&moved_node->rwlock);
                                           break;
                                       }
                                   } else {
                                       char *old_hashsums_str = diff_attributes(0,(moved_node->old_data)->attr&available_hashsums);
                                       char *new_hashsums_str = diff_attributes(0,new_file->attr&available_hashsums);
-                                      log_msg(LOG_LEVEL_DEBUG, "│ skip old:'%s' (no common hashsums with new:'%s', old hashsum(s): %s, new hashsum(s): %s)", (moved_node->old_data)->filename, new_file->filename, old_hashsums_str, new_hashsums_str);
+                                      LOG_WHOAMI(LOG_LEVEL_DEBUG, "│ skip old:'%s' (no common hashsums with new:'%s', old hashsum(s): %s, new hashsum(s): %s)", (moved_node->old_data)->filename, new_file->filename, old_hashsums_str, new_hashsums_str);
                                       free(old_hashsums_str);
                                       free(new_hashsums_str);
                                   }
@@ -564,39 +564,39 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
                           pthread_rwlock_wrlock(&moved_node->rwlock);
                           pthread_rwlock_wrlock(&node->rwlock);
                           if (!(moved_node->checked&NODE_MOVED_OUT)) {
-                          log_msg(compare_log_level, "│ found old:'%s' with same common hashsum(s) as uncompressed file new:'%s'", (moved_node->old_data)->filename, new_file->filename);
-                          log_msg(compare_log_level, "│ compare attributes of original file old:'%s' and compressed file new:'%s'", (moved_node->old_data)->filename, new_file->filename);
+                          LOG_WHOAMI(compare_log_level, "│ found old:'%s' with same common hashsum(s) as uncompressed file new:'%s'", (moved_node->old_data)->filename, new_file->filename);
+                          LOG_WHOAMI(compare_log_level, "│ compare attributes of original file old:'%s' and compressed file new:'%s'", (moved_node->old_data)->filename, new_file->filename);
 
                           DB_ATTR_TYPE compressed_ignored_attr = default_move_ignored_attr | get_hashsums_to_ignore((moved_node->old_data)->filename, (moved_node->old_data)->attr, new_file->filename, new_file->attr);
-                          if (get_different_attributes(moved_node->old_data, new_file, compressed_ignored_attr)) {
-                              log_msg(compare_log_level, "│ ignore old:'%s' as original file of compressed file new:'%s' (due to different attributes)", (moved_node->old_data)->filename, new_file->filename);
-                          } else if (get_changed_attributes((moved_node->old_data), new_file, ATTR(attr_ctime)|ATTR(attr_size)|ATTR(attr_bcount)|ATTR(attr_inode), entry, false) == RETOK) {
+                          if (get_different_attributes(moved_node->old_data, new_file, compressed_ignored_attr, whoami)) {
+                              LOG_WHOAMI(compare_log_level, "│ ignore old:'%s' as original file of compressed file new:'%s' (due to different attributes)", (moved_node->old_data)->filename, new_file->filename);
+                          } else if (get_changed_attributes((moved_node->old_data), new_file, ATTR(attr_ctime)|ATTR(attr_size)|ATTR(attr_bcount)|ATTR(attr_inode), entry, false, whoami) == RETOK) {
                               node->checked |= NODE_MOVED_IN;
                               moved_node->checked |= NODE_MOVED_OUT;
-                              log_msg(compare_log_level,_("│ accept old:'%s' as original file of compressed file new:'%s'"), (moved_node->old_data)->filename, new_file->filename);
-                              log_msg(compare_log_level, "┴ finished '%s'", node->path);
+                              LOG_WHOAMI(compare_log_level,_("│ accept old:'%s' as original file of compressed file new:'%s'"), (moved_node->old_data)->filename, new_file->filename);
+                              LOG_WHOAMI(compare_log_level, "┴ finished '%s'", node->path);
                               pthread_rwlock_unlock(&node->rwlock);
                               pthread_rwlock_unlock(&moved_node->rwlock);
                               return;
                           } else {
-                              log_msg(compare_log_level,"│ ignore '%s' as original file of compressed file '%s' (due to changed attributes)", (moved_node->old_data)->filename, new_file->filename);
+                              LOG_WHOAMI(compare_log_level,"│ ignore '%s' as original file of compressed file '%s' (due to changed attributes)", (moved_node->old_data)->filename, new_file->filename);
                           }
                           } else {
-                              log_msg(compare_log_level, "│ '%s' has been already moved out", (moved_node->old_data)->filename);
+                              LOG_WHOAMI(compare_log_level, "│ '%s' has been already moved out", (moved_node->old_data)->filename);
                           }
                           pthread_rwlock_unlock(&node->rwlock);
                           pthread_rwlock_unlock(&moved_node->rwlock);
                       } else {
-                          log_msg(compare_log_level, "│ NO original file with same hashsum(s) found for compressed file new:'%s'", new_file->filename);
+                          LOG_WHOAMI(compare_log_level, "│ NO original file with same hashsum(s) found for compressed file new:'%s'", new_file->filename);
                       }
                   } else {
-                      log_msg(compare_log_level, "│ calculation of uncompressed hashsums for comprressed file new:'%s' FAILED", new_file->filename);
+                      LOG_WHOAMI(compare_log_level, "│ calculation of uncompressed hashsums for comprressed file new:'%s' FAILED", new_file->filename);
                   }
               } else {
-                  log_msg(compare_log_level, "┝ new:'%s' has compressed attribute set, but skip hashsum calculation (NOT supported in dataase compare mode)", new_file->filename);
+                  LOG_WHOAMI(compare_log_level, "┝ new:'%s' has compressed attribute set, but skip hashsum calculation (NOT supported in dataase compare mode)", new_file->filename);
               }
           } else {
-              log_msg(compare_log_level, "┝ new:'%s' has compressed attribute set, but skip hashsum calculation (file has no hashsums set)", new_file->filename);
+              LOG_WHOAMI(compare_log_level, "┝ new:'%s' has compressed attribute set, but skip hashsum calculation (file has no hashsums set)", new_file->filename);
           }
       }
   }
@@ -605,7 +605,7 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
       if (db_flags&DB_OLD) {
           pthread_rwlock_wrlock(&(node->parent)->rwlock);
           if(file->attr & ATTR(attr_checkinode)) {
-              log_msg(compare_log_level, "'%s' (inode: %li) has check inode attribute set, set NODE_CHECK_INODE_CHILD for parent '%s'", file->filename, file->inode, (node->parent)->path);
+              LOG_WHOAMI(compare_log_level, "'%s' (inode: %li) has check inode attribute set, set NODE_CHECK_INODE_CHILD for parent '%s'", file->filename, file->inode, (node->parent)->path);
               (node->parent)->checked |= NODE_CHECK_INODE;
           }
           pthread_rwlock_unlock(&(node->parent)->rwlock);
@@ -616,7 +616,7 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
 
             pthread_rwlock_rdlock(&(node->parent)->rwlock);
           if( (node->parent)->checked&NODE_CHECK_INODE && new_file != NULL ) {
-              log_msg(compare_log_level, "┝ parent directory (%s) of '%s' (inode: %li) has entries with check inode attribute set, search for source file with same inode", (node->parent)->path, new_file->filename, new_file->inode);
+              LOG_WHOAMI(compare_log_level, "┝ parent directory (%s) of '%s' (inode: %li) has entries with check inode attribute set, search for source file with same inode", (node->parent)->path, new_file->filename, new_file->inode);
               seltree* moved_node = NULL;
               for(tree_node *x = tree_walk_first((node->parent)->children); x != NULL ; x = tree_walk_next(x)) {
                   moved_node = tree_get_data(x);
@@ -627,7 +627,7 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
                               pthread_rwlock_unlock(&moved_node->rwlock);
                               break;
                           } else {
-                              log_msg(LOG_LEVEL_DEBUG, "│ '%s' has check inode attribute set but different inode", (moved_node->old_data)->filename);
+                              LOG_WHOAMI(LOG_LEVEL_DEBUG, "│ '%s' has check inode attribute set but different inode", (moved_node->old_data)->filename);
                           }
                       }
                       pthread_rwlock_unlock(&moved_node->rwlock);
@@ -640,30 +640,30 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
                   db_line *newData = new_file;
                   db_line *oldData = moved_node->old_data;
                 if (!(moved_node->checked&NODE_MOVED_OUT)) {
-                  log_msg(compare_log_level, "│ found old:'%s' with check inode attribute set and same inode as file new:'%s'", oldData->filename, newData->filename);
-                  log_msg(compare_log_level, "│ compare attributes of source file old:'%s' and target file new:'%s'", oldData->filename, newData->filename);
+                  LOG_WHOAMI(compare_log_level, "│ found old:'%s' with check inode attribute set and same inode as file new:'%s'", oldData->filename, newData->filename);
+                  LOG_WHOAMI(compare_log_level, "│ compare attributes of source file old:'%s' and target file new:'%s'", oldData->filename, newData->filename);
                   DB_ATTR_TYPE move_ignored_attr = default_move_ignored_attr | get_hashsums_to_ignore(oldData->filename, oldData->attr, newData->filename, newData->attr);
-                  if (get_different_attributes(oldData, newData, move_ignored_attr)) {
-                      log_msg(compare_log_level, "│ ignore old:'%s' as source file of target file new:'%s' (due to different attributes)", oldData->filename, newData->filename);
-                  } else if (get_changed_attributes(oldData, newData, ATTR(attr_ctime), entry, true) == RETOK) {
+                  if (get_different_attributes(oldData, newData, move_ignored_attr, whoami)) {
+                      LOG_WHOAMI(compare_log_level, "│ ignore old:'%s' as source file of target file new:'%s' (due to different attributes)", oldData->filename, newData->filename);
+                  } else if (get_changed_attributes(oldData, newData, ATTR(attr_ctime), entry, true, whoami) == RETOK) {
                       node->checked |= NODE_MOVED_IN;
                       moved_node->checked |= NODE_MOVED_OUT;
-                      log_msg(compare_log_level, "│ accept old:'%s' as source file of target file new:'%s'", oldData->filename, newData->filename);
-                      log_msg(compare_log_level, "┴ finished '%s'", node->path);
+                      LOG_WHOAMI(compare_log_level, "│ accept old:'%s' as source file of target file new:'%s'", oldData->filename, newData->filename);
+                      LOG_WHOAMI(compare_log_level, "┴ finished '%s'", node->path);
                       pthread_rwlock_unlock(&node->rwlock);
                       pthread_rwlock_unlock(&moved_node->rwlock);
                       pthread_rwlock_unlock(&(node->parent)->rwlock);
                       return;
                   } else {
-                      log_msg(compare_log_level, "│ ignore old:'%s' as source file of target file new:'%s' (due to changed attributes)", oldData->filename, newData->filename);
+                      LOG_WHOAMI(compare_log_level, "│ ignore old:'%s' as source file of target file new:'%s' (due to changed attributes)", oldData->filename, newData->filename);
                   }
                 } else {
-                      log_msg(compare_log_level, "│ '%s' has been already moved out", oldData->filename);
+                      LOG_WHOAMI(compare_log_level, "│ '%s' has been already moved out", oldData->filename);
                 }
                 pthread_rwlock_unlock(&node->rwlock);
                 pthread_rwlock_unlock(&moved_node->rwlock);
               } else {
-                  log_msg(compare_log_level, "│ no source file found for target file '%s'", new_file->filename);
+                  LOG_WHOAMI(compare_log_level, "│ no source file found for target file '%s'", new_file->filename);
               }
           }
           pthread_rwlock_unlock(&(node->parent)->rwlock);
@@ -675,83 +675,83 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
       (node->new_data!=NULL) &&
       (file->attr & ATTR(attr_allownewfile)) ){
 	 node->checked|=NODE_ALLOW_NEW;
-     log_msg(compare_log_level,_("│ '%s' has ANF attribute set, ignore addition of entry in the report"), file->filename);
+     LOG_WHOAMI(compare_log_level,_("│ '%s' has ANF attribute set, ignore addition of entry in the report"), file->filename);
   }
   if( (db_flags&DB_OLD) &&
       (node->old_data!=NULL) &&
       (file->attr & ATTR(attr_allowrmfile)) ){
 	  node->checked|=NODE_ALLOW_RM;
-     log_msg(compare_log_level,_("'%s' has ARF attribute set, ignore removal of entry in the report"), file->filename);
+      LOG_WHOAMI(compare_log_level,_("'%s' has ARF attribute set, ignore removal of entry in the report"), file->filename);
   }
       if (!(db_flags&DB_OLD)) {
-  log_msg(compare_log_level,"┴ finished '%s'", node->path);
+          LOG_WHOAMI(compare_log_level,"┴ finished '%s'", node->path);
       }
       pthread_rwlock_unlock(&node->rwlock);
     }
   }
 }
 
-match_result check_limit(char* filename, bool log_partial_match) {
+match_result check_limit(char* filename, bool log_partial_match, const char *whoami) {
     if(conf->limit!=NULL) {
         int match=pcre2_match(conf->limit_crx, (PCRE2_SPTR) filename, PCRE2_ZERO_TERMINATED, 0, PCRE2_PARTIAL_SOFT, conf->limit_md, NULL);
         if (match >= 0) {
-            log_msg(LOG_LEVEL_TRACE, "'%s' does match limit '%s'", filename, conf->limit);
+            LOG_WHOAMI(LOG_LEVEL_TRACE, "'%s' does match limit '%s'", filename, conf->limit);
             return 0;
         } else if (match == PCRE2_ERROR_PARTIAL) {
             if (log_partial_match) {
-                log_msg(LOG_LEVEL_DEBUG, "skip '%s' (reason: partial limit match, limit: '%s')", filename, conf->limit);
+                LOG_WHOAMI(LOG_LEVEL_DEBUG, "skip '%s' (reason: partial limit match, limit: '%s')", filename, conf->limit);
             }
             return RESULT_PARTIAL_LIMIT_MATCH;
         } else {
-            log_msg(LOG_LEVEL_DEBUG, "skip '%s' (reason: no limit match, limit '%s')", filename, conf->limit);
+            LOG_WHOAMI(LOG_LEVEL_DEBUG, "skip '%s' (reason: no limit match, limit '%s')", filename, conf->limit);
             return RESULT_NO_LIMIT_MATCH;
         }
     }
     return 0;
 }
 
-match_t check_rxtree(file_t file, seltree* tree, char* source, bool check_parent_dirs) {
-  match_result limit_result = check_limit(file.name, !(file.type&FT_DIR));
+match_t check_rxtree(file_t file, seltree* tree, char* source, bool check_parent_dirs, const char *whoami) {
+  match_result limit_result = check_limit(file.name, !(file.type&FT_DIR), whoami);
   match_t match;
   if (limit_result) {
       if (limit_result == RESULT_PARTIAL_LIMIT_MATCH && file.type&FT_DIR) {
-        log_msg(LOG_LEVEL_RULE, "\u252c partial limit match (limit: '%s') for directory '%s', check for no-recurse match", conf->limit, file.name);
-        match = check_seltree(tree, file, check_parent_dirs);
+        LOG_WHOAMI(LOG_LEVEL_RULE, "\u252c partial limit match (limit: '%s') for directory '%s', check for no-recurse match", conf->limit, file.name);
+        match = check_seltree(tree, file, check_parent_dirs, whoami);
         if (match.result == RESULT_NON_RECURSIVE_NEGATIVE_MATCH || match.result == RESULT_NO_RULE_MATCH) {
             match.result = RESULT_PART_LIMIT_AND_NO_RECURSE_MATCH;
-            log_msg(LOG_LEVEL_RULE, "\u2534 no-recurse match for '%s', stop directory processing", file.name);
-            log_msg(LOG_LEVEL_DEBUG, "check_rxtree: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, file.name);
+            LOG_WHOAMI(LOG_LEVEL_RULE, "\u2534 no-recurse match for '%s', stop directory processing", file.name);
+            LOG_WHOAMI(LOG_LEVEL_DEBUG, "check_rxtree: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, file.name);
             return match;
         } else {
-            log_msg(LOG_LEVEL_RULE, "\u2534 no no-recurse match for '%s'", file.name);
+            LOG_WHOAMI(LOG_LEVEL_RULE, "\u2534 no no-recurse match for '%s'", file.name);
         }
       }
       match = (match_t) { limit_result, NULL, 0 };
-      log_msg(LOG_LEVEL_DEBUG, "check_rxtree: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, file.name);
+      LOG_WHOAMI(LOG_LEVEL_DEBUG, "check_rxtree: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, file.name);
       return match;
   }
 
 #ifdef HAVE_FSTYPE
   char * fs_type_str = get_fs_type_string_from_magic(file.fs_type);
-  log_msg(LOG_LEVEL_RULE, "\u252c process '%s' from %s (filetype: %c, file system type: %s)", file.name, source, get_f_type_char_from_f_type(file.type), fs_type_str);
+  LOG_WHOAMI(LOG_LEVEL_RULE, "\u252c process '%s' from %s (filetype: %c, file system type: %s)", file.name, source, get_f_type_char_from_f_type(file.type), fs_type_str);
   free(fs_type_str);
 #else
-  log_msg(LOG_LEVEL_RULE, "\u252c process '%s' from %s (filetype: %c)", file.name, source, get_f_type_char_from_f_type(file.type));
+  LOG_WHOAMI(LOG_LEVEL_RULE, "\u252c process '%s' from %s (filetype: %c)", file.name, source, get_f_type_char_from_f_type(file.type));
 #endif
-  match = check_seltree(tree, file, check_parent_dirs);
+  match = check_seltree(tree, file, check_parent_dirs, whoami);
   if (match.result == RESULT_SELECTIVE_MATCH || match.result == RESULT_EQUAL_MATCH) {
       char *str;
-      log_msg(LOG_LEVEL_RULE, "\u2534 ADD '%s' (attr: '%s')", file.name, str = diff_attributes(0, match.rule->attr));
+      LOG_WHOAMI(LOG_LEVEL_RULE, "\u2534 ADD '%s' (attr: '%s')", file.name, str = diff_attributes(0, match.rule->attr));
       free(str);
   } else {
-      log_msg(LOG_LEVEL_RULE, "\u2534 do NOT add '%s'", file.name);
+      LOG_WHOAMI(LOG_LEVEL_RULE, "\u2534 do NOT add '%s'", file.name);
   }
-  log_msg(LOG_LEVEL_DEBUG, "check_rxtree: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, file.name);
+  LOG_WHOAMI(LOG_LEVEL_DEBUG, "check_rxtree: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, file.name);
   return match;
 }
 
-db_line* get_file_attrs(disk_entry *file, DB_ATTR_TYPE attrs, DB_ATTR_TYPE extra_hashsums) {
-  log_msg(LOG_LEVEL_DEBUG, "get file attributes '%s' (fullpath: '%s')", &file->filename[conf->root_prefix_length], file->filename);
+db_line* get_file_attrs(disk_entry *file, DB_ATTR_TYPE attrs, DB_ATTR_TYPE extra_hashsums, const char *whoami) {
+  LOG_WHOAMI(LOG_LEVEL_DEBUG, "get file attributes '%s' (fullpath: '%s')", &file->filename[conf->root_prefix_length], file->filename);
   db_line* line=NULL;
   time_t cur_time;
 
@@ -820,30 +820,30 @@ db_line* get_file_attrs(disk_entry *file, DB_ATTR_TYPE attrs, DB_ATTR_TYPE extra
   */
 
 #ifdef WITH_ACL
-  acl2line(line, file->fd);
+  acl2line(line, file->fd, whoami);
 #endif
 
 #ifdef WITH_XATTR
-  xattrs2line(line, file->fd);
+  xattrs2line(line, file->fd, whoami);
 #endif
 
 #ifdef WITH_SELINUX
-  selinux2line(line, file->fd);
+  selinux2line(line, file->fd, whoami);
 #endif
 
 #ifdef WITH_E2FSATTRS
-    e2fsattrs2line(line, file->fd);
+    e2fsattrs2line(line, file->fd, whoami);
 #endif
 
 #ifdef WITH_CAPABILITIES
-    capabilities2line(line, file->fd);
+    capabilities2line(line, file->fd, whoami);
 #endif
 
   DB_ATTR_TYPE all_hashsums = get_hashes(true);
   if (line->attr&all_hashsums) {
-    md_hashsums hs = calc_hashsums(file, line->attr|extra_hashsums, -1, false);
+    md_hashsums hs = calc_hashsums(file, line->attr|extra_hashsums, -1, false, whoami);
     if (hs.attrs) {
-        hashsums2line(&hs,line);
+        hashsums2line(&hs,line, whoami);
     } else {
         line->attr&=~all_hashsums;
     }
@@ -878,10 +878,10 @@ void populate_tree(seltree* tree)
         progress_status(PROGRESS_OLDDB, NULL);
         log_msg(LOG_LEVEL_INFO, "read old entries from database: %s:%s", get_url_type_string((conf->database_in.url)->type), (conf->database_in.url)->value);
             while((old=db_readline(&(conf->database_in))) != NULL) {
-                if (check_limit(old->filename, !(get_f_type_from_perm(old->perm)&FT_DIR))) {
-                    add_file_to_tree(tree,old,DB_OLD|DB_NEW, &(conf->database_in), NULL);
+                if (check_limit(old->filename, !(get_f_type_from_perm(old->perm)&FT_DIR), NULL)) {
+                    add_file_to_tree(tree,old,DB_OLD|DB_NEW, &(conf->database_in), NULL, NULL);
                 } else {
-                    add_file_to_tree(tree,old,DB_OLD, &(conf->database_in), NULL);
+                    add_file_to_tree(tree,old,DB_OLD, &(conf->database_in), NULL, NULL);
                 }
             }
     }
@@ -889,13 +889,13 @@ void populate_tree(seltree* tree)
         progress_status(PROGRESS_NEWDB, NULL);
         log_msg(LOG_LEVEL_INFO, "read new entries from database: %s:%s", get_url_type_string((conf->database_new.url)->type), (conf->database_new.url)->value);
       while((new=db_readline(&(conf->database_new))) != NULL){
-          if (check_limit(new->filename, !(get_f_type_from_perm(new->perm)&FT_DIR))) {
+          if (check_limit(new->filename, !(get_f_type_from_perm(new->perm)&FT_DIR), NULL)) {
               progress_status(PROGRESS_SKIPPED, NULL);
               free_db_line(new);
               free(new);
               new=NULL;
           } else {
-              add_file_to_tree(tree,new,DB_NEW, &(conf->database_new), NULL);
+              add_file_to_tree(tree,new,DB_NEW, &(conf->database_new), NULL, NULL);
           }
       }
     }

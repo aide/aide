@@ -71,7 +71,7 @@ static char *name_construct (const char *dirpath, const char *filename) {
     return ret;
 }
 
-static bool open_for_reading(disk_entry *entry, bool dir_rec) {
+static bool open_for_reading(disk_entry *entry, bool dir_rec, const char *whoami) {
     int fd = -1;
     struct stat fs;
     char* failure_str = NULL;
@@ -85,7 +85,7 @@ static bool open_for_reading(disk_entry *entry, bool dir_rec) {
     if (attrs_req_read || dir_rec) {
 #ifdef O_NOATIME
         if ((fd = open(entry->filename, O_NOFOLLOW | O_RDONLY | O_NOATIME | O_NONBLOCK)) == -1) {
-            log_msg(LOG_LEVEL_DEBUG, "%s> open() with O_NOATIME flag failed: %s (retrying without O_NOATIME)", entry->filename, strerror(errno));
+            LOG_WHOAMI(LOG_LEVEL_DEBUG, "%s> open() with O_NOATIME flag failed: %s (retrying without O_NOATIME)", entry->filename, strerror(errno));
 #endif
             fd = open(entry->filename, O_NOFOLLOW | O_RDONLY | O_NONBLOCK);
 #ifdef O_NOATIME
@@ -95,7 +95,7 @@ static bool open_for_reading(disk_entry *entry, bool dir_rec) {
             failure_str = "open() failed";
             error_str = checked_strdup(strerror(errno));
         } else {
-            log_msg(LOG_LEVEL_TRACE, "%s> open() returned O_RDONLY fd %d", entry->filename, fd);
+            LOG_WHOAMI(LOG_LEVEL_TRACE, "%s> open() returned O_RDONLY fd %d", entry->filename, fd);
             if (fstat(fd, &fs) != 0) {
                 failure_str = "fstat() failed";
                 error_str = checked_strdup(strerror(errno));
@@ -137,7 +137,7 @@ static bool open_for_reading(disk_entry *entry, bool dir_rec) {
             return false;
         } else {
             if (entry->fd >= 0) {
-                log_msg(LOG_LEVEL_TRACE, "%s> replace O_PATH fd %d with O_RDONLY fd %d", entry->filename, entry->fd, fd);
+                LOG_WHOAMI(LOG_LEVEL_TRACE, "%s> replace O_PATH fd %d with O_RDONLY fd %d", entry->filename, entry->fd, fd);
                 if (close(entry->fd) < 0) {
                     log_msg(LOG_LEVEL_WARNING, "close() failed for '%s' (fd: %d): %s", entry->filename, entry->fd, strerror(errno));
                 }
@@ -152,17 +152,17 @@ static bool open_for_reading(disk_entry *entry, bool dir_rec) {
 static void process_path(char *path, bool dry_run, const char *whoami) {
     db_line *line = NULL;
 
-    log_msg(LOG_LEVEL_DEBUG, "process '%s' (fullpath: '%s')", &path[conf->root_prefix_length], path);
+    LOG_WHOAMI(LOG_LEVEL_DEBUG, "process '%s' (fullpath: '%s')", &path[conf->root_prefix_length], path);
 
     struct stat stat;
     int fd = -1;
 #ifdef O_PATH
     fd = open(path, O_NOFOLLOW | O_PATH);
     if (fd == -1) {
-        log_msg(LOG_LEVEL_WARNING, "open() with O_PATH failed for '%s': %s (skipping)", path, strerror(errno));
+        log_msg(LOG_LEVEL_WARNING, "failed to access '%s': %s (skipping)", path, strerror(errno));
         return;
     }
-    log_msg(LOG_LEVEL_TRACE, "%s> open() returned O_PATH fd %d", path, fd);
+    LOG_WHOAMI(LOG_LEVEL_TRACE, "%s> open() returned O_PATH fd %d", path, fd);
     if (fstat(fd, &stat) == -1) {
         log_msg(LOG_LEVEL_WARNING, "fstat() failed for %s: %s (skipping)", path, strerror(errno));
     } else {
@@ -186,7 +186,7 @@ static void process_path(char *path, bool dry_run, const char *whoami) {
             file.fs_type = statfs.f_type;
         }
 #endif
-        match_t path_match = check_rxtree(file, conf->tree, "disk", false);
+        match_t path_match = check_rxtree(file, conf->tree, "disk", false, whoami);
         char *attrs_str = NULL;
         disk_entry entry = {
             .filename = path,
@@ -208,7 +208,7 @@ static void process_path(char *path, bool dry_run, const char *whoami) {
                 attrs_to_disable = entry.attrs & get_hashes(false);
                 if (attrs_to_disable) {
                     attrs_str = diff_attributes(0, attrs_to_disable);
-                    log_msg(log_level_unavailable, "%s> disabling hashsum attribute(s) for non-regular file: %s)",
+                    LOG_WHOAMI(log_level_unavailable, "%s> disabling hashsum attribute(s) for non-regular file: %s)",
                             path, attrs_str);
                     free(attrs_str);
                     entry.attrs &= ~attrs_to_disable;
@@ -217,7 +217,7 @@ static void process_path(char *path, bool dry_run, const char *whoami) {
                 /* capability attribute */
                 attrs_to_disable = entry.attrs & ATTR(attr_capabilities);
                 if (attrs_to_disable) {
-                    log_msg(log_level_unavailable, "%s> disabling capability attribute for non-regular file", path);
+                    LOG_WHOAMI(log_level_unavailable, "%s> disabling capability attribute for non-regular file", path);
                     entry.attrs &= ~attrs_to_disable;
                 }
 #endif
@@ -226,7 +226,7 @@ static void process_path(char *path, bool dry_run, const char *whoami) {
                 /* linkname attribute */
                 attrs_to_disable = entry.attrs & ATTR(attr_linkname);
                 if (attrs_to_disable) {
-                    log_msg(log_level_unavailable, "%s> disabling linkname attribute for non-symlink file", path);
+                    LOG_WHOAMI(log_level_unavailable, "%s> disabling linkname attribute for non-symlink file", path);
                     entry.attrs &= ~attrs_to_disable;
                 }
         }
@@ -235,7 +235,7 @@ static void process_path(char *path, bool dry_run, const char *whoami) {
             /* e2fsattrs attribute */
             attrs_to_disable = entry.attrs & ATTR(attr_e2fsattrs);
             if (attrs_to_disable) {
-                log_msg(log_level_unavailable,
+                LOG_WHOAMI(log_level_unavailable,
                         "%s> disabling e2fsattrs attribute for non-directory/non-regular file", path);
                 entry.attrs &= ~attrs_to_disable;
             }
@@ -243,6 +243,7 @@ static void process_path(char *path, bool dry_run, const char *whoami) {
 #endif
         }
         if (S_ISDIR(stat.st_mode)) {
+            const char * whoami_log_thread = whoami ? whoami : "(main)";
             DIR *dir = NULL;
             switch (path_match.result) {
                 case RESULT_SELECTIVE_MATCH:
@@ -250,8 +251,8 @@ static void process_path(char *path, bool dry_run, const char *whoami) {
                 case RESULT_PARTIAL_MATCH:
                 case RESULT_RECURSIVE_NEGATIVE_MATCH:
                 case RESULT_PARTIAL_LIMIT_MATCH:
-                    log_msg(LOG_LEVEL_DEBUG, "read directory contents of '%s' (reason: %s)", path, get_match_result_desc(path_match.result));
-                    if (open_for_reading(&entry, true)) {
+                    LOG_WHOAMI(LOG_LEVEL_DEBUG, "read directory contents of '%s' (reason: %s)", path, get_match_result_desc(path_match.result));
+                    if (open_for_reading(&entry, true, whoami)) {
                         int dupfd = dup(entry.fd);
                         if (dupfd == -1) {
                             log_msg(LOG_LEVEL_WARNING, "'%s': failed to duplicate file descriptor: %s", path, strerror(errno));
@@ -265,9 +266,9 @@ static void process_path(char *path, bool dry_run, const char *whoami) {
                                     if (strcmp(entp->d_name, ".") != 0 && strcmp(entp->d_name, "..") != 0) {
                                         char *entry_full_path = name_construct(path, entp->d_name);
                                         log_msg(LOG_LEVEL_THREAD,
-                                                "%10s: add entry %p to queue of worker entries (filename: '%s')", whoami,
+                                                "%10s: add entry %p to queue of worker entries (filename: '%s')", whoami_log_thread,
                                                 (void *)entry_full_path, entry_full_path);
-                                        queue_ts_enqueue(queue_worker_entries, entry_full_path, whoami);
+                                        queue_ts_enqueue(queue_worker_entries, entry_full_path, whoami_log_thread);
                                     }
                                 }
                                 if (closedir(dir) < 0) {
@@ -282,7 +283,7 @@ static void process_path(char *path, bool dry_run, const char *whoami) {
                 case RESULT_NO_RULE_MATCH:
                 case RESULT_NO_LIMIT_MATCH:
                 case RESULT_PART_LIMIT_AND_NO_RECURSE_MATCH:
-                    log_msg(LOG_LEVEL_DEBUG, "do NOT read directory contents of '%s' (reason: %s)", path, get_match_result_desc(path_match.result));
+                    LOG_WHOAMI(LOG_LEVEL_DEBUG, "do NOT read directory contents of '%s' (reason: %s)", path, get_match_result_desc(path_match.result));
                     break;
             }
         }
@@ -293,7 +294,7 @@ static void process_path(char *path, bool dry_run, const char *whoami) {
 
             if (path_match.result & (RESULT_SELECTIVE_MATCH|RESULT_EQUAL_MATCH)) {
                 if (S_ISREG(stat.st_mode)) {
-                    if (open_for_reading(&entry, false)) {
+                    if (open_for_reading(&entry, false, whoami)) {
                         if (conf->action & DO_COMPARE && entry.attrs & get_hashes(false)) {
                             const seltree *node = get_seltree_node(conf->tree, &path[conf->root_prefix_length]);
                             if (node && node->old_data) {
@@ -305,23 +306,23 @@ static void process_path(char *path, bool dry_run, const char *whoami) {
                 }
 
                 attrs_str = diff_attributes(0, entry.attrs);
-                log_msg(LOG_LEVEL_DEBUG, "%s> requested attributes: %s", entry.filename, attrs_str);
+                LOG_WHOAMI(LOG_LEVEL_DEBUG, "%s> requested attributes: %s", entry.filename, attrs_str);
                 free(attrs_str);
 
-                line = get_file_attrs(&entry, entry.attrs, transition_hashsums);
+                line = get_file_attrs(&entry, entry.attrs, transition_hashsums, whoami);
 
                 /* attr_filename is always needed/returned but never requested */
                 DB_ATTR_TYPE returned_attr = (~ATTR(attr_filename) & line->attr);
                 attrs_str = diff_attributes(0, returned_attr);
-                log_msg(LOG_LEVEL_DEBUG, "%s> returned attributes: %llu (%s)", entry.filename, returned_attr, attrs_str);
+                LOG_WHOAMI(LOG_LEVEL_DEBUG, "%s> returned attributes: %llu (%s)", entry.filename, returned_attr, attrs_str);
                 free(attrs_str);
                 if (returned_attr ^ entry.attrs) {
                     attrs_str = diff_attributes(entry.attrs, returned_attr);
-                    log_msg(LOG_LEVEL_DEBUG, "%s> requested (%llu) and returned (%llu) attributes are not equal: %s", entry.filename, entry.attrs, returned_attr, attrs_str);
+                    LOG_WHOAMI(LOG_LEVEL_DEBUG, "%s> requested (%llu) and returned (%llu) attributes are not equal: %s", entry.filename, entry.attrs, returned_attr, attrs_str);
                     free(attrs_str);
                 }
 
-                add_file_to_tree(conf->tree, line, DB_NEW | DB_DISK, NULL, &entry);
+                add_file_to_tree(conf->tree, line, DB_NEW | DB_DISK, NULL, &entry, whoami);
             }
         }
         if (entry.fd != -1) {
@@ -333,15 +334,16 @@ static void process_path(char *path, bool dry_run, const char *whoami) {
 }
 
 static void process_disk_entries(bool dry_run, const char *whoami) {
+    const char * whoami_log_thread = whoami ? whoami : "(main)";
     while (1) {
-        log_msg(LOG_LEVEL_THREAD, "%10s: process_disk_entries: wait for entries", whoami);
-        char *data = queue_ts_dequeue_wait(queue_worker_entries, whoami);
+        log_msg(LOG_LEVEL_THREAD, "%10s: process_disk_entries: wait for entries", whoami_log_thread);
+        char *data = queue_ts_dequeue_wait(queue_worker_entries, whoami_log_thread);
         if (data) {
-            log_msg(LOG_LEVEL_THREAD, "%10s: process_disk_entries: got entry %p from queue of worker entries (path: '%s' )", whoami, (void*) data, data);
+            log_msg(LOG_LEVEL_THREAD, "%10s: process_disk_entries: got entry %p from queue of worker entries (path: '%s')", whoami_log_thread, (void*) data, data);
             process_path(data, dry_run, whoami);
             free(data);
         } else {
-            log_msg(LOG_LEVEL_THREAD, "%10s: process_disk_entries: queue empty", whoami);
+            log_msg(LOG_LEVEL_THREAD, "%10s: process_disk_entries: queue empty", whoami_log_thread);
             break;
         }
     }
@@ -376,12 +378,12 @@ void db_scan_disk(bool dry_run) {
         queue_ts_enqueue(queue_worker_entries, full_path, whoami_main);
         queue_ts_release(queue_worker_entries, whoami_main);
 
-        process_disk_entries(dry_run, whoami_main);
+        process_disk_entries(dry_run, NULL);
 
         queue_ts_free(queue_worker_entries);
     } else {
         queue_worker_entries = queue_ts_init(); /* freed below */
-        log_msg(LOG_LEVEL_THREAD, "initialized worker entries queue %p", (void*) queue_worker_entries);
+        log_msg(LOG_LEVEL_THREAD, "%10s: initialized worker entries queue %p", whoami_main, (void*) queue_worker_entries);
 
         worker_thread *worker_threads = checked_malloc(conf->num_workers * sizeof(worker_thread)); /* freed below */
 
@@ -397,12 +399,12 @@ void db_scan_disk(bool dry_run) {
         queue_ts_enqueue(queue_worker_entries, full_path, whoami_main);
         queue_ts_release(queue_worker_entries, whoami_main);
 
-        log_msg(LOG_LEVEL_THREAD, "wait for worker threads to be finished");
+        log_msg(LOG_LEVEL_THREAD, "%10s: wait for worker threads to be finished", whoami_main);
         for (int i = 0 ; i < conf->num_workers ; ++i) {
             if (pthread_join(worker_threads[i].thread, NULL) != 0) {
                 log_msg(LOG_LEVEL_WARNING, "failed to join file attributes thread #%d", i);
             }
-            log_msg(LOG_LEVEL_THREAD, "worker thread #%d finished", i);
+            log_msg(LOG_LEVEL_THREAD, "%10s: worker thread #%d finished", whoami_main, i);
         }
         free(worker_threads);
         queue_ts_free(queue_worker_entries);

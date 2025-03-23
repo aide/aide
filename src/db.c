@@ -134,7 +134,7 @@ static struct md_container *init_db_attrs(url_t *u) {
             case url_ftp: {
                 mdc = checked_malloc(sizeof(struct md_container)); /* freed in close_db_attrs */
                 mdc->todo_attr = conf->db_attrs;
-                init_md(mdc, u->value);
+                init_md(mdc, u->value, NULL);
 
                 break;
             }
@@ -156,8 +156,8 @@ static db_line *close_db_attrs (database *db) {
         line->filename = (db->url)->value;
         line->perm = 0;
         line->attr = conf->db_attrs;
-        close_md(db->mdc, &hs, line->filename);
-        hashsums2line(&hs, line);
+        close_md(db->mdc, &hs, line->filename, NULL);
+        hashsums2line(&hs, line, NULL);
         free(db->mdc);
     }
     return line;

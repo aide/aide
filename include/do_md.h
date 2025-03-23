@@ -32,26 +32,26 @@
 
 list* do_md(list* file_lst,db_config* conf);
 int stat_cmp(struct stat*, struct stat*, bool);
-md_hashsums calc_hashsums(disk_entry *, DB_ATTR_TYPE, ssize_t, bool);
+md_hashsums calc_hashsums(disk_entry *, DB_ATTR_TYPE, ssize_t, bool, const char *);
 
 #ifdef WITH_ACL
-void acl2line(db_line* line, int);
+void acl2line(db_line* line, int, const char *);
 #endif
 
 #ifdef WITH_XATTR
-void xattrs2line(db_line *line, int);
+void xattrs2line(db_line *line, int, const char *);
 #endif
 
 #ifdef WITH_SELINUX
-void selinux2line(db_line *line, int);
+void selinux2line(db_line *line, int, const char *);
 #endif
 
 #ifdef WITH_E2FSATTRS
-void e2fsattrs2line(db_line* line, int);
+void e2fsattrs2line(db_line* line, int, const char *);
 #endif
 
 #ifdef WITH_CAPABILITIES
-void capabilities2line(db_line* line, int);
+void capabilities2line(db_line* line, int, const char *);
 #endif
 
 #endif /* _DO_MD_H_INCLUDED */

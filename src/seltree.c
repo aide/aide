@@ -310,9 +310,9 @@ rx_rule * add_rx_to_tree(char * rx, rx_restriction_t restriction, AIDE_RULE_TYPE
 }
 
 #define LOG_MATCH(log_level, border, format, ...) \
-    log_msg(log_level, "%s %*c'%s' " #format " of %s (%s:%d: '%s%s%s')", border, depth, ' ', file.name, __VA_ARGS__, get_rule_type_long_string(rx->type), rx->config_filename, rx->config_linenumber, rx->config_line, rx->prefix?"', prefix: '":"", rx->prefix?rx->prefix:"");
+    log_msg(log_level, "%*s%s%s %*c'%s' " #format " of %s (%s:%d: '%s%s%s')", whoami?10:0, whoami?whoami:"", whoami?": ":"", border, depth, ' ', file.name, __VA_ARGS__, get_rule_type_long_string(rx->type), rx->config_filename, rx->config_linenumber, rx->config_line, rx->prefix?"', prefix: '":"", rx->prefix?rx->prefix:"");
 
-static int check_list_for_match(list* rxrlist, file_t file, rx_rule* *rule, int depth)
+static int check_list_for_match(list* rxrlist, file_t file, rx_rule* *rule, int depth, const char* whoami)
 {
   list* r=NULL;
   int retval=RESULT_NO_RULE_MATCH;
@@ -371,16 +371,16 @@ static int check_list_for_match(list* rxrlist, file_t file, rx_rule* *rule, int 
   return retval;
 }
 
-static match_result _get_default_match_result(const seltree *node, int depth) {
+static match_result _get_default_match_result(const seltree *node, int depth, const char* whoami) {
     if (node->checked&NODE_HAS_SUB_RULES) {
-        log_msg(LOG_LEVEL_DEBUG, "\u2502 %*cdirectory node '%s' (%p) has NODE_HAS_SUB_RULES set (set default match result to RESULT_PARTIAL_MATCH)", depth, ' ', node->path, (void*) node);
+        LOG_WHOAMI(LOG_LEVEL_DEBUG, "\u2502 %*cdirectory node '%s' (%p) has NODE_HAS_SUB_RULES set (set default match result to RESULT_PARTIAL_MATCH)", depth, ' ', node->path, (void*) node);
         return RESULT_PARTIAL_MATCH;
     }
-    log_msg(LOG_LEVEL_DEBUG, "\u2502 %*cdirectory node '%s' (%p) has NODE_HAS_SUB_RULES NOT set (keep default match result at RESULT_NO_RULE_MATCH)", depth, ' ', node->path, (void*) node);
+    LOG_WHOAMI(LOG_LEVEL_DEBUG, "\u2502 %*cdirectory node '%s' (%p) has NODE_HAS_SUB_RULES NOT set (keep default match result at RESULT_NO_RULE_MATCH)", depth, ' ', node->path, (void*) node);
     return RESULT_NO_RULE_MATCH;
 }
 
-static match_t check_node_for_match(seltree *pnode, file_t file) {
+static match_t check_node_for_match(seltree *pnode, file_t file, const char* whoami) {
 
     match_t match = { RESULT_NO_RULE_MATCH, NULL, 0 };
     match_result result;
@@ -390,35 +390,35 @@ static match_t check_node_for_match(seltree *pnode, file_t file) {
     int parent_length = (last_slash != file.name?last_slash-file.name:0);
 
     pthread_rwlock_rdlock(&pnode->rwlock);
-    log_msg(LOG_LEVEL_TRACE, "\u2502 check_node_for_match: pnode: '%s' (%p), filename: '%s', file_type: %c", pnode->path, (void*) pnode, file.name, get_f_type_char_from_f_type(file.type));
+    LOG_WHOAMI(LOG_LEVEL_TRACE, "\u2502 check_node_for_match: pnode: '%s' (%p), filename: '%s', file_type: %c", pnode->path, (void*) pnode, file.name, get_f_type_char_from_f_type(file.type));
     if (strncmp(pnode->path, file.name, parent_length) == 0) {
 
         if (file.type == FT_DIR) {
             if (strcmp(pnode->path, file.name) == 0) {
-                match.result = _get_default_match_result(pnode, depth);
+                match.result = _get_default_match_result(pnode, depth, whoami);
             } else {
                 seltree * child_node = tree_search(pnode->children, last_slash, (tree_cmp_f) strcmp);
                 if (child_node) {
                     pthread_rwlock_rdlock(&child_node->rwlock);
-                    match.result = _get_default_match_result(child_node, depth);
+                    match.result = _get_default_match_result(child_node, depth, whoami);
                     pthread_rwlock_unlock(&child_node->rwlock);
                 } else {
-                    log_msg(LOG_LEVEL_DEBUG, "\u2502 %*cno node for directory '%s' exists (keep default match result at RESULT_NO_RULE_MATCH)", depth, ' ', file.name);
+                    LOG_WHOAMI(LOG_LEVEL_DEBUG, "\u2502 %*cno node for directory '%s' exists (keep default match result at RESULT_NO_RULE_MATCH)", depth, ' ', file.name);
                 }
             }
         }
 
         if (pnode->equ_rx_lst) {
-            log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': check equal list", depth, ' ', pnode->path);
-            result = check_list_for_match(pnode->equ_rx_lst, file, &match.rule, depth+2);
+            LOG_WHOAMI(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': check equal list", depth, ' ', pnode->path);
+            result = check_list_for_match(pnode->equ_rx_lst, file, &match.rule, depth+2, whoami);
             if (result == RESULT_EQUAL_MATCH || result == RESULT_PARTIAL_MATCH) {
                 match.result = result;
             }
         } else {
-            log_msg(LOG_LEVEL_DEBUG, "\u2502 %*cnode: '%s': skip equal list (reason: list is empty)", depth, ' ', pnode->path);
+            LOG_WHOAMI(LOG_LEVEL_DEBUG, "\u2502 %*cnode: '%s': skip equal list (reason: list is empty)", depth, ' ', pnode->path);
         }
     } else {
-        log_msg(LOG_LEVEL_DEBUG, "\u2502 %*cnode: '%s' skip equal list (reason: not on top level)", depth, ' ', pnode->path);
+        LOG_WHOAMI(LOG_LEVEL_DEBUG, "\u2502 %*cnode: '%s' skip equal list (reason: not on top level)", depth, ' ', pnode->path);
     }
     pthread_rwlock_unlock(&pnode->rwlock);
 
@@ -444,20 +444,20 @@ static match_t check_node_for_match(seltree *pnode, file_t file) {
 
             if (match.result != RESULT_EQUAL_MATCH && match.result != RESULT_SELECTIVE_MATCH) {
                 if (pnode->sel_rx_lst) {
-                    log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': check selective list", depth, ' ', pnode->path);
-                    result = check_list_for_match(pnode->sel_rx_lst, file, &match.rule, depth+2);
+                    LOG_WHOAMI(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': check selective list", depth, ' ', pnode->path);
+                    result = check_list_for_match(pnode->sel_rx_lst, file, &match.rule, depth+2, whoami);
                     if (result == RESULT_SELECTIVE_MATCH || result == RESULT_PARTIAL_MATCH) {
                         match.result = result;
                     }
                 } else {
-                    log_msg(LOG_LEVEL_DEBUG, "\u2502 %*cnode: '%s': skip selective list (reason: list is empty)", depth, ' ', pnode->path);
+                    LOG_WHOAMI(LOG_LEVEL_DEBUG, "\u2502 %*cnode: '%s': skip selective list (reason: list is empty)", depth, ' ', pnode->path);
                 }
             } else {
-                log_msg(LOG_LEVEL_DEBUG, "\u2502 %*cnode: '%s': skip selective list (reason: previous positive match)", depth, ' ', pnode->path);
+                LOG_WHOAMI(LOG_LEVEL_DEBUG, "\u2502 %*cnode: '%s': skip selective list (reason: previous positive match)", depth, ' ', pnode->path);
             }
             depth++;
         } else {
-            log_msg(LOG_LEVEL_DEBUG, "\u2502 %*cnode: '%s': skip selective and negative list (reason: lists are empty)", depth, ' ', pnode->path);
+            LOG_WHOAMI(LOG_LEVEL_DEBUG, "\u2502 %*cnode: '%s': skip selective and negative list (reason: lists are empty)", depth, ' ', pnode->path);
         }
         next_parent = pnode->parent;
         pthread_rwlock_unlock(&pnode->rwlock);
@@ -470,27 +470,27 @@ static match_t check_node_for_match(seltree *pnode, file_t file) {
         pthread_rwlock_rdlock(&pnode->rwlock);
         if (match.result == RESULT_EQUAL_MATCH || match.result == RESULT_SELECTIVE_MATCH || match.result == RESULT_PARTIAL_MATCH) {
             if (pnode->neg_rx_lst) {
-                log_msg(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': check negative list (reason: previous positive/partial match)", depth, ' ', pnode->path);
-                result = check_list_for_match(pnode->neg_rx_lst, file, &match.rule, depth+2);
+                LOG_WHOAMI(LOG_LEVEL_RULE, "\u2502 %*cnode: '%s': check negative list (reason: previous positive/partial match)", depth, ' ', pnode->path);
+                result = check_list_for_match(pnode->neg_rx_lst, file, &match.rule, depth+2, whoami);
                 if ((match.result != RESULT_PARTIAL_MATCH && result == RESULT_RECURSIVE_NEGATIVE_MATCH) || result == RESULT_NON_RECURSIVE_NEGATIVE_MATCH) {
                     match.result = result;
                 }
             } else {
-                log_msg(LOG_LEVEL_DEBUG, "\u2502 %*cnode: '%s': skip negative list (reason: list is empty)", depth, ' ', pnode->path);
+                LOG_WHOAMI(LOG_LEVEL_DEBUG, "\u2502 %*cnode: '%s': skip negative list (reason: list is empty)", depth, ' ', pnode->path);
             }
         } else if (match.result == RESULT_NON_RECURSIVE_NEGATIVE_MATCH || match.result == RESULT_RECURSIVE_NEGATIVE_MATCH) {
-            log_msg(LOG_LEVEL_DEBUG, "\u2502 %*cnode: '%s': skip negative list (reason: previous negative match)", depth, ' ', pnode->path);
+            LOG_WHOAMI(LOG_LEVEL_DEBUG, "\u2502 %*cnode: '%s': skip negative list (reason: previous negative match)", depth, ' ', pnode->path);
         } else {
-            log_msg(LOG_LEVEL_DEBUG, "\u2502 %*cnode: '%s': skip negative list (reason: no previous positive/partial match)", depth, ' ', pnode->path);
+            LOG_WHOAMI(LOG_LEVEL_DEBUG, "\u2502 %*cnode: '%s': skip negative list (reason: no previous positive/partial match)", depth, ' ', pnode->path);
         }
         pthread_rwlock_unlock(&pnode->rwlock);
     }
     free(nodes);
-    log_msg(LOG_LEVEL_TRACE, "\u2502 check_node_for_match: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, file.name);
+    LOG_WHOAMI(LOG_LEVEL_TRACE, "\u2502 check_node_for_match: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, file.name);
     return match;
 }
 
-match_t check_seltree(seltree *tree, file_t file, bool check_parent_dirs) {
+match_t check_seltree(seltree *tree, file_t file, bool check_parent_dirs, const char * whoami) {
     seltree* pnode=NULL;
     match_t match = { RESULT_NO_RULE_MATCH, NULL, 0 };
     bool parent_negative_match = false;
@@ -500,7 +500,7 @@ match_t check_seltree(seltree *tree, file_t file, bool check_parent_dirs) {
     pnode = tree;
     seltree *node = tree;
 
-    log_msg(LOG_LEVEL_TRACE, "\u2502 search for parent node for '%s'  (tree: '%s' (%p))", file.name, tree->path, (void*) tree);
+    LOG_WHOAMI(LOG_LEVEL_TRACE, "\u2502 search for parent node for '%s'  (tree: '%s' (%p))", file.name, tree->path, (void*) tree);
 
     if (strcmp(file.name, "/") == 0) { check_parent_dirs = false; } /* do not check parent directories for '/' */
 
@@ -518,7 +518,7 @@ match_t check_seltree(seltree *tree, file_t file, bool check_parent_dirs) {
             node = get_seltree_node(pnode, relative_child_path);
             if (node) {
                 pthread_rwlock_rdlock(&node->rwlock);
-                log_msg(LOG_LEVEL_TRACE, "\u2502 got %s (%p) for '%s'", node->path, (void*) node, relative_child_path);
+                LOG_WHOAMI(LOG_LEVEL_TRACE, "\u2502 got %s (%p) for '%s'", node->path, (void*) node, relative_child_path);
                 pthread_rwlock_unlock(&node->rwlock);
                 pnode = node;
             }
@@ -526,12 +526,12 @@ match_t check_seltree(seltree *tree, file_t file, bool check_parent_dirs) {
 
         if (check_parent_dirs) {
             pthread_rwlock_rdlock(&pnode->rwlock);
-            log_msg(LOG_LEVEL_RULE, "\u2502 check parent directory '%s' for non-recurse match (node: '%s' (%p))", parent, pnode->path, (void*) pnode);
+            LOG_WHOAMI(LOG_LEVEL_RULE, "\u2502 check parent directory '%s' for non-recurse match (node: '%s' (%p))", parent, pnode->path, (void*) pnode);
             match = check_node_for_match(pnode, (file_t) { .name = parent, .type = FT_DIR,
 #ifdef HAVE_FSTYPE
                     .fs_type = 0UL
 #endif
-            });
+            }, whoami);
             pthread_rwlock_unlock(&pnode->rwlock);
             if (match.result == RESULT_NON_RECURSIVE_NEGATIVE_MATCH) {
                 match.result = RESULT_NEGATIVE_PARENT_MATCH;
@@ -541,7 +541,7 @@ match_t check_seltree(seltree *tree, file_t file, bool check_parent_dirs) {
                 parent_negative_match = true;
                 break;
             } else {
-                log_msg(LOG_LEVEL_RULE, "\u2502 no non-recurse match found for parent directory '%s'", parent);
+                LOG_WHOAMI(LOG_LEVEL_RULE, "\u2502 no non-recurse match found for parent directory '%s'", parent);
             }
         }
 
@@ -550,14 +550,14 @@ match_t check_seltree(seltree *tree, file_t file, bool check_parent_dirs) {
         next_dir += 1;
     }
     pthread_rwlock_rdlock(&pnode->rwlock);
-    log_msg(LOG_LEVEL_TRACE, "\u2502 got parent node '%s' (%p) for parent name '%s'", pnode->path, (void*) pnode, parent);
+    LOG_WHOAMI(LOG_LEVEL_TRACE, "\u2502 got parent node '%s' (%p) for parent name '%s'", pnode->path, (void*) pnode, parent);
     pthread_rwlock_unlock(&pnode->rwlock);
     free(parent);
     if (!parent_negative_match) {
-        log_msg(LOG_LEVEL_RULE, "\u2502 check '%s' (filetype: %c)", file.name, get_f_type_char_from_f_type(file.type));
-        match = check_node_for_match(pnode, file);
+        LOG_WHOAMI(LOG_LEVEL_RULE, "\u2502 check '%s' (filetype: %c)", file.name, get_f_type_char_from_f_type(file.type));
+        match = check_node_for_match(pnode, file, whoami);
     }
 
-    log_msg(LOG_LEVEL_DEBUG, "\u2502 check_selree: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, file.name);
+    LOG_WHOAMI(LOG_LEVEL_DEBUG, "\u2502 check_selree: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, file.name);
     return match;
 }

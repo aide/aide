@@ -116,7 +116,7 @@ int stat_cmp(struct stat* f1,struct stat* f2, bool growing) {
 	  stat_cmp_helper(st_dev,attr_dev));
 }
 
-static hashsums_file hashsum_open(int filedes, char* fullpath, bool uncompress) {
+static hashsums_file hashsum_open(int filedes, char* fullpath, bool uncompress, const char *whoami) {
     hashsums_file file;
 
     if (uncompress) {
@@ -125,7 +125,7 @@ static hashsums_file hashsum_open(int filedes, char* fullpath, bool uncompress) 
         ssize_t magic_length = strlen(magic_gzip);
         ssize_t bytes = read(filedes, head, magic_length);
         if (bytes == magic_length && strncmp(head, magic_gzip, magic_length) == 0) {
-            log_msg(LOG_LEVEL_COMPARE, "│ '%s' is gzip compressed", fullpath);
+            LOG_WHOAMI(LOG_LEVEL_COMPARE, "│ '%s' is gzip compressed", fullpath);
             lseek(filedes, 0, SEEK_SET);
 #ifdef WITH_ZLIB
             int dupfd = dup(filedes);
@@ -194,7 +194,7 @@ static int hashsum_close(hashsums_file file) {
     return -1;
 }
 
-md_hashsums calc_hashsums(disk_entry *entry, DB_ATTR_TYPE attr, ssize_t limit_size, bool uncompress) {
+md_hashsums calc_hashsums(disk_entry *entry, DB_ATTR_TYPE attr, ssize_t limit_size, bool uncompress, const char *whoami) {
     md_hashsums md_hash;
     md_hash.attrs = 0LU;
 
@@ -204,10 +204,10 @@ md_hashsums calc_hashsums(disk_entry *entry, DB_ATTR_TYPE attr, ssize_t limit_si
     }
 #ifdef HAVE_POSIX_FADVISE
     if (posix_fadvise(entry->fd,0,entry->fs.st_size,POSIX_FADV_SEQUENTIAL)!=0) {
-        log_msg(LOG_LEVEL_DEBUG, "%s> calc_hashsums: posix_fadvise error: %s", entry->filename, strerror(errno));
+        LOG_WHOAMI(LOG_LEVEL_DEBUG, "%s> calc_hashsums: posix_fadvise error: %s", entry->filename, strerror(errno));
     }
 #endif
-    hashsums_file file = hashsum_open(entry->fd, entry->filename, uncompress);
+    hashsums_file file = hashsum_open(entry->fd, entry->filename, uncompress, whoami);
     if (file.compression == COMPRESSION_ERROR) {
         return md_hash;
     }
@@ -218,8 +218,8 @@ md_hashsums calc_hashsums(disk_entry *entry, DB_ATTR_TYPE attr, ssize_t limit_si
 
     struct md_container mdc;
     mdc.todo_attr = attr;
-    if (init_md(&mdc, entry->filename)==RETOK) {
-        log_msg(LOG_LEVEL_DEBUG, "%s> calculate hashes", entry->filename);
+    if (init_md(&mdc, entry->filename, whoami)==RETOK) {
+        LOG_WHOAMI(LOG_LEVEL_DEBUG, "%s> calculate hashes", entry->filename);
         buf=checked_malloc(READ_BLOCK_SIZE);
 #if READ_BLOCK_SIZE>SSIZE_MAX
 #error "READ_BLOCK_SIZE" is too large. Max value is SSIZE_MAX, and current is READ_BLOCK_SIZE
@@ -240,15 +240,15 @@ md_hashsums calc_hashsums(disk_entry *entry, DB_ATTR_TYPE attr, ssize_t limit_si
                 log_msg(LOG_LEVEL_WARNING, "hash calculation: update_md() failed for '%s' (hashsums could not be calculated)", entry->filename);
                 free(buf);
                 hashsum_close(file);
-                close_md(&mdc, NULL, entry->filename);
+                close_md(&mdc, NULL, entry->filename, whoami);
                 return md_hash;
             }
             r_size+=update_md_size;
             if (limit_size > 0 && r_size == limit_size) {
-                log_msg(LOG_LEVEL_DEBUG, "hash calculation: limited size (%zi) reached for '%s'", limit_size, entry->filename);
+                LOG_WHOAMI(LOG_LEVEL_DEBUG, "hash calculation: limited size (%zi) reached for '%s'", limit_size, entry->filename);
                 break;
             } else if (attr&ATTR(attr_growing) && r_size == entry->fs.st_size) {
-                log_msg(LOG_LEVEL_DEBUG, "hash calculation: stat size (%zi) reached for growing file '%s'", entry->fs.st_size, entry->filename);
+                LOG_WHOAMI(LOG_LEVEL_DEBUG, "hash calculation: stat size (%zi) reached for growing file '%s'", entry->fs.st_size, entry->filename);
                 break;
             }
         }
@@ -256,14 +256,14 @@ md_hashsums calc_hashsums(disk_entry *entry, DB_ATTR_TYPE attr, ssize_t limit_si
         hashsum_close(file);
         if (size == -1) {
             log_msg(LOG_LEVEL_WARNING, "hash calculation: failed to read file content of '%s': %s (hashsums could not be calculated)", entry->filename, strerror(errno));
-            close_md(&mdc, NULL, entry->filename);
+            close_md(&mdc, NULL, entry->filename, whoami);
             return md_hash;
         }
 
         struct stat new_fs;
         if (fstat(entry->fd,&new_fs) != 0) {
             log_msg(LOG_LEVEL_WARNING, "hash calculation: fstat() failed for '%s': %s (hashsums could not be calculated)", entry->filename, strerror(errno));
-            close_md(&mdc, NULL, entry->filename);
+            close_md(&mdc, NULL, entry->filename, whoami);
             return md_hash;
         }
         if(!(attr&ATTR(attr_rdev))) {
@@ -288,7 +288,7 @@ md_hashsums calc_hashsums(disk_entry *entry, DB_ATTR_TYPE attr, ssize_t limit_si
                 log_msg(LOG_LEVEL_WARNING, WARN_COMMON_FORMAT " (discarding calculated hashsums)", entry->filename, attrs_str, "");
             }
             free(attrs_str);
-            close_md(&mdc, NULL, entry->filename);
+            close_md(&mdc, NULL, entry->filename, whoami);
             return md_hash;
         }
         if (uncompress == false) {
@@ -300,11 +300,11 @@ md_hashsums calc_hashsums(disk_entry *entry, DB_ATTR_TYPE attr, ssize_t limit_si
                         target_size,
                         entry->filename
                        );
-                close_md(&mdc, NULL, entry->filename);
+                close_md(&mdc, NULL, entry->filename, whoami);
                 return md_hash;
             }
         }
-        close_md(&mdc, &md_hash, entry->filename);
+        close_md(&mdc, &md_hash, entry->filename, whoami);
         return md_hash;
     } else {
         log_msg(LOG_LEVEL_WARNING, "hash calculation: init_md() failed for '%s' (hashsums could not be calculated)", entry->filename);
@@ -375,7 +375,7 @@ void fs2db_line(struct stat* fs,db_line* line) {
 }
 
 #ifdef WITH_ACL
-void acl2line(db_line* line, int fd) {
+void acl2line(db_line* line, int fd, const char *whoami) {
   acl_type *ret = NULL;
   
 #ifdef WITH_POSIX_ACL
@@ -388,15 +388,15 @@ void acl2line(db_line* line, int fd) {
     acl_a = acl_get_fd(fd);
     int fd_flags = fcntl(fd, F_GETFL);
     if (acl_a == NULL && errno == EBADF && fd_flags != -1 && fd_flags&O_PATH) {
-        log_msg(LOG_LEVEL_DEBUG,"%s> acl_get_fd() failed: Bad file descriptor (emulating O_PATH support)", line->fullpath);
         snprintf(proc_self_path, sizeof(proc_self_path), "/proc/self/fd/%d", fd);
+        LOG_WHOAMI(LOG_LEVEL_DEBUG,"%s> acl_get_fd() failed: Bad file descriptor (emulating O_PATH support via '%s')", line->fullpath, proc_self_path);
         acl_a = acl_get_file(proc_self_path, ACL_TYPE_ACCESS);
     }
     if (acl_a == NULL) {
         switch (errno) {
             case ENOSYS:
             case ENOTSUP:
-                log_msg(LOG_LEVEL_DEBUG, "%s> acl_get_fd() failed to get ACL: %s (disabling acl attribute)", line->fullpath, strerror(errno));
+                LOG_WHOAMI(LOG_LEVEL_DEBUG, "%s> acl_get_fd() failed to get ACL: %s (disabling acl attribute)", line->fullpath, strerror(errno));
                 break;
             default:
                 log_msg(LOG_LEVEL_WARNING, "acl_get_fd() failed to get ACL for '%s': %s (disabling acl attribute)", line->fullpath, strerror(errno));
@@ -482,7 +482,7 @@ static void xattr_add(xattrs_type *xattrs, const char *key, const char
     xattrs->num += 1;
 }
 
-void xattrs2line(db_line *line, int fd) {
+void xattrs2line(db_line *line, int fd, const char *whoami) {
     xattrs_type *xattrs = NULL;
     ssize_t xret = -1;
 
@@ -498,7 +498,7 @@ void xattrs2line(db_line *line, int fd) {
         int fd_flags = fcntl(fd, F_GETFL);
         if (xret == -1 && errno == EBADF && fd_flags != -1 && fd_flags&O_PATH) {
             snprintf(proc_self_path, sizeof(proc_self_path), "/proc/self/fd/%d", fd);
-            log_msg(LOG_LEVEL_DEBUG,"%s> flistxattr() failed: Bad file descriptor (emulating O_PATH support via '%s')", line->fullpath, proc_self_path);
+            LOG_WHOAMI(LOG_LEVEL_DEBUG,"%s> flistxattr() failed: Bad file descriptor (emulating O_PATH support via '%s')", line->fullpath, proc_self_path);
             while (((xret = listxattr(proc_self_path, xatrs, xsz)) == -1) && (errno == ERANGE)) {
                 xsz <<= 1;
                 xatrs = checked_realloc(xatrs, xsz);
@@ -508,7 +508,7 @@ void xattrs2line(db_line *line, int fd) {
             switch (errno) {
                 case ENOSYS:
                 case ENOTSUP:
-                    log_msg(LOG_LEVEL_DEBUG, "%s> listxattr() failed to get list of extended attribute names: %s (disabling xattr attribute)", line->fullpath, strerror(errno));
+                    LOG_WHOAMI(LOG_LEVEL_DEBUG, "%s> listxattr() failed to get list of extended attribute names: %s (disabling xattr attribute)", line->fullpath, strerror(errno));
                     break;
                 default:
                     log_msg(LOG_LEVEL_WARNING, "listxattr() failed to get list of extended attribute names for '%s': %s (disabling xattr attribute)", line->fullpath, strerror(errno));
@@ -550,7 +550,7 @@ void xattrs2line(db_line *line, int fd) {
             }
             free(val);
         } else {
-            log_msg(LOG_LEVEL_DEBUG, "%s> llistxattr() returned empty list of extended attribute names", line->fullpath);
+            LOG_WHOAMI(LOG_LEVEL_DEBUG, "%s> llistxattr() returned empty list of extended attribute names", line->fullpath);
         }
         free(xatrs);
     }
@@ -560,7 +560,7 @@ void xattrs2line(db_line *line, int fd) {
 #endif
 
 #ifdef WITH_SELINUX
-void selinux2line(db_line *line, int fd) {
+void selinux2line(db_line *line, int fd, const char *whoami) {
     char *cntx = NULL;
 
     if ((ATTR(attr_selinux)&line->attr)) {
@@ -568,7 +568,7 @@ void selinux2line(db_line *line, int fd) {
             switch (errno) {
                 case ENODATA:
                 case ENOTSUP:
-                    log_msg(LOG_LEVEL_DEBUG, "%s> fgetfilecon_raw() failed to get SELinux security context: %s (disabling selinux attribute)", line->fullpath, strerror(errno));
+                    LOG_WHOAMI(LOG_LEVEL_DEBUG, "%s> fgetfilecon_raw() failed to get SELinux security context: %s (disabling selinux attribute)", line->fullpath, strerror(errno));
                     break;
                 default:
                     log_msg(LOG_LEVEL_WARNING, "fgetfilecon_raw() failed to get SELinux security context for '%s': %s (disabling selinux attribute)", line->fullpath, strerror(errno));
@@ -587,7 +587,7 @@ void selinux2line(db_line *line, int fd) {
 #endif
 
 #ifdef WITH_E2FSATTRS
-void e2fsattrs2line(db_line* line, int fd) {
+void e2fsattrs2line(db_line* line, int fd, const char *whoami) {
     unsigned long flags;
     if (ATTR(attr_e2fsattrs)&line->attr) {
             if (getflags(fd, &flags) == 0) {
@@ -596,7 +596,7 @@ void e2fsattrs2line(db_line* line, int fd) {
                 switch (errno) {
                     case ENOTTY:
                     case ENOTSUP:
-                        log_msg(LOG_LEVEL_DEBUG, "%s> fgetflags() failed to get file attributes: %s (disabling e2fsattrs attribute)", line->fullpath, strerror(errno));
+                        LOG_WHOAMI(LOG_LEVEL_DEBUG, "%s> fgetflags() failed to get file attributes: %s (disabling e2fsattrs attribute)", line->fullpath, strerror(errno));
                         break;
                     default:
                         log_msg(LOG_LEVEL_WARNING, "fgetflags() failed to get file attributes for '%s': %s (disabling e2fsattrs attribute)", line->fullpath, strerror(errno));
@@ -611,7 +611,7 @@ void e2fsattrs2line(db_line* line, int fd) {
 #endif
 
 #ifdef WITH_CAPABILITIES
-void capabilities2line(db_line* line, int fd) {
+void capabilities2line(db_line* line, int fd, const char *whoami) {
     cap_t caps;
     char *txt_caps;
 
@@ -621,7 +621,7 @@ void capabilities2line(db_line* line, int fd) {
         if (caps == NULL && errno == EBADF && fd_flags != -1 && fd_flags&O_PATH) {
             char proc_self_path[PATH_MAX];
             snprintf(proc_self_path, sizeof(proc_self_path), "/proc/self/fd/%d", fd);
-            log_msg(LOG_LEVEL_DEBUG,"%s> cap_get_fd() failed: Bad file descriptor (emulating O_PATH support via '%s')", line->fullpath, proc_self_path);
+            LOG_WHOAMI(LOG_LEVEL_DEBUG,"%s> cap_get_fd() failed: Bad file descriptor (emulating O_PATH support via '%s')", line->fullpath, proc_self_path);
             caps = cap_get_file(proc_self_path);
         }
         if (caps != NULL) {
@@ -640,7 +640,7 @@ void capabilities2line(db_line* line, int fd) {
                 case ENOSYS:
                 case ENODATA:
                 case ENOTSUP:
-                    log_msg(LOG_LEVEL_DEBUG, "%s> cap_get_fd() failed to get capability state: %s (disabling e2fsattrs attribute)", line->fullpath, strerror(errno));
+                    LOG_WHOAMI(LOG_LEVEL_DEBUG, "%s> cap_get_fd() failed to get capability state: %s (disabling e2fsattrs attribute)", line->fullpath, strerror(errno));
                     break;
                 default:
                     log_msg(LOG_LEVEL_WARNING, "cap_get_fd() failed to get capability state for '%s': %s (disabling caps attribute)", line->fullpath, strerror(errno));

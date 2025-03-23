@@ -3,6 +3,7 @@
 	* Fix locking of wrong node
 	* Fix writing of negative time values
 	* Fix listing of attributes
+	* Improve logging
 
 2025-03-22 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Remove no longer needed caching code

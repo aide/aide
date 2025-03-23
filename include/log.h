@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2020, 2022, 2023 Hannes von Haugwitz
+ * Copyright (C) 2020, 2022, 2023, 2025 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -68,5 +68,7 @@ void log_msg(LOG_LEVEL, const char* ,...)
     } else { \
         log_msg(log_level,"%s:%d: " format " (line: '%s')", filename, linenumber, __VA_ARGS__, linebuf); \
     }
+
+#define LOG_WHOAMI(log_level, format, ...) log_msg(log_level, "%*s%s" format, whoami?10:0, whoami?whoami:"", whoami?": ":"", __VA_ARGS__);
 
 #endif

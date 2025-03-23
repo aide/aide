@@ -746,7 +746,7 @@ int main(int argc,char**argv)
   }
 
   if (conf->check_file.name) {
-      match_t path_match = check_rxtree(conf->check_file, conf->tree, "disk (path-check)", true);
+      match_t path_match = check_rxtree(conf->check_file, conf->tree, "disk (path-check)", true, NULL);
       print_match(conf->check_file, path_match);
       switch (path_match.result) {
           case RESULT_PARTIAL_LIMIT_MATCH:
@@ -810,7 +810,7 @@ int main(int argc,char**argv)
       log_msg(LOG_LEVEL_INFO, "list entries from database: %s:%s", get_url_type_string((conf->database_in.url)->type), (conf->database_in.url)->value);
       db_line* entry=NULL;
       while((entry = db_readline(&(conf->database_in))) != NULL) {
-          if (check_limit(entry->filename, true) == 0) {
+          if (check_limit(entry->filename, true, NULL) == 0) {
               log_msg(LOG_LEVEL_RULE, "\u252c process '%s' (filetype: %c)", entry->filename, get_f_type_char_from_perm(entry->perm));
               fprintf(stdout, "%s\n", entry->filename);
               for (int j=0; j < report_attrs_order_length; ++j) {

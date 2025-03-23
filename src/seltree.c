@@ -517,9 +517,9 @@ match_t check_seltree(seltree *tree, file_t file, bool check_parent_dirs) {
         if (node && relative_child_path_start) {
             node = get_seltree_node(pnode, relative_child_path);
             if (node) {
-                pthread_rwlock_rdlock(&pnode->rwlock);
+                pthread_rwlock_rdlock(&node->rwlock);
                 log_msg(LOG_LEVEL_TRACE, "\u2502 got %s (%p) for '%s'", node->path, (void*) node, relative_child_path);
-                pthread_rwlock_unlock(&pnode->rwlock);
+                pthread_rwlock_unlock(&node->rwlock);
                 pnode = node;
             }
         }

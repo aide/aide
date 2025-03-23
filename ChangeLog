@@ -1,5 +1,6 @@
 2025-03-23 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix parsing of invalid time values
+	* Fix locking of wrong node
 
 2025-03-22 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Remove no longer needed caching code

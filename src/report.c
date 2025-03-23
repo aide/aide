@@ -513,7 +513,7 @@ bool init_report_urls(void) {
     return true;
 }
 
-static int attributes2array(ATTRIBUTE attrs, char* **values) {
+static int attributes2array(DB_ATTR_TYPE attrs, char* **values) {
     *values = NULL;
 
     int n = 0;

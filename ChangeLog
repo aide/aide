@@ -1,3 +1,6 @@
+2025-03-23 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Fix parsing of invalid time values
+
 2025-03-22 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Remove no longer needed caching code
 	* Fix deadlock when using some special attributes

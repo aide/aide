@@ -23,6 +23,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 #include <time.h>
 #include "attributes.h"
 #include "config.h"
@@ -108,8 +109,8 @@ static time_t read_time_t(char *str, database *db, const char *field_name) {
     }
     char *endp = NULL;
     time_t t = strtol(time_t_str, &endp, 10);
-    if (endp[0] != '\0') {
-        LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "could not read '%s' from database: strtoll failed for '%s'", field_name, time_t_str)
+    if (endp[0] != '\0' || (errno = ERANGE && (t == LONG_MAX || t == LONG_MIN))) {
+        LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "could not read '%s' from database: strtol failed for '%s' (setting '%s' to 0)", field_name, time_t_str, field_name)
         t = 0;
     } else {
         log_msg(LOG_LEVEL_TRACE, "read_time_t: converted '%s' '%s' to %lld ", field_name, time_t_str, (long long)t);

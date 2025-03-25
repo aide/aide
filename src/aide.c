@@ -98,7 +98,7 @@ static void usage(int exitvalue)
 
 static void sig_handler(int);
 
-static void init_sighandler(void)
+static void init_db_sighandler(void)
 {
   log_msg(LOG_LEVEL_DEBUG, "initialize signal handler for SIGINT");
   signal(SIGINT,sig_handler);
@@ -106,10 +106,6 @@ static void init_sighandler(void)
   signal(SIGTERM,sig_handler);
   log_msg(LOG_LEVEL_DEBUG, "initialize signal handler for SIGHUP");
   signal(SIGHUP,sig_handler);
-  log_msg(LOG_LEVEL_DEBUG, "initialize signal handler for SIGUSR1");
-  signal(SIGUSR1,sig_handler);
-
-  return;
 }
 
 static void sig_handler(int signum)
@@ -676,7 +672,7 @@ int main(int argc,char**argv)
 #endif
   umask(0177);
 
-  init_sighandler();
+  init_db_sighandler();
 
   init_hashsum_lib();
 
@@ -734,6 +730,9 @@ int main(int argc,char**argv)
   free (after);
 
   setdefaults_after_config();
+
+  log_msg(LOG_LEVEL_DEBUG, "initialize signal handler for SIGUSR1");
+  signal(SIGUSR1,sig_handler);
 
   log_msg(LOG_LEVEL_CONFIG, "report_urls:");
   log_report_urls(LOG_LEVEL_CONFIG);

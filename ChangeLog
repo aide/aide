@@ -1,3 +1,6 @@
+2025-03-25 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Handle SIGUSR1 only after config parsing (closes: #181)
+
 2025-03-23 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix parsing of invalid time values
 	* Fix locking of wrong node

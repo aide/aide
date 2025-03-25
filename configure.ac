@@ -310,7 +310,7 @@ if test "x$with_libacl" = xyes; then
     AC_DEFINE(WITH_ACL, 1, [use ACL])
 fi
 
-AIDE_PKG_CHECK(selinux, SELinux, no, SELINUX, libselinux, selinux)
+AIDE_PKG_CHECK(selinux, SELinux, no, SELINUX, libselinux, selinux, >= 3.4)
 
 AIDE_PKG_CHECK(xattr, xattr, no, XATTR, libattr, xattrs)
 
@@ -328,7 +328,7 @@ AC_MSG_CHECKING(for GNU crypto library)
 AC_ARG_WITH([gcrypt], AS_HELP_STRING([--with-gcrypt], [use GNU crypto library (default: check)]), [with_gcrypt=$withval], [with_gcrypt=check])
 AC_MSG_RESULT([$with_gcrypt])
 
-AIDE_PKG_CHECK_MODULES_OPTIONAL(nettle, NETTLE, nettle)
+AIDE_PKG_CHECK_MODULES_OPTIONAL(nettle, NETTLE, nettle, >= 3.7)
 AS_IF([test x"$with_nettle" = xyes], [
     AS_IF([test x"$with_gcrypt" = xcheck], [ with_gcrypt=no ])
 ] )

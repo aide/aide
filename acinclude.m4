@@ -1,33 +1,33 @@
-dnl AIDE_PKG_CHECK_MODULES(OPTION, PREFIX, LIBRARY)
+dnl AIDE_PKG_CHECK_MODULES(OPTION, PREFIX, LIBRARY, VERSION)
 AC_DEFUN([AIDE_PKG_CHECK_MODULES],
 [
    if test "$aide_static_choice" = "yes"; then
-       PKG_CHECK_MODULES_STATIC($2, [$3], [], [AC_MSG_ERROR([$3 not found by pkg-config - Try --without-$1 or add directory containing $3.pc to PKG_CONFIG_PATH environment variable])])
+       PKG_CHECK_MODULES_STATIC($2, [$3 $4], [], [AC_MSG_ERROR([$3 $4 not found by pkg-config - Try --without-$1 or add directory containing $3.pc to PKG_CONFIG_PATH environment variable])])
     else
-       PKG_CHECK_MODULES($2, [$3], [], [AC_MSG_ERROR([$3 not found by pkg-config - Try --without-$1 or add directory containing $3.pc to PKG_CONFIG_PATH environment variable])])
+       PKG_CHECK_MODULES($2, [$3 $4], [], [AC_MSG_ERROR([$3 $4 not found by pkg-config - Try --without-$1 or add directory containing $3.pc to PKG_CONFIG_PATH environment variable])])
     fi
     AC_DEFINE(WITH_$2,1,[Define to 1 if $3 is available])
 ])
 
-dnl AIDE_PKG_CHECK_MODULES_OPTIONAL(OPTION, PREFIX, LIBRARY)
+dnl AIDE_PKG_CHECK_MODULES_OPTIONAL(OPTION, PREFIX, LIBRARY, VERSION)
 AC_DEFUN([AIDE_PKG_CHECK_MODULES_OPTIONAL],
 [
     AS_IF([test x"$with_$1" != xno], [
    if test "$aide_static_choice" = "yes"; then
-       PKG_CHECK_MODULES_STATIC($2, [$3], [
+       PKG_CHECK_MODULES_STATIC($2, [$3 $4], [
             with_$1=yes
        ], [
            AS_IF([test x"$with_$1" = xyes], [
-               AC_MSG_ERROR([$3 not found by pkg-config - Try to add directory containing $3.pc to PKG_CONFIG_PATH environment variable])
+               AC_MSG_ERROR([$3 $4 not found by pkg-config - Try to add directory containing $3.pc to PKG_CONFIG_PATH environment variable])
            ])
            with_$1=no
        ])
     else
-       PKG_CHECK_MODULES($2, [$3], [
+       PKG_CHECK_MODULES($2, [$3 $4], [
             with_$1=yes
        ], [
            AS_IF([test x"$with_$1" = xyes], [
-               AC_MSG_ERROR([$3 not found by pkg-config - Try to add directory containing $3.pc to PKG_CONFIG_PATH environment variable])
+               AC_MSG_ERROR([$3 $4 not found by pkg-config - Try to add directory containing $3.pc to PKG_CONFIG_PATH environment variable])
            ])
            with_$1=no
        ])
@@ -38,7 +38,7 @@ AC_DEFUN([AIDE_PKG_CHECK_MODULES_OPTIONAL],
     ])
 ])
 
-dnl AIDE_PKG_CHECK(OPTION, DESCRIPTION, DEFAULT, PREFIX, LIBRARY, EXTRA_GROUP)
+dnl AIDE_PKG_CHECK(OPTION, DESCRIPTION, DEFAULT, PREFIX, LIBRARY, EXTRA_GROUP, VERSION)
 AC_DEFUN([AIDE_PKG_CHECK],
 [
     AC_MSG_CHECKING(for $2)
@@ -46,7 +46,7 @@ AC_DEFUN([AIDE_PKG_CHECK],
 
     AS_IF([test x"$with_$5" = xyes], [
            AC_MSG_RESULT(yes)
-           AIDE_PKG_CHECK_MODULES($1, $4, $5)
+           AIDE_PKG_CHECK_MODULES($1, $4, $5, $7)
            if test -n $6; then
               aideextragroups="${aideextragroups}+$6"
            fi

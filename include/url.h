@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2002, 2006, 2019-2020 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 2002, 2006, 2019-2020,2025 Rami Lehti, Pablo Virolainen,
  *               Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -38,7 +38,7 @@ typedef struct url_t {
   /* Everything before the first ':' */
   URL_TYPE type;
   char* value;
-  void* data; /* We might want to pass some list's to multiwriter */ 
+  char* raw;
 } url_t;
 
 URL_TYPE get_url_type(char *);

@@ -1,3 +1,6 @@
+2025-03-28 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Fix display of some URLs (closes: #183)
+
 2025-03-25 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Handle SIGUSR1 only after config parsing (closes: #181)
 	* Require nettle >= 3.7 and libselinux >= 3.4

@@ -128,7 +128,7 @@ static char *fgets_wrapper(char *ptr, size_t size, database *db) {
   case url_ftp: {
     buf = url_fgets(ptr, size, (URL_FILE *)db->fp);
     if (!buf) {
-        log_msg(LOG_LEVEL_ERROR, "url_fgets failed for %s:%s", get_url_type_string((db->url)->type), (db->url)->value);
+        log_msg(LOG_LEVEL_ERROR, "url_fgets failed for %s", (db->url)->raw);
         exit(IO_ERROR);
     }
     break;
@@ -140,20 +140,20 @@ static char *fgets_wrapper(char *ptr, size_t size, database *db) {
         if (db->gzp == NULL) {
             db->gzp=gzdopen(fileno((FILE *)db->fp),"rb");
             if (db->gzp == NULL) {
-                log_msg(LOG_LEVEL_ERROR, "gzdopen failed for %s:%s", get_url_type_string((db->url)->type), (db->url)->value);
+                log_msg(LOG_LEVEL_ERROR, "gzdopen failed for %s", (db->url)->raw);
                 exit(IO_ERROR);
             }
         }
         buf = gzgets(db->gzp, ptr, size);
         if (!buf && !gzeof(db->gzp)) {
             int gzerrnum;
-            log_msg(LOG_LEVEL_ERROR, "gzgets failed for %s:%s: %s", get_url_type_string((db->url)->type), (db->url)->value, gzerror(db->gzp, &gzerrnum));
+            log_msg(LOG_LEVEL_ERROR, "gzgets failed for %s: %s", (db->url)->raw, gzerror(db->gzp, &gzerrnum));
             exit(IO_ERROR);
         }
 #else
         buf = fgets(ptr, size, db->fp);
         if (ferror(db->fp)) {
-            log_msg(LOG_LEVEL_ERROR, "fgets failed for %s:%s: %s", get_url_type_string((db->url)->type), (db->url)->value, strerror(errno));
+            log_msg(LOG_LEVEL_ERROR, "fgets failed for %s: %s", (db->url)->raw, strerror(errno));
             exit(IO_ERROR);
         }
 #endif
@@ -525,10 +525,10 @@ static int construct_database_line(db_line *line, char *str) {
 
 static void handle_io_error_on_write(char *function_str) {
     if (conf->database_out.url->type == url_file && conf->database_out.flags&DB_FLAG_CREATED) {
-        log_msg(LOG_LEVEL_ERROR, "%s failed for %s:%s (remove incompletely written database)", function_str, get_url_type_string(((conf->database_out).url)->type), ((conf->database_out).url)->value);
+        log_msg(LOG_LEVEL_ERROR, "%s failed for %s (remove incompletely written database)", function_str, ((conf->database_out).url)->raw);
         unlink(conf->database_out.url->value);
     } else {
-        log_msg(LOG_LEVEL_ERROR, "%s failed for %s:%s", function_str, get_url_type_string(((conf->database_out).url)->type), ((conf->database_out).url)->value);
+        log_msg(LOG_LEVEL_ERROR, "%s failed for %s", function_str, ((conf->database_out).url)->raw);
     }
     exit(IO_ERROR);
 }
@@ -628,14 +628,14 @@ int db_close_file(db_config* dbconf){
 #ifdef WITH_ZLIB
   if(dbconf->gzip_dbout){
     if(gzclose(dbconf->database_out.gzp)){
-      log_msg(LOG_LEVEL_ERROR,"unable to gzclose database '%s:%s': %s", get_url_type_string((dbconf->database_out.url)->type), (dbconf->database_out.url)->value, strerror(errno));
+      log_msg(LOG_LEVEL_ERROR,"unable to gzclose database '%s': %s", (dbconf->database_out.url)->raw, strerror(errno));
       return RETFAIL;
     }
     dbconf->database_out.gzp = NULL;
   }else {
 #endif
     if(fclose(dbconf->database_out.fp)){
-      log_msg(LOG_LEVEL_ERROR,"unable to close database '%s:%s': %s", get_url_type_string((dbconf->database_out.url)->type), (dbconf->database_out.url)->value, strerror(errno));
+      log_msg(LOG_LEVEL_ERROR,"unable to close database '%s': %s",  (dbconf->database_out.url)->raw, strerror(errno));
       return RETFAIL;
     }
     dbconf->database_out.fp = NULL;

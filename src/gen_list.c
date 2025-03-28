@@ -876,7 +876,7 @@ void populate_tree(seltree* tree)
   
     if((conf->action&DO_COMPARE)||(conf->action&DO_DIFF)){
         progress_status(PROGRESS_OLDDB, NULL);
-        log_msg(LOG_LEVEL_INFO, "read old entries from database: %s:%s", get_url_type_string((conf->database_in.url)->type), (conf->database_in.url)->value);
+        log_msg(LOG_LEVEL_INFO, "read old entries from database: %s", (conf->database_in.url)->raw);
             while((old=db_readline(&(conf->database_in))) != NULL) {
                 if (check_limit(old->filename, !(get_f_type_from_perm(old->perm)&FT_DIR), NULL)) {
                     add_file_to_tree(tree,old,DB_OLD|DB_NEW, &(conf->database_in), NULL, NULL);
@@ -887,7 +887,7 @@ void populate_tree(seltree* tree)
     }
     if(conf->action&DO_DIFF){
         progress_status(PROGRESS_NEWDB, NULL);
-        log_msg(LOG_LEVEL_INFO, "read new entries from database: %s:%s", get_url_type_string((conf->database_new.url)->type), (conf->database_new.url)->value);
+        log_msg(LOG_LEVEL_INFO, "read new entries from database: %s", (conf->database_new.url)->raw);
       while((new=db_readline(&(conf->database_new))) != NULL){
           if (check_limit(new->filename, !(get_f_type_from_perm(new->perm)&FT_DIR), NULL)) {
               progress_status(PROGRESS_SKIPPED, NULL);

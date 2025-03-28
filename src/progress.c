@@ -126,10 +126,10 @@ static void update_state(progress_state new_state) {
         }
         switch (state) {
             case PROGRESS_OLDDB:
-                log_msg(log_level, "read %lu %s%s [%lu entries/s] from %s:%s in %ldm %.4lfs", num_entries, entries_string, skipped_str?skipped_str:"", performance, get_url_type_string((conf->database_in.url)->type), (conf->database_in.url)->value, elapsed_minutes, elapsed_seconds);
+                log_msg(log_level, "read %lu %s%s [%lu entries/s] from %s in %ldm %.4lfs", num_entries, entries_string, skipped_str?skipped_str:"", performance, (conf->database_in.url)->raw, elapsed_minutes, elapsed_seconds);
                 break;
             case PROGRESS_NEWDB:
-                log_msg(log_level, "read %lu %s%s [%lu entries/s] from %s:%s in %ldm %.4lfs", num_entries, entries_string, skipped_str?skipped_str:"", performance, get_url_type_string((conf->database_new.url)->type), (conf->database_new.url)->value, elapsed_minutes, elapsed_seconds);
+                log_msg(log_level, "read %lu %s%s [%lu entries/s] from %s in %ldm %.4lfs", num_entries, entries_string, skipped_str?skipped_str:"", performance, (conf->database_new.url)->raw, elapsed_minutes, elapsed_seconds);
                 break;
             case PROGRESS_DISK:
                 log_msg(log_level, "read %lu %s [%lu entries/s] from file system in %ldm %.4lfs", num_entries, entries_string, performance, elapsed_minutes, elapsed_seconds);
@@ -138,7 +138,7 @@ static void update_state(progress_state new_state) {
                 log_msg(log_level, "parsed %lu config %s [%lu files/s] in %ldm %.4lfs", num_entries, num_entries == 1 ? "file" : "files", performance, elapsed_minutes, elapsed_seconds);
                 break;
             case PROGRESS_WRITEDB:
-                log_msg(log_level, "wrote %lu %s [%lu entries/s] to %s:%s in %ldm %.4lfs", num_entries, entries_string, performance, get_url_type_string((conf->database_out.url)->type), (conf->database_out.url)->value, elapsed_minutes, elapsed_seconds);
+                log_msg(log_level, "wrote %lu %s [%lu entries/s] to %s in %ldm %.4lfs", num_entries, entries_string, performance, (conf->database_out.url)->raw, elapsed_minutes, elapsed_seconds);
                 break;
             case PROGRESS_SKIPPED:
             case PROGRESS_CLEAR:

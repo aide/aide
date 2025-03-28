@@ -479,9 +479,9 @@ bool add_report_url(url_t* url, int linenumber, char* filename, char* linebuf) {
     r->ignore_e2fsattrs = conf->report_ignore_e2fsattrs;
 #endif
 
-    log_msg(LOG_LEVEL_DEBUG, _("add report_url (%p): url(: %s:%s, level: %d"), (void*) r, get_url_type_string((r->url)->type), (r->url)->value, r->level);
+    log_msg(LOG_LEVEL_DEBUG, _("add report_url (%p): url(: %s, level: %d"), (void*) r, (r->url)->raw, r->level);
     conf->report_urls=list_sorted_insert(conf->report_urls, (void*) r, compare_report_t_by_report_level);
-    LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, "set 'report_url' to '%s%s%s'", get_url_type_string(url->type), url->value?":":"", url->value?url->value:"")
+    LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, "set 'report_url' to '%s'", url->raw)
     return true;
 
 }

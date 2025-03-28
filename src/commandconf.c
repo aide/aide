@@ -153,6 +153,8 @@ url_t* parse_url(char* val, int linenumber, char* filename, char* linebuf)
 
   free(val_copy);
 
+  u->raw = checked_strdup(val);
+
   return u;
 }
 
@@ -416,12 +418,12 @@ bool do_dbdef(DB_TYPE dbtype ,char* val, int linenumber, char* filename, char* l
     db->linenumber = linenumber;
     db->filename = filename;
     db->linebuf = linebuf?checked_strdup(linebuf):NULL;
-    LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, "set '%s' option to '%s:%s'", db_option_name, get_url_type_string(u->type), u->value)
+    LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_CONFIG, "set '%s' option to '%s'", db_option_name, u->raw)
     } else {
         return false;
     }
   } else {
-    LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_NOTICE, "'%s' option already set to '%s:%s' (ignore new value '%s')", db_option_name, get_url_type_string((db->url)->type), (db->url)->value, val);
+    LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_NOTICE, "'%s' option already set to '%s' (ignore new value '%s')", db_option_name, (db->url)->raw, val);
   }
   return true;
 }

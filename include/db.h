@@ -63,6 +63,6 @@ void free_db_line(db_line* dl);
 #define NODE_HAS_SUB_RULES         (1<<16)
 
 #define LOG_DB_FORMAT_LINE(log_level, format, ...) \
-    log_msg(log_level, "%s:%s:%li: " format , get_url_type_string((db->url)->type), (db->url)->value, db->lineno, __VA_ARGS__);
+    log_msg(log_level, "%s:%li: " format , (db->url)->raw, db->lineno, __VA_ARGS__);
 
 #endif

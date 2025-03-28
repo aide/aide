@@ -806,7 +806,7 @@ int main(int argc,char**argv)
       if(db_init(&(conf->database_in), true, false)==RETFAIL) {
           exit(IO_ERROR);
       }
-      log_msg(LOG_LEVEL_INFO, "list entries from database: %s:%s", get_url_type_string((conf->database_in.url)->type), (conf->database_in.url)->value);
+      log_msg(LOG_LEVEL_INFO, "list entries from database: %s", (conf->database_in.url)->raw);
       db_line* entry=NULL;
       while((entry = db_readline(&(conf->database_in))) != NULL) {
           if (check_limit(entry->filename, true, NULL) == 0) {
@@ -883,7 +883,7 @@ int main(int argc,char**argv)
 
     if(conf->action&DO_INIT) {
         progress_status(PROGRESS_WRITEDB, NULL);
-        log_msg(LOG_LEVEL_INFO, "write new entries to database: %s:%s", get_url_type_string((conf->database_out.url)->type), (conf->database_out.url)->value);
+        log_msg(LOG_LEVEL_INFO, "write new entries to database: %s", (conf->database_out.url)->raw);
         write_tree(conf->tree);
     }
     progress_stop();

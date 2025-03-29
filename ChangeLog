@@ -1,5 +1,6 @@
 2025-03-29 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Add log level 'limit'
+	* Fix performance calculation when using --limit
 
 2025-03-28 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix display of some URLs (closes: #183)

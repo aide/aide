@@ -114,7 +114,7 @@ static void update_state(progress_state new_state) {
         long elapsed_minutes = (long)floor(elapsed)/60;
         double elapsed_seconds = elapsed - elapsed_minutes*60;
 
-        unsigned long performance = num_entries/elapsed;
+        unsigned long performance = (num_entries+num_skipped)/elapsed;
         char * entries_string = num_entries == 1 ? "entry" : "entries";
 
         char *skipped_str = NULL;

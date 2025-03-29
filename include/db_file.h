@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2006, 2020, 2022, 2024 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002, 2006, 2020, 2022, 2024, 2025 Rami Lehti, Pablo Virolainen,
  *               Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -22,9 +22,11 @@
 #ifndef _DB_FILE_H_INCLUDED
 #define _DB_FILE_H_INCLUDED
 
+#include "db.h"
 #include "db_config.h"
+#include <stdbool.h>
 
-char** db_readline_file(database*);
+db_entry_t db_readline_file(database*, bool);
 
 int db_writespec_file(db_config*);
 int db_writeline_file(db_line*);

@@ -33,11 +33,18 @@ typedef enum {
     DB_TYPE_NEW,
 } DB_TYPE;
 
+typedef struct {
+    db_line* line;
+    bool limit;
+} db_entry_t;
+
 byte* base64tobyte(char*, int, size_t *);
+
+db_line* db_char2line(char**, database*);
 
 int db_init(database*, bool, bool);
 
-db_line* db_readline(database*);
+db_entry_t db_readline(database*, bool);
 
 int db_writespec(db_config*);
 

@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2020,2022,2023 Hannes von Haugwitz
+ * Copyright (C) 2020,2022,2023,2025 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -61,6 +61,7 @@ static struct log_level log_level_array[] = {
     { LOG_LEVEL_RULE,          "rule",          "   RULE", COLOR_L_BLUE   "   RULE" COLOR_RESET },
     { LOG_LEVEL_CONFIG,        "config",        " CONFIG", COLOR_L_CYAN   " CONFIG" COLOR_RESET },
     { LOG_LEVEL_DEBUG,         "debug",         "  DEBUG", COLOR_B_PURPLE "  DEBUG" COLOR_RESET },
+    { LOG_LEVEL_LIMIT,         "limit",         "  LIMIT", COLOR_L_GRAY   "  LIMIT" COLOR_RESET },
     { LOG_LEVEL_THREAD,        "thread",        " THREAD", COLOR_B_CYAN   " THREAD" COLOR_RESET },
     { LOG_LEVEL_TRACE,         "trace",         "  TRACE", COLOR_L_PURPLE "  TRACE" COLOR_RESET },
     { 0,                       NULL,            NULL     , NULL      },

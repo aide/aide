@@ -31,8 +31,10 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include "db_config.h"
+#include "gen_list.h"
 #include "hashsum.h"
 #include "log.h"
+#include "progress.h"
 #include "url.h"
 #include "db.h"
 #ifdef WITH_CURL
@@ -58,7 +60,6 @@
 #include "md.h"
 
 
-LOG_LEVEL db_parse_log_level = LOG_LEVEL_DEBUG;
 
 static bool db_parse_spec(database* db, char **saveptr){
   char *token = NULL;
@@ -68,7 +69,6 @@ static bool db_parse_spec(database* db, char **saveptr){
   db->fields = checked_malloc(1*sizeof(ATTRIBUTE));
   
   while ((token = strtok_r(NULL, " ", saveptr)) != NULL) {
-    LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, "db_parse_spec(): got '%s'", token);
     if (strncmp("@@", token, 2) == 0) {
       LOG_DB_FORMAT_LINE(LOG_LEVEL_ERROR, "unexpected token while reading db_spec: '%s'", token);
       return false;
@@ -185,13 +185,16 @@ static char *get_next_dbline(database *db) {
     return line;
 }
 
-char* *db_readline_file(database* db) {
+db_entry_t db_readline_file(database* db, bool include_limited_entries) {
     char **s = NULL;
     char *saveptr, *token;
     char *line = NULL;
 
+    db_entry_t entry = { .line = NULL, .limit = false };
+
     while ((line = get_next_dbline(db)) != NULL) {
         db->lineno++;
+        LOG_LEVEL db_parse_log_level = LOG_LEVEL_DEBUG;
         switch (line[0]) {
             case '#':
                 LOG_DB_FORMAT_LINE(db_parse_log_level, "db_read_file: skip comment line: '%s'", line)
@@ -206,7 +209,7 @@ char* *db_readline_file(database* db) {
                     if (db->fields) {
                         LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "skip additional '%s' line", token)
                     } else {
-                        LOG_DB_FORMAT_LINE(db_parse_log_level, "db_read_file: parse '%s'", line)
+                        LOG_DB_FORMAT_LINE(db_parse_log_level, "db_read_file: parse '%s'", token)
                         db_parse_spec(db, &saveptr);
                     }
                 } else if (strcmp("@@begin_db", token) == 0) {
@@ -226,7 +229,7 @@ char* *db_readline_file(database* db) {
                         if ((token = strtok_r(NULL, "\n", &saveptr)) != NULL) {
                             LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "skip unexpected string after '@@end_db': '%s'", token)
                         }
-                        return NULL;
+                        return entry;
                     } else {
                         LOG_DB_FORMAT_LINE(LOG_LEVEL_ERROR, "%s", "unexpected '@@end_db', expected '@@begin_db'")
                         exit(DATABASE_ERROR);
@@ -236,7 +239,16 @@ char* *db_readline_file(database* db) {
                         LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "skip line with invalid path: '%s'", token)
                         break;
                     } else {
-                        LOG_DB_FORMAT_LINE(db_parse_log_level, "db_read_file: parse '%s'", line)
+                        if (check_limit(token, true, NULL)) {
+                            if (include_limited_entries) {
+                                entry.limit = true;
+                                db_parse_log_level = LOG_LEVEL_LIMIT;
+                            } else {
+                                progress_status(PROGRESS_SKIPPED, NULL);
+                                break;
+                            }
+                        }
+                        LOG_DB_FORMAT_LINE(db_parse_log_level, "db_read_file: parse '%s'", token)
                         s = checked_malloc(sizeof(char*)*num_attrs);
                         for(ATTRIBUTE j=0; j<num_attrs; j++){
                             s[j]=NULL;
@@ -250,7 +262,7 @@ char* *db_readline_file(database* db) {
                                 LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "skip unexpected string '%s')", token);
                             } else if (db->fields[i] != attr_unknown) {
                                 s[db->fields[i]] = checked_strdup(token);
-                                LOG_DB_FORMAT_LINE(LOG_LEVEL_TRACE, "db_read_file: '%s' set field '%s' (position %d): '%s'", s[0], attributes[db->fields[i]].db_name, i, token)
+                                LOG_DB_FORMAT_LINE(db_parse_log_level, "db_read_file: '%s' set field '%s' (position %d): '%s'", s[0], attributes[db->fields[i]].db_name, i, token)
                             } else {
                                 LOG_DB_FORMAT_LINE(db_parse_log_level, "skip unknown/redefined field at position: %d: '%s'", i, token);
                             }
@@ -266,7 +278,16 @@ char* *db_readline_file(database* db) {
                             free(s);
                             s = NULL;
                         } else {
-                            return s;
+                             entry.line = db_char2line(s, db);
+                             for(int j=0;j<db->num_fields;j++){
+                                 if(db->fields[j]!=attr_unknown &&
+                                         s[db->fields[j]]!=NULL){
+                                     free(s[db->fields[j]]);
+                                     s[db->fields[j]]=NULL;
+                                 }
+                             }
+                             free(s);
+                            return entry;
                         }
                     }
                 } else {
@@ -281,7 +302,7 @@ char* *db_readline_file(database* db) {
         exit(DATABASE_ERROR);
     } else {
         /* empty database */
-        return NULL;
+        return entry;
     }
 }
 

@@ -40,6 +40,7 @@ Version 0.19 (UNRELEASED)
     * Add AIDE_VERSION macro variable
     * Switch hashsum in default R group from md5 to sha3_256
     * Add progress bar (add '--no-progress' parameter)
+    * Add log level 'limit'
     * Add colors to log output (add '--no-color' parameter)
     * Add '--list' command (to list database in human readable format)
     * Require pthread (remove --without-pthread configure option)

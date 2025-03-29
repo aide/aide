@@ -807,34 +807,29 @@ int main(int argc,char**argv)
           exit(IO_ERROR);
       }
       log_msg(LOG_LEVEL_INFO, "list entries from database: %s", (conf->database_in.url)->raw);
-      db_line* entry=NULL;
-      while((entry = db_readline(&(conf->database_in))) != NULL) {
-          if (check_limit(entry->filename, true, NULL) == 0) {
-              log_msg(LOG_LEVEL_RULE, "\u252c process '%s' (filetype: %c)", entry->filename, get_f_type_char_from_perm(entry->perm));
-              fprintf(stdout, "%s\n", entry->filename);
-              for (int j=0; j < report_attrs_order_length; ++j) {
-                  switch(report_attrs_order[j]) {
-                      case attr_allhashsums:
-                          for (int i = 0 ; i < num_hashes ; ++i) {
-                              if (ATTR(hashsums[i].attribute)&entry->attr) { list_attribute(entry, hashsums[i].attribute); }
-                          }
-                          break;
-                      case attr_size:
-                          if (ATTR(attr_size)&entry->attr) { list_attribute(entry, attr_size); }
-                          if (ATTR(attr_sizeg)&entry->attr) { list_attribute(entry, attr_sizeg); }
-                          break;
-                      default:
-                          if (ATTR(report_attrs_order[j])&entry->attr) { list_attribute(entry, report_attrs_order[j]); }
-                          break;
-                  }
+      db_entry_t entry;
+      while((entry = db_readline(&(conf->database_in), false)).line != NULL) {
+          log_msg(LOG_LEVEL_RULE, "\u252c process '%s' (filetype: %c)", (entry.line)->filename, get_f_type_char_from_perm((entry.line)->perm));
+          fprintf(stdout, "%s\n", (entry.line)->filename);
+          for (int j=0; j < report_attrs_order_length; ++j) {
+              switch(report_attrs_order[j]) {
+                  case attr_allhashsums:
+                      for (int i = 0 ; i < num_hashes ; ++i) {
+                          if (ATTR(hashsums[i].attribute)&(entry.line)->attr) { list_attribute((entry.line), hashsums[i].attribute); }
+                      }
+                      break;
+                  case attr_size:
+                      if (ATTR(attr_size)&(entry.line)->attr) { list_attribute((entry.line), attr_size); }
+                      if (ATTR(attr_sizeg)&(entry.line)->attr) { list_attribute((entry.line), attr_sizeg); }
+                      break;
+                  default:
+                      if (ATTR(report_attrs_order[j])&(entry.line)->attr) { list_attribute((entry.line), report_attrs_order[j]); }
+                      break;
               }
-              list_attribute(entry, attr_attr);
-              fprintf(stdout, "\n");
-              log_msg(LOG_LEVEL_RULE, "\u2534 finish processing '%s'", entry->filename);
           }
-          free_db_line(entry);
-          free(entry);
-          entry=NULL;
+          list_attribute((entry.line), attr_attr);
+          fprintf(stdout, "\n");
+          log_msg(LOG_LEVEL_RULE, "\u2534 finish processing '%s'", (entry.line)->filename);
       }
       db_close();
       exit (0);

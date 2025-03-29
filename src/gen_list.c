@@ -450,16 +450,9 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
   }
   case DB_OLD|DB_NEW: {
     progress_status(PROGRESS_SKIPPED, NULL);
-    if(conf->action&DO_INIT) {
-        node->new_data=file;
-        node->checked|=NODE_FREE;
-        LOG_WHOAMI(add_entry_log_level, "add old database entry '%s' (%c) to node (%p) as new data (entry does not match limit but keep it for database_out)", file->filename, get_f_type_char_from_perm(file->perm), (void*) node);
-    } else {
-        LOG_WHOAMI(add_entry_log_level, "drop old database entry '%s' (entry does not match limit)", file->filename);
-        free_db_line(file);
-        free(file);
-        file = NULL;
-    }
+    node->new_data=file;
+    node->checked|=NODE_FREE;
+    LOG_WHOAMI(LOG_LEVEL_LIMIT, "add old database entry '%s' (%c) to node (%p) as new data (entry does not match limit but keep it for database_out)", file->filename, get_f_type_char_from_perm(file->perm), (void*) node);
     pthread_rwlock_unlock(&node->rwlock);
     return;
   }
@@ -699,11 +692,11 @@ match_result check_limit(char* filename, bool log_partial_match, const char *who
             return 0;
         } else if (match == PCRE2_ERROR_PARTIAL) {
             if (log_partial_match) {
-                LOG_WHOAMI(LOG_LEVEL_DEBUG, "skip '%s' (reason: partial limit match, limit: '%s')", filename, conf->limit);
+                LOG_WHOAMI(LOG_LEVEL_LIMIT, "skip '%s' (reason: partial limit match, limit: '%s')", filename, conf->limit);
             }
             return RESULT_PARTIAL_LIMIT_MATCH;
         } else {
-            LOG_WHOAMI(LOG_LEVEL_DEBUG, "skip '%s' (reason: no limit match, limit '%s')", filename, conf->limit);
+            LOG_WHOAMI(LOG_LEVEL_LIMIT, "skip '%s' (reason: no limit match, limit '%s')", filename, conf->limit);
             return RESULT_NO_LIMIT_MATCH;
         }
     }
@@ -720,14 +713,14 @@ match_t check_rxtree(file_t file, seltree* tree, char* source, bool check_parent
         if (match.result == RESULT_NON_RECURSIVE_NEGATIVE_MATCH || match.result == RESULT_NO_RULE_MATCH) {
             match.result = RESULT_PART_LIMIT_AND_NO_RECURSE_MATCH;
             LOG_WHOAMI(LOG_LEVEL_RULE, "\u2534 no-recurse match for '%s', stop directory processing", file.name);
-            LOG_WHOAMI(LOG_LEVEL_DEBUG, "check_rxtree: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, file.name);
+            LOG_WHOAMI(LOG_LEVEL_TRACE, "check_rxtree: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, file.name);
             return match;
         } else {
             LOG_WHOAMI(LOG_LEVEL_RULE, "\u2534 no no-recurse match for '%s'", file.name);
         }
       }
       match = (match_t) { limit_result, NULL, 0 };
-      LOG_WHOAMI(LOG_LEVEL_DEBUG, "check_rxtree: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, file.name);
+      LOG_WHOAMI(LOG_LEVEL_TRACE, "check_rxtree: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, file.name);
       return match;
   }
 
@@ -746,7 +739,7 @@ match_t check_rxtree(file_t file, seltree* tree, char* source, bool check_parent
   } else {
       LOG_WHOAMI(LOG_LEVEL_RULE, "\u2534 do NOT add '%s'", file.name);
   }
-  LOG_WHOAMI(LOG_LEVEL_DEBUG, "check_rxtree: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, file.name);
+  LOG_WHOAMI(LOG_LEVEL_TRACE, "check_rxtree: match result %s (%d) for '%s'", get_match_result_string(match.result), match.result, file.name);
   return match;
 }
 
@@ -869,40 +862,28 @@ void write_tree(seltree* node) {
     pthread_rwlock_unlock(&node->rwlock);
 }
 
-void populate_tree(seltree* tree)
-{
-  db_line* old=NULL;
-  db_line* new=NULL;
-  
+void populate_tree(seltree* tree) {
+    db_entry_t entry;
     if((conf->action&DO_COMPARE)||(conf->action&DO_DIFF)){
         progress_status(PROGRESS_OLDDB, NULL);
         log_msg(LOG_LEVEL_INFO, "read old entries from database: %s", (conf->database_in.url)->raw);
-            while((old=db_readline(&(conf->database_in))) != NULL) {
-                if (check_limit(old->filename, !(get_f_type_from_perm(old->perm)&FT_DIR), NULL)) {
-                    add_file_to_tree(tree,old,DB_OLD|DB_NEW, &(conf->database_in), NULL, NULL);
+            while((entry = db_readline(&(conf->database_in), conf->action&DO_INIT)).line != NULL) {
+                if (entry.limit) {
+                    add_file_to_tree(tree,entry.line,DB_OLD|DB_NEW, &(conf->database_in), NULL, NULL);
                 } else {
-                    add_file_to_tree(tree,old,DB_OLD, &(conf->database_in), NULL, NULL);
+                    add_file_to_tree(tree,entry.line,DB_OLD, &(conf->database_in), NULL, NULL);
                 }
             }
     }
     if(conf->action&DO_DIFF){
         progress_status(PROGRESS_NEWDB, NULL);
         log_msg(LOG_LEVEL_INFO, "read new entries from database: %s", (conf->database_new.url)->raw);
-      while((new=db_readline(&(conf->database_new))) != NULL){
-          if (check_limit(new->filename, !(get_f_type_from_perm(new->perm)&FT_DIR), NULL)) {
-              progress_status(PROGRESS_SKIPPED, NULL);
-              free_db_line(new);
-              free(new);
-              new=NULL;
-          } else {
-              add_file_to_tree(tree,new,DB_NEW, &(conf->database_new), NULL, NULL);
-          }
+      while((entry = db_readline(&(conf->database_new), false)).line != NULL){
+          add_file_to_tree(tree,entry.line,DB_NEW, &(conf->database_new), NULL, NULL);
       }
     }
 
     if((conf->action&DO_INIT)||(conf->action&DO_COMPARE)){
-      /* FIXME  */
-      new=NULL;
       progress_status(PROGRESS_DISK, NULL);
       log_msg(LOG_LEVEL_INFO, "read new entries from disk (limit: '%s', root prefix: '%s')", conf->limit?conf->limit:"(none)", conf->root_prefix);
 

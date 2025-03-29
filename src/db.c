@@ -46,8 +46,6 @@
 #include "base64.h"
 #include "util.h"
 
-db_line* db_char2line(char**, database*);
-
 static long readoct(char* s, database* db, char* field_name){
   long i;
   char* e;
@@ -188,27 +186,8 @@ int db_init(database* db, bool readonly, bool gzip) {
     }
 }
 
-db_line* db_readline(database* db){
-  db_line* s=NULL;
-
-  if (db->fp != NULL) {
-      char** ss=db_readline_file(db);
-      if (ss!=NULL){
-          s=db_char2line(ss,db);
-
-          for(int i=0;i<db->num_fields;i++){
-              if(db->fields[i]!=attr_unknown &&
-                      ss[db->fields[i]]!=NULL){
-                  free(ss[db->fields[i]]);
-                  ss[db->fields[i]]=NULL;
-              }
-          }
-          free(ss);
-      }
-  }
-  
-  return s;
-  
+db_entry_t db_readline(database* db, bool include_limited_entries){
+  return db_readline_file(db, include_limited_entries);
 }
 
 byte* base64tobyte(char* src,int len,size_t *ret_len)

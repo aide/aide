@@ -292,9 +292,11 @@ static void process_path(char *path, bool dry_run, const char *whoami) {
                 case RESULT_NON_RECURSIVE_NEGATIVE_MATCH:
                 case RESULT_NEGATIVE_PARENT_MATCH:
                 case RESULT_NO_RULE_MATCH:
-                case RESULT_NO_LIMIT_MATCH:
                 case RESULT_PART_LIMIT_AND_NO_RECURSE_MATCH:
                     LOG_WHOAMI(LOG_LEVEL_DEBUG, "do NOT read directory contents of '%s' (reason: %s)", path, get_match_result_desc(path_match.result));
+                    break;
+                case RESULT_NO_LIMIT_MATCH:
+                    LOG_WHOAMI(LOG_LEVEL_LIMIT, "do NOT read directory contents of '%s' (reason: %s)", path, get_match_result_desc(path_match.result));
                     break;
             }
         }

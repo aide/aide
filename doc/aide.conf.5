@@ -10,7 +10,7 @@ configuration aide uses to initialize or check the AIDE database.
 .PP
 .SH "FILE FORMAT"
 aide.conf is case-sensitive. Leading and trailing white spaces are
-ignored. Each config lines must end with new line.
+ignored. Each config line must end with new line.
 .PP
 AIDE uses the backslash character (\fB\e\fR) as escape character for ' '
 (space), '@' and '\e' (backslash) (e.g. '\e ' or '\e@'). To literally match a '\fB\e\fR'
@@ -445,7 +445,7 @@ Files and directories matching the regular expression
 are added to the database.
 
 .TP
-.B "Recursive Negative rule:"
+.B "Recursive negative rule:"
 !<regex>
 
 Files and directories matching the regular expression are excluded and NOT
@@ -469,7 +469,7 @@ Files and directories matching the regular expression
 are added to the database.
 The children of directories are only added
 if the regular expression ends with a "/".
-The children of sub-directories are not added at all.
+The children of sub-directories are not added to the database.
 
 .PP
 Every regular expression has to start with an explicit "/".
@@ -765,8 +765,7 @@ same as \fB@@if not hostname HOSTNAME\fR
 @@{\fBVAR\fR} is replaced with the value of the variable \fBVAR\fR.
 If variable \fBVAR\fR is not defined an empty string is used.
 
-Variables are supported in strings and in regular expressions of selection
-lines.
+Variables are supported in strings and in regular expressions of rules.
 
 .RS
 Pre-defined marco variables:
@@ -837,9 +836,9 @@ Valid values are \fByes\fR, \fBtrue\fR, \fBno\fR or \fBfalse\fR.
 An attribute expression is of the following form:
 .IP
 .nf
-  <attribute/group>
-| <expr> + <attribute/group>
-| <expr> - <attribute/group>
+<attribute expression>: <attribute/group>
+      | <attribute expression> + <attribute/group>
+      | <attribute expression> - <attribute/group>
 .fi
 .RE
 

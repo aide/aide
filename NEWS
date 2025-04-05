@@ -23,8 +23,8 @@ Version 0.19 (UNRELEASED)
         - H default group now contains all compiled in hashsums that are not
           deprecated
         - rules are no longer applied to the database entries but only to the
-          file system, meaning aide displays files/directories that are no
-          longer matched by any rule as removed entries in the report
+          file system entries, meaning aide displays files/directories that are
+          no longer matched by any rule as removed entries in the report
     * Deprecations (to be removed in the release after next):
         - md5 hashsum
         - sha1 hashsum
@@ -33,9 +33,8 @@ Version 0.19 (UNRELEASED)
     * Add support for file system type restricted rules (Linux only)
         - add 'fstype' attribute
         - add '--without-fstype' configure option
-    * Add limited support for hashsum transitions (see aide.conf(5)
-      for details)
     * Add 'version_ge' boolean operator
+    * Add limited support for hashsum transitions (see aide.conf(5) for details)
     * Add 'sha512_256', sha3_256, and 'sha3_512' hashsums
     * Add AIDE_VERSION macro variable
     * Switch hashsum in default R group from md5 to sha3_256

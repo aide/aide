@@ -1,5 +1,6 @@
 2025-04-05 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix build with additional libraries on non-Linux systems
+	* Update NEWS file and aide.conf.5 man page
 
 2025-03-29 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Add log level 'limit'

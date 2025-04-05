@@ -383,15 +383,19 @@ void acl2line(db_line* line, int fd, const char *whoami) {
     acl_t acl_a = NULL;
     acl_t acl_d = NULL;
     char *tmp = NULL;
-    char proc_self_path[PATH_MAX];
+#ifdef O_PATH
+    char proc_self_path[256];
+#endif
 
     acl_a = acl_get_fd(fd);
+#ifdef O_PATH
     int fd_flags = fcntl(fd, F_GETFL);
     if (acl_a == NULL && errno == EBADF && fd_flags != -1 && fd_flags&O_PATH) {
         snprintf(proc_self_path, sizeof(proc_self_path), "/proc/self/fd/%d", fd);
         LOG_WHOAMI(LOG_LEVEL_DEBUG,"%s> acl_get_fd() failed: Bad file descriptor (emulating O_PATH support via '%s')", line->fullpath, proc_self_path);
         acl_a = acl_get_file(proc_self_path, ACL_TYPE_ACCESS);
     }
+#endif
     if (acl_a == NULL) {
         switch (errno) {
             case ENOSYS:
@@ -404,6 +408,7 @@ void acl2line(db_line* line, int fd, const char *whoami) {
         line->attr&=(~ATTR(attr_acl));
         return;
     }
+#ifdef O_PATH
     if (S_ISDIR(line->perm)) {
         snprintf(proc_self_path, sizeof(proc_self_path), "/proc/self/fd/%d", fd);
         acl_d = acl_get_file(proc_self_path, ACL_TYPE_DEFAULT);
@@ -414,6 +419,7 @@ void acl2line(db_line* line, int fd, const char *whoami) {
             return;
         }
     }
+#endif
 
     ret = checked_malloc(sizeof(acl_type));
 
@@ -489,12 +495,15 @@ void xattrs2line(db_line *line, int fd, const char *whoami) {
     if ((ATTR(attr_xattrs)&line->attr)) {
         ssize_t xsz = 1024;
         char *xatrs = checked_malloc(xsz);
-        char proc_self_path[PATH_MAX];
+#ifdef O_PATH
+        char proc_self_path[256];
+#endif
 
         while (((xret = flistxattr(fd, xatrs, xsz)) == -1) && (errno == ERANGE)) {
             xsz <<= 1;
             xatrs = checked_realloc(xatrs, xsz);
         }
+#ifdef O_PATH
         int fd_flags = fcntl(fd, F_GETFL);
         if (xret == -1 && errno == EBADF && fd_flags != -1 && fd_flags&O_PATH) {
             snprintf(proc_self_path, sizeof(proc_self_path), "/proc/self/fd/%d", fd);
@@ -504,6 +513,7 @@ void xattrs2line(db_line *line, int fd, const char *whoami) {
                 xatrs = checked_realloc(xatrs, xsz);
             }
         }
+#endif
         if (xret == -1) {
             switch (errno) {
                 case ENOSYS:
@@ -527,17 +537,21 @@ void xattrs2line(db_line *line, int fd, const char *whoami) {
                         || strncmp(attr, "security.", strlen("security.")) == 0
                         || strncmp(attr, "trusted.", strlen("trusted.")) == 0
                    ) {
+#ifdef O_PATH
                     if (fd_flags&O_PATH) {
                         while (((aret = getxattr(proc_self_path, attr, val, asz)) == -1) && (errno == ERANGE)) {
                             asz <<= 1;
                             val = checked_realloc (val, asz);
                         }
                     } else {
+#endif
                         while (((aret = fgetxattr(fd, attr, val, asz)) == -1) && (errno == ERANGE)) {
                             asz <<= 1;
                             val = checked_realloc (val, asz);
                         }
+#ifdef O_PATH
                     }
+#endif
 
                     if (aret != -1) {
                         xattr_add(xattrs, attr, val, aret);
@@ -617,13 +631,15 @@ void capabilities2line(db_line* line, int fd, const char *whoami) {
 
     if ((ATTR(attr_capabilities)&line->attr)) {
         caps = cap_get_fd(fd);
+#ifdef O_PATH
         int fd_flags = fcntl(fd, F_GETFL);
         if (caps == NULL && errno == EBADF && fd_flags != -1 && fd_flags&O_PATH) {
-            char proc_self_path[PATH_MAX];
+            char proc_self_path[256];
             snprintf(proc_self_path, sizeof(proc_self_path), "/proc/self/fd/%d", fd);
             LOG_WHOAMI(LOG_LEVEL_DEBUG,"%s> cap_get_fd() failed: Bad file descriptor (emulating O_PATH support via '%s')", line->fullpath, proc_self_path);
             caps = cap_get_file(proc_self_path);
         }
+#endif
         if (caps != NULL) {
             txt_caps = cap_to_text(caps, NULL);
             if (txt_caps == NULL) {

@@ -81,6 +81,17 @@ static bool open_for_reading(disk_entry *entry, bool dir_rec, const char *whoami
 #ifdef WITH_E2FSATTRS
             | ATTR(attr_e2fsattrs)
 #endif
+#ifndef O_PATH
+#ifdef WITH_POSIX_ACL
+            | ATTR(attr_acl)
+#endif
+#ifdef WITH_XATTR
+            | ATTR(attr_xattrs)
+#endif
+#ifdef WITH_CAPABILITIES
+            | ATTR(attr_capabilities)
+#endif
+#endif
             );
     if (attrs_req_read || dir_rec) {
 #ifdef O_NOATIME

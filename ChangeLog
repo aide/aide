@@ -1,3 +1,6 @@
+2025-04-05 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Fix build with additional libraries on non-Linux systems
+
 2025-03-29 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Add log level 'limit'
 	* Fix performance calculation when using --limit

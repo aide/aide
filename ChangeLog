@@ -2,6 +2,7 @@
 	* Fix build with additional libraries on non-Linux systems
 	* Update NEWS file and aide.conf.5 man page
 	* Move log message to limit log level
+	* Release aide 0.19
 
 2025-03-29 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Add log level 'limit'

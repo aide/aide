@@ -1,4 +1,4 @@
-Version 0.19 (UNRELEASED)
+Version 0.19 (2025-04-05)
     * BACKWARDS INCOMPATIBLE CHANGES
         - switch from libmhash to libnettle
         - semantic change of unrestricted negative rules (!<regex>): The

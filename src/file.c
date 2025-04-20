@@ -24,6 +24,15 @@
 #include <string.h>
 #include <sys/vfs.h>
 #include <linux/magic.h>
+#ifndef EXFAT_SUPER_MAGIC
+#define EXFAT_SUPER_MAGIC 0x2011BAB0
+#endif
+#ifndef FUSE_SUPER_MAGIC
+#define FUSE_SUPER_MAGIC 0x65735546
+#endif
+#ifndef XFS_SUPER_MAGIC
+#define XFS_SUPER_MAGIC 0x58465342
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 #include "util.h"

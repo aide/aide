@@ -1,3 +1,6 @@
+2025-05-01 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Extend expiration dates of GPG key in SECURITY.md
+
 2025-04-20 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Define MAGIC constants added since Linux 4.9 (closes: #192)
 

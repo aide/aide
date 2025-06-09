@@ -45,7 +45,7 @@ void write_tree(seltree*);
 match_t check_rxtree(file_t, seltree*, char *, bool, const char *);
 match_result check_limit(char*, bool, const char *);
 
-struct db_line* get_file_attrs(disk_entry *, DB_ATTR_TYPE, DB_ATTR_TYPE, const char *);
+struct db_line* get_file_attrs(disk_entry *, DB_ATTR_TYPE, DB_ATTR_TYPE, int, const char *);
 void add_file_to_tree(seltree*, db_line*, int, const database *, disk_entry *, const char*);
 
 void print_match(file_t, match_t);

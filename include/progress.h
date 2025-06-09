@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2023 Hannes von Haugwitz
+ * Copyright (C) 2023,2025 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -34,9 +34,19 @@ typedef enum progress_state {
     PROGRESS_SKIPPED,
 } progress_state;
 
+typedef enum progress_worker_state {
+    progress_worker_state_idle,
+    progress_worker_state_processing,
+} progress_worker_state;
+
 bool progress_start(void);
 void progress_stop(void);
 
-void progress_status(progress_state, const char*);
+void progress_worker_state_init(void);
+
+void update_progress_status(progress_state, const char*);
+
+void update_progress_worker_status(int, progress_worker_state, void*);
+void update_progress_worker_progress(int, int);
 
 #endif

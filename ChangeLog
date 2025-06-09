@@ -1,3 +1,6 @@
+2025-06-09 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Add info about worker states to progress bar
+
 2025-05-01 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Extend expiration dates of GPG key in SECURITY.md
 

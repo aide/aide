@@ -20,6 +20,7 @@
 
 #include "config.h"
 #include <pthread.h>
+#include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,6 +46,27 @@ static long unsigned num_entries = 0;
 static long unsigned num_skipped = 0LU;
 static char* path = NULL;
 
+typedef struct progress_worker_status {
+    progress_worker_state state;
+    char * data;
+    int percentage;
+} progress_worker_status;
+
+static progress_worker_status *worker_status = NULL;
+static bool progress_worker_status_enabled = false;
+
+static char* *lines = NULL;
+
+static char *get_worker_state_string(progress_worker_state s) {
+    switch (s) {
+        case progress_worker_state_idle:
+            return "idle";
+        case progress_worker_state_processing:
+            return "processing";
+    }
+    return NULL;
+}
+
 static char *get_state_string(progress_state s) {
     switch (s) {
         case PROGRESS_OLDDB:
@@ -65,29 +87,82 @@ static char *get_state_string(progress_state s) {
     return NULL;
 }
 
+static void progress_sig_handler(int signum) {
+    struct winsize winsize;
+    switch(signum){
+        case SIGWINCH :
+            if(ioctl(STDERR_FILENO, TIOCGWINSZ, &winsize) == -1) {
+                conf->progress = 80;
+                progress_worker_status_enabled = false;
+            } else {
+                conf->progress = winsize.ws_col;
+                progress_worker_status_enabled = (winsize.ws_row > (conf->num_workers + 10));
+            }
+        break;
+    }
+}
+
 static void * progress_updater( __attribute__((unused)) void *arg) {
     const char *whoami = "(progress)";
     log_msg(LOG_LEVEL_THREAD, "%10s: initialized progress_updater thread", whoami);
 
-    mask_sig(whoami);
+    sigset_t set;
+
+    sigemptyset(&set);
+    sigaddset(&set, SIGINT);
+    sigaddset(&set, SIGTERM);
+    sigaddset(&set, SIGHUP);
+    sigaddset(&set, SIGUSR1);
+
+    if(pthread_sigmask(SIG_BLOCK, &set, NULL)) {
+        log_msg(LOG_LEVEL_ERROR, "%10s: pthread_sigmask failed to set mask of blocked signals", whoami);
+        exit(THREAD_ERROR);
+    }
+
+    log_msg(LOG_LEVEL_DEBUG, "%10s: initialize signal handler for SIGWINCH", whoami);
+    signal(SIGWINCH, progress_sig_handler);
 
     bool _continue = true;
+
     while (_continue) {
         pthread_mutex_lock(&progress_update_mutex);
+        int width = conf->progress;
         time_t now = time(NULL);
         int elapsed = (unsigned long) now - (unsigned long) conf->start_time;
-        char *progress_bar = NULL;
+        int num_of_lines = 1;
         switch (state) {
+            case PROGRESS_DISK:
+                if (progress_worker_status_enabled && worker_status) {
+                    for (long i = 0 ; i < conf->num_workers; ++i) {
+                        int n = 0;
+                        int left = width;
+                        lines[i+1] = checked_malloc(left + 1);
+                        n += snprintf(lines[i+1], left, "worker #%0*ld> %10s", 2, i+1,
+                                get_worker_state_string(worker_status[i].state)
+                                );
+                        left = width - n;
+                        if (worker_status[i].data && left > 12) {
+                            n += print_path(&(lines[i+1])[n], worker_status[i].data, " ", left);
+                            left = width - n;;
+                            if (worker_status[i].percentage > 0 && left >= 7) {
+                                snprintf(&(lines[i+1])[n], left, " (%2d%%)", worker_status[i].percentage);
+                            }
+                        }
+                        num_of_lines++;
+                    }
+                }
+                /* fall through */
             case PROGRESS_CONFIG:
             case PROGRESS_NEWDB:
             case PROGRESS_SKIPPED:
-            case PROGRESS_DISK:
             case PROGRESS_WRITEDB:
             case PROGRESS_OLDDB:
-                progress_bar = get_progress_bar_string(get_state_string(state), path, num_entries, num_skipped, elapsed, conf->progress);
-                stderr_msg("%s\r", progress_bar);
-                free(progress_bar);
-                progress_bar = NULL;
+                lines[0] = get_progress_bar_string(get_state_string(state), path, num_entries, num_skipped, elapsed, width);
+                stderr_multi_lines(lines, num_of_lines);
+                for (int i = 0 ; i < num_of_lines; ++i) {
+                    free(lines[i]);
+                    lines[i] = NULL;
+                }
                 break;
             case PROGRESS_CLEAR:
                 _continue = false;
@@ -154,6 +229,25 @@ static void update_state(progress_state new_state) {
         state = new_state;
 }
 
+void progress_worker_state_init(void) {
+    struct winsize winsize;
+    pthread_mutex_lock(&progress_update_mutex);
+    progress_worker_status_enabled = false;
+    if (conf->progress >= 0 && conf->num_workers > 0) {
+        lines = checked_realloc(lines, (conf->num_workers + 1) * sizeof(char*));
+        worker_status = checked_malloc(conf->num_workers * sizeof(progress_worker_status));
+        for (int i = 0 ; i < conf->num_workers ; ++i) {
+            worker_status[i].state = progress_worker_state_idle;
+            worker_status[i].data = NULL;
+            worker_status[i].percentage = 0;
+        }
+        if(ioctl(STDERR_FILENO, TIOCGWINSZ, &winsize) != -1) {
+            progress_worker_status_enabled = (winsize.ws_row > (conf->num_workers + 10));
+        }
+    }
+    pthread_mutex_unlock(&progress_update_mutex);
+}
+
 bool progress_start(void) {
     struct winsize winsize;
 
@@ -162,10 +256,12 @@ bool progress_start(void) {
     } else {
         conf->progress = winsize.ws_col;
     }
+    lines = checked_malloc(1 * sizeof(char*));
     if (pthread_create(&progress_updater_thread, NULL, &progress_updater, NULL) != 0) {
         log_msg(LOG_LEVEL_WARNING, "failed to start progress_updater thread (disable progress bar)");
         return false;
     }
+
     stderr_set_line_erasure(true);
     return true;
 }
@@ -182,9 +278,13 @@ void progress_stop(void) {
         }
         log_msg(LOG_LEVEL_THREAD, "%10s: progress_updater thread finished", "(main)");
     }
+    free(lines);
+    if (conf->num_workers) {
+        free(worker_status);
+    }
 }
 
-void progress_status(progress_state new_state, const char* data) {
+void update_progress_status(progress_state new_state, const char* data) {
     pthread_mutex_lock(&progress_update_mutex);
     switch (new_state) {
         case PROGRESS_CONFIG:
@@ -212,6 +312,34 @@ void progress_status(progress_state new_state, const char* data) {
         case PROGRESS_NONE:
             update_state(new_state);
             break;
+    }
+    pthread_mutex_unlock(&progress_update_mutex);
+}
+
+void update_progress_worker_progress(int index, int percentage) {
+    pthread_mutex_lock(&progress_update_mutex);
+    if (worker_status) {
+        worker_status[index-1].percentage = percentage;
+    }
+    pthread_mutex_unlock(&progress_update_mutex);
+}
+
+void update_progress_worker_status(int index, progress_worker_state new_state, void* data) {
+    pthread_mutex_lock(&progress_update_mutex);
+    if (worker_status) {
+        switch (new_state) {
+            case progress_worker_state_processing:
+                if (data) {
+                    free(worker_status[index-1].data);
+                    worker_status[index-1].data = checked_strdup(data);
+                }
+                break;
+            case progress_worker_state_idle:
+                free(worker_status[index-1].data);
+                worker_status[index-1].data = NULL;
+                break;
+        }
+        worker_status[index-1].state = new_state;
     }
     pthread_mutex_unlock(&progress_update_mutex);
 }

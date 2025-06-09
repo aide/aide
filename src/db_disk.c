@@ -45,6 +45,7 @@
 #include "file.h"
 #include "gen_list.h"
 #include "log.h"
+#include "progress.h"
 #include "queue.h"
 #include "rx_rule.h"
 #include "seltree_struct.h"
@@ -160,7 +161,7 @@ static bool open_for_reading(disk_entry *entry, bool dir_rec, const char *whoami
     return false;
 }
 
-static void process_path(char *path, bool dry_run, const char *whoami) {
+static void process_path(char *path, bool dry_run, int worker_index, const char *whoami) {
     db_line *line = NULL;
 
     LOG_WHOAMI(LOG_LEVEL_DEBUG, "process '%s' (fullpath: '%s')", &path[conf->root_prefix_length], path);
@@ -322,7 +323,7 @@ static void process_path(char *path, bool dry_run, const char *whoami) {
                 LOG_WHOAMI(LOG_LEVEL_DEBUG, "%s> requested attributes: %s", entry.filename, attrs_str);
                 free(attrs_str);
 
-                line = get_file_attrs(&entry, entry.attrs, transition_hashsums, whoami);
+                line = get_file_attrs(&entry, entry.attrs, transition_hashsums, worker_index, whoami);
 
                 /* attr_filename is always needed/returned but never requested */
                 DB_ATTR_TYPE returned_attr = (~ATTR(attr_filename) & line->attr);
@@ -346,14 +347,20 @@ static void process_path(char *path, bool dry_run, const char *whoami) {
     }
 }
 
-static void process_disk_entries(bool dry_run, const char *whoami) {
+static void process_disk_entries(bool dry_run, int worker_index, const char *whoami) {
     const char * whoami_log_thread = whoami ? whoami : "(main)";
     while (1) {
         log_msg(LOG_LEVEL_THREAD, "%10s: process_disk_entries: wait for entries", whoami_log_thread);
         char *data = queue_ts_dequeue_wait(queue_worker_entries, whoami_log_thread);
         if (data) {
             log_msg(LOG_LEVEL_THREAD, "%10s: process_disk_entries: got entry %p from queue of worker entries (path: '%s')", whoami_log_thread, (void*) data, data);
-            process_path(data, dry_run, whoami);
+            if (worker_index >=0) {
+                update_progress_worker_status(worker_index, progress_worker_state_processing, data);
+            }
+            process_path(data, dry_run, worker_index, whoami);
+            if (worker_index >=0) {
+                update_progress_worker_status(worker_index, progress_worker_state_idle, NULL);
+            }
             free(data);
         } else {
             log_msg(LOG_LEVEL_THREAD, "%10s: process_disk_entries: queue empty", whoami_log_thread);
@@ -373,7 +380,7 @@ static void * worker(void *arg) {
 
     log_msg(LOG_LEVEL_THREAD, "%10s: worker: initialized worker thread #%ld", whoami, args.worker_index);
 
-    process_disk_entries(args.dry_run, whoami);
+    process_disk_entries(args.dry_run, args.worker_index, whoami);
 
     log_msg(LOG_LEVEL_THREAD, "%10s: worker: exit thread", whoami);
     return (void *) pthread_self();
@@ -391,7 +398,7 @@ void db_scan_disk(bool dry_run) {
         queue_ts_enqueue(queue_worker_entries, full_path, whoami_main);
         queue_ts_release(queue_worker_entries, whoami_main);
 
-        process_disk_entries(dry_run, NULL);
+        process_disk_entries(dry_run, 0, NULL);
 
         queue_ts_free(queue_worker_entries);
     } else {

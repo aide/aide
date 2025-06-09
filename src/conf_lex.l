@@ -596,7 +596,7 @@ void conf_lex_string(const char * name, const char *string) {
     log_msg(LOG_LEVEL_DEBUG, "parse: '%s'", name);
     conf_linenumber = 0;
     conf_filename = checked_strdup(name); /* not to be freed, needed for logging */
-    progress_status(PROGRESS_CONFIG, conf_filename);
+    update_progress_status(PROGRESS_CONFIG, conf_filename);
     conf_scan_string(string);
 }
 
@@ -609,7 +609,7 @@ void conf_lex_file(const char * config) {
         confin = stdin;
     } else {
         conf_filename = checked_strdup(config);  /* not to be freed, needed for logging */
-        progress_status(PROGRESS_CONFIG, conf_filename);
+        update_progress_status(PROGRESS_CONFIG, conf_filename);
         char *expanded_config = expand_tilde(checked_strdup(config));
         confin = fopen( expanded_config, "r" );
         if (!confin) {

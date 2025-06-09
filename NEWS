@@ -1,3 +1,8 @@
+Version 0.20 (UNRELEASED)
+    * Add info about worker states to progress bar
+    * Bug fixes
+    * Update documentation
+
 Version 0.19 (2025-04-05)
     * BACKWARDS INCOMPATIBLE CHANGES
         - switch from libmhash to libnettle

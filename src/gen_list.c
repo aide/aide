@@ -245,7 +245,7 @@ static DB_ATTR_TYPE get_changed_attributes(db_line* l1,db_line* l2, DB_ATTR_TYPE
                             LOG_WHOAMI(compare_log_level, "┝ old:'%s' has growing attribute set, check for growing hashsums", l1->filename);
                             LOG_WHOAMI(compare_log_level, "│ compare hashsums of old:'%s' and new:'%s' (limited to old size %lld)", l1->filename, l2->filename, l1->size);
                             DB_ATTR_TYPE transition_hashsums = get_transition_hashsums(l1->filename, l1->attr, l2->filename, l2->attr);
-                            md_hashsums hs = calc_hashsums(entry, l2->attr|transition_hashsums, l1->size, false, whoami);
+                            md_hashsums hs = calc_hashsums(entry, l2->attr|transition_hashsums, l1->size, false, 0, whoami);
 
                             byte* new_hashsums[num_hashes];
                             copy_hashsums(l2->fullpath, &hs, &new_hashsums, whoami);
@@ -431,25 +431,25 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
 
   switch (db_flags) {
   case DB_OLD: {
-    progress_status(PROGRESS_OLDDB, file->filename);
+    update_progress_status(PROGRESS_OLDDB, file->filename);
     LOG_WHOAMI(add_entry_log_level, "add old database entry '%s' (%c) to node '%s' (%p) as old data", file->filename, get_f_type_char_from_perm(file->perm), node->path, (void*) node);
     node->old_data=file;
     break;
   }
   case DB_NEW|DB_DISK: {
-    progress_status(PROGRESS_DISK, file->filename);
+    update_progress_status(PROGRESS_DISK, file->filename);
     LOG_WHOAMI(add_entry_log_level, "add disk entry '%s' (%c) to node '%s' (%p) as new data", file->filename, get_f_type_char_from_perm(file->perm), node->path, (void*) node);
     node->new_data=file;
     break;
   }
   case DB_NEW: {
-    progress_status(PROGRESS_NEWDB, file->filename);
+    update_progress_status(PROGRESS_NEWDB, file->filename);
     LOG_WHOAMI(add_entry_log_level, "add new database entry '%s' (%c) to node '%s' (%p) as new data", file->filename, get_f_type_char_from_perm(file->perm), node->path, (void*) node);
     node->new_data=file;
     break;
   }
   case DB_OLD|DB_NEW: {
-    progress_status(PROGRESS_SKIPPED, NULL);
+    update_progress_status(PROGRESS_SKIPPED, NULL);
     node->new_data=file;
     node->checked|=NODE_FREE;
     LOG_WHOAMI(LOG_LEVEL_LIMIT, "add old database entry '%s' (%c) to node (%p) as new data (entry does not match limit but keep it for database_out)", file->filename, get_f_type_char_from_perm(file->perm), (void*) node);
@@ -512,7 +512,7 @@ void add_file_to_tree(seltree* tree,db_line* file,int db_flags, const database *
 
                   seltree *moved_node = NULL;
 
-                  md_hashsums hs = calc_hashsums(entry, new_file->attr, -1, true, whoami);
+                  md_hashsums hs = calc_hashsums(entry, new_file->attr, -1, true, 0, whoami);
                   if (hs.attrs) {
                       byte* new_hashsums[num_hashes];
                       copy_hashsums(new_file->fullpath, &hs, &new_hashsums, whoami);
@@ -743,7 +743,7 @@ match_t check_rxtree(file_t file, seltree* tree, char* source, bool check_parent
   return match;
 }
 
-db_line* get_file_attrs(disk_entry *file, DB_ATTR_TYPE attrs, DB_ATTR_TYPE extra_hashsums, const char *whoami) {
+db_line* get_file_attrs(disk_entry *file, DB_ATTR_TYPE attrs, DB_ATTR_TYPE extra_hashsums, int worker_index, const char *whoami) {
   LOG_WHOAMI(LOG_LEVEL_DEBUG, "get file attributes '%s' (fullpath: '%s')", &file->filename[conf->root_prefix_length], file->filename);
   db_line* line=NULL;
   time_t cur_time;
@@ -834,7 +834,7 @@ db_line* get_file_attrs(disk_entry *file, DB_ATTR_TYPE attrs, DB_ATTR_TYPE extra
 
   DB_ATTR_TYPE all_hashsums = get_hashes(true);
   if (line->attr&all_hashsums) {
-    md_hashsums hs = calc_hashsums(file, line->attr|extra_hashsums, -1, false, whoami);
+    md_hashsums hs = calc_hashsums(file, line->attr|extra_hashsums, -1, false, worker_index, whoami);
     if (hs.attrs) {
         hashsums2line(&hs,line, whoami);
     } else {
@@ -848,7 +848,7 @@ db_line* get_file_attrs(disk_entry *file, DB_ATTR_TYPE attrs, DB_ATTR_TYPE extra
 void write_tree(seltree* node) {
     pthread_rwlock_rdlock(&node->rwlock);
     if (node->checked&DB_NEW) {
-        progress_status(PROGRESS_WRITEDB, (node->new_data)->filename);
+        update_progress_status(PROGRESS_WRITEDB, (node->new_data)->filename);
         db_writeline(node->new_data,conf);
         if (node->checked&NODE_FREE) {
             free_db_line(node->new_data);
@@ -865,7 +865,7 @@ void write_tree(seltree* node) {
 void populate_tree(seltree* tree) {
     db_entry_t entry;
     if((conf->action&DO_COMPARE)||(conf->action&DO_DIFF)){
-        progress_status(PROGRESS_OLDDB, NULL);
+        update_progress_status(PROGRESS_OLDDB, NULL);
         log_msg(LOG_LEVEL_INFO, "read old entries from database: %s", (conf->database_in.url)->raw);
             while((entry = db_readline(&(conf->database_in), conf->action&DO_INIT)).line != NULL) {
                 if (entry.limit) {
@@ -876,7 +876,7 @@ void populate_tree(seltree* tree) {
             }
     }
     if(conf->action&DO_DIFF){
-        progress_status(PROGRESS_NEWDB, NULL);
+        update_progress_status(PROGRESS_NEWDB, NULL);
         log_msg(LOG_LEVEL_INFO, "read new entries from database: %s", (conf->database_new.url)->raw);
       while((entry = db_readline(&(conf->database_new), false)).line != NULL){
           add_file_to_tree(tree,entry.line,DB_NEW, &(conf->database_new), NULL, NULL);
@@ -884,7 +884,7 @@ void populate_tree(seltree* tree) {
     }
 
     if((conf->action&DO_INIT)||(conf->action&DO_COMPARE)){
-      progress_status(PROGRESS_DISK, NULL);
+      update_progress_status(PROGRESS_DISK, NULL);
       log_msg(LOG_LEVEL_INFO, "read new entries from disk (limit: '%s', root prefix: '%s')", conf->limit?conf->limit:"(none)", conf->root_prefix);
 
       db_scan_disk(false);

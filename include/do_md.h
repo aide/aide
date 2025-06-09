@@ -32,7 +32,7 @@
 
 list* do_md(list* file_lst,db_config* conf);
 int stat_cmp(struct stat*, struct stat*, bool);
-md_hashsums calc_hashsums(disk_entry *, DB_ATTR_TYPE, ssize_t, bool, const char *);
+md_hashsums calc_hashsums(disk_entry *, DB_ATTR_TYPE, ssize_t, bool, int, const char *);
 
 #ifdef WITH_ACL
 void acl2line(db_line* line, int, const char *);

@@ -110,7 +110,6 @@ static void init_db_sighandler(void)
 
 static void sig_handler(int signum)
 {
-    struct winsize winsize;
     char *str;
     switch(signum){
         case SIGINT :
@@ -139,13 +138,6 @@ static void sig_handler(int signum)
            (void) !write(STDERR_FILENO ,str, strlen(str));
            toogle_log_level(LOG_LEVEL_DEBUG);
            break;
-        case SIGWINCH :
-           if(ioctl(STDERR_FILENO, TIOCGWINSZ, &winsize) == -1) {
-            conf->progress = 80;
-           } else {
-               conf->progress = winsize.ws_col;
-           }
-        break;
     }
 }
 
@@ -701,8 +693,15 @@ int main(int argc,char**argv)
           if (stderr_isatty) {
               log_msg(LOG_LEVEL_DEBUG, "enable progress bar (stderr refers to a terminal)");
               if (progress_start()) {
-                  log_msg(LOG_LEVEL_DEBUG, "initialize signal handler for SIGWINCH");
-                  signal(SIGWINCH,sig_handler);
+                  sigset_t set;
+
+                  sigemptyset(&set);
+                  sigaddset(&set, SIGWINCH);
+
+                  if(pthread_sigmask(SIG_BLOCK, &set, NULL)) {
+                      log_msg(LOG_LEVEL_ERROR, "%10s: pthread_sigmask failed to set mask for blocked signals", "(main)");
+                      exit(THREAD_ERROR);
+                  }
               }
           } else {
               log_msg(LOG_LEVEL_INFO, "disable progress bar (stderr does not refer to a terminal)");
@@ -721,7 +720,7 @@ int main(int argc,char**argv)
   }
 
   log_msg(LOG_LEVEL_INFO, "parse configuration");
-  progress_status(PROGRESS_CONFIG, NULL);
+  update_progress_status(PROGRESS_CONFIG, NULL);
   errorno=parse_config(before, conf->config_file, after);
   if (errorno==RETFAIL){
     exit(INVALID_CONFIGURELINE_ERROR);
@@ -733,6 +732,8 @@ int main(int argc,char**argv)
 
   log_msg(LOG_LEVEL_DEBUG, "initialize signal handler for SIGUSR1");
   signal(SIGUSR1,sig_handler);
+
+  progress_worker_state_init();
 
   log_msg(LOG_LEVEL_CONFIG, "report_urls:");
   log_report_urls(LOG_LEVEL_CONFIG);
@@ -877,7 +878,7 @@ int main(int argc,char**argv)
     populate_tree(conf->tree);
 
     if(conf->action&DO_INIT) {
-        progress_status(PROGRESS_WRITEDB, NULL);
+        update_progress_status(PROGRESS_WRITEDB, NULL);
         log_msg(LOG_LEVEL_INFO, "write new entries to database: %s", (conf->database_out.url)->raw);
         write_tree(conf->tree);
     }

@@ -22,6 +22,7 @@
 
 #include "config.h"
 #include "db_disk.h"
+#include "progress.h"
 #include <stdbool.h>
 
 #include <limits.h>
@@ -194,7 +195,7 @@ static int hashsum_close(hashsums_file file) {
     return -1;
 }
 
-md_hashsums calc_hashsums(disk_entry *entry, DB_ATTR_TYPE attr, ssize_t limit_size, bool uncompress, const char *whoami) {
+md_hashsums calc_hashsums(disk_entry *entry, DB_ATTR_TYPE attr, ssize_t limit_size, bool uncompress, int worker_index, const char *whoami) {
     md_hashsums md_hash;
     md_hash.attrs = 0LU;
 
@@ -224,6 +225,9 @@ md_hashsums calc_hashsums(disk_entry *entry, DB_ATTR_TYPE attr, ssize_t limit_si
 #if READ_BLOCK_SIZE>SSIZE_MAX
 #error "READ_BLOCK_SIZE" is too large. Max value is SSIZE_MAX, and current is READ_BLOCK_SIZE
 #endif
+        if (worker_index) {
+            update_progress_worker_progress(worker_index, 0);
+        }
         while ((size = hashsum_read(file,buf,READ_BLOCK_SIZE)) > 0) {
 
             off_t update_md_size;
@@ -250,7 +254,14 @@ md_hashsums calc_hashsums(disk_entry *entry, DB_ATTR_TYPE attr, ssize_t limit_si
             } else if (attr&ATTR(attr_growing) && r_size == entry->fs.st_size) {
                 LOG_WHOAMI(LOG_LEVEL_DEBUG, "hash calculation: stat size (%zi) reached for growing file '%s'", entry->fs.st_size, entry->filename);
                 break;
+            } else {
+                if (worker_index) {
+                    update_progress_worker_progress(worker_index, r_size*100/(limit_size > 0 ? limit_size : entry->fs.st_size));
+                }
             }
+        }
+        if (worker_index) {
+            update_progress_worker_progress(worker_index, 0);
         }
         free(buf);
         hashsum_close(file);

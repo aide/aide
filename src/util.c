@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2004-2006, 2010-2011, 2013, 2016, 2019-2023
+ * Copyright (C) 1999-2002, 2004-2006, 2010-2011, 2013, 2016, 2019-2025
  *               Rami Lehti, Pablo Virolainen, Mike Markley,
  *               Richard van den Berg, Hannes von Haugwitz
  *
@@ -53,12 +53,40 @@
 
 pthread_mutex_t stderr_mutex = PTHREAD_MUTEX_INITIALIZER;
 bool stderr_erase_line = false;
+int stderr_num_lines = 0;
+
+static void stderr_erase_lines(void) {
+    if (stderr_erase_line) {
+        fprintf(stderr, "\33[2K");
+        if (stderr_num_lines) {
+            for (int i = 0  ; i < stderr_num_lines ; ++i) {
+                fprintf(stderr, "\n\33[2K");
+            }
+            fprintf(stderr, "\33[%dA", stderr_num_lines);
+            stderr_num_lines = 0;
+        }
+    }
+}
+void stderr_multi_lines(char* *lines, int num_of_lines) {
+    pthread_mutex_lock(&stderr_mutex);
+    stderr_erase_lines();
+    for (int i = 0 ; i < num_of_lines; ++i) {
+        fprintf(stderr, "%s", lines[i]);
+        if (i < num_of_lines-1) {
+            fprintf(stderr, "\n");
+        }
+    }
+    fprintf(stderr, "\r");
+    stderr_num_lines = num_of_lines-1;
+    if (stderr_num_lines) {
+        fprintf(stderr, "\33[%dA", stderr_num_lines);
+    }
+    pthread_mutex_unlock(&stderr_mutex);
+}
 
 void stderr_msg(const char* format, ...) {
     pthread_mutex_lock(&stderr_mutex);
-    if (stderr_erase_line) {
-        fprintf(stderr, "\33[2K");
-    }
+    stderr_erase_lines();
     va_list ap;
     va_start(ap, format);
     vfprintf(stderr, format, ap);
@@ -68,9 +96,7 @@ void stderr_msg(const char* format, ...) {
 
 void vstderr_prefix_line(const char* prefix, const char* format, va_list ap) {
     pthread_mutex_lock(&stderr_mutex);
-    if (stderr_erase_line) {
-        fprintf(stderr, "\33[2K");
-    }
+    stderr_erase_lines();
     fprintf(stderr, "%s: ", prefix);
     vfprintf(stderr, format, ap);
     fprintf(stderr, "\n");
@@ -79,9 +105,7 @@ void vstderr_prefix_line(const char* prefix, const char* format, va_list ap) {
 
 void stderr_set_line_erasure(bool erase_line) {
     pthread_mutex_lock(&stderr_mutex);
-    if (stderr_erase_line) {
-        fprintf(stderr, "\33[2K");
-    }
+    stderr_erase_lines();
     stderr_erase_line = erase_line;
     pthread_mutex_unlock(&stderr_mutex);
 }
@@ -224,33 +248,23 @@ char* byte_to_base16(const byte* src, size_t ssize) {
     return str;
 }
 
-char *get_progress_bar_string(const char* state_str, const char* path, long unsigned num_entries, long unsigned num_skipped, int elapsed, int length) {
-    char *progress_bar = checked_malloc(length+1);
-    int n = 0;
-    int left = length;
-    n += snprintf(&progress_bar[n], left+1, "[%02d:%02d] %s> %lu %s", elapsed/60, elapsed%60, state_str, num_entries, num_entries == 1?"file":"files");
-    left = length-n;
-    if (num_skipped && left > 0) {
-        n += snprintf(&progress_bar[n], left+1, " (%lu skipped)", num_skipped);
-        left = length-n;
-    }
-    if (path && left > 0) {
+int print_path(char *str, const char *path, const char *prefix, int length) {
+    if (path && length > 0) {
         const char *ellipsis = "/...";
-        const char *last_str = ", last ";
-        int last_str_len = strlen(last_str);
+        int prefix_len = strlen(prefix);
         int ellipsis_len = 0;
-        int prefix_len = 0;
+        int prefix_path_len = 0;
 
         const char *suffix_path = path;
-        if ((long) strlen(path) > (left-last_str_len) ) {
+        if ((long) strlen(path) > (length-prefix_len) ) {
             const char *first_slash = strchr(path+1, '/');
             if (first_slash) {
                 ellipsis_len = strlen(ellipsis);
-                prefix_len = first_slash - path;
+                prefix_path_len = first_slash - path;
 
                 suffix_path = first_slash+1;
 
-                int path_left = left - last_str_len - prefix_len - ellipsis_len;
+                int path_left = length - prefix_len - prefix_path_len - ellipsis_len;
                 while ((long) strlen(suffix_path) > path_left) {
                     char *slash = strchr(suffix_path+1, '/');
                     if (slash) {
@@ -261,8 +275,22 @@ char *get_progress_bar_string(const char* state_str, const char* path, long unsi
                 }
             }
         }
-        snprintf(&progress_bar[n], left+1, "%s%.*s%.*s%s", last_str, prefix_len, path, ellipsis_len, ellipsis, suffix_path);
+        return snprintf(str, length+1, "%s%.*s%.*s%s", prefix, prefix_path_len, path, ellipsis_len, ellipsis, suffix_path);
     }
+    return 0;
+}
+
+char *get_progress_bar_string(const char* state_str, const char* path, long unsigned num_entries, long unsigned num_skipped, int elapsed, int length) {
+    char *progress_bar = checked_malloc(length+1);
+    int n = 0;
+    int left = length;
+    n += snprintf(&progress_bar[n], left+1, "[%02d:%02d] %s> %lu %s", elapsed/60, elapsed%60, state_str, num_entries, num_entries == 1?"file":"files");
+    left = length-n;
+    if (num_skipped && left > 0) {
+        n += snprintf(&progress_bar[n], left+1, " (%lu skipped)", num_skipped);
+        left = length-n;
+    }
+    print_path(&progress_bar[n], path, ", last ", left);
     return progress_bar;
 }
 

@@ -244,7 +244,7 @@ db_entry_t db_readline_file(database* db, bool include_limited_entries) {
                                 entry.limit = true;
                                 db_parse_log_level = LOG_LEVEL_LIMIT;
                             } else {
-                                progress_status(PROGRESS_SKIPPED, NULL);
+                                update_progress_status(PROGRESS_SKIPPED, NULL);
                                 break;
                             }
                         }

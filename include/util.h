@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2006, 2013, 2020-2024 Rami Lehti, Pablo Virolainen,
+ * Copyright (C) 1999-2002, 2006, 2013, 2020-2025 Rami Lehti, Pablo Virolainen,
  *               Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -76,6 +76,7 @@ void vstderr_prefix_line(const char*, const char*, va_list)
 #endif
 ;
 void stderr_set_line_erasure(bool);
+void stderr_multi_lines(char* *, int);
 
 const char* btoa(bool);
 
@@ -93,6 +94,7 @@ void decode_string(char*);
 
 char* encode_string(const char*);
 
+int  print_path(char *, const char *, const char*, int);
 char *get_progress_bar_string(const char *, const char *, long unsigned, long unsigned, int, int);
 
 char* perm_to_char(mode_t perm);

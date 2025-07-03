@@ -1,3 +1,6 @@
+2025-07-03 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Fix race condition when adding new nodes during file system scan
+
 2025-06-09 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Add info about worker states to progress bar
 

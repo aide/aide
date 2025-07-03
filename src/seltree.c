@@ -144,14 +144,6 @@ static seltree *create_seltree_node(char *path, seltree *parent) {
     return node;
 }
 
-static seltree *_insert_new_node(char *path, seltree *parent) {
-    seltree *node = create_seltree_node(path, parent);
-    pthread_rwlock_wrlock(&parent->rwlock);
-    parent ->children = tree_insert(parent->children, strrchr(node->path,'/'), (void*)node, (tree_cmp_f) strcmp);
-    pthread_rwlock_unlock(&parent->rwlock);
-    return node;
-}
-
 static seltree* _get_seltree_node(seltree* node, char *path, bool create) {
     LOG_LEVEL log_level = LOG_LEVEL_TRACE;
     pthread_rwlock_rdlock(&node->rwlock);
@@ -159,6 +151,7 @@ static seltree* _get_seltree_node(seltree* node, char *path, bool create) {
     pthread_rwlock_unlock(&node->rwlock);
     seltree *parent = NULL;
     char *tmp = checked_strdup(path);
+
     if (node && strcmp(node->path, path) != 0) {
         char *next_dir = path;;
         do {
@@ -169,20 +162,18 @@ static seltree* _get_seltree_node(seltree* node, char *path, bool create) {
             log_msg(log_level, "_get_seltree_node(): %s> search for child node '%s' (parent: '%s' (%p))", path, strrchr(tmp,'/'), parent->path, (void*) parent);
             node = tree_search(parent->children, strrchr(tmp,'/'), (tree_cmp_f) strcmp);
             pthread_rwlock_unlock(&parent->rwlock);
+            if (create && node == NULL) {
+                pthread_rwlock_wrlock(&parent->rwlock);
+                node = tree_search(parent->children, strrchr(tmp,'/'), (tree_cmp_f) strcmp);
+                if (node == NULL) {
+                    node = create_seltree_node(tmp, parent);
+                    parent ->children = tree_insert(parent->children, strrchr(node->path,'/'), (void*)node, (tree_cmp_f) strcmp);
+                    log_msg(log_level, "_get_seltree_node(): %s> created new %s node '%s' (%p) (parent: %p)", path, next_dir?"inner":"leaf", tmp, (void*) node, (void*) parent);
+                }
+                pthread_rwlock_unlock(&parent->rwlock);
+            }
             if (next_dir) { tmp[next_dir-path] = '/'; }
         } while (node != NULL && next_dir);
-        if (create && node == NULL) {
-            while (next_dir) {
-                tmp[next_dir-path] = '\0';
-                node = _insert_new_node(tmp, parent);
-                log_msg(log_level, "_get_seltree_node(): %s> created new inner node '%s' (%p) (parent: %p)", path, tmp, (void*) node, (void*) parent);
-                parent = node;
-                tmp[next_dir-path] = '/';
-                next_dir = strchr(&next_dir[1], '/');
-            }
-            node = _insert_new_node(path, parent);
-            log_msg(LOG_LEVEL_TRACE, "created new leaf node '%s' (%p) (parent: %p)", path, (void*) node, (void*) parent);
-        }
     }
     free(tmp);
     if (node == NULL) {

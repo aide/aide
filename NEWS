@@ -1,3 +1,8 @@
+Version 0.19.1 (UNRELEASED)
+    * Fix race condition when adding new nodes
+    * Extend expiration dates of GPG key in SECURITY.md
+    * Define MAGIC constants added since Linux 4.9
+
 Version 0.19 (2025-04-05)
     * BACKWARDS INCOMPATIBLE CHANGES
         - switch from libmhash to libnettle

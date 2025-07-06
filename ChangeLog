@@ -1,3 +1,6 @@
+2025-07-06 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Release aide 0.19.1
+
 2025-07-03 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix race condition when adding new nodes during file system scan
 

@@ -1,3 +1,6 @@
+2025-08-04 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Fix potential segfault when using --dry-init
+
 2025-07-03 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix race condition when adding new nodes during file system scan
 

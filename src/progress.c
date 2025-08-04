@@ -233,7 +233,7 @@ void progress_worker_state_init(void) {
     struct winsize winsize;
     pthread_mutex_lock(&progress_update_mutex);
     progress_worker_status_enabled = false;
-    if (conf->progress >= 0 && conf->num_workers > 0) {
+    if (lines && conf->progress >= 0 && conf->num_workers > 0) {
         lines = checked_realloc(lines, (conf->num_workers + 1) * sizeof(char*));
         worker_status = checked_malloc(conf->num_workers * sizeof(progress_worker_status));
         for (int i = 0 ; i < conf->num_workers ; ++i) {

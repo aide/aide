@@ -354,11 +354,11 @@ static void process_disk_entries(bool dry_run, int worker_index, const char *who
         char *data = queue_ts_dequeue_wait(queue_worker_entries, whoami_log_thread);
         if (data) {
             log_msg(LOG_LEVEL_THREAD, "%10s: process_disk_entries: got entry %p from queue of worker entries (path: '%s')", whoami_log_thread, (void*) data, data);
-            if (worker_index >=0) {
+            if (worker_index > 0) {
                 update_progress_worker_status(worker_index, progress_worker_state_processing, data);
             }
             process_path(data, dry_run, worker_index, whoami);
-            if (worker_index >=0) {
+            if (worker_index > 0) {
                 update_progress_worker_status(worker_index, progress_worker_state_idle, NULL);
             }
             free(data);

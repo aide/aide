@@ -117,7 +117,9 @@ static void log_cached_lines(void) {
     for(int i = 0; i < ncachedlines; ++i) {
         LOG_LEVEL level = cached_lines[i].level;
         if (level == LOG_LEVEL_ERROR || level <= log_level) {
-            stderr_msg("%s: %s\n", get_log_string(level), cached_lines[i].message);
+            char *msg_safe = stresc(cached_lines[i].message);
+            stderr_msg("%s: %s\n", get_log_string(level), msg_safe);
+            free(msg_safe);
         }
         free(cached_lines[i].message);
     }
@@ -137,7 +139,23 @@ static void vlog_msg(LOG_LEVEL level,const char* format, va_list ap) {
         cache_line(level, format, ap);
     pthread_mutex_unlock(&log_mutex);
     } else if (level == LOG_LEVEL_ERROR || level <= log_level) {
-        vstderr_prefix_line(get_log_string(level), format, ap);
+        va_list aq;
+        va_copy(aq, ap);
+        int n = vsnprintf(NULL, 0, format, aq) + 1;
+        va_end(aq);
+
+        int size = n * sizeof(char);
+        char *msg_unsafe = malloc(size);
+        if (msg_unsafe == NULL) {
+            stderr_msg("%s: malloc: failed to allocate %d bytes of memory\n", get_log_string(LOG_LEVEL_ERROR), size);
+            exit(MEMORY_ALLOCATION_FAILURE);
+        }
+
+        vsnprintf(msg_unsafe, n, format, ap);
+        char *msg_safe = stresc(msg_unsafe);
+        free(msg_unsafe);
+        stderr_msg("%s: %s\n", get_log_string(level), msg_safe);
+        free(msg_safe);
     }
 }
 

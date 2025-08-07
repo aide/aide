@@ -344,14 +344,14 @@ static DB_ATTR_TYPE get_different_attributes(db_line* l1, db_line* l2, DB_ATTR_T
 #define PRINT_RULE_MATCH(format, c, ...) \
     if (file.fs_type) { \
         fs_type_str = get_fs_type_string_from_magic(file.fs_type); \
-        fprintf(stdout, "[%c] %c=%s:%s: " format "\n", c, file_type, fs_type_str, file.name, __VA_ARGS__); \
+        fprintf(stdout, "[%c] %c=%s:%s: " format "\n", c, file_type, fs_type_str, filename_safe, __VA_ARGS__); \
         free(fs_type_str); \
     } else { \
-        fprintf(stdout, "[%c] %c:%s: " format "\n", c, file_type, file.name, __VA_ARGS__); \
+        fprintf(stdout, "[%c] %c:%s: " format "\n", c, file_type, filename_safe, __VA_ARGS__); \
     }
 #else
 #define PRINT_RULE_MATCH(format, c, ...) \
-    fprintf(stdout, "[%c] %c:%s: " format "\n", c, file_type, file.name, __VA_ARGS__);
+    fprintf(stdout, "[%c] %c:%s: " format "\n", c, file_type, filename_safe, __VA_ARGS__);
 #endif
 
 void print_match(file_t file, match_t match) {
@@ -362,6 +362,8 @@ void print_match(file_t file, match_t match) {
     char *fs_type_str = NULL;
 #endif
     rx_rule *rule = match.rule;
+    char *filename_safe = stresc(file.name);
+    char *limit_safe = conf->limit?stresc(conf->limit):NULL;
     switch (match.result) {
         case RESULT_SELECTIVE_MATCH:
         case RESULT_EQUAL_MATCH:
@@ -379,7 +381,7 @@ void print_match(file_t file, match_t match) {
             break;
         case RESULT_NEGATIVE_PARENT_MATCH:
             str = get_restriction_string(rule->restriction);
-            PRINT_RULE_MATCH("parent directory '%.*s' matches %s: '%s%s %s' (%s:%d: '%s%s%s')", ' ', match.length, file.name, get_rule_type_long_string(rule->type), get_rule_type_char(rule->type), rule->rx, str, rule->config_filename, rule->config_linenumber, rule->config_line, rule->prefix?"', prefix: '":"", rule->prefix?rule->prefix:"")
+            PRINT_RULE_MATCH("parent directory '%.*s' matches %s: '%s%s %s' (%s:%d: '%s%s%s')", ' ', match.length, filename_safe, get_rule_type_long_string(rule->type), get_rule_type_char(rule->type), rule->rx, str, rule->config_filename, rule->config_linenumber, rule->config_line, rule->prefix?"', prefix: '":"", rule->prefix?rule->prefix:"")
             free(str);
             break;
         case RESULT_PARTIAL_MATCH:
@@ -387,21 +389,23 @@ void print_match(file_t file, match_t match) {
             PRINT_RULE_MATCH("%s", ' ', "no matching rule")
             break;
         case RESULT_PARTIAL_LIMIT_MATCH:
-            PRINT_RULE_MATCH("parital limit match (limit '%s')", ' ', conf->limit);
+            PRINT_RULE_MATCH("parital limit match (limit '%s')", ' ', limit_safe);
             break;
         case RESULT_PART_LIMIT_AND_NO_RECURSE_MATCH:
             if (rule) {
                 str = get_restriction_string(rule->restriction);
-                PRINT_RULE_MATCH("partial limit match (limit '%s') but %s: '%s%s %s' (%s:%d: '%s%s%s')", ' ', conf->limit, get_rule_type_long_string(rule->type), get_rule_type_char(rule->type), rule->rx, str, rule->config_filename, rule->config_linenumber, rule->config_line, rule->prefix?"', prefix: '":"", rule->prefix?rule->prefix:"")
+                PRINT_RULE_MATCH("partial limit match (limit '%s') but %s: '%s%s %s' (%s:%d: '%s%s%s')", ' ', limit_safe, get_rule_type_long_string(rule->type), get_rule_type_char(rule->type), rule->rx, str, rule->config_filename, rule->config_linenumber, rule->config_line, rule->prefix?"', prefix: '":"", rule->prefix?rule->prefix:"")
                 free(str);
             } else {
-                PRINT_RULE_MATCH("partial limit match (limit '%s') but no matching rule", ' ', conf->limit)
+                PRINT_RULE_MATCH("partial limit match (limit '%s') but no matching rule", ' ', limit_safe)
             }
             break;
         case RESULT_NO_LIMIT_MATCH:
-            PRINT_RULE_MATCH("outside of limit '%s'", ' ', conf->limit);
+            PRINT_RULE_MATCH("outside of limit '%s'", ' ', limit_safe);
             break;
     }
+    free(filename_safe);
+    free(limit_safe);
 }
 
 /*

@@ -89,6 +89,9 @@ int cmpurl(url_t*, url_t*);
 
 int contains_unsafe(const char*);
 
+char *strnesc(const char *, size_t);
+char *stresc(const char *);
+
 void decode_string(char*);
 
 char* encode_string(const char*);

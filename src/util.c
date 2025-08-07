@@ -143,6 +143,40 @@ int cmpurl(url_t* u1,url_t* u2)
   return RETOK;
 }
 
+static size_t escape_str(const char *unescaped_str, char *str, size_t s) {
+    size_t n = 0;
+    size_t i = 0;
+    char c;
+    while (i < s && (c = unescaped_str[i])) {
+        if ((c >= 0 && (c < 0x1f || c == 0x7f)) ||
+            (c == '\\' && isdigit(unescaped_str[i+1])
+                       && isdigit(unescaped_str[i+2])
+                       && isdigit(unescaped_str[i+3])
+                ) ) {
+            if (str) { snprintf(&str[n], 5, "\\%03o", c); }
+            n += 4;
+        } else {
+            if (str) { str[n] = c; }
+            n++;
+        }
+        i++;
+    }
+    if (str) { str[n] = '\0'; }
+    n++;
+    return n;
+}
+
+char *strnesc(const char *unescaped_str, size_t s) {
+    int n = escape_str(unescaped_str, NULL, s);
+    char *str = checked_malloc(n);
+    escape_str(unescaped_str, str, s);
+    return str;
+}
+
+char *stresc(const char *unescaped_str) {
+    return strnesc(unescaped_str, strlen(unescaped_str));
+}
+
 /* Returns 1 if the string contains unsafe characters, 0 otherwise.  */
 int contains_unsafe (const char *s)
 {

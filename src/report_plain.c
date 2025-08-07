@@ -53,7 +53,9 @@ static char* _get_not_grouped_list_string(report_t *report) {
 static void _print_config_option(report_t *report, config_option option, const char* value) {
     if (first) { first=false; }
     else { report_printf(report," | "); }
-    report_printf(report, "%s: %s", config_options[option].report_string, value);
+    char *value_safe = stresc(value);
+    report_printf(report, "%s: %s", config_options[option].report_string, value_safe);
+    free(value_safe);
 }
 
 static void _print_report_option(report_t *report, config_option option, const char* value) {
@@ -61,37 +63,49 @@ static void _print_report_option(report_t *report, config_option option, const c
 }
 
 static void _print_attribute(report_t *report, db_line* oline, db_line* nline, ATTRIBUTE attribute) {
-    char **ovalue = NULL;
-    char **nvalue = NULL;
+    char **ovalues = NULL;
+    char **nvalues = NULL;
     int onumber, nnumber, i, c;
     int p = (conf->print_details_width-(4 + MAX_WIDTH_DETAILS_STRING))/2;
 
     DB_ATTR_TYPE attr = ATTR(attribute);
     const char* name = attributes[attribute].details_string;
 
-    onumber=get_attribute_values(attr, oline, &ovalue, report);
-    nnumber=get_attribute_values(attr, nline, &nvalue, report);
+    onumber=get_attribute_values(attr, oline, &ovalues, report);
+    nnumber=get_attribute_values(attr, nline, &nvalues, report);
 
     i = 0;
     while (i<onumber || i<nnumber) {
-        int olen = i<onumber?strlen(ovalue[i]):0;
-        int nlen = i<nnumber?strlen(nvalue[i]):0;
+        char *ovalue = NULL;
+        char *nvalue = NULL;
+        int olen = 0;
+        int nlen = 0;
+        if (i<onumber){
+            ovalue = stresc(ovalues[i]);
+            olen = strlen(ovalue);
+        }
+        if (i<nnumber) {
+            nvalue = stresc(nvalues[i]);
+            nlen = strlen(nvalue);
+        }
         int k = 0;
         while (olen-p*k >= 0 || nlen-p*k >= 0) {
             c = k*(p-1);
             if (!onumber) {
-                report_printf(report," %-*s%c %-*c  %.*s\n", MAX_WIDTH_DETAILS_STRING, (i+k)?"":name, (i+k)?' ':':', p, ' ', p-1, nlen-c>0?&nvalue[i][c]:"");
+                report_printf(report," %-*s%c %-*c  %.*s\n", MAX_WIDTH_DETAILS_STRING, (i+k)?"":name, (i+k)?' ':':', p, ' ', p-1, nlen-c>0?&nvalue[c]:"");
             } else if (!nnumber) {
-                report_printf(report," %-*s%c %.*s\n", MAX_WIDTH_DETAILS_STRING, (i+k)?"":name, (i+k)?' ':':', p-1, olen-c>0?&ovalue[i][c]:"");
+                report_printf(report," %-*s%c %.*s\n", MAX_WIDTH_DETAILS_STRING, (i+k)?"":name, (i+k)?' ':':', p-1, olen-c>0?&ovalue[c]:"");
             } else {
-                report_printf(report," %-*s%c %-*.*s| %.*s\n", MAX_WIDTH_DETAILS_STRING, (i+k)?"":name, (i+k)?' ':':', p, p-1, olen-c>0?&ovalue[i][c]:"", p-1, nlen-c>0?&nvalue[i][c]:"");
+                report_printf(report," %-*s%c %-*.*s| %.*s\n", MAX_WIDTH_DETAILS_STRING, (i+k)?"":name, (i+k)?' ':':', p, p-1, olen-c>0?&ovalue[c]:"", p-1, nlen-c>0?&nvalue[c]:"");
             }
             k++;
         }
         ++i;
+        free(ovalue);
+        free(nvalue);
     }
-    for(i=0; i < onumber; ++i) { free(ovalue[i]); ovalue[i]=NULL; } free(ovalue); ovalue=NULL;
-    for(i=0; i < nnumber; ++i) { free(nvalue[i]); nvalue[i]=NULL; } free(nvalue); nvalue=NULL;
+    for(i=0; i < onumber; ++i) { free(ovalues[i]); ovalues[i]=NULL; } free(ovalues); ovalues=NULL;
+    for(i=0; i < nnumber; ++i) { free(nvalues[i]); nvalues[i]=NULL; } free(nvalues); nvalues=NULL;
 }
 
 static void _print_database_attributes(report_t *report, db_line* db) {
@@ -134,19 +148,21 @@ static void print_report_summary_plain(report_t *report) {
 }
 
 static void print_line_plain(report_t* report, char* filename, int node_checked, seltree* node) {
+    char *filename_safe = stresc(filename);
     if(report->summarize_changes) {
         char* summary = get_summarize_changes_string(report, node);
-        report_printf(report, "\n%s: %s", summary, filename);
+        report_printf(report, "\n%s: %s", summary, filename_safe);
         free(summary); summary=NULL;
     } else {
         if (node_checked&NODE_ADDED) {
-            report_printf(report, _("\nadded: %s"), filename);
+            report_printf(report, _("\nadded: %s"), filename_safe);
         } else if (node_checked&NODE_REMOVED) {
-            report_printf(report, _("\nremoved: %s"), filename);
+            report_printf(report, _("\nremoved: %s"), filename_safe);
         } else if (node_checked&NODE_CHANGED) {
-            report_printf(report, _("\nchanged: %s"), filename);
+            report_printf(report, _("\nchanged: %s"), filename_safe);
         }
     }
+    free(filename_safe);
 }
 
 static void print_report_dbline_attributes_plain(report_t *report, db_line* oline, db_line* nline, DB_ATTR_TYPE report_attrs) {
@@ -156,7 +172,9 @@ static void print_report_dbline_attributes_plain(report_t *report, db_line* olin
         if (line->perm) {
             report_printf(report, "%s: ", get_file_type_string(line->perm));
         }
-        report_printf(report, "%s\n", line->filename);
+        char *filename_safe = stresc(line->filename);
+        report_printf(report, "%s\n", filename_safe);
+        free(filename_safe);
 
         print_dbline_attrs(report, oline, nline, report_attrs, _print_attribute);
     }
@@ -193,9 +211,11 @@ static void print_report_details_plain(report_t *report, seltree* node) {
 static void print_report_diff_attrs_entries_plain(report_t *report) {
     for(int i = 0; i < report->num_diff_attrs_entries; ++i) {
         char *str = NULL;
+        char *entry_safe = stresc(report->diff_attrs_entries[i].entry);
         report_printf(report, "Entry %s in databases has different attributes: %s\n",
-                report->diff_attrs_entries[i].entry,
+                entry_safe,
                 str= diff_attributes(report->diff_attrs_entries[i].old_attrs, report->diff_attrs_entries[i].new_attrs));
+        free(entry_safe);
         free(str);
     }
     report->num_diff_attrs_entries = 0;

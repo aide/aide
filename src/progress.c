@@ -202,7 +202,7 @@ void progress_status(progress_state new_state, const char* data) {
             free(path);
             path = NULL;
             if (data) {
-                path = checked_strdup(data);
+                path = stresc(data);
             }
             break;
         case PROGRESS_SKIPPED:

@@ -302,7 +302,7 @@ void update_progress_status(progress_state new_state, const char* data) {
             free(path);
             path = NULL;
             if (data) {
-                path = checked_strdup(data);
+                path = stresc(data);
             }
             break;
         case PROGRESS_SKIPPED:
@@ -331,7 +331,7 @@ void update_progress_worker_status(int index, progress_worker_state new_state, v
             case progress_worker_state_processing:
                 if (data) {
                     free(worker_status[index-1].data);
-                    worker_status[index-1].data = checked_strdup(data);
+                    worker_status[index-1].data = stresc(data);
                 }
                 break;
             case progress_worker_state_idle:

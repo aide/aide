@@ -96,8 +96,13 @@ static int _escape_json_string(const char *src, char *escaped_string) {
                 n++;
                 break;
             default:
-                if (escaped_string) { escaped_string[n] = src[i]; }
-                n++;
+                if (src[i] >= 0 && (src[i] < 0x1f || src[i] == 0x7f)) {
+                    if (escaped_string) { snprintf(&escaped_string[n], 7, "\\u%04x", src[i]); }
+                    n += 6;
+                } else {
+                    if (escaped_string) { escaped_string[n] = src[i]; }
+                    n++;
+                }
         }
     }
     if (escaped_string) { escaped_string[n] = '\0'; }

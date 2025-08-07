@@ -158,11 +158,24 @@ Resize the progress bar (if enabled).
 .PP
 .SH NOTES
 
+.IP "Checksum encoding"
+
 The checksums in the database and in the output are by default base64
 encoded (see also report_base16 option).
 To decode them you can use the following shell command:
 
 echo <encoded_checksum> | base64 \-d | hexdump \-v \-e '32/1 "%02x" "\\n"'
+
+.IP "Control characters"
+
+Control characters (00-31 and 127) are always escaped in log and plain report
+output. They are escaped by a literal backslash (\\) followed by exactly 3
+digits representing the character in octal notation (e.g. a newline is output
+as "\fB\\012\fR"). A literal backslash is not escaped unless it is followed by
+3 digits (0-9), in this case the literal backslash is escaped as
+"\fB\\134\fR". Reports in JSON format are escaped according to the JSON specs
+(e.g. a newline is output as "\fB\\b\fR" or an escape (\fBESC\fR) is output as
+"\fB\\u001b\fR")
 
 .PP
 .SH FILES

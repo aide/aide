@@ -294,7 +294,8 @@ static void read_param(int argc,char**argv)
                 if((conf->limit_crx=pcre2_compile((PCRE2_SPTR) conf->limit, PCRE2_ZERO_TERMINATED, PCRE2_UTF|PCRE2_ANCHORED, &pcre2_errorcode, &pcre2_erroffset, NULL)) == NULL) {
                     PCRE2_UCHAR pcre2_error[128];
                     pcre2_get_error_message(pcre2_errorcode, pcre2_error, 128);
-                    INVALID_ARGUMENT("--limit", error in regular expression '%s' at %zu: %s, conf->limit, pcre2_erroffset, pcre2_error)
+                    char * limit_safe = stresc(conf->limit);
+                    INVALID_ARGUMENT("--limit", error in regular expression '%s' at %zu: %s, limit_safe, pcre2_erroffset, pcre2_error)
 
                 }
                 conf->limit_md = pcre2_match_data_create_from_pattern(conf->limit_crx, NULL);
@@ -641,14 +642,16 @@ static void list_attribute(db_line* entry, ATTRIBUTE attribute) {
 
     i = 0;
     while (i<num) {
-        int olen = strlen(value[i]);
+        char *ovalue = stresc(value[i]);
+        int olen = strlen(ovalue);
         int k = 0;
         while (olen-p*k >= 0) {
             c = k*(p-1);
-            fprintf(stdout,"  %-*s%c %.*s\n", MAX_WIDTH_DETAILS_STRING, (i+k)?"":name, (i+k)?' ':':', p-1, olen-c>0?&value[i][c]:"");
+            fprintf(stdout,"  %-*s%c %.*s\n", MAX_WIDTH_DETAILS_STRING, (i+k)?"":name, (i+k)?' ':':', p-1, olen-c>0?&ovalue[c]:"");
             k++;
         }
         ++i;
+        free(ovalue);
     }
     for(i=0; i < num; ++i) { free(value[i]); value[i]=NULL; } free(value); value=NULL;
 }
@@ -811,7 +814,9 @@ int main(int argc,char**argv)
       db_entry_t entry;
       while((entry = db_readline(&(conf->database_in), false)).line != NULL) {
           log_msg(LOG_LEVEL_RULE, "\u252c process '%s' (filetype: %c)", (entry.line)->filename, get_f_type_char_from_perm((entry.line)->perm));
-          fprintf(stdout, "%s\n", (entry.line)->filename);
+          char *entry_safe = stresc((entry.line)->filename);
+          fprintf(stdout, "%s\n", entry_safe);
+          free(entry_safe);
           for (int j=0; j < report_attrs_order_length; ++j) {
               switch(report_attrs_order[j]) {
                   case attr_allhashsums:

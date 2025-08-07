@@ -377,7 +377,7 @@ static int str_xattr(char *str, int n, xattrs_type *xattrs) {
                 enc_key = encode_string(xattr->key);
             }
             char *enc_value = encode_base64(xattr->val, xattr->vsz);
-            m += str_format(str, n + m, ",%s,%s", enc_key?enc_key:xattr->key, enc_value);
+            m += str_format(str, n + m, ",%s,%s", enc_key?enc_key:xattr->key, enc_value?enc_value:"0");
             free(enc_key);
             free(enc_value);
             ++xattr;

@@ -48,7 +48,7 @@
 #include "util.h"
 #include "errorcodes.h"
 
-#define URL_UNSAFE " <>\"#%{}|\\^~[]`@:\033'"
+#define URL_UNSAFE " <>\"#%{}|\\^~[]`@:\033',"
 #define ISPRINT(c) (isascii(c) && isprint(c))
 
 pthread_mutex_t stderr_mutex = PTHREAD_MUTEX_INITIALIZER;

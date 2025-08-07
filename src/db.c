@@ -374,18 +374,28 @@ db_line* db_char2line(char** ss, database* db){
           num = 0;
           while (num < line->xattrs->num)
           {
-            byte  *val = NULL;
-            size_t vsz = 0;
-            
             tval = strtok(NULL, ",");
             decode_string(tval);
             line->xattrs->ents[num].key = checked_strdup(tval);
             tval = strtok(NULL, ",");
-            val = base64tobyte(tval, strlen(tval), &vsz);
-            line->xattrs->ents[num].val = val;
-            line->xattrs->ents[num].vsz = vsz;
-
-            ++num;
+            if (strcmp(tval,"0") != 0) {
+                line->xattrs->ents[num].val = decode_base64(tval, strlen(tval), &line->xattrs->ents[num].vsz);
+            } else {
+                line->xattrs->ents[num].val = checked_strdup("");
+                line->xattrs->ents[num].vsz = 0;
+            }
+            if (line->xattrs->ents[num].val == NULL) {
+                LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "error while reading xattrs for '%s' from database (discarding extended attributes)", line->filename)
+                for (int j = num; j >= 0 ; --j) {
+                    free(line->xattrs->ents[j].key);
+                    line->xattrs->ents[j].key = NULL;
+                    free(line->xattrs->ents[j].val);
+                    line->xattrs->ents[j].val = NULL;
+                }
+                line->xattrs->num = 0;
+            } else {
+                ++num;
+            }
           }
         }
 #endif

@@ -1,4 +1,4 @@
-Version 0.19.2 (UNRELEASED)
+Version 0.19.2 (2025-08-13)
     * Security bug fixes
         - CVE-2025-54389: Escape control characters in report and log output
         - CVE-2025-54409: Fix null pointer dereference after reading incorrectly

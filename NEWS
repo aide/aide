@@ -145,7 +145,7 @@ Version 0.17 (2021-01-23)
         - introduce named log levels
         - add new 'report' log level to help to debug rule matching
         - add new 'config' log level to help to debug config and rule parsing
-        - aad new '--dry-init' command
+        - add new '--dry-init' command
         - add new '--path-check' command
         - add directory support for @@include
         - add new @@x_include config macro
@@ -164,7 +164,7 @@ Version 0.17 (2021-01-23)
         - add config file names to log output
     * Miscellaneous behaviour changes:
         - 'report_summarize_changes': hashsum changes are now indicated with 'H'
-        - print '--help' and '--verion' output to stdout
+        - print '--help' and '--version' output to stdout
         - log messages and errors are always written to stderr
         - initialise report URLs after configuration parsing
         - allow empty values for macro variables

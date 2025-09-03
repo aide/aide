@@ -1,3 +1,6 @@
+2025-09-03 Attila Lakatos <alakatos@redhat.com>
+	* Fix typos in README, NEWS and aide.conf.5
+
 2025-08-13 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Release aide 0.19.2
 

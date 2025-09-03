@@ -8,7 +8,7 @@
     modifications, as long as this notice is preserved.
 
     This file is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY, to the extend permitted by law; without even the
+    WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
     implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 
@@ -71,13 +71,13 @@
     of compromised shared libraries and to ease client/server monitoring
     configurations. However an attacker could still simply replace the
     statically linked binary, tamper the database file or use dynamically
-    loaded kernel modules to change the behaviour of AIDe.
+    loaded kernel modules to change the behaviour of AIDE.
 
-    These days many Linux distributions (eg Centos/Oracle Linux), operating
-    systems (eg Mac OS/OpenSolaris) and libaries have dropped support for
+    These days many Linux distributions (eg CentOS/Oracle Linux), operating
+    systems (eg Mac OS/OpenSolaris) and libraries have dropped support for
     static linking.
 
-    Hence starting with releae v0.18 AIDE is linked dynamically by default.
+    Hence starting with release v0.18 AIDE is linked dynamically by default.
 
     To re-enable static linking use '--enable-static' when configuring AIDE.
 
@@ -157,7 +157,7 @@
 
         https://www.ipi.fi/mailman/listinfo/aide
 
-    An archive for the mailing list archive is available online:
+    An archive of the mailing list is available online:
 
         http://www.ipi.fi/pipermail/aide/
 

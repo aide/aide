@@ -20,7 +20,7 @@ twice (i.e. '\fB\e\e\e\e\fR').
 There are three types of lines in \fBaide.conf\fP. First there are the
 configuration options which are used to set configuration parameters and
 define groups. Second, there are (restricted) rules that are used to indicate
-which files/directoires from the file system are added to the database. Third,
+which files/directories from the file system are added to the database. Third,
 macro lines define or undefine variables within the config file. Lines
 beginning with # are ignored as comments.
 .PP
@@ -127,7 +127,7 @@ rule tree). For debugging it is recommended to use these log levels together wit
 
 \fBthread\fP: additionally show messages about thread processing (e.g. broadcast events)
 
-\fBtrace\fP: additionallyt show messages about the internal data structures and the flow of the application (e.g. in-loop logging) (extremely verbose)
+\fBtrace\fP: additionally show messages about the internal data structures and the flow of the application (e.g. in-loop logging) (extremely verbose)
 
 .RE
 
@@ -744,7 +744,7 @@ Evaluates to \fBtrue\fR if \fIPATH\fR exists.
 Evaluates to \fBtrue\fR if \fIVERSION_STRING1\fR is greater than or equal to
 \fIVERSION_STRING2\fR (e.g. 0.19.1 \fBversion_ge\fR 0.18 evaluates to
 \fBtrue\fR and 2.17 \fBversion_ge\fR 1.1 to \fBfalse\fR). The version strings
-must be in the formaat MAJOR.MINOR.PATCH (minor and patch version can be
+must be in the format MAJOR.MINOR.PATCH (minor and patch version can be
 omitted, any version suffix (e.g. for pre-release) will be truncated).
 .RE
 
@@ -790,7 +790,7 @@ The maximum depth of nested includes is 16.
 
 .IP "@@include \fBDIRECTORY\fR \fBREGEX\fR [\fBRULE_PREFIX\fR] (added in AIDE v0.17)"
 Include all (regular) files found in \fBDIRECTORY\fR matching regular
-expression \fBREGEX\fR (sub-directories are ignored). The file are included in
+expression \fBREGEX\fR (sub-directories are ignored). The files are included in
 lexical sort order.
 
 If \fBRULE_PREFIX\fR (added in AIDE v0.18) is set, all rules included by the

@@ -1,0 +1,71 @@
+---
+name: Bug Report
+description: File a bug report
+labels: ["triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Please read the following before submitting:
+        - Please do **NOT** submit bug reports for questions. Ask questions on the [AIDE user mailing list](https://www.ipi.fi/mailman/listinfo/aide).
+        - Please ensure that this bug report relates to the command line tool AIDE (Advanced Intrusion Detection Environment).
+        - If possible, please reproduce the issue with `aide`, built from the latest git sources.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: |
+        Describe the actual and expected behaviour. Also provide error messages and log output, if available.
+      placeholder: Describe the issue...
+    validations:
+      required: true
+
+  - type: textarea
+    id: how-to-reproduce
+    attributes:
+      label: How to reproduce the issue?
+      description: Describe the steps to reproduce the issue, including the exact command line parameters used and a minimal AIDE config, if necessary.
+      placeholder: Steps to reproduce...
+    validations:
+      required: true
+
+  - type: textarea
+    id: aide-version
+    attributes:
+      label: Which version of AIDE are you using?
+      description: Please provide the output of `aide --version`.
+      placeholder: |
+        AIDE 0.19
+
+        Compile-time options:
+        use pcre2: mandatory
+        ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: installation-method
+    attributes:
+      label: How did you install AIDE?
+      options:
+        - package manager (e.g. apt or rpm)
+        - manual build from release tarball
+        - manual build from git source
+    validations:
+      required: false
+
+  - type: input
+    id: operating-system
+    attributes:
+      label: What's your operating system?
+      description: |
+        Which OS are you running AIDE on?
+      placeholder: For example, Ubuntu 24.04, Debian trixie
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ### Thanks for taking the time to fill out this bug report!

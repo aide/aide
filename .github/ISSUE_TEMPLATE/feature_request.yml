@@ -1,0 +1,47 @@
+---
+name: Feature Request
+description: Suggest an idea
+labels: ["triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Please read the following before submitting:
+        - Please ensure that this feature request relates to the command line tool AIDE (Advanced Intrusion Detection Environment).
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      placeholder: Describe your idea...
+    validations:
+      required: true
+
+  - type: textarea
+    id: aide-version
+    attributes:
+      label: Which version of AIDE are you using?
+      description: Please provide the output of `aide --version`.
+      placeholder: |
+        AIDE 0.19
+
+        Compile-time options:
+        use pcre2: mandatory
+        ...
+    validations:
+      required: true
+
+  - type: input
+    id: operating-system
+    attributes:
+      label: What's your operating system?
+      description: |
+        Which OS are you running AIDE on?
+      placeholder: For example, Ubuntu 24.04, Debian trixie
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ### Thanks for taking the time to share your ideas.

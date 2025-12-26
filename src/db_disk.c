@@ -254,6 +254,9 @@ static void process_path(char *path, bool dry_run, int worker_index, const char 
         }
 #endif
         }
+        if(!(entry.attrs&ATTR(attr_rdev))) {
+                entry.fs.st_rdev=0;
+        }
         if (S_ISDIR(stat.st_mode)) {
             const char * whoami_log_thread = whoami ? whoami : "(main)";
             DIR *dir = NULL;

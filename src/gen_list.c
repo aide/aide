@@ -752,9 +752,6 @@ db_line* get_file_attrs(disk_entry *file, DB_ATTR_TYPE attrs, DB_ATTR_TYPE extra
   db_line* line=NULL;
   time_t cur_time;
 
-  if(!(attrs&ATTR(attr_rdev))) {
-    (file->fs).st_rdev=0;
-  }
   /*
     Get current time for future time notification.
    */

@@ -59,6 +59,8 @@
 db_config* conf;
 char* before = NULL;
 char* after = NULL;
+static char* config_override = NULL;
+static bool print_version_requested = false;
 
 #ifndef MAXHOSTNAMELEN
 #define MAXHOSTNAMELEN 256
@@ -149,16 +151,32 @@ static void print_version(void)
   fprintf(stdout, "Compile-time options:\n%s\n", AIDECOMPILEOPTIONS);
   fprintf(stdout, "Default config values:\n");
   fprintf(stdout, "config file: %s\n", conf->config_file?conf->config_file:"<none>");
+  const char *database_in = NULL;
+  const char *database_out = NULL;
+  if (conf->database_in.url) {
+      database_in = conf->database_in.url->raw;
+  }
+  if (conf->database_out.url) {
+      database_out = conf->database_out.url->raw;
+  }
 #ifdef DEFAULT_DB
-  fprintf(stdout, "database_in: %s\n", DEFAULT_DB);
-#else
-  fprintf(stdout, "database_in: <none>\n");
+  if (!database_in) {
+      database_in = DEFAULT_DB;
+  }
 #endif
+  if (!database_in) {
+      database_in = "<none>";
+  }
 #ifdef DEFAULT_DB_OUT
-  fprintf(stdout, "database_out: %s\n", DEFAULT_DB_OUT),
-#else
-  fprintf(stdout, "database_out: <none>\n"),
+  if (!database_out) {
+      database_out = DEFAULT_DB_OUT;
+  }
 #endif
+  if (!database_out) {
+      database_out = "<none>";
+  }
+  fprintf(stdout, "database_in: %s\n", database_in);
+  fprintf(stdout, "database_out: %s\n", database_out);
 
   fprintf(stdout, "\nAvailable compiled-in attributes:\n");
   DB_ATTR_TYPE extra_attributes = get_groupval("X");
@@ -267,12 +285,14 @@ static void read_param(int argc,char**argv)
 	break;
       }
       case 'v':{
-	print_version();
+        print_version_requested = true;
 	break;
       }
       case 'c':{
-	  conf->config_file=optarg;
-      log_msg(LOG_LEVEL_INFO,_("(--config): set config file to '%s'"), conf->config_file);
+	free(config_override);
+	config_override = checked_strdup(optarg);
+	conf->config_file = config_override;
+	log_msg(LOG_LEVEL_INFO,_("(--config): set config file to '%s'"), conf->config_file);
 	break;
       }
       case 'B': {
@@ -418,7 +438,7 @@ static void read_param(int argc,char**argv)
       }
   }
 
-  if(optind<argc){
+  if(!print_version_requested && optind<argc){
     fprintf(stderr, "%s: extra parameter: '%s'\n", argv[0], argv[optind]);
     exit(INVALID_ARGUMENT_ERROR);
   }
@@ -676,6 +696,23 @@ int main(int argc,char**argv)
   log_msg(LOG_LEVEL_INFO, "read command line parameters");
   read_param(argc,argv);
 
+  if (print_version_requested) {
+      if (config_override) {
+          log_msg(LOG_LEVEL_INFO, "parse configuration");
+          update_progress_status(PROGRESS_CONFIG, NULL);
+          errorno=parse_config(before, config_override, after);
+          if (errorno==RETFAIL){
+              exit(INVALID_CONFIGURELINE_ERROR);
+          }
+          free(before);
+          before = NULL;
+          free(after);
+          after = NULL;
+          setdefaults_after_config();
+      }
+      print_version();
+  }
+
   int stderr_isatty = isatty(STDERR_FILENO);
   if (stderr_isatty == 0) {
         log_msg(LOG_LEVEL_DEBUG, "isatty() failed for 'STDERR_FILENO': %s", strerror(errno));
@@ -724,7 +761,11 @@ int main(int argc,char**argv)
 
   log_msg(LOG_LEVEL_INFO, "parse configuration");
   update_progress_status(PROGRESS_CONFIG, NULL);
-  errorno=parse_config(before, conf->config_file, after);
+  char *config_path = conf->config_file;
+  if (config_override) {
+      config_path = config_override;
+  }
+  errorno=parse_config(before, config_path, after);
   if (errorno==RETFAIL){
     exit(INVALID_CONFIGURELINE_ERROR);
   }

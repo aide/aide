@@ -55,6 +55,8 @@ int conf_linenumber = 0;
 char *conf_filename;
 char *conf_linebuf;
 
+char * group_name = NULL;
+
 LOG_LEVEL lex_log_level = LOG_LEVEL_DEBUG;
 
 #define YY_INPUT(buf,result,max_size) \
@@ -66,7 +68,7 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_DEBUG;
 
 %option noinput nounput
 
-%x CONFIG DEFSTMT ENVVAR EXPR EXPREQUHUNT PATH STRING STRINGS STRINGEQHUNT STRINGHUNT CONDITION CONDSTRING
+%x CONFIG DEFSTMT ENVVAR EXPR EXPREQUHUNT GROUPEQHUNT GROUPEXPR PATH STRING STRINGS STRINGEQHUNT STRINGHUNT CONDITION CONDSTRING
 
 %%
 <INITIAL><<EOF>> {
@@ -129,23 +131,29 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_DEBUG;
   return('=');
 }
 
+<GROUPEQHUNT>{E} {
+  LOG_LEX_TOKEN(lex_log_level, '=', conftext)
+  BEGIN(GROUPEXPR);
+  return('=');
+}
+
 <EXPR>0 { /* no restriction */
   LOG_LEX_TOKEN(lex_log_level, '0', conftext)
   return ('0');
 }
 
-<EXPR>({L}|">")+ {
+<GROUPEXPR,EXPR>({L}|">")+ {
   LOG_LEX_TOKEN(lex_log_level, TEXPR, conftext)
   conflval.s=checked_strdup(conftext);
   return (TEXPR);
 }
 
-<EXPR>\+ { /* attribute operator */
+<GROUPEXPR,EXPR>\+ { /* attribute operator */
   LOG_LEX_TOKEN(lex_log_level, '+', conftext)
   return ('+');
 }
 
-<EXPR>\- { /* attribute operator */
+<GROUPEXPR,EXPR>\- { /* attribute operator */
   LOG_LEX_TOKEN(lex_log_level, '-', conftext)
   return ('-');
 }
@@ -289,7 +297,7 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_DEBUG;
   return (TVARIABLE);
 }
 
-<CONFIG,DEFSTMT,ENVVAR,EXPR,CONDITION>[\t\ ]+ {
+<CONFIG,DEFSTMT,ENVVAR,EXPR,GROUPEXPR,CONDITION>[\t\ ]+ {
     LOG_LEX_TOKEN(LOG_LEVEL_DEBUG, skip tab(s)/whitespace(s), conftext)
 }
 
@@ -488,8 +496,9 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_DEBUG;
 
 <CONFIG>({G})+ { /* group definition */
   conflval.s=checked_strdup(conftext);
+  group_name = conflval.s;
   LOG_LEX_TOKEN(lex_log_level, TGROUP, conftext)
-  BEGIN(EXPREQUHUNT);
+  BEGIN(GROUPEQHUNT);
   return (TGROUP);
 }
 
@@ -565,7 +574,7 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_DEBUG;
   BEGIN(STRING);
 }
 
-<CONFIG,DEFSTMT,ENVVAR,EXPR,EXPREQUHUNT,PATH,STRINGS,STRING,STRINGEQHUNT,STRINGHUNT>\r?\n {
+<CONFIG,DEFSTMT,ENVVAR,EXPR,EXPREQUHUNT,GROUPEQHUNT,GROUPEXPR,PATH,STRINGS,STRING,STRINGEQHUNT,STRINGHUNT>\r?\n {
   log_msg(lex_log_level,"%s:%d: \u2534 TNEWLINE (text: '%s')", conf_filename, conf_linenumber, strlen(conftext) == 2?"\\r\\n":"\\n");
   BEGIN 0;
   return (TNEWLINE);
@@ -575,6 +584,15 @@ LOG_LEVEL lex_log_level = LOG_LEVEL_DEBUG;
   log_msg(lex_log_level,"%s:%d: \u2534 <end of file>", conf_filename, conf_linenumber);
   log_msg(LOG_LEVEL_NOTICE,"%s:%d: missing new line at end of file (line: '%s')", conf_filename, conf_linenumber, conf_linebuf);
   return (0);
+}
+
+<GROUPEXPR>. {
+     char *unexpected_character = conftext;
+     switch (*conftext) {
+         case '\r': unexpected_character = "\\r"; break;
+     };
+     log_msg(LOG_LEVEL_ERROR,"%s:%d: unexpected character in '%s' group definition: '%s' (line: '%s')", conf_filename, conf_linenumber, group_name, unexpected_character, conf_linebuf);
+     exit(INVALID_CONFIGURELINE_ERROR);
 }
 
 <*>. {

@@ -47,6 +47,8 @@
 #include <nettle/gosthash94.h>
 #include <nettle/streebog.h>
 
+#include <nettle/version.h>
+
 typedef struct {
   nettle_hash_init_func *init;
   nettle_hash_update_func *update;
@@ -166,7 +168,11 @@ int close_md(struct md_container* md, md_hashsums * hs, const char *filename, co
         for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
             DB_ATTR_TYPE h = ATTR(hashsums[i].attribute);
             if (h&md->calc_attr) {
+#if NETTLE_VERSION_MAJOR < 4
                 nettle_functions[i].digest(&md->ctx[i].md5, hashsums[i].length, hs->hashsums[i]);
+#else
+                nettle_functions[i].digest(&md->ctx[i].md5, hs->hashsums[i]);
+#endif
             }
         }
 #endif

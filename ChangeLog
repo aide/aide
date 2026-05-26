@@ -1,5 +1,6 @@
 2026-05-26 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Improve logging of invalid group definitions (closes: #213)
+	* Support build with nettle 4 (closes: #218)
 
 2025-12-26 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix st_rdev handling (closes: #208)

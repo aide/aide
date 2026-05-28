@@ -1,3 +1,6 @@
+2026-05-28 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Drop local getopt_long() implementation (closes: #216)
+
 2026-05-26 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Improve logging of invalid group definitions (closes: #213)
 	* Support build with nettle 4 (closes: #218)

@@ -3,6 +3,7 @@ Version 0.19.4 (UNRELEASED)
     * Fix segfault on limit matching encoded filename
     * Extend expiration dates of GPG key in SECURITY.md
     * Fix groff warnings in aide.conf.5
+    * Drop local getopt_long() implementation
     * Support build with nettle 4
 
 Version 0.19.3 (2026-01-31)

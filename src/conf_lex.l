@@ -12,7 +12,7 @@ E	[\ ]*"="[\ ]*
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2004-2006, 2010-2013, 2015-2016, 2019-2025
+ * Copyright (C) 1999-2002, 2004-2006, 2010-2013, 2015-2016, 2019-2026
  *               Rami Lehti, Pablo Virolainen, Richard van den Berg,
  *               Hannes von Haugwitz
  *

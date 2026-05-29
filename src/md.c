@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2002, 2005-2006, 2010, 2019-2025 Rami Lehti,
+ * Copyright (C) 1999-2002, 2005-2006, 2010, 2019-2026 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or

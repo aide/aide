@@ -1,3 +1,6 @@
+2026-05-30 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Adjust wording in aide.conf.5 manual page
+
 2026-05-28 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Drop local getopt_long() implementation (closes: #216)
 

@@ -1,3 +1,6 @@
+2026-06-04 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Fix groff warnings in aide.conf.5 (closes: #222)
+
 2026-05-30 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Adjust wording in aide.conf.5 manual page
 

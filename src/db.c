@@ -151,7 +151,27 @@ static db_line *close_db_attrs (database *db) {
     if (db->mdc != NULL) {
         md_hashsums hs;
         line = checked_malloc(sizeof(struct db_line));
-        line->filename = (db->url)->value;
+        switch ((db->url)->type) {
+            case url_stdin:
+            case url_stdout:
+            case url_stderr:
+            case url_fd:
+            case url_http:
+            case url_https:
+            case url_ftp: {
+                line->filename = (db->url)->raw;
+                break;
+            }
+            case url_file: {
+                line->filename = (db->url)->value;
+                break;
+            }
+            /* unsupported database types */
+            case url_syslog: {
+                /* do nothing */
+                break;
+            }
+        }
         line->perm = 0;
         line->attr = conf->db_attrs;
         close_md(db->mdc, &hs, line->filename, NULL);

@@ -298,7 +298,7 @@ static void print_report_summary_json(report_t *report) {
 }
 
 static void print_report_new_database_written_json(report_t *report) {
-    report_printf(report, JSON_FMT_STRING_COMMA, 2, ' ', "new_database", conf->database_out.url->value);
+    report_printf(report, JSON_FMT_STRING_COMMA, 2, ' ', "new_database", conf->database_out.url->type == url_file ? conf->database_out.url->value : conf->database_out.url->raw);
 }
 
 static void print_report_details_json(report_t *report, seltree* node) {

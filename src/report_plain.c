@@ -117,7 +117,7 @@ static void print_report_outline_plain(report_t *report) {
 }
 
 static void print_report_new_database_written_plain(report_t *report) {
-    report_printf(report,_("New AIDE database written to %s\n"),conf->database_out.url->value);
+    report_printf(report,_("New AIDE database written to %s\n"), conf->database_out.url->type == url_file ? conf->database_out.url->value : conf->database_out.url->raw);
 }
 
 static void print_report_config_options_plain(report_t *report) {

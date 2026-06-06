@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2022, 2026 Hannes von Haugwitz
+ * Copyright (C) 2026 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -18,14 +18,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _REPORT_JSON_H_INCLUDED
-#define _REPORT_JSON_H_INCLUDED
+#ifndef _REPORT_NDJSON_H_INCLUDED
+#define _REPORT_NDJSON_H_INCLUDED
 
 #include "report.h"
 
-extern report_format_module report_module_json;
-
-char *get_escaped_json_string(const char *);
-char* get_value_format_json(ATTRIBUTE);
+extern report_format_module report_module_ndjson;
 
 #endif

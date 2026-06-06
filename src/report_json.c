@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2022-2025 Hannes von Haugwitz
+ * Copyright (C) 2022-2026 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -46,13 +46,13 @@
 #define JSON_FMT_STRING_LAST "%*c\"%s\": \"%s\"\n"
 #define JSON_FMT_STRING_PLAIN "%*c\"%s\": \"%s\""
 
-bool line_first = true;
-bool database_first = true;
-bool databases_first = true;
-bool details_first = true;
-bool attributes_first = true;
+bool json_line_first = true;
+bool json_database_first = true;
+bool json_databases_first = true;
+bool json_details_first = true;
+bool json_attributes_first = true;
 
-static int _escape_json_string(const char *src, char *escaped_string) {
+int _escape_json_string(const char *src, char *escaped_string) {
     size_t i;
     int n = 0;
 
@@ -111,7 +111,7 @@ static int _escape_json_string(const char *src, char *escaped_string) {
     return n;
 }
 
-static char *_get_escaped_json_string(const char *src) {
+char *get_escaped_json_string(const char *src) {
     char *str = NULL;
     int n = _escape_json_string(src, str);
     str = checked_malloc(n);
@@ -120,12 +120,12 @@ static char *_get_escaped_json_string(const char *src) {
 }
 
 static void _print_config_option(report_t *report, config_option option, const char* value) {
-    char *escaped_value = _get_escaped_json_string(value);
+    char *escaped_value = get_escaped_json_string(value);
     report_printf(report, JSON_FMT_STRING_COMMA, 2, ' ', config_options[option].config_name, escaped_value);
     free(escaped_value);
 }
 
-static char* _get_value_format(ATTRIBUTE attribute) {
+char* get_value_format_json(ATTRIBUTE attribute) {
     switch(attribute) {
         case attr_uid:
         case attr_gid:
@@ -141,10 +141,10 @@ static char* _get_value_format(ATTRIBUTE attribute) {
 }
 
 static void print_line_json(report_t* report, char* filename, int node_checked, seltree* node) {
-    if (line_first) { line_first=false; }
+    if (json_line_first) { json_line_first=false; }
     else { report_printf(report,",\n"); }
 
-    char *escaped_filename = _get_escaped_json_string(filename);
+    char *escaped_filename = get_escaped_json_string(filename);
 
     if(report->summarize_changes) {
         char* summary = get_summarize_changes_string(report, node);
@@ -171,14 +171,14 @@ static void _print_attribute_value(report_t *report, const char* name, ATTRIBUTE
         if (num > 1) {
             report_printf(report, JSON_FMT_ARRAY_BEGIN, ident, ' ', name);
             for (int i = 0 ; i < num ; i++) {
-                char *escaped_value = _get_escaped_json_string(value[i]);
+                char *escaped_value = get_escaped_json_string(value[i]);
                 report_printf(report, i+1<num?JSON_FMT_ARRAY_ELEMENT_INNER:JSON_FMT_ARRAY_ELEMENT_LAST, ident+2, ' ', escaped_value);
                 free(escaped_value);
             }
             report_printf(report, JSON_FMT_ARRAY_END_PLAIN, ident, ' ');
         } else {
-            char *escaped_value = _get_escaped_json_string(value[0]);
-            report_printf(report, _get_value_format(attribute), ident, ' ', name, escaped_value);
+            char *escaped_value = get_escaped_json_string(value[0]);
+            report_printf(report, get_value_format_json(attribute), ident, ' ', name, escaped_value);
             free(escaped_value);
         }
     }
@@ -189,7 +189,7 @@ static void _print_attribute(report_t *report, db_line* oline, db_line* nline, A
     char **nvalue = NULL;
     int onumber, nnumber, i;
 
-    if (attributes_first) { attributes_first=false; }
+    if (json_attributes_first) { json_attributes_first=false; }
     else { report_printf(report,",\n"); }
 
     DB_ATTR_TYPE attr = ATTR(attribute);
@@ -216,7 +216,7 @@ static void _print_database_attribute(report_t *report, db_line* oline, __attrib
     char **value;
     int num, i;
 
-    if (database_first) { database_first=false; }
+    if (json_database_first) { json_database_first=false; }
     else { report_printf(report,",\n"); }
 
     DB_ATTR_TYPE attr = ATTR(attribute);
@@ -230,12 +230,12 @@ static void _print_database_attribute(report_t *report, db_line* oline, __attrib
 }
 
 static void _print_database_attributes(report_t *report, db_line* db) {
-    if (databases_first) { databases_first=false; }
+    if (json_databases_first) { json_databases_first=false; }
     else { report_printf(report,",\n"); }
 
-    char *escaped_filename = _get_escaped_json_string(db->filename);
+    char *escaped_filename = get_escaped_json_string(db->filename);
 
-    database_first = true;
+    json_database_first = true;
     report_printf(report, JSON_FMT_OBJECT_BEGIN, 4, ' ', escaped_filename);
     print_dbline_attrs(report, db, NULL, db->attr, _print_database_attribute);
     report_printf(report,"\n");
@@ -245,12 +245,12 @@ static void _print_database_attributes(report_t *report, db_line* db) {
 
 static void _print_report_dbline_attributes(report_t *report, db_line* oline, db_line* nline, DB_ATTR_TYPE report_attrs) {
     if  (report_attrs)  {
-        if (details_first) { details_first=false; }
+        if (json_details_first) { json_details_first=false; }
         else { report_printf(report,",\n"); }
 
-        char *escaped_filename = _get_escaped_json_string((nline==NULL?oline:nline)->filename);
+        char *escaped_filename = get_escaped_json_string((nline==NULL?oline:nline)->filename);
         report_printf(report, JSON_FMT_OBJECT_BEGIN, 4, ' ', escaped_filename);
-        attributes_first = true;
+        json_attributes_first = true;
         print_dbline_attrs(report, oline, nline, report_attrs, _print_attribute);
         report_printf(report,"\n");
         report_printf(report, JSON_FMT_OBJECT_END_PLAIN, 4, ' ');
@@ -302,7 +302,7 @@ static void print_report_new_database_written_json(report_t *report) {
 }
 
 static void print_report_details_json(report_t *report, seltree* node) {
-    details_first = true;
+    json_details_first = true;
     report_printf(report, JSON_FMT_OBJECT_BEGIN, 2, ' ', "details");
     print_report_details(report, node, _print_report_dbline_attributes);
     report_printf(report,"\n");
@@ -310,7 +310,7 @@ static void print_report_details_json(report_t *report, seltree* node) {
 }
 
 static void print_report_databases_json(report_t *report) {
-    databases_first = true;
+    json_databases_first = true;
     report_printf(report, JSON_FMT_OBJECT_BEGIN, 2, ' ', "databases");
     print_databases_attrs(report, _print_database_attributes);
     report_printf(report,"\n");
@@ -318,7 +318,7 @@ static void print_report_databases_json(report_t *report) {
 }
 
 static void print_report_entries_json(report_t *report, seltree* node, const int filter) {
-    line_first = true;
+    json_line_first = true;
     switch (filter) {
         case NODE_ADDED:
             report_printf(report, report->summarize_changes||!report->grouped?JSON_FMT_OBJECT_BEGIN:JSON_FMT_ARRAY_BEGIN, 2, ' ', "added");
@@ -342,7 +342,7 @@ static void print_report_diff_attrs_entries_json(report_t *report) {
     if (report->num_diff_attrs_entries) {
         report_printf(report, JSON_FMT_OBJECT_BEGIN, 2, ' ', "different_attributes");
         for(int i = 0; i < report->num_diff_attrs_entries; ++i) {
-            char *escaped_filename = _get_escaped_json_string(report->diff_attrs_entries[i].entry);
+            char *escaped_filename = get_escaped_json_string(report->diff_attrs_entries[i].entry);
             char *attrs = diff_attributes(report->diff_attrs_entries[i].old_attrs, report->diff_attrs_entries[i].new_attrs);
             report_printf(report, i + 1 < report->num_diff_attrs_entries ? JSON_FMT_STRING_COMMA : JSON_FMT_STRING_LAST, 4, ' ',
                     escaped_filename, attrs);

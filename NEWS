@@ -1,5 +1,6 @@
 Version 0.20 (UNRELEASED)
     * Add info about worker states to progress bar
+    * Add report format 'ndjson'
     * Drop local getopt_long() implementation
     * Bug fixes
     * Update documentation

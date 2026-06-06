@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2007, 2010-2013, 2015-2016, 2018-2025 Rami Lehti,
+ * Copyright (C) 1999-2007, 2010-2013, 2015-2016, 2018-2026 Rami Lehti,
  *               Pablo Virolainen, Mike Markley, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -59,6 +59,7 @@
 #include "report.h"
 #include "report_plain.h"
 #include "report_json.h"
+#include "report_ndjson.h"
 /*for locale support*/
 #include "locale-aide.h"
 /*for locale support*/
@@ -146,6 +147,7 @@ struct report_format {
 static struct report_format report_format_array[] = {
  { REPORT_FORMAT_PLAIN, "plain" },
  { REPORT_FORMAT_JSON, "json" },
+ { REPORT_FORMAT_NDJSON, "ndjson" },
  { REPORT_FORMAT_UNKNOWN, NULL }
 };
 
@@ -965,6 +967,9 @@ int gen_report(seltree* node) {
                 break;
             case REPORT_FORMAT_JSON:
                 print_report(report, node, report_module_json);
+                break;
+            case REPORT_FORMAT_NDJSON:
+                print_report(report, node, report_module_ndjson);
                 break;
             case REPORT_FORMAT_UNKNOWN:
                 /* skip unknown report format */

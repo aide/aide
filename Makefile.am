@@ -31,6 +31,7 @@ aide_SOURCES = src/aide.c include/aide.h \
 	include/report.h src/report.c \
 	include/report_plain.h src/report_plain.c \
 	include/report_json.h src/report_json.c \
+	include/report_ndjson.h src/report_ndjson.c \
 	include/conf_ast.h src/conf_ast.c \
 	include/conf_eval.h src/conf_eval.c \
 	include/conf_lex.h src/conf_lex.l  \

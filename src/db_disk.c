@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006, 2010-2011, 2016-2017, 2019-2025 Rami Lehti,
+ * Copyright (C) 1999-2006, 2010-2011, 2016-2017, 2019-2026 Rami Lehti,
  *               Pablo Virolainen, Mike Markley, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -119,7 +119,7 @@ static bool open_for_reading(disk_entry *entry, bool dir_rec, const char *whoami
                 if(!(entry->attrs&ATTR(attr_rdev))) {
                     fs.st_rdev=0;
                 }
-                DB_ATTR_TYPE stat_diff;
+                int stat_diff;
                 if ((stat_diff = stat_cmp(&entry->fs, &fs, entry->attrs&ATTR(attr_growing))) != RETOK) {
                     failure_str = "stat fields changed";
                     error_str = diff_attributes(0, stat_diff);

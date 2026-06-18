@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2015,2016,2019-2025 Hannes von Haugwitz
+ * Copyright (C) 2015,2016,2019-2026 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -72,6 +72,7 @@ attributes_t attributes[] = {
     { ATTR(attr_sha3_256),       "sha3_256",     "SHA3-256",    "sha3_256",     "sha3-256",     '\0'  },
     { ATTR(attr_sha3_512),       "sha3_512",     "SHA3-512",    "sha3_512",     "sha3-512",     '\0'  },
     { ATTR(attr_fs_type),        "fstype",       "FS type",     "fstype",       "fs_type",      'F'  },
+    { ATTR(attr_blake3),         "blake3",       "BLAKE3",      "blake3",       "blake3",      '\0'   },
 };
 
 DB_ATTR_TYPE num_attrs = sizeof(attributes)/sizeof(attributes_t);

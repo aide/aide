@@ -78,6 +78,7 @@ aide_CFLAGS = @AIDE_DEFS@ -I$(top_srcdir)/include -W -Wall -g \
 			${PTHREAD_CFLAGS} \
 			${SELINUX_CFLAGS} \
 			${XATTR_CFLAGS} \
+			${BLAKE3_CFLAGS} \
 			${ZLIB_CFLAGS}
 aide_LDADD = -lm \
 			${AUDIT_LIBS} \
@@ -92,6 +93,7 @@ aide_LDADD = -lm \
 			${PTHREAD_LIBS} \
 			${SELINUX_LIBS} \
 			${XATTR_LIBS} \
+			${BLAKE3_LIBS} \
 			${ZLIB_LIBS}
 
 if HAVE_CHECK
@@ -108,11 +110,13 @@ check_aide_CFLAGS	= -I$(top_srcdir)/include \
 				$(CHECK_CFLAGS) \
 				${GCRYPT_CFLAGS} \
 				${NETTLE_CFLAGS} \
+				${BLAKE3_CFLAGS} \
 				${PCRE2_CFLAGS}
 check_aide_LDADD	= -lm \
 				$(CHECK_LIBS) \
 				${GCRYPT_LIBS} \
 				${NETTLE_LIBS} \
+				${BLAKE3_LIBS} \
 				${PCRE2_LIBS}
 endif # HAVE_CHECK
 

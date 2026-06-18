@@ -1,3 +1,6 @@
+2026-06-18 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Add 'blake3' hashsum support (closes: #106)
+
 2026-06-13 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix type of stat_diff variable
 

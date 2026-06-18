@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2007, 2010-2013, 2016, 2018-2025 Rami Lehti,
+ * Copyright (C) 1999-2007, 2010-2013, 2016, 2018-2026 Rami Lehti,
  *               Pablo Virolainen, Mike Markley, Richard van den Berg,
  *               Hannes von Haugwitz
  *
@@ -481,6 +481,7 @@ static int construct_database_line(db_line *line, char *str) {
             CASE_HASHSUM(sha512_256)
             CASE_HASHSUM(sha3_256)
             CASE_HASHSUM(sha3_512)
+            CASE_HASHSUM(blake3)
             case attr_acl: {
 #ifdef WITH_ACL
                 n += str_acl(str, n, line->acl);

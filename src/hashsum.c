@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2020,2022,2024-2025 Hannes von Haugwitz
+ * Copyright (C) 2020,2022,2024-2026 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -48,6 +48,7 @@ hashsum_t hashsums[] = {
     { attr_sha512_256,      32 },
     { attr_sha3_256,        32 },
     { attr_sha3_512,        64 },
+    { attr_blake3,          32 },
 };
 
 DB_ATTR_TYPE DEPRECATED_HASHES = ATTR(attr_md5)|ATTR(attr_sha1)|ATTR(attr_rmd160)|ATTR(attr_gostr3411_94);
@@ -71,6 +72,11 @@ int algorithms[] = { /* order must match hashsums array */
    1,  /* sha512_256 */
    1,  /* sha3-256 */
    1,  /* sha3-512 */
+#ifdef WITH_BLAKE3
+    1,
+#else
+    -1,
+#endif
 };
 #endif
 
@@ -92,6 +98,11 @@ int algorithms[] = { /* order must match hashsums array */
   GCRY_MD_SHA512_256,
   GCRY_MD_SHA3_256,
   GCRY_MD_SHA3_512,
+#ifdef WITH_BLAKE3
+    1,
+#else
+    -1,
+#endif
 };
 #endif
 

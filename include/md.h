@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2000-2002, 2005-2006, 2020, 2022, 2024, 2025 Rami Lehti,
+ * Copyright (C) 2000-2002, 2005-2006, 2020, 2022, 2024-2026 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -34,6 +34,9 @@
 #endif
 #ifdef WITH_GCRYPT
 #include <gcrypt.h>
+#endif
+#ifdef WITH_BLAKE3
+#include <blake3.h>
 #endif
 #include <sys/types.h>
 #include "attributes.h"
@@ -80,6 +83,9 @@ typedef struct md_container {
   gcry_md_hd_t mdh;
 #endif
 
+#ifdef WITH_BLAKE3
+  blake3_hasher blake3;
+#endif
 } md_container;
 
 typedef struct md_hashsums {

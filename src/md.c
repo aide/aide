@@ -37,6 +37,10 @@
 #include <gcrypt.h>
 #endif
 
+#ifdef WITH_BLAKE3
+#include <blake3.h>
+#endif
+
 #ifdef WITH_NETTLE
 #include <nettle/nettle-types.h>
 #include <nettle/md5.h>
@@ -72,6 +76,7 @@ nettle_fucntions_t nettle_functions[] = {  /* order must match hashsums array */
     { (nettle_hash_init_func*) sha512_256_init, (nettle_hash_update_func*) sha512_256_update, (nettle_hash_digest_func*) sha512_256_digest },
     { (nettle_hash_init_func*) sha3_256_init, (nettle_hash_update_func*) sha3_256_update, (nettle_hash_digest_func*) sha3_256_digest },
     { (nettle_hash_init_func*) sha3_512_init, (nettle_hash_update_func*) sha3_512_update, (nettle_hash_digest_func*) sha3_512_digest },
+    { NULL,                                 NULL,                                     NULL                                     },
 };
 #endif
 
@@ -87,37 +92,43 @@ int init_md(struct md_container* md, const char *filename, const char *whoami) {
     return RETFAIL;  
   }
 #endif
-  /*
-    We don't have calculator for this yet :)
-  */
-  md->calc_attr=0;
-#ifdef WITH_NETTLE
-   for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
-       DB_ATTR_TYPE h = ATTR(hashsums[i].attribute);
-       if (h&md->todo_attr) {
-           nettle_functions[i].init(&md->ctx[i]);
-           md->calc_attr|=h;
-       }
-   }
-#endif
 #ifdef WITH_GCRYPT
 	if(gcry_md_open(&md->mdh,0,0)!=GPG_ERR_NO_ERROR){
 		log_msg(LOG_LEVEL_ERROR,"gcrypt_md_open failed");
 		exit(IO_ERROR);
 	}
-
+#endif
+  /*
+    We don't have calculator for this yet :)
+  */
+  md->calc_attr=0;
    for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
-        DB_ATTR_TYPE h = ATTR(hashsums[i].attribute);
-            if (h&md->todo_attr) {
+       DB_ATTR_TYPE h = ATTR(hashsums[i].attribute);
+       if (h&md->todo_attr) {
+            switch (i) {
+                case hash_blake3:
+#ifdef WITH_BLAKE3
+                    blake3_hasher_init(&md->blake3);
+                    md->calc_attr |= h;
+#endif
+                break;
+                default:
+#ifdef WITH_NETTLE
+                nettle_functions[i].init(&md->ctx[i]);
+                md->calc_attr|=h;
+#endif
+#ifdef WITH_GCRYPT
                 if(gcry_md_enable(md->mdh,algorithms[i])==GPG_ERR_NO_ERROR){
                     md->calc_attr|=h;
                 } else {
                     log_msg(LOG_LEVEL_WARNING,"%s: gcry_md_enable (%s) failed for '%s'", filename, attributes[hashsums[i].attribute].db_name, filename);
                     md->todo_attr&=~h;
                 }
-            }
-  }
 #endif
+                break;
+            }
+       }
+   }
   char *str;
   LOG_WHOAMI(LOG_LEVEL_DEBUG, "%s> initialized md_container: %s (%p)", filename, str = diff_attributes(0, md->calc_attr), (void*) md);
   free(str);
@@ -140,13 +151,18 @@ int update_md(struct md_container* md,void* data,ssize_t size) {
 #ifdef WITH_NETTLE
    for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
        DB_ATTR_TYPE h = ATTR(hashsums[i].attribute);
-       if (h&md->calc_attr) {
+       if (i != hash_blake3 && h&md->calc_attr) {
            nettle_functions[i].update(&md->ctx[i], size, data);
        }
    }
 #endif
 #ifdef WITH_GCRYPT
 	gcry_md_write(md->mdh, data, size);
+#endif
+#ifdef WITH_BLAKE3
+   if (ATTR(attr_blake3)&md->todo_attr) {
+       blake3_hasher_update(&md->blake3, data, size);
+    }
 #endif
   return RETOK;
 }
@@ -164,25 +180,30 @@ int close_md(struct md_container* md, md_hashsums * hs, const char *filename, co
 #endif
     if (hs) {
         LOG_WHOAMI(LOG_LEVEL_DEBUG, "%s> copy hashsums from md_container (%p)", filename, (void*) md);
-#ifdef WITH_NETTLE
         for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
             DB_ATTR_TYPE h = ATTR(hashsums[i].attribute);
             if (h&md->calc_attr) {
-#if NETTLE_VERSION_MAJOR < 4
-                nettle_functions[i].digest(&md->ctx[i].md5, hashsums[i].length, hs->hashsums[i]);
-#else
-                nettle_functions[i].digest(&md->ctx[i].md5, hs->hashsums[i]);
+                switch (i) {
+                    case hash_blake3:
+#ifdef WITH_BLAKE3
+                    blake3_hasher_finalize(&md->blake3, hs->hashsums[i], hashsums[i].length);
 #endif
-            }
-        }
+                        break;
+                    default:
+#ifdef WITH_NETTLE
+#if NETTLE_VERSION_MAJOR < 4
+                        nettle_functions[i].digest(&md->ctx[i].md5, hashsums[i].length, hs->hashsums[i]);
+#else
+                        nettle_functions[i].digest(&md->ctx[i].md5, hs->hashsums[i]);
+#endif
 #endif
 #ifdef WITH_GCRYPT
-        for (HASHSUM i = 0 ; i < num_hashes ; ++i) {
-            if (md->calc_attr&ATTR(hashsums[i].attribute)) {
-                memcpy(hs->hashsums[i],gcry_md_read(md->mdh, algorithms[i]), hashsums[i].length);
+                        memcpy(hs->hashsums[i],gcry_md_read(md->mdh, algorithms[i]), hashsums[i].length);
+#endif
+                    break;
+                }
             }
         }
-#endif
         hs->attrs = md->calc_attr;
     }
     LOG_WHOAMI(LOG_LEVEL_DEBUG, "%s> free md_container (%p)", filename, (void*) md);

@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 1999-2006, 2010-2011, 2013, 2019-2025 Rami Lehti,
+ * Copyright (C) 1999-2006, 2010-2011, 2013, 2019-2026 Rami Lehti,
  *               Pablo Virolainen, Richard van den Berg, Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
@@ -353,6 +353,7 @@ db_line* db_char2line(char** ss, database* db){
     CHAR2HASH(sha512_256)
     CHAR2HASH(sha3_256)
     CHAR2HASH(sha3_512)
+    CHAR2HASH(blake3)
     case attr_acl : {
 #ifdef WITH_POSIX_ACL
       char *tval = NULL;

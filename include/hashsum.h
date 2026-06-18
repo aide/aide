@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2020,2022,2024,2025 Hannes von Haugwitz
+ * Copyright (C) 2020,2022,2024-2026 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -46,6 +46,7 @@ typedef enum {
     hash_sha512_256,
     hash_sha3_256,
     hash_sha3_512,
+    hash_blake3,
     num_hashes,
 } HASHSUM;
 

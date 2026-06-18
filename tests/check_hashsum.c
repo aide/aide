@@ -1,7 +1,7 @@
 /*
  * AIDE (Advanced Intrusion Detection Environment)
  *
- * Copyright (C) 2024,2025 Hannes von Haugwitz
+ * Copyright (C) 2024-2026 Hannes von Haugwitz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -51,6 +51,7 @@ static hashsum_test_t hashsum_tests[] = {
                                 "c672b8d1ef56ed28ab87c3622c5114069bdd3ad7b8f9737498d0c01ecef0967a",  /* sha512_256 */
                                 "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a",  /* sha3-256 */
                                 "a69f73cca23a9ac5c8b567dc185a756e97c982164fe25859e0d1dcc1475c80a615b2123af1f5f94c11e3e9402c3ac558f500199d95b6d3e301758586281dcd26",  /* sha3-512 */
+                                "af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262",  /* blake3 */
                              }
     },
     { .size = 12, .expected = {
@@ -70,6 +71,7 @@ static hashsum_test_t hashsum_tests[] = {
                                 "e39ab44f3128533b5a3092a13c6de7e759f0d048a58df860fe3d9d5341e1b507",  /* sha512_256 */
                                 "d99428764cc43a2ff5c1ac4db1e5da826a97dae5530e268650318adb2e2e246f",  /* sha3-256 */
                                 "644f8950457497a7ad3b89ff1bae0d5104604dfe7191b95fed4750a551bb0705173fba66cb71bac5e89dbef418096a76f74db060298c3e2ab54a3513fe50b9ea",  /* sha3-512 */
+                                "70362349306583814089d77cc9f2dd28865f0d4b38f2e2ab87d5c31073c5a9fc",  /* blake3 */
                              }
     },
     { .size = 62, .expected = {
@@ -89,6 +91,7 @@ static hashsum_test_t hashsum_tests[] = {
                                 "f288ffd88561cb7fa728dbaa80fe195016a188959be61f1c297826fec2a11864",  /* sha512_256 */
                                 "4d877e02ff6f9ffdf4fe894a5814fb8836db7b1e18f8c94788cf8144d6eca616",  /* sha3-256 */
                                 "15b6d95c749b322c9d91e92bc5498cdabe0919fb7a7d3d7f9940092077e61370f96b46079b4858ee14906c929d0217acaf58d3fa8c2d622b29a95dd643978cd6",  /* sha3-512 */
+                                "dd2ab19b5ac7fcc433cd8a880bda0cd27c29f793eac2e86707fcdcad03d3b3d7",  /* blake3 */
                              }
     },
 };

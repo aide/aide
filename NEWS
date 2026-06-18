@@ -1,4 +1,5 @@
 Version 0.20 (UNRELEASED)
+    * Add 'blake3' hashsum support (requiers libblake3)
     * Add info about worker states to progress bar
     * Add report format 'ndjson'
     * Drop local getopt_long() implementation

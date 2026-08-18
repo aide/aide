@@ -239,6 +239,7 @@ db_entry_t db_readline_file(database* db, bool include_limited_entries) {
                         LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "skip line with invalid path: '%s'", token)
                         break;
                     } else {
+                        decode_string(token);
                         if (check_limit(token, true, NULL)) {
                             if (include_limited_entries) {
                                 entry.limit = true;

@@ -291,7 +291,6 @@ db_line* db_char2line(char** ss, database* db){
     switch (db->fields[i]) {
     case attr_filename : {
       if(ss[db->fields[i]]!=NULL){
-          decode_string(ss[db->fields[i]]);
           line->fullpath=checked_strdup(ss[db->fields[i]]);
           line->filename=line->fullpath;
       } else {

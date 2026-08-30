@@ -4,6 +4,9 @@
 2026-08-18 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix segfault on limit matching encoded filename (closes: #228)
 
+2026-06-07 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Extend expiration dates of GPG key in SECURITY.md
+
 2026-06-04 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix groff warnings in aide.conf.5 (closes: #222)
 

@@ -10,6 +10,9 @@
 2026-06-13 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix type of stat_diff variable
 
+2026-06-07 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Extend expiration dates of GPG key in SECURITY.md
+
 2026-06-06 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix output of non-file database URLs in reports
 	* Add report format 'ndjson' (closes: #219)

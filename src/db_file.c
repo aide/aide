@@ -205,7 +205,10 @@ db_entry_t db_readline_file(database* db, bool include_limited_entries) {
             default:
                 saveptr = NULL;
                 token = strtok_r(line, " ", &saveptr);
-                if (strcmp("@@db_spec", token) == 0) {
+                if (token == NULL) {
+                    LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "skip line (no token found): '%s'", line)
+                    break;
+                } else if (strcmp("@@db_spec", token) == 0) {
                     if (db->fields) {
                         LOG_DB_FORMAT_LINE(LOG_LEVEL_WARNING, "skip additional '%s' line", token)
                     } else {

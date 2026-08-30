@@ -1,5 +1,6 @@
 2026-08-30 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix segfault on db line with missing tokens (closes: #229)
+	* Release aide 0.19.4
 
 2026-08-18 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix segfault on limit matching encoded filename (closes: #228)

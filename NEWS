@@ -1,4 +1,4 @@
-Version 0.19.4 (UNRELEASED)
+Version 0.19.4 (2026-08-30)
     * Fix segfault on db line with missing tokens
     * Fix segfault on limit matching encoded filename
     * Extend expiration dates of GPG key in SECURITY.md

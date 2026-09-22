@@ -9,6 +9,7 @@ body:
         ### Please read the following before submitting:
         - Please do **NOT** submit bug reports for questions. Ask questions on the [AIDE user mailing list](https://www.ipi.fi/mailman/listinfo/aide).
         - Please ensure that this bug report relates to the command line tool AIDE (Advanced Intrusion Detection Environment).
+        - For AI-assisted bug reports **ALWAYS** disclose AI usage and follow instructions in AGENTS.md.
         - If possible, please reproduce the issue with `aide`, built from the latest git sources.
 
   - type: textarea

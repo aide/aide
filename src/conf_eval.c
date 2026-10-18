@@ -597,7 +597,7 @@ static void include_directory(const char* dir, const char* rx, bool execute, cha
     PCRE2_SIZE pcre2_erroffset;
     pcre2_code* crx;
 
-    if((crx = pcre2_compile((PCRE2_SPTR) rx, PCRE2_ZERO_TERMINATED, PCRE2_UTF, &pcre2_errorcode, &pcre2_erroffset, NULL)) == NULL) {
+    if((crx = pcre2_compile((PCRE2_SPTR) rx, PCRE2_ZERO_TERMINATED, PCRE2_NEVER_UTF, &pcre2_errorcode, &pcre2_erroffset, NULL)) == NULL) {
         PCRE2_UCHAR pcre2_error[128];
         pcre2_get_error_message(pcre2_errorcode, pcre2_error, 128);
         LOG_CONFIG_FORMAT_LINE(LOG_LEVEL_ERROR, "'%s': error in regular expression '%s' at %zu: %s", execute?"@@x_include":"@@include", rx, pcre2_erroffset, pcre2_error)

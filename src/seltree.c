@@ -231,7 +231,7 @@ rx_rule * add_rx_to_tree(char * rx, rx_restriction_t restriction, AIDE_RULE_TYPE
     int pcre2_errorcode;
     PCRE2_SIZE pcre2_erroffset;
 
-    if((r->crx=pcre2_compile((PCRE2_SPTR) r->rx, PCRE2_ZERO_TERMINATED, PCRE2_UTF|PCRE2_ANCHORED, &pcre2_errorcode, &pcre2_erroffset, NULL)) == NULL) {
+    if((r->crx=pcre2_compile((PCRE2_SPTR) r->rx, PCRE2_ZERO_TERMINATED, PCRE2_NEVER_UTF|PCRE2_ANCHORED, &pcre2_errorcode, &pcre2_erroffset, NULL)) == NULL) {
         PCRE2_UCHAR pcre2_error[128];
         pcre2_get_error_message(pcre2_errorcode, pcre2_error, 128);
         log_msg(LOG_LEVEL_ERROR, "%s:%d:%zu: error in rule '%s': %s (line: '%s')", filename, linenumber, pcre2_erroffset, rx, pcre2_error, linebuf);

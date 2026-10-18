@@ -299,7 +299,7 @@ static void read_param(int argc,char**argv)
                 int len = (strlen(optarg)+1) * sizeof(char);
                 conf->limit=checked_malloc(len);
                 strncpy(conf->limit, optarg, len);
-                if((conf->limit_crx=pcre2_compile((PCRE2_SPTR) conf->limit, PCRE2_ZERO_TERMINATED, PCRE2_UTF|PCRE2_ANCHORED, &pcre2_errorcode, &pcre2_erroffset, NULL)) == NULL) {
+                if((conf->limit_crx=pcre2_compile((PCRE2_SPTR) conf->limit, PCRE2_ZERO_TERMINATED, PCRE2_NEVER_UTF|PCRE2_ANCHORED, &pcre2_errorcode, &pcre2_erroffset, NULL)) == NULL) {
                     PCRE2_UCHAR pcre2_error[128];
                     pcre2_get_error_message(pcre2_errorcode, pcre2_error, 128);
                     char * limit_safe = stresc(conf->limit);

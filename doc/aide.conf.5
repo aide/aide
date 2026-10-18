@@ -480,6 +480,12 @@ against the complete path.
 Special characters can be escaped using
 two-digit URL encoding (for example, %20 to represent a space).
 
+Rules and file names are always treated as single byte sequences (i.e. not as
+UTF strings). That means that multi byte characters aren't matched by single
+dot ('.') or inside a character class. To match UTF multi byte characters,
+explicitly state them in the rule either verbatim (e.g. `®` for registered
+sign) or by hexadecimal escaping (e.g. '\\xC2\\xAE').
+
 AIDE uses a deepest-match algorithm to find the tree node to search,
 but a first-match algorithm inside the node.
 (see also \fBrule\fP log level).

@@ -1,3 +1,8 @@
+2026-10-18 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Always treat regexes and file names as single byte sequences
+	  - this addresses GHSA-wq25-fm54-5q3q (CVE pending)
+	  - thanks to Rajesh Pangare for reporting this issue
+
 2026-08-30 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix segfault on db line with missing tokens (closes: #229)
 	* Release aide 0.19.4

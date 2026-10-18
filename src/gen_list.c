@@ -61,7 +61,7 @@ void fs2db_line(struct stat* fs,db_line* line);
 LOG_LEVEL compare_log_level = LOG_LEVEL_COMPARE;
 
 static int bytecmp(byte *b1, byte *b2, size_t len) {
-  return strncmp((char *)b1, (char *)b2, len);
+  return memcmp((char *)b1, (char *)b2, len);
 }
 
 static int has_str_changed(char* old,char* new) {

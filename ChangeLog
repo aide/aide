@@ -2,6 +2,9 @@
 	* Always treat regexes and file names as single byte sequences
 	  - this addresses GHSA-wq25-fm54-5q3q (CVE pending)
 	  - thanks to Rajesh Pangare for reporting this issue
+	* Use memcmp to compare hashsum byte sequences
+	  - this addresses GHSA-6wc9-4w69-5jc5 (CVE pending)
+	  - thanks to a community member for reporting this issue
 
 2026-08-30 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Fix segfault on db line with missing tokens (closes: #229)

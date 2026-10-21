@@ -1,3 +1,10 @@
+Version 0.19.5 (UNRELEASED)
+    * Security bug fixes
+      - Use memcmp to compare hashsum byte sequences
+        (GHSA-6wc9-4w69-5jc5, CVE pending)
+      - Always treat regexes and file names as single byte sequences
+        (GHSA-wq25-fm54-5q3q, CVE pending)
+
 Version 0.19.4 (2026-08-30)
     * Fix segfault on db line with missing tokens
     * Fix segfault on limit matching encoded filename

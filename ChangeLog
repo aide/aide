@@ -1,3 +1,6 @@
+2026-10-21 Hannes von Haugwitz <hannes@vonhaugwitz.com>
+	* Release aide 0.19.5
+
 2026-10-18 Hannes von Haugwitz <hannes@vonhaugwitz.com>
 	* Always treat regexes and file names as single byte sequences
 	  - this addresses GHSA-wq25-fm54-5q3q (CVE pending)

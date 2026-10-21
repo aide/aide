@@ -1,4 +1,4 @@
-Version 0.19.5 (UNRELEASED)
+Version 0.19.5 (2026-10-21)
     * Security bug fixes
       - Use memcmp to compare hashsum byte sequences
         (GHSA-6wc9-4w69-5jc5, CVE pending)
